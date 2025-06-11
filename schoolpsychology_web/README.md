@@ -1,12 +1,130 @@
-# React + Vite
+# School Psychology Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React application built with Vite for school psychology management, featuring multi-language support, theme switching, and authentication.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### ✅ Theme Configuration
 
-## Expanding the ESLint configuration
+- **Ant Design Theme**: Latest version with `ConfigProvider` support
+- **Light/Dark Mode**: Toggle between themes using `theme.algorithm`
+- **Persistent Storage**: Theme preference saved in localStorage
+- **Tailwind Integration**: Dark mode support with `darkMode: 'class'`
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### ✅ Internationalization (i18n)
+
+- **react-i18next**: Full i18n support with language detection
+- **Languages**: Vietnamese (default) and English
+- **Persistent Storage**: Language preference saved in localStorage
+- **Dynamic Switching**: Real-time language switching
+
+### ✅ Routing & Authentication
+
+- **react-router-dom**: Client-side routing with BrowserRouter
+- **Protected Routes**: Authentication-based route protection
+- **Login System**: Demo authentication (admin/admin)
+- **Auto Redirect**: Redirect to dashboard after login
+
+### ✅ Modern Development Setup
+
+- **Vite**: Fast build tool and development server
+- **ESLint**: Code linting with React hooks support
+- **Prettier**: Code formatting with custom configuration
+- **Tailwind CSS**: Utility-first CSS framework
+
+## 📁 Project Structure
+
+```
+src/
+├── components/          # Shared UI components
+│   ├── ThemeSwitcher.jsx
+│   ├── LanguageSwitcher.jsx
+│   └── ProtectedRoute.jsx
+├── contexts/           # React contexts
+│   ├── ThemeContext.jsx
+│   ├── LanguageContext.jsx
+│   └── AuthContext.jsx
+├── locales/           # Translation files
+│   ├── vi/translation.json
+│   └── en/translation.json
+├── pages/             # Application pages
+│   ├── Login.jsx
+│   └── Dashboard.jsx
+├── i18n.js           # i18n configuration
+├── App.jsx           # Main app component
+└── main.jsx          # Application entry point
+```
+
+## 🛠️ Installation & Setup
+
+1. **Install dependencies:**
+
+   ```bash
+   npm install
+   ```
+
+2. **Start development server:**
+
+   ```bash
+   npm run dev
+   ```
+
+3. **Build for production:**
+
+   ```bash
+   npm run build
+   ```
+
+4. **Preview production build:**
+   ```bash
+   npm run preview
+   ```
+
+## 🔧 Development Commands
+
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint errors
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+
+## 🔐 Demo Credentials
+
+- **Username:** `admin`
+- **Password:** `admin`
+
+## 🎨 Theme & Language
+
+- **Theme Toggle:** Available in header (sun/moon icon)
+- **Language Switch:** Available in header (globe icon with dropdown)
+- **Persistence:** Both preferences are saved in localStorage
+
+## 🌐 Supported Languages
+
+- 🇻🇳 **Vietnamese (vi)** - Default language
+- 🇺🇸 **English (en)** - Secondary language
+
+## 📱 Responsive Design
+
+The application is fully responsive and works on:
+
+- Desktop computers
+- Tablets
+- Mobile devices
+
+## 🔧 Configuration Files
+
+- `tailwind.config.js` - Tailwind CSS configuration
+- `vite.config.js` - Vite build configuration
+- `eslint.config.js` - ESLint rules and settings
+- `prettier.config.js` - Code formatting rules
+
+## 🚀 Deployment
+
+The application can be deployed to any static hosting service:
+
+1. Run `npm run build`
+2. Deploy the `dist` folder to your hosting service
+
+## 📝 License
+
+This project is private and proprietary.

@@ -1,0 +1,42 @@
+{
+  "app": {
+    "title": "MindfulCare",
+    "welcome": "Welcome"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "reports": "Reports",
+    "sessions": "Sessions",
+    "supportPrograms": "Support Programs",
+    "profile": "Profile",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "error": "Invalid email or password",
+      "required": "This field is required",
+      "forgotPassword": "Forgot password?",
+      "register": "Don't have an account?",
+      "registerLink": "Register"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to the School Psychology System"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "switch": "Switch Theme"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "switch": "Switch Language"
+  }
+}

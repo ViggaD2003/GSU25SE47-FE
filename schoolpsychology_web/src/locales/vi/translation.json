@@ -1,0 +1,42 @@
+{
+  "app": {
+    "title": "MindfulCare",
+    "welcome": "Chào mừng"
+  },
+  "navigation": {
+    "dashboard": "Bảng điều khiển",
+    "reports": "Báo cáo",
+    "sessions": "Phiên làm việc",
+    "supportPrograms": "Chương trình hỗ trợ",
+    "profile": "Hồ sơ",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "error": "Email hoặc mật khẩu không đúng",
+      "required": "Trường này là bắt buộc",
+      "forgotPassword": "Quên mật khẩu?",
+      "register": "Không có tài khoản?",
+      "registerLink": "Đăng ký"
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng bạn đến với hệ thống tâm lý học đường"
+  },
+  "theme": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "switch": "Chuyển đổi chủ đề"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "switch": "Chuyển đổi ngôn ngữ"
+  }
+}
