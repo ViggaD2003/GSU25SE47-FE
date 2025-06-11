@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import {
   //   selectAuth,
@@ -11,16 +11,7 @@ import {
   logoutUser,
   initializeAuthFromStorage,
 } from '../store/actions/authActions'
-
-const AuthContext = createContext()
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  return context
-}
+import { AuthContext } from './auth'
 
 export const AuthProvider = ({ children }) => {
   const dispatch = useDispatch()

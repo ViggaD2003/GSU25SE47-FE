@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Form, Input, Button, Alert } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
-import { useAuth } from '../../contexts/AuthContext'
+import { useAuth } from '@hooks'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
