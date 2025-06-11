@@ -2,9 +2,9 @@ import { createSlice } from '@reduxjs/toolkit'
 
 // Define role permissions
 export const ROLE_PERMISSIONS = {
-  manager: ['/dashboard', '/reports'],
-  teacher: ['/dashboard', '/sessions'],
-  counselor: ['/dashboard', '/support-programs'],
+  manager: ['/dashboard', '/client-management', '/staff-management'],
+  teacher: ['/dashboard', '/appointments'],
+  counselor: ['/dashboard', '/appointments', '/support-programs'],
 }
 
 const initialState = {

@@ -4,7 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectUserRole } from '../../store/slices/authSlice'
 import { useTranslation } from 'react-i18next'
-import { DashboardOutlined, FileTextOutlined } from '@ant-design/icons'
+import {
+  DashboardOutlined,
+  FileTextOutlined,
+  UserOutlined,
+} from '@ant-design/icons'
 
 const Navigation = memo(({ collapsed }) => {
   const navigate = useNavigate()
@@ -30,11 +34,23 @@ const Navigation = memo(({ collapsed }) => {
         allowedRoles: ['manager', 'teacher', 'counselor'],
       },
       {
-        key: '/reports',
-        icon: <FileTextOutlined />,
-        label: t('navigation.reports'),
-        onClick: handleNavigate('/reports'),
-        allowedRoles: ['teacher', 'counselor'],
+        key: '/client-management',
+        icon: <UserOutlined />,
+        label: t('navigation.accountManagement.title'),
+        // onClick: handleNavigate('/client-management'),
+        children: [
+          {
+            key: '/client-management',
+            label: t('navigation.accountManagement.clients'),
+            onClick: handleNavigate('/client-management'),
+          },
+          {
+            key: '/staff-management',
+            label: t('navigation.accountManagement.staffs'),
+            onClick: handleNavigate('/staff-management'),
+          },
+        ],
+        allowedRoles: ['manager'],
       },
     ]
 

@@ -5,10 +5,13 @@
   },
   "navigation": {
     "dashboard": "Dashboard",
-    "reports": "Reports",
-    "sessions": "Sessions",
+    "accountManagement": {
+      "title": "Account Management",
+      "clients": "Clients",
+      "staffs": "Staffs"
+    },
+    "appointments": "Appointments",
     "supportPrograms": "Support Programs",
-    "profile": "Profile",
     "login": "Login",
     "logout": "Logout"
   },
@@ -38,5 +41,84 @@
     "vietnamese": "Tiếng Việt",
     "english": "English",
     "switch": "Switch Language"
+  },
+  "role": {
+    "student": "Student",
+    "parent": "Parent",
+    "teacher": "Teacher",
+    "counselor": "Counselor"
+  },
+  "clientManagement": {
+    "title": "Client Management",
+    "description": "Manage your clients and their information",
+    "fullName": "Full Name",
+    "user": "User",
+    "email": "Email",
+    "role": "Role",
+    "status": "Status",
+    "createDate": "Create Date",
+    "lastLogin": "Last Login",
+    "active": "Active",
+    "inactive": "Inactive",
+    "search": "Search users...",
+    "viewDetails": "View Details",
+    "refresh": "Refresh",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "inactiveUser": "Inactive User",
+    "confirm": "Confirm",
+    "allRoles": "All Roles",
+    "student": "Student",
+    "parent": "Parent",
+    "teacher": "Teacher",
+    "counselor": "Counselor",
+    "inactiveTitle": "Are you sure you want to inactive this user?",
+    "inactiveContent": "This will permanently inactive this user and all associated data.",
+    "inactiveSuccess": "User inactive successfully",
+    "inactiveCancel": "Cancel",
+    "inactiveConfirm": "Yes, Inactive",
+    "editUserSuccess": "Edit user successfully",
+    "addUserSuccess": "Add user successfully",
+    "of": "of",
+    "users": "users",
+    "editeUserModal": {
+      "title": "Edit user",
+      "confirm": "Save",
+      "cancel": "Cancel"
+    },
+    "addUserModal": {
+      "title": "Add user",
+      "confirm": "Create",
+      "cancel": "Cancel"
+    }
+  },
+  "staffManagement": {
+    "title": "Staff Management",
+    "description": "Manage your staff and their information",
+    "table": {
+      "user": "User",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "createDate": "Create Date",
+      "lastLogin": "Last Login",
+      "active": "Active",
+      "inactive": "Inactive",
+      "actions": {
+        "viewDetails": "View Details",
+        "editStaff": "Edit Staff",
+        "inactiveStaff": {
+          "title": "Inactive",
+          "modal": {
+            "title": "Inactive Staff",
+            "content": "Are you sure you want to inactive this staff?",
+            "confirm": "Inactive",
+            "cancel": "Cancel"
+          }
+        }
+      }
+    },
+    "search": "Search staff...",
+    "addStaff": "Add Staff"
   }
 }

@@ -27,6 +27,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  console.log(location)
+
   // If specific roles are required, check them
   if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
     return (

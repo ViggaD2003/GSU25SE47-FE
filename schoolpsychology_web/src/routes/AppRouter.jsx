@@ -9,6 +9,8 @@ import NotFound from '../pages/NotFound'
 import Login from '../pages/auth/Login'
 import Dashboard from '../pages/Dashboard'
 import ForgotPassword from '../pages/auth/ForgotPassword'
+import ClientManagement from '@/pages/manager/AccountManagement/ClientManagement'
+import StaffManagement from '@/pages/manager/AccountManagement/StaffManagement'
 
 const AppRouter = () => {
   return (
@@ -27,7 +29,7 @@ const AppRouter = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
-      {/* Protected routes with Layout as parent */}
+      {/* Protected routes */}
       <Route
         path="/"
         element={
@@ -36,9 +38,25 @@ const AppRouter = () => {
           </ProtectedRoute>
         }
       >
-        {/* Nested routes - these will render inside Layout's <Outlet /> */}
         <Route path="dashboard" element={<Dashboard />} />
+        <Route
+          path="client-management"
+          element={
+            <ProtectedRoute allowedRoles={['manager']}>
+              <ClientManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="staff-management"
+          element={
+            <ProtectedRoute allowedRoles={['manager']}>
+              <StaffManagement />
+            </ProtectedRoute>
+          }
+        />
       </Route>
+
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>

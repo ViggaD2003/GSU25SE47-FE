@@ -5,10 +5,13 @@
   },
   "navigation": {
     "dashboard": "Bảng điều khiển",
-    "reports": "Báo cáo",
-    "sessions": "Phiên làm việc",
+    "accountManagement": {
+      "title": "Quản lý tài khoản",
+      "clients": "Người dùng",
+      "staffs": "Nhân viên"
+    },
+    "appointments": "Danh sách cuộc hẹn",
     "supportPrograms": "Chương trình hỗ trợ",
-    "profile": "Hồ sơ",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
   },
@@ -38,5 +41,84 @@
     "vietnamese": "Tiếng Việt",
     "english": "English",
     "switch": "Chuyển đổi ngôn ngữ"
+  },
+  "role": {
+    "student": "Học sinh",
+    "parent": "Phụ huynh",
+    "teacher": "Giáo viên",
+    "counselor": "Tư vấn viên"
+  },
+  "clientManagement": {
+    "title": "Quản lý tài khoản người dùng",
+    "description": "Quản lý tài khoản người dùng và thông tin của họ",
+    "fullName": "Họ và tên",
+    "user": "Tài khoản",
+    "email": "Email",
+    "role": "Vai trò",
+    "status": "Trạng thái",
+    "createDate": "Ngày tạo",
+    "lastLogin": "Đăng nhập gần nhất",
+    "active": "Hoạt động",
+    "inactive": "Chặn",
+    "search": "Tìm kiếm người dùng...",
+    "viewDetails": "Xem chi tiết",
+    "refresh": "Làm mới",
+    "addUser": "Thêm tài khoản",
+    "editUser": "Sửa tài khoản",
+    "inactiveUser": "Chặn tài khoản",
+    "confirm": "Xác nhận",
+    "allRoles": "Tất cả vai trò",
+    "student": "Học sinh",
+    "parent": "Phụ huynh",
+    "teacher": "Giáo viên",
+    "counselor": "Tư vấn viên",
+    "inactiveTitle": "Bạn có chắc chắn muốn chặn hoạt động người dùng này không?",
+    "inactiveContent": "Điều này sẽ chặn hoạt động người dùng này và tất cả dữ liệu liên quan.",
+    "inactiveSuccess": "Người dùng chặn hoạt động thành công",
+    "inactiveCancel": "Hủy",
+    "inactiveConfirm": "Có, Không hoạt động",
+    "editUserSuccess": "Sửa người dùng thành công",
+    "addUserSuccess": "Thêm người dùng thành công",
+    "of": "trên",
+    "users": "tài khoản",
+    "editeUserModal": {
+      "title": "Sửa thông tin người dùng",
+      "confirm": "Lưu thông tin",
+      "cancel": "Hủy"
+    },
+    "addUserModal": {
+      "title": "Thêm tài khoản",
+      "confirm": "Tạo mới",
+      "cancel": "Hủy"
+    }
+  },
+  "staffManagement": {
+    "title": "Quản lý nhân viên",
+    "description": "Quản lý nhân viên và thông tin của họ",
+    "table": {
+      "user": "Tài khoản",
+      "email": "Email",
+      "role": "Vai trò",
+      "status": "Trạng thái",
+      "createDate": "Ngày tạo",
+      "lastLogin": "Đăng nhập gần nhất",
+      "active": "Hoạt động",
+      "inactive": "Chặn",
+      "actions": {
+        "viewDetails": "Xem chi tiết",
+        "editStaff": "Sửa nhân viên",
+        "inactiveStaff": {
+          "title": "Chặn",
+          "modal": {
+            "title": "Chặn nhân viên",
+            "content": "Bạn có chắc chắn muốn chặn nhân viên này không?",
+            "confirm": "Chặn",
+            "cancel": "Hủy"
+          }
+        }
+      }
+    },
+    "search": "Tìm kiếm nhân viên...",
+    "addStaff": "Thêm nhân viên"
   }
 }

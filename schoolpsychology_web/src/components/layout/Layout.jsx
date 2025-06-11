@@ -43,23 +43,23 @@ const LayoutComponent = () => {
     navigate('/login')
   }, [logout, navigate])
 
-  const handleProfileClick = useCallback(() => {
-    navigate('/profile')
-  }, [navigate])
+  // const handleProfileClick = useCallback(() => {
+  //   navigate('/profile')
+  // }, [navigate])
 
   const userMenuItems = useMemo(
     () => [
-      {
-        key: 'profile',
-        icon: <UserOutlined />,
-        label: t('navigation.profile'),
-        onClick: handleProfileClick,
-        hidden: user?.role === 'manager',
-      },
-      {
-        type: 'divider',
-        className: user?.role === 'manager' ? 'hidden' : 'block',
-      },
+      // {
+      //   key: 'profile',
+      //   icon: <UserOutlined />,
+      //   label: t('navigation.profile'),
+      //   onClick: handleProfileClick,
+      //   hidden: user?.role === 'manager',
+      // },
+      // {
+      //   type: 'divider',
+      //   className: user?.role === 'manager' ? 'hidden' : 'block',
+      // },
       {
         key: 'logout',
         icon: <LogoutOutlined style={{ color: 'red' }} />,
@@ -68,7 +68,7 @@ const LayoutComponent = () => {
         className: 'logout-menu-item',
       },
     ],
-    [t, handleProfileClick, handleLogout, user?.role]
+    [t, handleLogout]
   )
 
   const toggleSidebar = useCallback(() => {
