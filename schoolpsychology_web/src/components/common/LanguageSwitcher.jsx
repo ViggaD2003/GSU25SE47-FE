@@ -1,7 +1,6 @@
 import React, { memo, useMemo } from 'react'
 import { Select, Tooltip } from 'antd'
-import { GlobalOutlined } from '@ant-design/icons'
-import { useLanguage } from '../contexts/LanguageContext'
+import { useLanguage } from '../../contexts/LanguageContext'
 import { useTranslation } from 'react-i18next'
 
 const { Option } = Select

@@ -1,7 +1,7 @@
 import React, { memo } from 'react'
 import { Switch, Tooltip } from 'antd'
 import { SunOutlined, MoonOutlined } from '@ant-design/icons'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
 
 const ThemeSwitcher = memo(() => {

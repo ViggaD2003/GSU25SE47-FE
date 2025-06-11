@@ -1,11 +1,13 @@
 import { Route, Routes, Navigate } from 'react-router-dom'
-import Layout from '../components/Layout'
+import {
+  Layout,
+  AnonymousLayout as AnonymousLayoutComponent,
+  GuestRoute,
+  ProtectedRoute,
+} from '../components'
 import NotFound from '../pages/NotFound'
 import Login from '../pages/auth/Login'
 import Dashboard from '../pages/Dashboard'
-import GuestRoute from '../components/GuestRoute'
-import ProtectedRoute from '../components/ProtectedRoute'
-import AnonymousLayoutComponent from '../components/AnonymousLayout'
 import ForgotPassword from '../pages/auth/ForgotPassword'
 
 const AppRouter = () => {

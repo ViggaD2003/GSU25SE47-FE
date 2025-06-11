@@ -2,7 +2,10 @@ import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { Spin } from 'antd'
 import { useSelector } from 'react-redux'
-import { selectIsAuthenticated, selectLoading } from '../store/slices/authSlice'
+import {
+  selectIsAuthenticated,
+  selectLoading,
+} from '../../store/slices/authSlice'
 
 const GuestRoute = ({ children }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated)

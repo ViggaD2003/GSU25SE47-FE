@@ -7,7 +7,7 @@ import {
   selectLoading,
   selectUserRole,
   hasRouteAccess,
-} from '../store/slices/authSlice'
+} from '../../store/slices/authSlice'
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated)

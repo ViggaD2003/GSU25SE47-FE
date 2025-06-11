@@ -2,14 +2,9 @@ import React, { memo, useMemo, useCallback } from 'react'
 import { Menu } from 'antd'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { selectUserRole } from '../store/slices/authSlice'
+import { selectUserRole } from '../../store/slices/authSlice'
 import { useTranslation } from 'react-i18next'
-import {
-  DashboardOutlined,
-  FileTextOutlined,
-  TeamOutlined,
-  HeartOutlined,
-} from '@ant-design/icons'
+import { DashboardOutlined, FileTextOutlined } from '@ant-design/icons'
 
 const Navigation = memo(({ collapsed }) => {
   const navigate = useNavigate()

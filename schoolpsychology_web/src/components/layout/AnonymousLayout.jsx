@@ -2,9 +2,8 @@ import React from 'react'
 import { Layout } from 'antd'
 
 import { Outlet } from 'react-router-dom'
-import ThemeSwitcher from '../components/ThemeSwitcher'
-import LanguageSwitcher from '../components/LanguageSwitcher'
-import { useTheme } from '../contexts/ThemeContext'
+import { ThemeSwitcher, LanguageSwitcher } from '../common'
+import { useTheme } from '../../contexts/ThemeContext'
 
 const { Content } = Layout
 

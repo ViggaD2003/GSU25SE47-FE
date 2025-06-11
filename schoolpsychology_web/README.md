@@ -89,8 +89,8 @@ src/
 
 ## 🔐 Demo Credentials
 
-- **Username:** `admin`
-- **Password:** `admin`
+- **Email:** `manager@school.edu`
+- **Password:** `password`
 
 ## 🎨 Theme & Language
 
