@@ -5,61 +5,102 @@ import {
   GuestRoute,
   ProtectedRoute,
 } from '../components'
-import NotFound from '../pages/NotFound'
-import Login from '../pages/auth/Login'
-import Dashboard from '../pages/Dashboard'
-import ForgotPassword from '../pages/auth/ForgotPassword'
-import ClientManagement from '@/pages/manager/AccountManagement/ClientManagement'
-import StaffManagement from '@/pages/manager/AccountManagement/StaffManagement'
+import React, { lazy } from 'react'
+import { ROUTE_CONFIG } from '@/constants/routeConfig'
+
+// Sử dụng React.lazy cho các trang
+const NotFound = lazy(() => import('../pages/NotFound'))
+const Login = lazy(() => import('../pages/auth/Login'))
+const Dashboard = lazy(() => import('../pages/Dashboard'))
+const ForgotPassword = lazy(() => import('../pages/auth/ForgotPassword'))
+const ClientManagement = lazy(
+  () => import('@/pages/manager/AccountManagement/ClientManagement')
+)
+const StaffManagement = lazy(
+  () => import('@/pages/manager/AccountManagement/StaffManagement')
+)
+const AppointmentManagement = lazy(
+  () => import('@/pages/manager/AppointmentManagement')
+)
+const SurveyManagement = lazy(() => import('@/pages/manager/SurveyManagement'))
+const CaseManagement = lazy(() => import('@/pages/manager/CaseManagement'))
+const ProgramManagement = lazy(
+  () => import('@/pages/manager/ProgramManagement')
+)
 
 const AppRouter = () => {
+  const elementMap = {
+    Dashboard,
+    ClientManagement,
+    StaffManagement,
+    AppointmentManagement,
+    SurveyManagement,
+    CaseManagement,
+    ProgramManagement,
+  }
+
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route
-        path="/"
-        element={
-          <GuestRoute>
-            <AnonymousLayoutComponent />
-          </GuestRoute>
-        }
-      >
-        <Route index element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-      </Route>
-
-      {/* Protected routes */}
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
-        <Route path="dashboard" element={<Dashboard />} />
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        {/* Public routes */}
         <Route
-          path="client-management"
+          path="/"
           element={
-            <ProtectedRoute allowedRoles={['manager']}>
-              <ClientManagement />
+            <GuestRoute>
+              <AnonymousLayoutComponent />
+            </GuestRoute>
+          }
+        >
+          <Route index element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+
+        {/* Protected routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="staff-management"
-          element={
-            <ProtectedRoute allowedRoles={['manager']}>
-              <StaffManagement />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
+        >
+          {ROUTE_CONFIG.map(route => {
+            if (route.children) {
+              return route.children.map(child => (
+                <Route
+                  key={child.key}
+                  path={child.key.replace(/^\//, '')}
+                  element={
+                    <ProtectedRoute allowedRoles={route.allowedRoles}>
+                      {elementMap[child.element]
+                        ? React.createElement(elementMap[child.element])
+                        : null}
+                    </ProtectedRoute>
+                  }
+                />
+              ))
+            }
+            return (
+              <Route
+                key={route.key}
+                path={route.key.replace(/^\//, '')}
+                element={
+                  <ProtectedRoute allowedRoles={route.allowedRoles}>
+                    {elementMap[route.element]
+                      ? React.createElement(elementMap[route.element])
+                      : null}
+                  </ProtectedRoute>
+                }
+              />
+            )
+          })}
+        </Route>
 
-      {/* 404 route */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        {/* 404 route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </React.Suspense>
   )
 }
 

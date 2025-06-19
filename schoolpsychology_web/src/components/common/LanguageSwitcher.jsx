@@ -26,7 +26,7 @@ const LanguageSwitcher = memo(() => {
           onChange={changeLanguage}
           className="min-w-[60px] theme-transition"
           size="middle"
-          dropdownMatchSelectWidth={false}
+          popupMatchSelectWidth={false}
           suffixIcon={null}
           optionLabelProp="flag"
         >

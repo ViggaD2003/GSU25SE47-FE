@@ -10,8 +10,10 @@
       "clients": "Clients",
       "staffs": "Staffs"
     },
-    "appointments": "Appointments",
-    "supportPrograms": "Support Programs",
+    "appointmentsManagement": "Appointments Management",
+    "surveyManagement": "Survey Management",
+    "programManagement": "Support Program Management",
+    "caseManagement": "Student Support Cases",
     "login": "Login",
     "logout": "Logout"
   },
@@ -30,7 +32,46 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome to the School Psychology System"
+    "welcome": "Welcome to the School Psychology System",
+    "activeCases": "Active Cases",
+    "newCasesThisWeek": "New Cases This Week",
+    "surveyAboveThreshold": "Students Above Survey Threshold",
+    "upcomingAppointments": "Upcoming Appointments",
+    "caseStatus": {
+      "title": "Case Status",
+      "open": "Open",
+      "closed": "Closed",
+      "highRisk": "High Risk"
+    },
+    "grade": {
+      "10": "Grade 10",
+      "11": "Grade 11",
+      "12": "Grade 12"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "issue": {
+      "anxiety": "Anxiety",
+      "depression": "Depression",
+      "violence": "Violence",
+      "other": "Other"
+    },
+    "appointmentType": {
+      "individual": "Individual Counseling",
+      "group": "Group Counseling"
+    },
+    "charts": {
+      "title": "Trends Charts",
+      "byGrade": "By Grade",
+      "byGender": "By Gender",
+      "byIssue": "By Issue Type",
+      "trendByGrade": "Case Trend by Grade",
+      "ratioByGender": "Case Ratio by Gender",
+      "byIssueTitle": "Cases by Issue Type",
+      "cases": "Cases"
+    }
   },
   "theme": {
     "light": "Light",
@@ -44,81 +85,108 @@
   },
   "role": {
     "student": "Student",
-    "parent": "Parent",
+    "guardian": "Guardian",
     "teacher": "Teacher",
     "counselor": "Counselor"
   },
   "clientManagement": {
     "title": "Client Management",
     "description": "Manage your clients and their information",
-    "fullName": "Full Name",
-    "user": "User",
-    "email": "Email",
-    "role": "Role",
-    "status": "Status",
-    "createDate": "Create Date",
-    "lastLogin": "Last Login",
-    "active": "Active",
-    "inactive": "Inactive",
-    "search": "Search users...",
-    "viewDetails": "View Details",
     "refresh": "Refresh",
     "addUser": "Add User",
-    "editUser": "Edit User",
-    "inactiveUser": "Inactive User",
-    "confirm": "Confirm",
-    "allRoles": "All Roles",
-    "student": "Student",
-    "parent": "Parent",
-    "teacher": "Teacher",
-    "counselor": "Counselor",
-    "inactiveTitle": "Are you sure you want to inactive this user?",
-    "inactiveContent": "This will permanently inactive this user and all associated data.",
-    "inactiveSuccess": "User inactive successfully",
-    "inactiveCancel": "Cancel",
-    "inactiveConfirm": "Yes, Inactive",
-    "editUserSuccess": "Edit user successfully",
-    "addUserSuccess": "Add user successfully",
-    "of": "of",
-    "users": "users",
-    "editeUserModal": {
-      "title": "Edit user",
-      "confirm": "Save",
-      "cancel": "Cancel"
-    },
-    "addUserModal": {
-      "title": "Add user",
-      "confirm": "Create",
-      "cancel": "Cancel"
+    "search": "Search user...",
+    "messages": {
+      "editUserSuccess": "Edit user successfully",
+      "addUserSuccess": "Add user successfully",
+      "inactiveSuccess": "Inactive user successfully"
     }
   },
   "staffManagement": {
     "title": "Staff Management",
     "description": "Manage your staff and their information",
-    "table": {
-      "user": "User",
-      "email": "Email",
-      "role": "Role",
-      "status": "Status",
-      "createDate": "Create Date",
-      "lastLogin": "Last Login",
-      "active": "Active",
-      "inactive": "Inactive",
-      "actions": {
-        "viewDetails": "View Details",
-        "editStaff": "Edit Staff",
-        "inactiveStaff": {
-          "title": "Inactive",
-          "modal": {
-            "title": "Inactive Staff",
-            "content": "Are you sure you want to inactive this staff?",
-            "confirm": "Inactive",
-            "cancel": "Cancel"
-          }
-        }
-      }
-    },
+    "refresh": "Refresh",
+    "addStaff": "Add Staff",
     "search": "Search staff...",
-    "addStaff": "Add Staff"
+    "messages": {
+      "editUserSuccess": "Edit staff successfully",
+      "addUserSuccess": "Add staff successfully",
+      "inactiveSuccess": "Inactive staff successfully"
+    }
+  },
+  "userModal": {
+    "editTitle": "Edit user information",
+    "addTitle": "Add user information",
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "status": "Status"
+    },
+    "roleOptions": {
+      "student": "Student",
+      "guardian": "Guardian",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "userTable": {
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "roleOptions": {
+      "student": "Student",
+      "guardian": "Guardian",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
+    "status": "Status",
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "createDate": "Create Date",
+    "lastLogin": "Last Login"
+  },
+  "programManagement": {
+    "title": "Program Management",
+    "description": "Manage your program and their information",
+    "table": {
+      "name": "Program Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "caseManagement": {
+    "title": "Case Management",
+    "description": "Manage your case and their information",
+    "table": {
+      "name": "Case Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "surveyManagement": {
+    "title": "Survey Management",
+    "description": "Manage your survey and their information",
+    "table": {
+      "name": "Survey Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "appointmentManagement": {
+    "title": "Appointment Management",
+    "description": "Manage your appointment and their information",
+    "table": {
+      "name": "Appointment Name",
+      "description": "Description",
+      "status": "Status"
+    }
   }
 }

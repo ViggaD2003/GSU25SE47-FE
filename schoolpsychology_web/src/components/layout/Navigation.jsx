@@ -5,10 +5,14 @@ import { useSelector } from 'react-redux'
 import { selectUserRole } from '../../store/slices/authSlice'
 import { useTranslation } from 'react-i18next'
 import {
+  AlertOutlined,
+  AppstoreOutlined,
+  CalendarOutlined,
   DashboardOutlined,
   FileTextOutlined,
   UserOutlined,
 } from '@ant-design/icons'
+import { ROUTE_CONFIG } from '@/constants/routeConfig'
 
 const Navigation = memo(({ collapsed }) => {
   const navigate = useNavigate()
@@ -25,44 +29,21 @@ const Navigation = memo(({ collapsed }) => {
 
   // Memoize menu items based on user role to prevent recreation on every render
   const menuItems = useMemo(() => {
-    const baseItems = [
-      {
-        key: '/dashboard',
-        icon: <DashboardOutlined />,
-        label: t('navigation.dashboard'),
-        onClick: handleNavigate('/dashboard'),
-        allowedRoles: ['manager', 'teacher', 'counselor'],
-      },
-      {
-        key: '/client-management',
-        icon: <UserOutlined />,
-        label: t('navigation.accountManagement.title'),
-        // onClick: handleNavigate('/client-management'),
-        children: [
-          {
-            key: '/client-management',
-            label: t('navigation.accountManagement.clients'),
-            onClick: handleNavigate('/client-management'),
-          },
-          {
-            key: '/staff-management',
-            label: t('navigation.accountManagement.staffs'),
-            onClick: handleNavigate('/staff-management'),
-          },
-        ],
-        allowedRoles: ['manager'],
-      },
-    ]
+    // Lấy menu phù hợp role
+    const filterMenu = items =>
+      items
+        .filter(
+          item => !item.allowedRoles || item.allowedRoles.includes(userRole)
+        )
+        .map(({ allowedRoles: _ar, labelKey, children, icon, ...item }) => ({
+          ...item,
+          icon: icon ? React.createElement(icon) : undefined,
+          label: t(labelKey),
+          children: children ? filterMenu(children) : undefined,
+          onClick: item.key && !children ? handleNavigate(item.key) : undefined,
+        }))
 
-    // Filter base items by user role
-    const filteredBaseItems = baseItems.filter(
-      item => !item.allowedRoles || item.allowedRoles.includes(userRole)
-    )
-
-    // Clean up allowedRoles property from final items
-    return [...filteredBaseItems].map(
-      ({ allowedRoles: _allowedRoles, ...item }) => item
-    )
+    return filterMenu(ROUTE_CONFIG)
   }, [userRole, t, handleNavigate])
 
   const selectedKeys = useMemo(() => [location.pathname], [location.pathname])

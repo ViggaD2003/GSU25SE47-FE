@@ -1,11 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
-
-// Define role permissions
-export const ROLE_PERMISSIONS = {
-  manager: ['/dashboard', '/client-management', '/staff-management'],
-  teacher: ['/dashboard', '/appointments'],
-  counselor: ['/dashboard', '/appointments', '/support-programs'],
-}
+import { ROLE_PERMISSIONS } from '@/constants/routeConfig'
 
 const initialState = {
   user: null,

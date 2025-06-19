@@ -10,8 +10,10 @@
       "clients": "Người dùng",
       "staffs": "Nhân viên"
     },
-    "appointments": "Danh sách cuộc hẹn",
-    "supportPrograms": "Chương trình hỗ trợ",
+    "appointmentsManagement": "Quản lý cuộc hẹn",
+    "surveyManagement": "Quản lý khảo sát",
+    "programManagement": "Chương trình hỗ trợ",
+    "caseManagement": "Ca tư vấn",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
   },
@@ -30,7 +32,46 @@
   },
   "dashboard": {
     "title": "Bảng điều khiển",
-    "welcome": "Chào mừng bạn đến với hệ thống tâm lý học đường"
+    "welcome": "Chào mừng bạn đến với hệ thống tâm lý học đường",
+    "activeCases": "Học sinh đang có case",
+    "newCasesThisWeek": "Case mới tuần này",
+    "surveyAboveThreshold": "Học sinh vượt ngưỡng khảo sát",
+    "upcomingAppointments": "Lịch hẹn sắp tới",
+    "caseStatus": {
+      "title": "Tình trạng case",
+      "open": "Đang mở",
+      "closed": "Đã đóng",
+      "highRisk": "Nguy cơ cao"
+    },
+    "grade": {
+      "10": "Khối 10",
+      "11": "Khối 11",
+      "12": "Khối 12"
+    },
+    "gender": {
+      "male": "Nam",
+      "female": "Nữ"
+    },
+    "issue": {
+      "anxiety": "Lo âu",
+      "depression": "Trầm cảm",
+      "violence": "Bạo lực",
+      "other": "Khác"
+    },
+    "appointmentType": {
+      "individual": "Tư vấn cá nhân",
+      "group": "Tư vấn nhóm"
+    },
+    "charts": {
+      "title": "Biểu đồ xu hướng",
+      "byGrade": "Theo khối lớp",
+      "byGender": "Theo giới tính",
+      "byIssue": "Theo loại vấn đề",
+      "trendByGrade": "Xu hướng số case theo khối lớp",
+      "ratioByGender": "Tỉ lệ case theo giới tính",
+      "byIssueTitle": "Số case theo loại vấn đề",
+      "cases": "Số case"
+    }
   },
   "theme": {
     "light": "Sáng",
@@ -44,81 +85,99 @@
   },
   "role": {
     "student": "Học sinh",
-    "parent": "Phụ huynh",
+    "guardian": "Phụ huynh",
     "teacher": "Giáo viên",
     "counselor": "Tư vấn viên"
   },
   "clientManagement": {
     "title": "Quản lý tài khoản người dùng",
     "description": "Quản lý tài khoản người dùng và thông tin của họ",
-    "fullName": "Họ và tên",
-    "user": "Tài khoản",
-    "email": "Email",
-    "role": "Vai trò",
-    "status": "Trạng thái",
-    "createDate": "Ngày tạo",
-    "lastLogin": "Đăng nhập gần nhất",
-    "active": "Hoạt động",
-    "inactive": "Chặn",
-    "search": "Tìm kiếm người dùng...",
-    "viewDetails": "Xem chi tiết",
     "refresh": "Làm mới",
-    "addUser": "Thêm tài khoản",
-    "editUser": "Sửa tài khoản",
-    "inactiveUser": "Chặn tài khoản",
-    "confirm": "Xác nhận",
-    "allRoles": "Tất cả vai trò",
-    "student": "Học sinh",
-    "parent": "Phụ huynh",
-    "teacher": "Giáo viên",
-    "counselor": "Tư vấn viên",
-    "inactiveTitle": "Bạn có chắc chắn muốn chặn hoạt động người dùng này không?",
-    "inactiveContent": "Điều này sẽ chặn hoạt động người dùng này và tất cả dữ liệu liên quan.",
-    "inactiveSuccess": "Người dùng chặn hoạt động thành công",
-    "inactiveCancel": "Hủy",
-    "inactiveConfirm": "Có, Không hoạt động",
-    "editUserSuccess": "Sửa người dùng thành công",
-    "addUserSuccess": "Thêm người dùng thành công",
-    "of": "trên",
-    "users": "tài khoản",
-    "editeUserModal": {
-      "title": "Sửa thông tin người dùng",
-      "confirm": "Lưu thông tin",
-      "cancel": "Hủy"
-    },
-    "addUserModal": {
-      "title": "Thêm tài khoản",
-      "confirm": "Tạo mới",
-      "cancel": "Hủy"
+    "addUser": "Thêm người dùng",
+    "search": "Tìm kiếm người dùng...",
+    "messages": {
+      "editUserSuccess": "Sửa tài khoản người dùng thành công",
+      "addUserSuccess": "Thêm tài khoản người dùng thành công",
+      "inactiveSuccess": "Chặn tài khoản người dùng thành công"
     }
   },
   "staffManagement": {
     "title": "Quản lý nhân viên",
     "description": "Quản lý nhân viên và thông tin của họ",
-    "table": {
-      "user": "Tài khoản",
-      "email": "Email",
-      "role": "Vai trò",
-      "status": "Trạng thái",
-      "createDate": "Ngày tạo",
-      "lastLogin": "Đăng nhập gần nhất",
-      "active": "Hoạt động",
-      "inactive": "Chặn",
-      "actions": {
-        "viewDetails": "Xem chi tiết",
-        "editStaff": "Sửa nhân viên",
-        "inactiveStaff": {
-          "title": "Chặn",
-          "modal": {
-            "title": "Chặn nhân viên",
-            "content": "Bạn có chắc chắn muốn chặn nhân viên này không?",
-            "confirm": "Chặn",
-            "cancel": "Hủy"
-          }
-        }
-      }
-    },
+    "refresh": "Làm mới",
     "search": "Tìm kiếm nhân viên...",
-    "addStaff": "Thêm nhân viên"
+    "addStaff": "Thêm nhân viên",
+    "messages": {
+      "editUserSuccess": "Sửa tài khoản nhân viên thành công",
+      "addUserSuccess": "Thêm tài khoản nhân viên thành công",
+      "inactiveSuccess": "Chặn tài khoản nhân viên thành công"
+    }
+  },
+  "userModal": {
+    "editTitle": "Sửa thông tin người dùng",
+    "addTitle": "Thêm thông tin người dùng",
+    "form": {
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "role": "Vai trò",
+      "status": "Trạng thái"
+    },
+    "roleOptions": {
+      "student": "Học sinh",
+      "guardian": "Phụ huynh",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
+    "statusOptions": {
+      "active": "Hoạt động",
+      "inactive": "Chặn"
+    }
+  },
+  "userTable": {
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "role": "Vai trò",
+    "roleOptions": {
+      "student": "Học sinh",
+      "guardian": "Phụ huynh",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
+    "status": "Trạng thái",
+    "statusOptions": {
+      "active": "Hoạt động",
+      "inactive": "Chặn"
+    },
+    "createDate": "Ngày tạo",
+    "lastLogin": "Đăng nhập gần nhất"
+  },
+  "programManagement": {
+    "title": "Quản lý chương trình hỗ trợ",
+    "description": "Quản lý chương trình hỗ trợ và thông tin của họ",
+    "table": {
+      "name": "Tên chương trình",
+      "description": "Mô tả",
+      "status": "Trạng thái"
+    }
+  },
+  "caseManagement": {
+    "title": "Quản lý ca tư vấn",
+    "description": "Quản lý ca tư vấn và thông tin của họ",
+    "table": {
+      "name": "Tên ca tư vấn",
+      "description": "Mô tả",
+      "status": "Trạng thái"
+    }
+  },
+  "surveyManagement": {
+    "title": "Quản lý khảo sát",
+    "description": "Quản lý khảo sát và thông tin của họ",
+    "table": {
+      "name": "Tên khảo sát",
+      "description": "Mô tả",
+      "status": "Trạng thái"
+    }
   }
 }

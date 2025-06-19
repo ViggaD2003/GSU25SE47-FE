@@ -27,38 +27,14 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  console.log(location)
-
   // If specific roles are required, check them
   if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-    return (
-      <Result
-        status="403"
-        title="403"
-        subTitle="Sorry, you are not authorized to access this page."
-        extra={
-          <Button type="primary" onClick={() => window.history.back()}>
-            Go Back
-          </Button>
-        }
-      />
-    )
+    return <AccessFail isCurrentPath={false} userRole={userRole} />
   }
 
   // Check route-based permissions using the current path
   if (!hasRouteAccess(userRole, location.pathname)) {
-    return (
-      <Result
-        status="403"
-        title="Access Denied"
-        subTitle={`Your role (${userRole}) does not have permission to access this page.`}
-        extra={
-          <Button type="primary" onClick={() => window.history.back()}>
-            Go Back
-          </Button>
-        }
-      />
-    )
+    return <AccessFail isCurrentPath={true} userRole={userRole} />
   }
 
   return children

@@ -40,10 +40,10 @@ const NotFound = () => {
           }
           subTitle={
             <div className="space-y-4">
-              <Text className="text-lg text-gray-600">
+              <p className="text-md text-gray-500">
                 Oops! The page you're looking for doesn't exist or you don't
                 have permission to access it.
-              </Text>
+              </p>
             </div>
           }
           extra={
@@ -67,18 +67,6 @@ const NotFound = () => {
             </Space>
           }
         />
-
-        {/* Decorative elements */}
-        <div className="mt-12 text-center">
-          <div className="inline-flex items-center space-x-2 text-gray-400">
-            <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-purple-300 rounded-full animate-pulse delay-75"></div>
-            <div className="w-2 h-2 bg-indigo-300 rounded-full animate-pulse delay-150"></div>
-          </div>
-          <Text className="block mt-4 text-sm text-gray-500">
-            Lost? Don't worry, it happens to the best of us.
-          </Text>
-        </div>
       </div>
     </div>
   )
