@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { store } from '../store'
 import { logoutUser } from '../store/actions/authActions'
+import { isTokenExpired } from '../utils'
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -33,6 +34,12 @@ api.interceptors.request.use(
     // Add auth token or other headers here if needed
     const token = localStorage.getItem('token')
     if (token) {
+      // Check if token is expired before making the request
+      if (isTokenExpired(token)) {
+        console.log('Token is expired, logging out user')
+        store.dispatch(logoutUser())
+        return Promise.reject(new Error('Token expired'))
+      }
       config.headers.Authorization = `Bearer ${token}`
     }
     return config

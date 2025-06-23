@@ -191,13 +191,15 @@
       "createDate": "Create Date",
       "lastUpdate": "Last Update"
     },
-
     "form": {
       "name": "Survey Name",
       "namePlaceholder": "Enter survey name",
       "nameRequired": "Please enter survey name",
       "description": "Description",
       "descriptionPlaceholder": "Enter survey description",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryRequired": "Please select a category",
       "isRequired": "Required",
       "isRecurring": "Recurring",
       "recurringCycle": "Recurring Cycle",
@@ -209,7 +211,9 @@
       "endDateRequired": "Please select an end date",
       "questions": "Questions",
       "question": "Question",
-      "addQuestion": "Add Question"
+      "addQuestion": "Add Question",
+      "startDateBeforeToday": "Start date must be today or after today",
+      "endDateBeforeStartDate": "End date must be after start date"
     },
     "messages": {
       "addSuccess": "Survey created successfully",

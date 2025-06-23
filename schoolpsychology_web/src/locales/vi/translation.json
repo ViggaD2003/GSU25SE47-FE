@@ -198,6 +198,9 @@
       "nameRequired": "Vui lòng nhập tên khảo sát",
       "description": "Mô tả",
       "descriptionPlaceholder": "Nhập mô tả khảo sát",
+      "category": "Danh mục",
+      "categoryPlaceholder": "Chọn danh mục",
+      "categoryRequired": "Vui lòng chọn danh mục",
       "isRequired": "Bắt buộc",
       "isRecurring": "Lặp lại",
       "recurringCycle": "Chu kỳ lặp lại",
@@ -209,7 +212,9 @@
       "endDateRequired": "Vui lòng chọn ngày kết thúc",
       "questions": "Câu hỏi",
       "question": "Câu hỏi",
-      "addQuestion": "Thêm câu hỏi"
+      "addQuestion": "Thêm câu hỏi",
+      "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
+      "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu"
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",

@@ -6,6 +6,7 @@ const initialState = {
   isAuthenticated: false,
   loading: true,
   token: null,
+  isRestoredFromStorage: false,
 }
 
 const authSlice = createSlice({
@@ -20,18 +21,21 @@ const authSlice = createSlice({
       state.isAuthenticated = true
       state.user = action.payload.user
       state.token = action.payload.token
+      state.isRestoredFromStorage = false
     },
     loginFailure: state => {
       state.loading = false
       state.isAuthenticated = false
       state.user = null
       state.token = null
+      state.isRestoredFromStorage = false
     },
     logout: state => {
       state.isAuthenticated = false
       state.user = null
       state.token = null
       state.loading = false
+      state.isRestoredFromStorage = false
     },
     setLoading: (state, action) => {
       state.loading = action.payload
@@ -42,6 +46,9 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.user = action.payload.user
         state.token = action.payload.token
+        state.isRestoredFromStorage = true
+      } else {
+        state.isRestoredFromStorage = false
       }
     },
   },
@@ -62,6 +69,8 @@ export const selectUser = state => state.auth.user
 export const selectIsAuthenticated = state => state.auth.isAuthenticated
 export const selectUserRole = state => state.auth.user?.role
 export const selectLoading = state => state.auth.loading
+export const selectIsRestoredFromStorage = state =>
+  state.auth.isRestoredFromStorage
 
 // Helper function to check if user has access to a route
 export const hasRouteAccess = (userRole, path) => {

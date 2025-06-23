@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   Form,
   Input,
@@ -20,6 +20,14 @@ const QuestionTabs = ({ fields, add, remove }) => {
   const { t } = useTranslation()
   const [activeKey, setActiveKey] = useState()
   const prevFieldsLength = useRef(0)
+  const isInitialized = useRef(false)
+
+  useEffect(() => {
+    if (!isInitialized.current && fields.length === 0) {
+      addQuestion()
+      isInitialized.current = true
+    }
+  }, [fields.length, add])
 
   useEffect(() => {
     if (fields.length > prevFieldsLength.current) {
@@ -35,7 +43,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
     }
   }, [fields, activeKey])
 
-  const addQuestion = () => {
+  const addQuestion = useCallback(() => {
     add({
       required: true,
       questionType: 'MULTIPLE_CHOICE',
@@ -46,7 +54,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
         { text: '', score: 3 },
       ],
     })
-  }
+  }, [add])
 
   const removeQuestion = targetKey => {
     const index = fields.findIndex(field => field.key.toString() === targetKey)
@@ -116,6 +124,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
             label="Question Type"
           >
             <Select>
+              <Option value="LINKERT_SCAKE">Linkert Scale</Option>
               <Option value="MULTIPLE_CHOICE">Multiple Choice</Option>
               <Option value="TEXT">Text</Option>
             </Select>
@@ -131,20 +140,6 @@ const QuestionTabs = ({ fields, add, remove }) => {
               <Input disabled />
             </Form.Item>
           </>
-          <Form.Item
-            hidden
-            {...restField}
-            name={[name, 'categoryId']}
-            label="Category ID"
-            rules={[
-              {
-                required: true,
-                message: 'Category ID is required',
-              },
-            ]}
-          >
-            <InputNumber style={{ width: '100%' }} />
-          </Form.Item>
 
           <div>
             <Form.List name={[name, 'answers']}>

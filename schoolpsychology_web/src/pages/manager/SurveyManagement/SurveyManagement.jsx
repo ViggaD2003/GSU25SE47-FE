@@ -87,7 +87,7 @@ const SurveyManagement = () => {
 
   const handleModalOk = async values => {
     try {
-      // Format dates to YYYY-MM-DD
+      // Format dates to YYYY-MM-DD and handle categoryId
       const payload = {
         ...values,
         startDate: values.startDate.format('YYYY-MM-DD'),

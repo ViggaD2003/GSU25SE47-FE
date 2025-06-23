@@ -24,6 +24,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '../contexts/ThemeContext'
 import { Line, Bar, Pie } from 'react-chartjs-2'
+import { TokenDebugger } from '../components/common'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -192,6 +193,15 @@ const Dashboard = () => {
           {t('dashboard.welcome')}
         </Text>
       </div>
+
+      {/* Token Debugger - Development Only */}
+      {import.meta.env.DEV && (
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={8}>
+            <TokenDebugger />
+          </Col>
+        </Row>
+      )}
 
       {/* Statistics Cards */}
       <Row gutter={[16, 16]}>

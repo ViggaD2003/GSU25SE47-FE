@@ -1,5 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { authAPI } from '../../services/authApi'
+import { decodeJWT, isTokenExpired } from '../../utils'
 import {
   loginStart,
   loginSuccess,
@@ -23,13 +24,20 @@ export const loginUser = createAsyncThunk(
         // Save token to localStorage
         localStorage.setItem('token', response.data.token)
 
-        // For now, we'll create a mock user object since the API doesn't return user data
-        // In a real scenario, you might want to make another API call to get user details
+        // Decode the JWT token to extract user information
+        const decodedToken = decodeJWT(response.data.token)
+
+        // Create user object from decoded token or fallback to mock data
         const user = {
-          id: 1,
-          fullName: credentials.email.split('@')[0],
-          role: 'manager',
-          email: credentials.email,
+          id: decodedToken?.sub || decodedToken?.userId || 1,
+          fullName:
+            decodedToken?.name ||
+            decodedToken?.fullName ||
+            credentials.email.split('@')[0],
+          email: decodedToken?.email || credentials.email,
+          role: decodedToken?.role
+            ? String(decodedToken.role).toLowerCase()
+            : null,
         }
 
         const authData = {
@@ -63,12 +71,33 @@ export const refreshToken = createAsyncThunk(
         const newToken = response.data.token
         localStorage.setItem('token', newToken)
 
-        // Update the stored auth data with new token
+        // Decode the new token to get updated user information
+        const decodedToken = decodeJWT(newToken)
+
+        // Update the stored auth data with new token and user info
         const savedAuth = localStorage.getItem('auth')
         if (savedAuth) {
           const authData = JSON.parse(savedAuth)
           authData.token = newToken
+
+          // Update user data from decoded token if available
+          if (decodedToken) {
+            authData.user = {
+              ...authData.user,
+              id: decodedToken.sub || decodedToken.userId || authData.user.id,
+              fullName:
+                decodedToken.name ||
+                decodedToken.fullName ||
+                authData.user.fullName,
+              email: decodedToken.email || authData.user.email,
+              role: decodedToken.role
+                ? String(decodedToken.role).toLowerCase()
+                : null,
+            }
+          }
+
           localStorage.setItem('auth', JSON.stringify(authData))
+          // Use loginSuccess to ensure isRestoredFromStorage is set to false
           dispatch(loginSuccess(authData))
         }
 
@@ -112,14 +141,46 @@ export const initializeAuthFromStorage = createAsyncThunk(
       const token = localStorage.getItem('token')
 
       if (savedAuth && token) {
+        // Check if token is expired
+        if (isTokenExpired(token)) {
+          console.log('Token is expired, clearing auth data')
+          localStorage.removeItem('auth')
+          localStorage.removeItem('token')
+          dispatch(initializeAuth(null))
+          return null
+        }
+
         const authData = JSON.parse(savedAuth)
+
+        // Decode token to verify and potentially update user data
+        const decodedToken = decodeJWT(token)
+        if (decodedToken) {
+          // Update user data with fresh data from token
+          authData.user = {
+            ...authData.user,
+            id: decodedToken.sub || decodedToken.userId || authData.user.id,
+            fullName:
+              decodedToken.name ||
+              decodedToken.fullName ||
+              authData.user.fullName,
+            email: decodedToken.email || authData.user.email,
+            role: decodedToken.role
+              ? String(decodedToken.role).toLowerCase()
+              : null,
+          }
+
+          // Save updated auth data
+          localStorage.setItem('auth', JSON.stringify(authData))
+        }
+
         dispatch(initializeAuth(authData))
         return authData
       } else {
         dispatch(initializeAuth(null))
         return null
       }
-    } catch {
+    } catch (error) {
+      console.error('Error initializing auth from storage:', error)
       localStorage.removeItem('auth')
       localStorage.removeItem('token')
       dispatch(initializeAuth(null))
