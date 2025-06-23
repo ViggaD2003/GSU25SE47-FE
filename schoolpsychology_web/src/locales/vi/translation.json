@@ -25,9 +25,17 @@
       "submit": "Đăng nhập",
       "error": "Email hoặc mật khẩu không đúng",
       "required": "Trường này là bắt buộc",
+      "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ",
       "forgotPassword": "Quên mật khẩu?",
       "register": "Không có tài khoản?",
       "registerLink": "Đăng ký"
+    },
+    "messages": {
+      "loginSuccess": "Đăng nhập thành công",
+      "loginError": "Đăng nhập thất bại",
+      "wrongFormatPassword": "Mật khẩu phải có ít nhất 8 ký tự",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng",
+      "loginFailed": "Đăng nhập thất bại"
     }
   },
   "dashboard": {
@@ -174,10 +182,50 @@
   "surveyManagement": {
     "title": "Quản lý khảo sát",
     "description": "Quản lý khảo sát và thông tin của họ",
+    "refresh": "Làm mới",
+    "addSurvey": "Thêm khảo sát",
+    "search": "Tìm kiếm khảo sát...",
     "table": {
       "name": "Tên khảo sát",
       "description": "Mô tả",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "createDate": "Ngày tạo",
+      "lastUpdate": "Cập nhật gần nhất"
+    },
+    "form": {
+      "name": "Tên khảo sát",
+      "namePlaceholder": "Nhập tên khảo sát",
+      "nameRequired": "Vui lòng nhập tên khảo sát",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhập mô tả khảo sát",
+      "isRequired": "Bắt buộc",
+      "isRecurring": "Lặp lại",
+      "recurringCycle": "Chu kỳ lặp lại",
+      "recurringCyclePlaceholder": "Chọn chu kỳ lặp lại",
+      "recurringCycleRequired": "Vui lòng chọn chu kỳ lặp lại",
+      "startDate": "Ngày bắt đầu",
+      "startDateRequired": "Vui lòng chọn ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "endDateRequired": "Vui lòng chọn ngày kết thúc",
+      "questions": "Câu hỏi",
+      "question": "Câu hỏi",
+      "addQuestion": "Thêm câu hỏi"
+    },
+    "messages": {
+      "addSuccess": "Tạo khảo sát thành công",
+      "addError": "Tạo khảo sát thất bại"
     }
+  },
+  "appointmentManagement": {
+    "title": "Quản lý cuộc hẹn",
+    "description": "Mô tả",
+    "status": "Trạng thái"
+  },
+  "common": {
+    "create": "Tạo",
+    "cancel": "Hủy",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "monthly": "Hàng tháng"
   }
 }

@@ -1,27 +1,16 @@
 import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
-import { Spin, Result, Button } from 'antd'
 import { useSelector } from 'react-redux'
 import {
   selectIsAuthenticated,
-  selectLoading,
   selectUserRole,
   hasRouteAccess,
 } from '../../store/slices/authSlice'
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
-  const loading = useSelector(selectLoading)
   const userRole = useSelector(selectUserRole)
   const location = useLocation()
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Spin size="large" />
-      </div>
-    )
-  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />

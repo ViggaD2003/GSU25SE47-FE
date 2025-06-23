@@ -16,13 +16,13 @@ import {
   MenuUnfoldOutlined,
   BellOutlined,
 } from '@ant-design/icons'
-import { useAuth } from '@hooks'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, Outlet } from 'react-router-dom'
 import ThemeSwitcher from '../../components/common/ThemeSwitcher'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher'
 import Navigation from '../../components/layout/Navigation'
+import { useAuth } from '@/contexts/AuthContext'
 
 const { Header, Content, Sider } = Layout
 

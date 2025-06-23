@@ -22,7 +22,9 @@ const StaffManagement = lazy(
 const AppointmentManagement = lazy(
   () => import('@/pages/manager/AppointmentManagement')
 )
-const SurveyManagement = lazy(() => import('@/pages/manager/SurveyManagement'))
+const SurveyManagement = lazy(
+  () => import('@/pages/manager/SurveyManagement/SurveyManagement')
+)
 const CaseManagement = lazy(() => import('@/pages/manager/CaseManagement'))
 const ProgramManagement = lazy(
   () => import('@/pages/manager/ProgramManagement')
@@ -40,67 +42,73 @@ const AppRouter = () => {
   }
 
   return (
-    <React.Suspense fallback={<div>Loading...</div>}>
-      <Routes>
-        {/* Public routes */}
-        <Route
-          path="/"
-          element={
-            <GuestRoute>
-              <AnonymousLayoutComponent />
-            </GuestRoute>
-          }
-        >
-          <Route index element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-        </Route>
+    // <React.Suspense
+    //   fallback={
+    //     <div className="min-h-screen flex items-center justify-center">
+    //       <Spin size="large" />
+    //     </div>
+    //   }
+    // >
+    <Routes>
+      {/* Public routes */}
+      <Route
+        path="/"
+        element={
+          <GuestRoute>
+            <AnonymousLayoutComponent />
+          </GuestRoute>
+        }
+      >
+        <Route index element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+      </Route>
 
-        {/* Protected routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          {ROUTE_CONFIG.map(route => {
-            if (route.children) {
-              return route.children.map(child => (
-                <Route
-                  key={child.key}
-                  path={child.key.replace(/^\//, '')}
-                  element={
-                    <ProtectedRoute allowedRoles={route.allowedRoles}>
-                      {elementMap[child.element]
-                        ? React.createElement(elementMap[child.element])
-                        : null}
-                    </ProtectedRoute>
-                  }
-                />
-              ))
-            }
-            return (
+      {/* Protected routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        {ROUTE_CONFIG.map(route => {
+          if (route.children) {
+            return route.children.map(child => (
               <Route
-                key={route.key}
-                path={route.key.replace(/^\//, '')}
+                key={child.key}
+                path={child.key.replace(/^\//, '')}
                 element={
                   <ProtectedRoute allowedRoles={route.allowedRoles}>
-                    {elementMap[route.element]
-                      ? React.createElement(elementMap[route.element])
+                    {elementMap[child.element]
+                      ? React.createElement(elementMap[child.element])
                       : null}
                   </ProtectedRoute>
                 }
               />
-            )
-          })}
-        </Route>
+            ))
+          }
+          return (
+            <Route
+              key={route.key}
+              path={route.key.replace(/^\//, '')}
+              element={
+                <ProtectedRoute allowedRoles={route.allowedRoles}>
+                  {elementMap[route.element]
+                    ? React.createElement(elementMap[route.element])
+                    : null}
+                </ProtectedRoute>
+              }
+            />
+          )
+        })}
+      </Route>
 
-        {/* 404 route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </React.Suspense>
+      {/* 404 route */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+    // </React.Suspense>
   )
 }
 
