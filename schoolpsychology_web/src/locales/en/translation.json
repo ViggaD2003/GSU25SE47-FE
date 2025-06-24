@@ -188,8 +188,11 @@
       "name": "Survey Name",
       "description": "Description",
       "status": "Status",
-      "createDate": "Create Date",
-      "lastUpdate": "Last Update"
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "action": {
+        "viewDetail": "View Detail"
+      }
     },
     "form": {
       "name": "Survey Name",
@@ -213,7 +216,8 @@
       "question": "Question",
       "addQuestion": "Add Question",
       "startDateBeforeToday": "Start date must be today or after today",
-      "endDateBeforeStartDate": "End date must be after start date"
+      "endDateBeforeStartDate": "End date must be after start date",
+      "sampleSurveys": "Sample surveys for category"
     },
     "messages": {
       "addSuccess": "Survey created successfully",

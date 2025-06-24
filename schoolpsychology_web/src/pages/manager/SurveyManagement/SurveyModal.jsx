@@ -5,11 +5,9 @@ import {
   Input,
   DatePicker,
   Checkbox,
-  Button,
   Select,
   Row,
   Col,
-  InputNumber,
   Typography,
   Card,
   Space,
@@ -55,6 +53,7 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
   const handleCategoryChange = categoryId => {
     setSelectedCategory(categoryId)
     const category = categories.find(cat => cat.id === categoryId)
+
     if (category && SAMPLE_SURVEYS[category.code]) {
       setSampleSurveys(SAMPLE_SURVEYS[category.code])
     } else {
@@ -87,10 +86,8 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
             moduleType: 'SURVEY',
           })),
         }
-        // console.log(requestData)
 
-        onOk(requestData)
-        form.resetFields()
+        onOk(requestData, form.resetFields, handleCategoryChange)
       })
       .catch(info => {
         console.log('Validate Failed:', info)
@@ -150,8 +147,8 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
             {sampleSurveys.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  Survey mẫu cho danh mục "
-                  {categories.find(cat => cat.id === selectedCategory)?.name}":
+                  {t('surveyManagement.form.sampleSurveys')}
+                  {categories.find(cat => cat.id === selectedCategory)?.name}
                 </Text>
                 <Space direction="vertical" style={{ width: '100%' }}>
                   {sampleSurveys.map((survey, index) => (
