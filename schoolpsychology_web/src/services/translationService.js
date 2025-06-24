@@ -4,10 +4,7 @@ import axios from 'axios'
 class TranslationService {
   constructor() {
     this.apiKey = import.meta.env.VITE_DEEPL_API_KEY
-    this.isPro = import.meta.env.VITE_DEEPL_IS_PRO
-    this.baseURL = this.isPro
-      ? '/api-deepl-pro/v2/translate'
-      : '/api-deepl/v2/translate'
+    this.baseURL = import.meta.env.VITE_DEEPL_BASE_URL
   }
 
   // Map ngôn ngữ từ i18next sang DeepL format

@@ -1,11 +1,23 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDispatch, useSelector } from 'react-redux'
 import { useTheme } from '../../../contexts/ThemeContext'
-import { Input, Typography, Button, Card, Row, Col, message } from 'antd'
+import { Input, Typography, Button, Card, Row, Col } from 'antd'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import SurveyTable from './SurveyTable'
 import SurveyModal from './SurveyModal'
-import { surveyAPI } from '../../../services/surveyApi'
+import SurveyDetailModal from './SurveyDetailModal'
+import {
+  getAllSurveys,
+  createSurvey,
+} from '../../../store/actions/surveyActions'
+import {
+  selectSurveys,
+  selectSurveyLoading,
+  selectSurveyError,
+  clearError,
+} from '../../../store/slices/surveySlice'
+import useMessage from 'antd/es/message/useMessage'
 // import AutoTranslatedText from '../../../components/common/AutoTranslatedText'
 
 const { Title, Text } = Typography
@@ -14,78 +26,79 @@ const { Search } = Input
 const SurveyManagement = () => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch()
+  const [messageApi, contextHolder] = useMessage()
+
+  // Redux selectors
+  const surveys = useSelector(selectSurveys)
+  const loading = useSelector(selectSurveyLoading)
+  const error = useSelector(selectSurveyError)
+
+  // Local state for FE paging/search
   const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [selectedSurvey, setSelectedSurvey] = useState(null)
+  const [detailVisible, setDetailVisible] = useState(false)
 
-  // Mock API fetch function for server-side pagination
-  const fetchSurveys = async (page, pageSize, searchText = '') => {
-    // Simulate API delay
-    await new Promise(res => setTimeout(res, 500))
-    // Generate mock data
-    const total = 1000
-    const surveys = Array.from({ length: pageSize }, (_, i) => {
-      const id = (page - 1) * pageSize + i + 1
-      return {
-        id,
-        name: `Survey ${id}`,
-        description: `Description ${id}`,
-        status: 'active',
-        createDate: '15/01/2024',
-        lastUpdate: '25/05/2024',
-      }
-    }).filter(u => u.name.toLowerCase().includes(searchText.toLowerCase()))
-    return { data: surveys, total }
+  // Load all surveys once
+  useEffect(() => {
+    dispatch(getAllSurveys())
+  }, [dispatch])
+
+  // FE search
+  const filteredSurveys = useMemo(() => {
+    if (!searchText) return surveys
+    return surveys.filter(
+      survey =>
+        survey.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        survey.description?.toLowerCase().includes(searchText.toLowerCase())
+    )
+  }, [surveys, searchText])
+
+  // FE paging
+  const paginatedSurveys = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredSurveys.slice(start, start + pageSize)
+  }, [filteredSurveys, currentPage, pageSize])
+
+  // Table pagination config
+  const pagination = {
+    current: currentPage,
+    pageSize,
+    total: filteredSurveys.length,
+    showSizeChanger: true,
+    onChange: (page, size) => {
+      setCurrentPage(page)
+      setPageSize(size)
+    },
   }
 
-  const loadData = useCallback(
-    async (page = 1, pageSize = 10, search = searchText) => {
-      setLoading(true)
-      const res = await fetchSurveys(page, pageSize, search)
-      setData(res.data)
-      setPagination(p => ({ ...p, current: page, pageSize, total: res.total }))
-      setLoading(false)
-    },
-    [searchText]
-  )
+  // Handle search
+  const handleSearch = useCallback(value => {
+    setSearchText(value)
+    setCurrentPage(1) // Reset to first page when searching
+  }, [])
 
-  React.useEffect(() => {
-    loadData(pagination.current, pagination.pageSize)
-    // eslint-disable-next-line
-  }, [searchText])
+  // Handle refresh
+  const handleRefresh = useCallback(() => {
+    dispatch(getAllSurveys())
+  }, [dispatch])
 
-  const handleTableChange = useCallback(
-    pag => {
-      loadData(pag.current, pag.pageSize)
-    },
-    [loadData]
-  )
-
-  const handleView = useCallback(() => {}, [])
+  const handleView = useCallback(survey => {
+    setSelectedSurvey(survey)
+    setDetailVisible(true)
+  }, [])
 
   const handleEdit = useCallback(() => {}, [])
-
   const handleDelete = useCallback(() => {}, [])
-
-  const handleSearch = useCallback(
-    value => {
-      setSearchText(value)
-      loadData(pagination.current, pagination.pageSize, value)
-    },
-    [loadData, pagination]
-  )
 
   const showModal = () => {
     setIsModalVisible(true)
   }
 
-  const handleModalOk = async values => {
+  const handleModalOk = async (values, resetFields, handleCategoryChange) => {
     try {
       // Format dates to YYYY-MM-DD and handle categoryId
       const payload = {
@@ -93,14 +106,15 @@ const SurveyManagement = () => {
         startDate: values.startDate.format('YYYY-MM-DD'),
         endDate: values.endDate.format('YYYY-MM-DD'),
       }
-      console.log('Survey data:', payload)
-      await surveyAPI.createSurvey(payload)
-      message.success(t('surveyManagement.messages.addSuccess'))
+      await dispatch(createSurvey(payload)).unwrap()
+      messageApi.success(t('surveyManagement.messages.addSuccess'))
       setIsModalVisible(false)
-      loadData()
+      dispatch(getAllSurveys()) // Refresh the list
+      resetFields()
+      handleCategoryChange(null)
     } catch (error) {
-      console.error('Failed to create survey:', error)
-      message.error(t('surveyManagement.messages.addError'))
+      console.warn('Failed to create survey:', error)
+      messageApi.error(t('surveyManagement.messages.addError'))
     }
   }
 
@@ -108,8 +122,22 @@ const SurveyManagement = () => {
     setIsModalVisible(false)
   }
 
+  const handleDetailClose = () => {
+    setDetailVisible(false)
+    setSelectedSurvey(null)
+  }
+
+  // Show error message if there's an error
+  useEffect(() => {
+    if (error) {
+      messageApi.error(error)
+      dispatch(clearError())
+    }
+  }, [error, messageApi, dispatch])
+
   return (
     <div className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+      {contextHolder}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -126,7 +154,8 @@ const SurveyManagement = () => {
         <div className="flex items-center space-x-3">
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => loadData(pagination.current, pagination.pageSize)}
+            onClick={handleRefresh}
+            loading={loading}
           >
             {t('surveyManagement.refresh')}
           </Button>
@@ -154,19 +183,27 @@ const SurveyManagement = () => {
       {/* Table */}
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
         <SurveyTable
-          data={data}
+          t={t}
+          data={paginatedSurveys}
           loading={loading}
           pagination={pagination}
-          onChange={handleTableChange}
+          onChange={pagination.onChange}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />
       </Card>
       <SurveyModal
+        t={t}
         visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
+      />
+      <SurveyDetailModal
+        t={t}
+        visible={detailVisible}
+        survey={selectedSurvey}
+        onClose={handleDetailClose}
       />
     </div>
   )

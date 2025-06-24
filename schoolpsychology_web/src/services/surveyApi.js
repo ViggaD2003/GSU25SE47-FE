@@ -6,6 +6,11 @@ export const surveyAPI = {
     return response.data
   },
 
+  getAllSurveys: async () => {
+    const response = await api.get('/api/v1/survey')
+    return response.data
+  },
+
   getCategories: async () => {
     const response = await api.get('/api/v1/categories')
     return response.data

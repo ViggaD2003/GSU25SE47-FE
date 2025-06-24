@@ -189,8 +189,11 @@
       "name": "Tên khảo sát",
       "description": "Mô tả",
       "status": "Trạng thái",
-      "createDate": "Ngày tạo",
-      "lastUpdate": "Cập nhật gần nhất"
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "action": {
+        "viewDetail": "Xem chi tiết"
+      }
     },
     "form": {
       "name": "Tên khảo sát",
@@ -214,7 +217,8 @@
       "question": "Câu hỏi",
       "addQuestion": "Thêm câu hỏi",
       "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
-      "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu"
+      "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
+      "sampleSurveys": "Khảo sát mẫu cho danh mục"
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",

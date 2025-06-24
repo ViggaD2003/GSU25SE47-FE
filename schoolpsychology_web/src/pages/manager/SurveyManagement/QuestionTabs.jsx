@@ -46,7 +46,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
   const addQuestion = useCallback(() => {
     add({
       required: true,
-      questionType: 'MULTIPLE_CHOICE',
+      questionType: 'LINKERT_SCAKE',
       answers: [
         { text: '', score: 0 },
         { text: '', score: 1 },
