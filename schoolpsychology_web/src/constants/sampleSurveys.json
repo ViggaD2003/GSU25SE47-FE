@@ -1,0 +1,579 @@
+{
+  "mental_health": [
+    {
+      "name": "GAD-7 (Khảo sát lo âu tổng quát)",
+      "description": "Khảo sát đánh giá mức độ lo âu tổng quát - 7 câu hỏi",
+      "questions": [
+        {
+          "text": "Cảm thấy lo lắng, bồn chồn hoặc căng thẳng",
+          "description": "Đánh giá mức độ lo lắng, bồn chồn hoặc căng thẳng trong 2 tuần qua",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Không thể ngừng lo lắng hoặc kiểm soát được sự lo lắng",
+          "description": "Đánh giá khả năng kiểm soát lo lắng",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Lo lắng quá nhiều về những việc khác nhau",
+          "description": "Đánh giá mức độ lo lắng về nhiều vấn đề khác nhau",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Khó khăn trong việc thư giãn",
+          "description": "Đánh giá khả năng thư giãn và nghỉ ngơi",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Quá bồn chồn đến mức không thể ngồi yên",
+          "description": "Đánh giá mức độ bồn chồn và không thể ngồi yên",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Dễ dàng bị khó chịu hoặc cáu gắt",
+          "description": "Đánh giá mức độ dễ bị khó chịu hoặc cáu gắt",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Cảm thấy sợ hãi như thể có điều gì đó khủng khiếp sắp xảy ra",
+          "description": "Đánh giá mức độ sợ hãi và lo lắng về tương lai",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        }
+      ],
+      "survey_scoring": {
+        "surveyCode": "GAD7",
+        "method": "sum",
+        "levels": [
+          { "min": 0, "max": 4, "label": "Lo âu tối thiểu" },
+          { "min": 5, "max": 9, "label": "Lo âu nhẹ" },
+          { "min": 10, "max": 14, "label": "Lo âu vừa phải" },
+          { "min": 15, "max": 21, "label": "Lo âu nghiêm trọng" }
+        ]
+      }
+    },
+    {
+      "name": "PHQ-9 (Khảo sát trầm cảm)",
+      "description": "Khảo sát đánh giá mức độ trầm cảm - 9 câu hỏi",
+      "questions": [
+        {
+          "text": "Ít quan tâm hoặc ít thích thú làm việc gì",
+          "description": "Đánh giá mức độ quan tâm và thích thú trong các hoạt động",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Cảm thấy chán nản, buồn bã hoặc tuyệt vọng",
+          "description": "Đánh giá mức độ cảm xúc tiêu cực",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Khó ngủ, ngủ không ngon hoặc ngủ quá nhiều",
+          "description": "Đánh giá các vấn đề về giấc ngủ",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Cảm thấy mệt mỏi hoặc ít năng lượng",
+          "description": "Đánh giá mức độ mệt mỏi và thiếu năng lượng",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Ăn ít hoặc ăn quá nhiều",
+          "description": "Đánh giá các thay đổi trong thói quen ăn uống",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Cảm thấy tồi tệ về bản thân hoặc cảm thấy mình là kẻ thất bại",
+          "description": "Đánh giá lòng tự trọng và cảm nhận về bản thân",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Khó tập trung vào những việc như đọc sách hoặc xem TV",
+          "description": "Đánh giá khả năng tập trung và chú ý",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Di chuyển hoặc nói chậm đến mức người khác có thể nhận thấy",
+          "description": "Đánh giá các thay đổi trong hoạt động thể chất",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Nghĩ rằng sẽ tốt hơn nếu chết hoặc muốn làm hại bản thân",
+          "description": "Đánh giá ý nghĩ tự tử và tự làm hại",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 0, "text": "Không bao giờ" },
+            { "score": 1, "text": "Vài ngày" },
+            { "score": 2, "text": "Hơn một nửa số ngày" },
+            { "score": 3, "text": "Gần như mỗi ngày" }
+          ],
+          "required": true
+        }
+      ],
+      "survey_scoring": {
+        "surveyCode": "PHQ9",
+        "method": "sum",
+        "levels": [
+          { "min": 0, "max": 4, "label": "Trầm cảm tối thiểu" },
+          { "min": 5, "max": 9, "label": "Trầm cảm nhẹ" },
+          { "min": 10, "max": 14, "label": "Trầm cảm vừa phải" },
+          {
+            "min": 15,
+            "max": 19,
+            "label": "Trầm cảm vừa phải đến nghiêm trọng"
+          },
+          { "min": 20, "max": 27, "label": "Trầm cảm nghiêm trọng" }
+        ]
+      }
+    }
+  ],
+  "environment": [
+    {
+      "name": "Môi trường gia đình",
+      "description": "Khảo sát đánh giá môi trường gia đình - 10 câu hỏi",
+      "questions": [
+        {
+          "text": "Gia đình tôi thường xuyên giao tiếp và chia sẻ với nhau",
+          "description": "Đánh giá mức độ giao tiếp và chia sẻ trong gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi cảm thấy được yêu thương và hỗ trợ từ các thành viên trong gia đình",
+          "description": "Đánh giá cảm nhận về tình yêu thương và hỗ trợ từ gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Gia đình tôi có quy tắc và kỷ luật rõ ràng",
+          "description": "Đánh giá về quy tắc và kỷ luật trong gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi có thể chia sẻ những vấn đề khó khăn với gia đình",
+          "description": "Đánh giá khả năng chia sẻ vấn đề với gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Gia đình tôi thường xuyên có những hoạt động vui chơi cùng nhau",
+          "description": "Đánh giá các hoạt động vui chơi gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi cảm thấy an toàn và được bảo vệ trong gia đình",
+          "description": "Đánh giá cảm giác an toàn trong gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Gia đình tôi có đủ điều kiện vật chất cơ bản",
+          "description": "Đánh giá điều kiện vật chất của gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi được khuyến khích học tập và phát triển bản thân",
+          "description": "Đánh giá sự khuyến khích học tập từ gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Gia đình tôi có mối quan hệ hòa thuận với hàng xóm",
+          "description": "Đánh giá mối quan hệ với hàng xóm",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi hài lòng với môi trường gia đình hiện tại",
+          "description": "Đánh giá mức độ hài lòng với môi trường gia đình",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        }
+      ],
+      "survey_scoring": {
+        "surveyCode": "FAMILY_ENV",
+        "method": "average",
+        "levels": [
+          { "min": 1.0, "max": 2.0, "label": "Môi trường gia đình kém" },
+          {
+            "min": 2.1,
+            "max": 3.0,
+            "label": "Môi trường gia đình trung bình thấp"
+          },
+          {
+            "min": 3.1,
+            "max": 4.0,
+            "label": "Môi trường gia đình trung bình"
+          },
+          { "min": 4.1, "max": 5.0, "label": "Môi trường gia đình tốt" }
+        ]
+      }
+    },
+    {
+      "name": "Môi trường học đường",
+      "description": "Khảo sát đánh giá môi trường học đường - 10 câu hỏi",
+      "questions": [
+        {
+          "text": "Tôi cảm thấy an toàn khi ở trường",
+          "description": "Đánh giá cảm giác an toàn trong môi trường học đường",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Giáo viên quan tâm và hỗ trợ học sinh",
+          "description": "Đánh giá sự quan tâm và hỗ trợ từ giáo viên",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi có mối quan hệ tốt với bạn bè trong lớp",
+          "description": "Đánh giá mối quan hệ với bạn bè",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Trường học có cơ sở vật chất đầy đủ và hiện đại",
+          "description": "Đánh giá cơ sở vật chất của trường học",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Chương trình học tập phù hợp với khả năng của tôi",
+          "description": "Đánh giá tính phù hợp của chương trình học",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi được khuyến khích tham gia các hoạt động ngoại khóa",
+          "description": "Đánh giá sự khuyến khích tham gia hoạt động ngoại khóa",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Nhà trường có chính sách chống bạo lực và bắt nạt hiệu quả",
+          "description": "Đánh giá chính sách chống bạo lực học đường",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi có thể tìm kiếm sự giúp đỡ khi gặp khó khăn",
+          "description": "Đánh giá khả năng tìm kiếm sự giúp đỡ trong trường",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Môi trường học tập sạch sẽ và thoải mái",
+          "description": "Đánh giá môi trường học tập về mặt vệ sinh và thoải mái",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        },
+        {
+          "text": "Tôi hài lòng với môi trường học đường hiện tại",
+          "description": "Đánh giá mức độ hài lòng tổng thể với môi trường học đường",
+          "questionType": "LINKERT_SCAKE",
+          "moduleType": "SURVEY",
+          "answers": [
+            { "score": 1, "text": "Rất không đồng ý" },
+            { "score": 2, "text": "Không đồng ý" },
+            { "score": 3, "text": "Trung lập" },
+            { "score": 4, "text": "Đồng ý" },
+            { "score": 5, "text": "Rất đồng ý" }
+          ],
+          "required": true
+        }
+      ],
+      "survey_scoring": {
+        "surveyCode": "SCHOOL_ENV",
+        "method": "average",
+        "levels": [
+          { "min": 1.0, "max": 2.0, "label": "Môi trường học đường kém" },
+          {
+            "min": 2.1,
+            "max": 3.0,
+            "label": "Môi trường học đường trung bình thấp"
+          },
+          {
+            "min": 3.1,
+            "max": 4.0,
+            "label": "Môi trường học đường trung bình"
+          },
+          { "min": 4.1, "max": 5.0, "label": "Môi trường học đường tốt" }
+        ]
+      }
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+@import 'tailwindcss';
+@tailwind utilities;
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -13,56 +16,270 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+/* CSS Variables for theme colors */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #f9fafb;
+  --border-primary: #e5e7eb;
+  --border-secondary: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --shadow-light: rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.dark {
+  --bg-primary: #1f2937;
+  --bg-secondary: #111827;
+  --bg-tertiary: #374151;
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-tertiary: #9ca3af;
+  --shadow-light: rgba(0, 0, 0, 0.3);
 }
 
-button {
+/* Ant Design customizations */
+.ant-layout-header {
+  padding: 0 24px !important;
+}
+
+/* Sidebar customizations */
+.ant-layout-sider {
+  box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+  transition: width 0.2s ease;
+}
+
+.dark .ant-layout-sider {
+  box-shadow: 2px 0 8px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Menu customizations */
+.ant-menu-inline .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 6px;
+  height: 40px;
+  line-height: 40px;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.ant-menu-inline .ant-menu-item-selected {
+  background-color: #1890ff !important;
+  color: white !important;
+}
+
+.ant-menu-inline .ant-menu-item-selected .ant-menu-item-icon {
+  color: white !important;
+}
+
+.dark .ant-menu-inline .ant-menu-item {
+  color: #d1d5db;
+}
+
+.dark .ant-menu-inline .ant-menu-item:hover {
+  background-color: #374151 !important;
+  color: white !important;
+}
+
+.dark .ant-menu-inline .ant-menu-item:hover .ant-menu-item-icon {
+  color: white !important;
+}
+
+/* Header customizations */
+.ant-layout-header.ant-layout-header {
+  background: transparent;
+  border-bottom: 1px solid #f0f0f0;
+  transition: border-color 0.15s ease;
+}
+
+.dark .ant-layout-header.ant-layout-header {
+  border-bottom-color: #374151;
+}
+
+/* Card customizations for better theme integration */
+.ant-card {
   border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  transition: box-shadow 0.15s ease;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+.dark .ant-card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .ant-card-head {
+  background-color: #1f2937;
+  border-bottom-color: #374151;
+  color: #f9fafb;
+}
+
+.dark .ant-card-head-title {
+  color: #f9fafb;
+}
+
+/* Statistic customizations */
+.dark .ant-statistic-title {
+  color: #9ca3af;
+}
+
+.dark .ant-statistic-content {
+  color: #f9fafb;
+}
+
+/* List customizations */
+.dark .ant-list-item {
+  border-bottom-color: #374151;
+}
+
+.dark .ant-list-item-meta-title {
+  color: #f9fafb;
+}
+
+.dark .ant-list-item-meta-description {
+  color: #9ca3af;
+}
+
+/* Avatar customizations */
+.dark .ant-avatar {
+  background-color: #374151;
+  color: #f9fafb;
+}
+
+/* Progress customizations */
+.dark .ant-progress-text {
+  color: #f9fafb;
+}
+
+/* Dropdown customizations */
+.dark .ant-dropdown {
+  background-color: #1f2937;
+  border: 1px solid #374151;
+}
+
+.dark .ant-dropdown-menu {
+  background-color: #1f2937;
+  border: none;
+}
+
+.dark .ant-dropdown-menu-item {
+  color: #f9fafb;
+}
+
+.dark .ant-dropdown-menu-item:hover {
+  background-color: #374151;
+}
+
+.dark .ant-dropdown-menu-item-divider {
+  border-top-color: #374151;
+}
+
+/* Badge customizations */
+.dark .ant-badge-count {
+  background-color: #ef4444;
+  border-color: #1f2937;
+}
+
+/* Logout menu item customizations */
+.logout-menu-item {
+  transition: background-color 0.15s ease !important;
+}
+
+.logout-menu-item:hover {
+  background-color: #fef2f2 !important;
+}
+
+.dark .logout-menu-item:hover {
+  background-color: #7f1d1d !important;
+}
+
+.logout-menu-item:hover .ant-dropdown-menu-title-content {
+  color: #dc2626 !important;
+}
+
+.dark .logout-menu-item:hover .ant-dropdown-menu-title-content {
+  color: #f87171 !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f3f4f6;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: #1f2937;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #4b5563;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #9ca3af;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: #6b7280;
+}
+
+/* Optimized transitions for specific interactive elements only */
+.theme-transition {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* Button and interactive element transitions */
+.ant-btn,
+.ant-switch,
+.ant-select-selector,
+.ant-input,
+.ant-dropdown-trigger {
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease !important;
+}
+
+/* Smooth sidebar transitions */
+.ant-layout-sider-trigger {
+  background: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 0;
+  transition: background-color 0.15s ease;
+}
+
+.ant-layout-sider-trigger:hover {
+  background: #40a9ff;
+  color: white;
+}
+
+/* Performance optimization: Use transform instead of margin for layout changes */
+.sidebar-content {
+  transition: transform 0.2s ease;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

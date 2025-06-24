@@ -1,0 +1,246 @@
+{
+  "app": {
+    "title": "MindfulCare",
+    "welcome": "Welcome"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "accountManagement": {
+      "title": "Account Management",
+      "clients": "Clients",
+      "staffs": "Staffs"
+    },
+    "appointmentsManagement": "Appointments Management",
+    "surveyManagement": "Survey Management",
+    "programManagement": "Support Program Management",
+    "caseManagement": "Student Support Cases",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "error": "Invalid email or password",
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address",
+      "forgotPassword": "Forgot password?",
+      "register": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "messages": {
+      "loginSuccess": "Login successfully",
+      "wrongFormatPassword": "Password must be at least 8 characters long",
+      "invalidCredentials": "Invalid email or password",
+      "loginFailed": "Login failed"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to the School Psychology System",
+    "activeCases": "Active Cases",
+    "newCasesThisWeek": "New Cases This Week",
+    "surveyAboveThreshold": "Students Above Survey Threshold",
+    "upcomingAppointments": "Upcoming Appointments",
+    "caseStatus": {
+      "title": "Case Status",
+      "open": "Open",
+      "closed": "Closed",
+      "highRisk": "High Risk"
+    },
+    "grade": {
+      "10": "Grade 10",
+      "11": "Grade 11",
+      "12": "Grade 12"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "issue": {
+      "anxiety": "Anxiety",
+      "depression": "Depression",
+      "violence": "Violence",
+      "other": "Other"
+    },
+    "appointmentType": {
+      "individual": "Individual Counseling",
+      "group": "Group Counseling"
+    },
+    "charts": {
+      "title": "Trends Charts",
+      "byGrade": "By Grade",
+      "byGender": "By Gender",
+      "byIssue": "By Issue Type",
+      "trendByGrade": "Case Trend by Grade",
+      "ratioByGender": "Case Ratio by Gender",
+      "byIssueTitle": "Cases by Issue Type",
+      "cases": "Cases"
+    }
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "switch": "Switch Theme"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "switch": "Switch Language"
+  },
+  "role": {
+    "student": "Student",
+    "guardian": "Guardian",
+    "teacher": "Teacher",
+    "counselor": "Counselor"
+  },
+  "clientManagement": {
+    "title": "Client Management",
+    "description": "Manage your clients and their information",
+    "refresh": "Refresh",
+    "addUser": "Add User",
+    "search": "Search user...",
+    "messages": {
+      "editUserSuccess": "Edit user successfully",
+      "addUserSuccess": "Add user successfully",
+      "inactiveSuccess": "Inactive user successfully"
+    }
+  },
+  "staffManagement": {
+    "title": "Staff Management",
+    "description": "Manage your staff and their information",
+    "refresh": "Refresh",
+    "addStaff": "Add Staff",
+    "search": "Search staff...",
+    "messages": {
+      "editUserSuccess": "Edit staff successfully",
+      "addUserSuccess": "Add staff successfully",
+      "inactiveSuccess": "Inactive staff successfully"
+    }
+  },
+  "userModal": {
+    "editTitle": "Edit user information",
+    "addTitle": "Add user information",
+    "form": {
+      "fullName": "Full Name",
+      "email": "Email",
+      "phone": "Phone",
+      "role": "Role",
+      "status": "Status"
+    },
+    "roleOptions": {
+      "student": "Student",
+      "guardian": "Guardian",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "userTable": {
+    "fullName": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "roleOptions": {
+      "student": "Student",
+      "guardian": "Guardian",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
+    "status": "Status",
+    "statusOptions": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "createDate": "Create Date",
+    "lastLogin": "Last Login"
+  },
+  "programManagement": {
+    "title": "Program Management",
+    "description": "Manage your program and their information",
+    "table": {
+      "name": "Program Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "caseManagement": {
+    "title": "Case Management",
+    "description": "Manage your case and their information",
+    "table": {
+      "name": "Case Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "surveyManagement": {
+    "title": "Survey Management",
+    "description": "Manage your survey and their information",
+    "refresh": "Refresh",
+    "addSurvey": "Add Survey",
+    "search": "Search survey...",
+    "table": {
+      "name": "Survey Name",
+      "description": "Description",
+      "status": "Status",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "action": {
+        "viewDetail": "View Detail"
+      }
+    },
+    "form": {
+      "name": "Survey Name",
+      "namePlaceholder": "Enter survey name",
+      "nameRequired": "Please enter survey name",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter survey description",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryRequired": "Please select a category",
+      "isRequired": "Required",
+      "isRecurring": "Recurring",
+      "recurringCycle": "Recurring Cycle",
+      "recurringCyclePlaceholder": "Select a recurring cycle",
+      "recurringCycleRequired": "Please select a recurring cycle",
+      "startDate": "Start Date",
+      "startDateRequired": "Please select a start date",
+      "endDate": "End Date",
+      "endDateRequired": "Please select an end date",
+      "questions": "Questions",
+      "question": "Question",
+      "addQuestion": "Add Question",
+      "startDateBeforeToday": "Start date must be today or after today",
+      "endDateBeforeStartDate": "End date must be after start date",
+      "sampleSurveys": "Sample surveys for category"
+    },
+    "messages": {
+      "addSuccess": "Survey created successfully",
+      "addError": "Failed to create survey"
+    }
+  },
+  "appointmentManagement": {
+    "title": "Appointment Management",
+    "description": "Manage your appointment and their information",
+    "refresh": "Refresh",
+    "addAppointment": "Add Appointment",
+    "search": "Search survey...",
+    "table": {
+      "name": "Appointment Name",
+      "description": "Description",
+      "status": "Status"
+    }
+  },
+  "common": {
+    "create": "Create",
+    "cancel": "Cancel",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly"
+  }
+}

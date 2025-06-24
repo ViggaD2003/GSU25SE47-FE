@@ -1,0 +1,240 @@
+{
+  "app": {
+    "title": "MindfulCare",
+    "welcome": "Chào mừng"
+  },
+  "navigation": {
+    "dashboard": "Bảng điều khiển",
+    "accountManagement": {
+      "title": "Quản lý tài khoản",
+      "clients": "Người dùng",
+      "staffs": "Nhân viên"
+    },
+    "appointmentsManagement": "Quản lý cuộc hẹn",
+    "surveyManagement": "Quản lý khảo sát",
+    "programManagement": "Chương trình hỗ trợ",
+    "caseManagement": "Ca tư vấn",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất"
+  },
+  "auth": {
+    "login": {
+      "title": "Đăng nhập",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "submit": "Đăng nhập",
+      "error": "Email hoặc mật khẩu không đúng",
+      "required": "Trường này là bắt buộc",
+      "invalidEmail": "Vui lòng nhập địa chỉ email hợp lệ",
+      "forgotPassword": "Quên mật khẩu?",
+      "register": "Không có tài khoản?",
+      "registerLink": "Đăng ký"
+    },
+    "messages": {
+      "loginSuccess": "Đăng nhập thành công",
+      "loginError": "Đăng nhập thất bại",
+      "wrongFormatPassword": "Mật khẩu phải có ít nhất 8 ký tự",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng",
+      "loginFailed": "Đăng nhập thất bại"
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng bạn đến với hệ thống tâm lý học đường",
+    "activeCases": "Học sinh đang có case",
+    "newCasesThisWeek": "Case mới tuần này",
+    "surveyAboveThreshold": "Học sinh vượt ngưỡng khảo sát",
+    "upcomingAppointments": "Lịch hẹn sắp tới",
+    "caseStatus": {
+      "title": "Tình trạng case",
+      "open": "Đang mở",
+      "closed": "Đã đóng",
+      "highRisk": "Nguy cơ cao"
+    },
+    "grade": {
+      "10": "Khối 10",
+      "11": "Khối 11",
+      "12": "Khối 12"
+    },
+    "gender": {
+      "male": "Nam",
+      "female": "Nữ"
+    },
+    "issue": {
+      "anxiety": "Lo âu",
+      "depression": "Trầm cảm",
+      "violence": "Bạo lực",
+      "other": "Khác"
+    },
+    "appointmentType": {
+      "individual": "Tư vấn cá nhân",
+      "group": "Tư vấn nhóm"
+    },
+    "charts": {
+      "title": "Biểu đồ xu hướng",
+      "byGrade": "Theo khối lớp",
+      "byGender": "Theo giới tính",
+      "byIssue": "Theo loại vấn đề",
+      "trendByGrade": "Xu hướng số case theo khối lớp",
+      "ratioByGender": "Tỉ lệ case theo giới tính",
+      "byIssueTitle": "Số case theo loại vấn đề",
+      "cases": "Số case"
+    }
+  },
+  "theme": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "switch": "Chuyển đổi chủ đề"
+  },
+  "language": {
+    "vietnamese": "Tiếng Việt",
+    "english": "English",
+    "switch": "Chuyển đổi ngôn ngữ"
+  },
+  "role": {
+    "student": "Học sinh",
+    "guardian": "Phụ huynh",
+    "teacher": "Giáo viên",
+    "counselor": "Tư vấn viên"
+  },
+  "clientManagement": {
+    "title": "Quản lý tài khoản người dùng",
+    "description": "Quản lý tài khoản người dùng và thông tin của họ",
+    "refresh": "Làm mới",
+    "addUser": "Thêm người dùng",
+    "search": "Tìm kiếm người dùng...",
+    "messages": {
+      "editUserSuccess": "Sửa tài khoản người dùng thành công",
+      "addUserSuccess": "Thêm tài khoản người dùng thành công",
+      "inactiveSuccess": "Chặn tài khoản người dùng thành công"
+    }
+  },
+  "staffManagement": {
+    "title": "Quản lý nhân viên",
+    "description": "Quản lý nhân viên và thông tin của họ",
+    "refresh": "Làm mới",
+    "search": "Tìm kiếm nhân viên...",
+    "addStaff": "Thêm nhân viên",
+    "messages": {
+      "editUserSuccess": "Sửa tài khoản nhân viên thành công",
+      "addUserSuccess": "Thêm tài khoản nhân viên thành công",
+      "inactiveSuccess": "Chặn tài khoản nhân viên thành công"
+    }
+  },
+  "userModal": {
+    "editTitle": "Sửa thông tin người dùng",
+    "addTitle": "Thêm thông tin người dùng",
+    "form": {
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "role": "Vai trò",
+      "status": "Trạng thái"
+    },
+    "roleOptions": {
+      "student": "Học sinh",
+      "guardian": "Phụ huynh",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
+    "statusOptions": {
+      "active": "Hoạt động",
+      "inactive": "Chặn"
+    }
+  },
+  "userTable": {
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "role": "Vai trò",
+    "roleOptions": {
+      "student": "Học sinh",
+      "guardian": "Phụ huynh",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
+    "status": "Trạng thái",
+    "statusOptions": {
+      "active": "Hoạt động",
+      "inactive": "Chặn"
+    },
+    "createDate": "Ngày tạo",
+    "lastLogin": "Đăng nhập gần nhất"
+  },
+  "programManagement": {
+    "title": "Quản lý chương trình hỗ trợ",
+    "description": "Quản lý chương trình hỗ trợ và thông tin của họ",
+    "table": {
+      "name": "Tên chương trình",
+      "description": "Mô tả",
+      "status": "Trạng thái"
+    }
+  },
+  "caseManagement": {
+    "title": "Quản lý ca tư vấn",
+    "description": "Quản lý ca tư vấn và thông tin của họ",
+    "table": {
+      "name": "Tên ca tư vấn",
+      "description": "Mô tả",
+      "status": "Trạng thái"
+    }
+  },
+  "surveyManagement": {
+    "title": "Quản lý khảo sát",
+    "description": "Quản lý khảo sát và thông tin của họ",
+    "refresh": "Làm mới",
+    "addSurvey": "Thêm khảo sát",
+    "search": "Tìm kiếm khảo sát...",
+    "table": {
+      "name": "Tên khảo sát",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "action": {
+        "viewDetail": "Xem chi tiết"
+      }
+    },
+    "form": {
+      "name": "Tên khảo sát",
+      "namePlaceholder": "Nhập tên khảo sát",
+      "nameRequired": "Vui lòng nhập tên khảo sát",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhập mô tả khảo sát",
+      "category": "Danh mục",
+      "categoryPlaceholder": "Chọn danh mục",
+      "categoryRequired": "Vui lòng chọn danh mục",
+      "isRequired": "Bắt buộc",
+      "isRecurring": "Lặp lại",
+      "recurringCycle": "Chu kỳ lặp lại",
+      "recurringCyclePlaceholder": "Chọn chu kỳ lặp lại",
+      "recurringCycleRequired": "Vui lòng chọn chu kỳ lặp lại",
+      "startDate": "Ngày bắt đầu",
+      "startDateRequired": "Vui lòng chọn ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "endDateRequired": "Vui lòng chọn ngày kết thúc",
+      "questions": "Câu hỏi",
+      "question": "Câu hỏi",
+      "addQuestion": "Thêm câu hỏi",
+      "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
+      "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
+      "sampleSurveys": "Khảo sát mẫu cho danh mục"
+    },
+    "messages": {
+      "addSuccess": "Tạo khảo sát thành công",
+      "addError": "Tạo khảo sát thất bại"
+    }
+  },
+  "appointmentManagement": {
+    "title": "Quản lý cuộc hẹn",
+    "description": "Mô tả",
+    "status": "Trạng thái"
+  },
+  "common": {
+    "create": "Tạo",
+    "cancel": "Hủy",
+    "daily": "Hàng ngày",
+    "weekly": "Hàng tuần",
+    "monthly": "Hàng tháng"
+  }
+}

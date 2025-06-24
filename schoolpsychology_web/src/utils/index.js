@@ -1,0 +1,127 @@
+// Format utilities
+export const formatDate = (date, locale = 'vi-VN') => {
+  return new Date(date).toLocaleDateString(locale)
+}
+
+export const formatCurrency = (amount, locale = 'vi-VN', currency = 'VND') => {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+  }).format(amount)
+}
+
+// Validation utilities
+export const isEmail = email => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+export const isPhoneNumber = phone => {
+  const phoneRegex = /^(\+84|84|0)([3|5|7|8|9])+([0-9]{8})$/
+  return phoneRegex.test(phone)
+}
+
+// Storage utilities
+export const getFromStorage = key => {
+  try {
+    const item = localStorage.getItem(key)
+    return item ? JSON.parse(item) : null
+  } catch (error) {
+    console.error('Error getting from storage:', error)
+    return null
+  }
+}
+
+export const saveToStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value))
+  } catch (error) {
+    console.error('Error saving to storage:', error)
+  }
+}
+
+export const removeFromStorage = key => {
+  try {
+    localStorage.removeItem(key)
+  } catch (error) {
+    console.error('Error removing from storage:', error)
+  }
+}
+
+// JWT Token utilities
+export const decodeJWT = token => {
+  try {
+    if (!token) return null
+
+    // JWT tokens have 3 parts separated by dots
+    const parts = token.split('.')
+    if (parts.length !== 3) {
+      throw new Error('Invalid JWT token format')
+    }
+
+    // Decode the payload (second part)
+    const payload = parts[1]
+    // Add padding if needed for base64 decoding
+    const paddedPayload = payload + '='.repeat((4 - (payload.length % 4)) % 4)
+    const decodedPayload = atob(
+      paddedPayload.replace(/-/g, '+').replace(/_/g, '/')
+    )
+
+    return JSON.parse(decodedPayload)
+  } catch (error) {
+    console.error('Error decoding JWT token:', error)
+    return null
+  }
+}
+
+export const isTokenExpired = token => {
+  try {
+    const decoded = decodeJWT(token)
+    if (!decoded || !decoded.exp) return true
+
+    // exp is in seconds, Date.now() is in milliseconds
+    const currentTime = Math.floor(Date.now() / 1000)
+    return decoded.exp < currentTime
+  } catch (error) {
+    console.error('Error checking token expiration:', error)
+    return true
+  }
+}
+
+export const getTokenExpirationTime = token => {
+  try {
+    const decoded = decodeJWT(token)
+    if (!decoded || !decoded.exp) return null
+
+    // Convert seconds to milliseconds
+    return new Date(decoded.exp * 1000)
+  } catch (error) {
+    console.error('Error getting token expiration time:', error)
+    return null
+  }
+}
+
+export const getTokenInfo = token => {
+  try {
+    const decoded = decodeJWT(token)
+    if (!decoded) return null
+
+    const expirationTime = getTokenExpirationTime(token)
+    const isExpired = isTokenExpired(token)
+
+    return {
+      decoded,
+      expirationTime,
+      isExpired,
+      issuedAt: decoded.iat ? new Date(decoded.iat * 1000) : null,
+      expiresIn: decoded.exp
+        ? Math.floor((decoded.exp * 1000 - Date.now()) / 1000)
+        : null, // seconds
+      tokenType: 'JWT',
+      algorithm: decoded.alg || 'unknown',
+    }
+  } catch (error) {
+    console.error('Error getting token info:', error)
+    return null
+  }
+}
