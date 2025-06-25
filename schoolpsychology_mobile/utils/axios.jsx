@@ -1,17 +1,22 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios'
-// import { store } from '../store'
-// import { logoutUser } from '../store/actions/authActions'
+import axios from 'axios';
+import { Platform } from 'react-native';
 
-// Create axios instance with base configuration
+// Dynamic baseURL based on platform
+const baseURL =
+  Platform.OS === 'android'
+    ? 'http://10.0.2.2:8080'
+    : 'http://localhost:8080'; // Change to LAN IP (e.g., 192.168.x.x) for physical devices
+
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // đổi sang IP thật nếu chạy trên device
+  baseURL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// Request interceptor to attach JWT token
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -29,77 +34,38 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (!error.response) {
+      console.error('Network or CORS error:', error.message);
+      return Promise.reject(new Error('Network or server error'));
+    }
 
-// // Response interceptor
-// api.interceptors.response.use(
-//   response => {
-//     return response
-//   },
-//   async error => {
-//     const originalRequest = error.config
-//     const excludedPaths = ['/api/v1/auth/login', '/api/v1/auth/forgot-password']
+    const { status, config: originalRequest } = error.response;
+    const excludedPaths = ['/api/v1/auth/login', '/api/v1/auth/forgot-password'];
 
-//     // Handle 401 (Unauthorized) - token expired
-//     if (
-//       error.response?.status === 401 &&
-//       !originalRequest._retry &&
-//       !excludedPaths.some(path => originalRequest.url.includes(path))
-//     ) {
-//       if (isRefreshing) {
-//         return new Promise((resolve, reject) => {
-//           failedQueue.push({ resolve, reject })
-//         })
-//           .then(token => {
-//             originalRequest.headers.Authorization = `Bearer ${token}`
-//             return api(originalRequest)
-//           })
-//           .catch(err => {
-//             return Promise.reject(err)
-//           })
-//       }
+    // Example token refresh mechanism placeholder
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !excludedPaths.some((path) => originalRequest.url.includes(path))
+    ) {
+      originalRequest._retry = true;
+      // Optional: refresh token logic here
+      // For now, just reject
+      console.warn('Unauthorized, token may be expired');
+      return Promise.reject(error);
+    }
 
-//       originalRequest._retry = true
-//       isRefreshing = true
+    if (status === 403) {
+      console.warn('Access forbidden: insufficient permissions');
+      return Promise.reject(new Error('Access forbidden'));
+    }
 
-//       try {
-//         // Import authAPI dynamically to avoid circular dependency
-//         const { authAPI } = await import('./authApi')
-//         const response = await authAPI.refreshToken()
+    return Promise.reject(error);
+  }
+);
 
-//         if (response.success && response.data?.token) {
-//           const newToken = response.data.token
-//           localStorage.setItem('token', newToken)
-//           api.defaults.headers.common.Authorization = `Bearer ${newToken}`
-//           originalRequest.headers.Authorization = `Bearer ${newToken}`
-
-//           processQueue(null, newToken)
-//           return api(originalRequest)
-//         } else {
-//           throw new Error('Token refresh failed')
-//         }
-//       } catch (refreshError) {
-//         processQueue(refreshError, null)
-//         // Dispatch logout action for 401 errors
-//         store.dispatch(logoutUser())
-//         return Promise.reject(refreshError)
-//       } finally {
-//         isRefreshing = false
-//       }
-//     }
-
-//     // Handle 403 (Forbidden) - insufficient permissions
-//     if (error.response?.status === 403) {
-//       console.error('Access forbidden: Insufficient permissions')
-//       // Dispatch logout action for 403 errors
-//       store.dispatch(logoutUser())
-//       return Promise.reject(
-//         new Error('Access forbidden: Insufficient permissions')
-//       )
-//     }
-
-//     // Handle other errors
-//     return Promise.reject(error)
-//   }
-// )
-
-export default api
+export default api;

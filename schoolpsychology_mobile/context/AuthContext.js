@@ -16,17 +16,24 @@ export const AuthProvider = ({ children }) => {
           const decoded = jwtDecode(token);
           setUser({ token, role: decoded.role });
         }
-      } catch (e) {}
+      } catch (e) { }
       setLoading(false);
     };
     loadUser();
   }, []);
 
   const login = async (token) => {
-    await AsyncStorage.setItem('token', token);
     const decoded = jwtDecode(token);
+    const allowedRoles = ["STUDENT", "PARENTS"];
+
+    if (!allowedRoles.includes(decoded.role)) {
+      throw new Error("Only Student or Parent can log in.");
+    }
+
+    await AsyncStorage.setItem("token", token);
     setUser({ token, role: decoded.role });
   };
+
 
   const logout = async () => {
     await AsyncStorage.removeItem('token');
