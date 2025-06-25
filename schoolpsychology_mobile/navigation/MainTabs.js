@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator();
 export default function MainTabs() {
   const Stack = createNativeStackNavigator();
 
-  const profileStack = () => {
+  const ProfileStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="ProfileMain" component={ProfileScreen} />
@@ -51,7 +51,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Blog" component={BlogScreen} />
       <Tab.Screen name="Notification" component={NotificationScreen} />
-      <Tab.Screen name="Profile" component={profileStack} />
+      <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
   );
 }
