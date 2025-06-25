@@ -4,7 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Container from '../../components/Container';
 import api from '../../utils/axios';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
@@ -28,24 +28,21 @@ export default function ProfileScreen() {
 
   }
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const response = await api.get("/api/v1/account");
-      setProfile(response.data);
-    } catch (error) {
-      if (error.response?.data?.message) {
-        console.error("API error:", error.response.data.message);
-        setError(error.response.data.message);
-      } else {
-        console.error("Unexpected error:", error.message);
-        setError("Something went wrong while fetching profile.");
+useFocusEffect(
+  React.useCallback(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get("/api/v1/account");
+        setProfile(response.data);
+      } catch (error) {
+        const msg = error.response?.data?.message || error.message;
+        console.error("Profile fetch error:", msg);
       }
-    }
-  };
+    };
 
-  fetchProfile();
-}, []);
+    fetchProfile();
+  }, [])
+);
 const navigateToEditProfile = () => {
   navigation.navigate("EditProfile", { data: profile });
 }

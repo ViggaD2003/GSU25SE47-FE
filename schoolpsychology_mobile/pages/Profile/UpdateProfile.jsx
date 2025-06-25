@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,49 +8,93 @@ import {
     Alert,
     Switch,
     ScrollView,
+    ToastAndroid,
+    Platform,
 } from 'react-native';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Container from '../../components/Container';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/axios';
 
 export default function UpdateProfile({ route }) {
     const navigation = useNavigation();
-    const data = route?.params?.data || {};
+    const [data, setData] = useState({});
     const { user } = useAuth();
 
-    const [fullName, setFullName] = useState(data.fullName || '');
-    const [email, setEmail] = useState(data.email || '');
-    const [phoneNumber, setPhoneNumber] = useState(data.phoneNumber || '');
-    const [gender, setGender] = useState(data.gender ?? true);
-    const [dob, setDob] = useState(data.dob || '');
-    const [studentCode] = useState(data.studentCode || '');
-    const [isEnableSurvey, setIsEnableSurvey] = useState(data.isEnableSurvey ?? false);
-    const [teacherName] = useState(data.classDto?.teacher?.fullName || '');
-    const [teacherEmail] = useState(data.classDto?.teacher?.email || '');
-    const [codeClass] = useState(data.classDto?.codeClass || '');
-    const [classYear] = useState(data.classDto?.classYear || '');
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [gender, setGender] = useState(true);
+    const [dob, setDob] = useState('');
+    const [studentCode, setStudentCode] = useState('');
+    const [isEnableSurvey, setIsEnableSurvey] = useState(false);
+    const [teacherName, setTeacherName] = useState('');
+    const [teacherEmail, setTeacherEmail] = useState('');
+    const [codeClass, setCodeClass] = useState('');
+    const [classYear, setClassYear] = useState('');
 
-    const handleSave = () => {
-        const payload = {
-            fullName,
-            email,
-            phoneNumber,
-            gender,
-            dob,
-            studentCode,
-            isEnableSurvey,
-            classDto: {
-                teacher: {
-                    fullName: teacherName,
-                    email: teacherEmail,
-                },
-                codeClass,
-                classYear,
+    useFocusEffect(
+        React.useCallback(() => {
+            const profileData = route?.params?.data;
+            if (profileData) {
+                setData(profileData);
+                setFullName(profileData.fullName || '');
+                setEmail(profileData.email || '');
+                setPhoneNumber(profileData.phoneNumber || '');
+                setGender(profileData.gender ?? true);
+                setDob(profileData.dob || '');
+                setStudentCode(profileData.studentCode || '');
+                setIsEnableSurvey(profileData.isEnableSurvey ?? false);
+                setTeacherName(profileData.classDto?.teacher?.fullName || '');
+                setTeacherEmail(profileData.classDto?.teacher?.email || '');
+                setCodeClass(profileData.classDto?.codeClass || '');
+                setClassYear(profileData.classDto?.classYear || '');
+            }
+        }, [route?.params?.data])
+    );
+
+    const handleSave = async () => {
+        try {
+            const payload = {
+                fullName,
+                phoneNumber,
+                gender,
+                dob,
+                isEnableSurvey
+            };
+            const response = await api.put("/api/v1/account", payload);
+            setData(response.data);
+            if (Platform.OS === 'android') {
+                ToastAndroid.show("Profile updated successfully!", ToastAndroid.SHORT);
+            } else {
+                Alert.alert("Success", "Profile updated successfully!");
+            }
+        } catch (error) {
+            if (error.response?.data?.message) {
+                console.error("API error:", error.response.data.message);
+                Alert.alert("Error", error.response.data.message);
+            } else {
+                console.error("Unexpected error:", error.message);
+                Alert.alert("Error", "Something went wrong while fetching profile.");
+            }
+        }
+    };
+
+    const showAndroidDatePicker = () => {
+        DateTimePickerAndroid.open({
+            value: dob ? new Date(dob) : new Date(),
+            onChange: (event, selectedDate) => {
+                if (selectedDate) {
+                    const isoDate = selectedDate.toISOString().split('T')[0];
+                    setDob(isoDate);
+                }
             },
-        };
-
-        Alert.alert('Cập nhật thành công!', JSON.stringify(payload, null, 2));
+            mode: 'date',
+            is24Hour: true,
+            maximumDate: new Date(),
+        });
     };
 
     return (
@@ -73,7 +117,7 @@ export default function UpdateProfile({ route }) {
                     <TextInput style={styles.input} value={fullName} onChangeText={setFullName} />
 
                     <Text style={styles.label}>Email</Text>
-                    <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
+                    <TextInput style={[styles.input, styles.disabledInput]} value={email} editable={false} />
 
                     <Text style={styles.label}>Phone Number</Text>
                     <TextInput style={styles.input} value={phoneNumber} onChangeText={setPhoneNumber} keyboardType="phone-pad" />
@@ -89,30 +133,36 @@ export default function UpdateProfile({ route }) {
                     </View>
 
                     <Text style={styles.label}>Date of Birth</Text>
-                    <TextInput style={styles.input} value={dob} onChangeText={setDob} placeholder="YYYY-MM-DD" />
-                    {
-                        user.role === "STUDENT" ?
-                            <>
-                                <Text style={styles.label}>Enable Survey</Text>
-                                <Switch value={isEnableSurvey} onValueChange={setIsEnableSurvey} />
+                    <TouchableOpacity onPress={showAndroidDatePicker}>
+                        <TextInput
+                            style={styles.input}
+                            value={dob}
+                            placeholder="YYYY-MM-DD"
+                            editable={false}
+                        />
+                    </TouchableOpacity>
 
-                                <Text style={styles.label}>Student Code</Text>
-                                <TextInput style={styles.input} value={studentCode} editable={false} />
+                    {user.role === "STUDENT" && (
+                        <>
+                            <Text style={styles.label}>Enable Survey</Text>
+                            <Switch value={isEnableSurvey} onValueChange={setIsEnableSurvey} />
 
-                                <Text style={styles.label}>Class</Text>
-                                <TextInput style={styles.input} value={codeClass} editable={false} />
+                            <Text style={styles.label}>Student Code</Text>
+                            <TextInput style={[styles.input, styles.disabledInput]} value={studentCode} editable={false} />
 
-                                <Text style={styles.label}>Class Year</Text>
-                                <TextInput style={styles.input} value={classYear} editable={false} />
+                            <Text style={styles.label}>Class</Text>
+                            <TextInput style={[styles.input, styles.disabledInput]} value={codeClass} editable={false} />
 
-                                <Text style={styles.label}>Teacher Name</Text>
-                                <TextInput style={styles.input} value={teacherName} editable={false} />
+                            <Text style={styles.label}>Class Year</Text>
+                            <TextInput style={[styles.input, styles.disabledInput]} value={classYear} editable={false} />
 
-                                <Text style={styles.label}>Teacher Email</Text>
-                                <TextInput style={styles.input} value={teacherEmail} editable={false} />
-                            </> : <></>
-                    }
+                            <Text style={styles.label}>Teacher Name</Text>
+                            <TextInput style={[styles.input, styles.disabledInput]} value={teacherName} editable={false} />
 
+                            <Text style={styles.label}>Teacher Email</Text>
+                            <TextInput style={[styles.input, styles.disabledInput]} value={teacherEmail} editable={false} />
+                        </>
+                    )}
 
                     <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
                         <Text style={styles.saveBtnText}>Save</Text>
@@ -164,6 +214,9 @@ const styles = StyleSheet.create({
         padding: 12,
         fontSize: 16,
         backgroundColor: '#fff',
+    },
+    disabledInput: {
+        opacity: 0.5,
     },
     saveBtn: {
         backgroundColor: '#181A3D',
