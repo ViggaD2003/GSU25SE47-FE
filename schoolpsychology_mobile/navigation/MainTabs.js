@@ -6,6 +6,9 @@ import BlogScreen from "../pages/Blog/BlogScreen";
 import NotificationScreen from "../pages/Notification/NotificationScreen";
 import { FontAwesome } from "@expo/vector-icons";
 import { GlobalStyles } from "../contants/styles";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import UpdateProfile from "../pages/Profile/UpdateProfile";
+import MyChildren from "../pages/Profile/MyChildren";
 import { useAuth } from "../context/AuthContext";
 import { Text, View } from "react-native-web";
 import { StyleSheet } from "react-native";
@@ -13,6 +16,18 @@ import { StyleSheet } from "react-native";
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
+  const Stack = createNativeStackNavigator();
+
+  const ProfileStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="ProfileMain" component={ProfileScreen} />
+        <Stack.Screen name="EditProfile" component={UpdateProfile} />
+        <Stack.Screen name="MyChildren" component={MyChildren} />
+      </Stack.Navigator>
+    );
+  };
+
   const { user } = useAuth();
   console.log(user);
 
@@ -47,7 +62,7 @@ export default function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Blog" component={BlogScreen} />
       <Tab.Screen name="Notification" component={NotificationScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" component={ProfileStack} />
     </Tab.Navigator>
   );
 }

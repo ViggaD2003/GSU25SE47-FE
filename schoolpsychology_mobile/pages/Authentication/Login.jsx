@@ -19,26 +19,38 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const { login } = useAuth();
 
   const handleLogin = async () => {
     setError("");
+    setFieldErrors({});
+
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
+
     setLoading(true);
     try {
       const res = await api.post("/api/v1/auth/login", { email, password });
       const token = res.data.data.token;
-      if (!token) throw new Error("No token returned");
       await login(token);
     } catch (err) {
-      let msg = "Login failed. Please check your credentials.";
-      if (err.response && err.response.data && err.response.data.message) {
-        msg = err.response.data.message;
+      let msg = "Login failed";
+
+      if (err.message === "Only Student or Parent can log in.") {        
+        msg = err.message;
+        setError(msg);
+      } else if (err.response?.data) {
+        const data = err.response.data;
+        if (typeof data === "string") {
+          msg = data;
+          setError(msg);
+        } else if (typeof data === "object") {
+          setFieldErrors(data);
+        }
       }
-      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -64,6 +76,7 @@ const Login = () => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+          {fieldErrors.email && <Text style={styles.errorText}>{fieldErrors.email}</Text>}
         </View>
 
         <View style={styles.inputGroup}>
@@ -87,6 +100,7 @@ const Login = () => {
               </Text>
             </TouchableOpacity>
           </View>
+          {fieldErrors.password && <Text style={styles.errorText}>{fieldErrors.password}</Text>}
         </View>
 
         <TouchableOpacity style={styles.forgotPassword}>
