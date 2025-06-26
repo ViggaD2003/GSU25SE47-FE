@@ -6,10 +6,16 @@ import BlogScreen from "../pages/Blog/BlogScreen";
 import NotificationScreen from "../pages/Notification/NotificationScreen";
 import { FontAwesome } from "@expo/vector-icons";
 import { GlobalStyles } from "../contants/styles";
+import { useAuth } from "../context/AuthContext";
+import { Text, View } from "react-native-web";
+import { StyleSheet } from "react-native";
 
 const Tab = createBottomTabNavigator();
 
 export default function MainTabs() {
+  const { user } = useAuth();
+  console.log(user);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -28,8 +34,14 @@ export default function MainTabs() {
         },
         tabBarActiveTintColor: GlobalStyles.colors.primary,
         tabBarInactiveTintColor: "gray",
-        headerShown: false,
         tabBarShowLabel: false,
+        headerTitle: () => (
+          <View>
+            <Text style={styles.roleText}>{user.role.toLowerCase()}</Text>
+          </View>
+        ),
+        headerStyle: styles.headerStyle,
+        tabBarStyle: styles.tabBarStyle,
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
@@ -39,3 +51,30 @@ export default function MainTabs() {
     </Tab.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  nameText: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  roleText: {
+    fontSize: 14,
+    fontWeight: "light",
+  },
+  headerStyle: {
+    borderBottomWidth: 0,
+  },
+  tabBarStyle: {
+    borderTopWidth: 0,
+    height: 60,
+    paddingTop: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -3,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});
