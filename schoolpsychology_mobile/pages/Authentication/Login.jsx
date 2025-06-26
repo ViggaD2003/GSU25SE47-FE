@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { GlobalStyles } from "../../contants/styles";
 import { useAuth } from "../../context/AuthContext";
+import { GlobalStyles } from "../../constants";
 
 const Login = () => {
   const [email, setEmail] = useState("");

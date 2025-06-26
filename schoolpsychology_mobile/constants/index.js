@@ -65,6 +65,8 @@ export const AUTH_ERRORS = {
   TOKEN_EXPIRED: "Your session has expired. Please login again.",
   REFRESH_FAILED: "Failed to refresh session. Please login again.",
   INVALID_ROLE: "Only Student or Parent can log in.",
+  INVALID_TOKEN: "Invalid token format. Please login again.",
+  TOKEN_MISSING: "Authentication token is missing. Please login again.",
 };
 
 // Success messages

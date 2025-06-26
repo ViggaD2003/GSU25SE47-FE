@@ -18,15 +18,24 @@ export const login = async (email, password) => {
       email,
       password,
     });
+    console.log("response", response);
+    const { token: accessToken } = response.data.data;
 
-    const { accessToken, refreshToken } = response.data.data;
+    // Validate that we received valid tokens
+    if (
+      !accessToken ||
+      typeof accessToken !== "string" ||
+      accessToken.trim() === ""
+    ) {
+      throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+    }
 
     const decoded = validateUserRole(accessToken);
-    await setTokens(accessToken, refreshToken);
+    await setTokens(accessToken, accessToken);
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken: accessToken,
       user: {
         token: accessToken,
         role: decoded.role,

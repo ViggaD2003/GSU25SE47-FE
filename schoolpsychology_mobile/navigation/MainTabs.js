@@ -5,13 +5,13 @@ import ProfileScreen from "../pages/Profile/ProfileScreen";
 import BlogScreen from "../pages/Blog/BlogScreen";
 import NotificationScreen from "../pages/Notification/NotificationScreen";
 import { FontAwesome } from "@expo/vector-icons";
-import { GlobalStyles } from "../contants/styles";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import UpdateProfile from "../pages/Profile/UpdateProfile";
 import MyChildren from "../pages/Profile/MyChildren";
 import { useAuth } from "../context/AuthContext";
 import { Text, View } from "react-native-web";
 import { StyleSheet } from "react-native";
+import { GlobalStyles } from "../constants";
 
 const Tab = createBottomTabNavigator();
 
@@ -29,7 +29,7 @@ export default function MainTabs() {
   };
 
   const { user } = useAuth();
-  console.log(user);
+  // console.log(user);
 
   return (
     <Tab.Navigator

@@ -34,7 +34,11 @@ export const refreshAccessToken = async () => {
 
   try {
     const refreshToken = await getRefreshToken();
-    if (!refreshToken) {
+    if (
+      !refreshToken ||
+      typeof refreshToken !== "string" ||
+      refreshToken.trim() === ""
+    ) {
       throw new Error(AUTH_ERRORS.REFRESH_FAILED);
     }
 
@@ -42,9 +46,18 @@ export const refreshAccessToken = async () => {
       refreshToken: refreshToken,
     });
 
-    const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+    const { token: accessToken } = response.data.data;
 
-    await setTokens(accessToken, newRefreshToken);
+    // Validate that we received valid tokens
+    if (
+      !accessToken ||
+      typeof accessToken !== "string" ||
+      accessToken.trim() === ""
+    ) {
+      throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+    }
+
+    await setTokens(accessToken, accessToken);
     processQueue(null, accessToken);
 
     return accessToken;

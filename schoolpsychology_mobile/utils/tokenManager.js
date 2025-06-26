@@ -5,8 +5,22 @@ import { AUTH_CONFIG, AUTH_ERRORS } from "../constants";
 // Token management functions
 export const setTokens = async (accessToken, refreshToken = null) => {
   try {
+    // Validate access token
+    if (
+      !accessToken ||
+      typeof accessToken !== "string" ||
+      accessToken.trim() === ""
+    ) {
+      throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+    }
+
     await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_KEY, accessToken);
+
+    // Validate refresh token if provided
     if (refreshToken) {
+      if (typeof refreshToken !== "string" || refreshToken.trim() === "") {
+        throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+      }
       await AsyncStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, refreshToken);
     }
   } catch (error) {
@@ -46,7 +60,9 @@ export const clearTokens = async () => {
 
 // Token validation functions
 export const isTokenExpired = (token) => {
-  if (!token) return true;
+  if (!token || typeof token !== "string" || token.trim() === "") {
+    return true;
+  }
 
   try {
     const decoded = jwtDecode(token);
@@ -63,7 +79,9 @@ export const isTokenExpired = (token) => {
 export const shouldRefreshToken = async () => {
   try {
     const token = await getAccessToken();
-    if (!token) return false;
+    if (!token || typeof token !== "string" || token.trim() === "") {
+      return false;
+    }
 
     const decoded = jwtDecode(token);
     const currentTime = Date.now() / 1000;
@@ -79,6 +97,11 @@ export const shouldRefreshToken = async () => {
 // User validation functions
 export const validateUserRole = (token) => {
   try {
+    // Validate that token is a non-empty string
+    if (!token || typeof token !== "string" || token.trim() === "") {
+      throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+    }
+
     const decoded = jwtDecode(token);
 
     if (!AUTH_CONFIG.ALLOWED_ROLES.includes(decoded.role)) {
