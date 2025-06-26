@@ -8,23 +8,18 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
+  const [error, setError] = useState("");
   const { logout, user } = useAuth();
   const navigation = useNavigation();
 
   const handleLogout = async () => {
     try {
-      const response = await api.post("/api/v1/auth/logout");
       await logout();
+      // AuthContext will handle the state update and navigation
     } catch (error) {
+      console.error("Logout error:", error);
+      // Still logout locally even if API call fails
       await logout();
-      if (error.response?.data?.message) {
-        console.error("API error:", error.response.data.message);
-        setError(error.response.data.message);
-      } else {
-        console.error("Unexpected error:", error.message);
-        setError("Something went wrong while fetching profile.");
-      }
-      
     }
   };
 
@@ -135,10 +130,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginHorizontal: 8,
     alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    boxShadow: "0 0 10px 0 rgba(0, 0, 0, 0.1)",
     elevation: 4,
   },
   avatarWrapper: {

@@ -50,6 +50,7 @@ export default function MainTabs() {
         tabBarActiveTintColor: GlobalStyles.colors.primary,
         tabBarInactiveTintColor: "gray",
         tabBarShowLabel: false,
+        headerShown: false,
         headerTitle: () => (
           <View>
             <Text style={styles.roleText}>{user.role.toLowerCase()}</Text>
@@ -83,13 +84,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     height: 60,
     paddingTop: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -3,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    boxShadow: "0 0 10px 0 rgba(0, 0, 0, 0.1)",
     elevation: 5,
   },
 });

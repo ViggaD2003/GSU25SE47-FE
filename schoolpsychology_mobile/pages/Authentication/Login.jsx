@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { GlobalStyles } from "../../contants/styles";
 import { useAuth } from "../../context/AuthContext";
-import api from "../../utils/axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -33,13 +32,12 @@ const Login = () => {
 
     setLoading(true);
     try {
-      const res = await api.post("/api/v1/auth/login", { email, password });
-      const token = res.data.data.token;
-      await login(token);
+      await login(email, password);
+      // Login successful - AuthContext will handle the state update
     } catch (err) {
       let msg = "Login failed";
 
-      if (err.message === "Only Student or Parent can log in.") {        
+      if (err.message === "Only Student or Parent can log in.") {
         msg = err.message;
         setError(msg);
       } else if (err.response?.data) {
@@ -50,6 +48,9 @@ const Login = () => {
         } else if (typeof data === "object") {
           setFieldErrors(data);
         }
+      } else if (err.message) {
+        msg = err.message;
+        setError(msg);
       }
     } finally {
       setLoading(false);
@@ -59,7 +60,11 @@ const Login = () => {
   return (
     <View style={styles.container}>
       <View style={styles.innerContainer}>
-        <Image source={require("../../assets/logo.svg")} style={styles.logo} />
+        <Image
+          source={require("../../assets/logo.svg")}
+          resizeMode="contain"
+          style={styles.logo}
+        />
         <Text style={styles.appName}>
           <Text style={styles.appNameBold}>Mindful</Text>Care
         </Text>
@@ -76,7 +81,9 @@ const Login = () => {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          {fieldErrors.email && <Text style={styles.errorText}>{fieldErrors.email}</Text>}
+          {fieldErrors.email && (
+            <Text style={styles.errorText}>{fieldErrors.email}</Text>
+          )}
         </View>
 
         <View style={styles.inputGroup}>
@@ -100,7 +107,9 @@ const Login = () => {
               </Text>
             </TouchableOpacity>
           </View>
-          {fieldErrors.password && <Text style={styles.errorText}>{fieldErrors.password}</Text>}
+          {fieldErrors.password && (
+            <Text style={styles.errorText}>{fieldErrors.password}</Text>
+          )}
         </View>
 
         <TouchableOpacity style={styles.forgotPassword}>
@@ -147,7 +156,6 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     marginBottom: 16,
-    resizeMode: "contain",
   },
   appName: {
     fontSize: 28,
