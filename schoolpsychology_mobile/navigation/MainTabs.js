@@ -29,7 +29,6 @@ export default function MainTabs() {
   };
 
   const { user } = useAuth();
-  // console.log(user);
 
   return (
     <Tab.Navigator
