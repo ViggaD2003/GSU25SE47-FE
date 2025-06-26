@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -11,7 +11,7 @@ import {
     ToastAndroid,
     Platform,
 } from 'react-native';
-import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Container from '../../components/Container';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -34,6 +34,8 @@ export default function UpdateProfile({ route }) {
     const [teacherEmail, setTeacherEmail] = useState('');
     const [codeClass, setCodeClass] = useState('');
     const [classYear, setClassYear] = useState('');
+
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -82,19 +84,12 @@ export default function UpdateProfile({ route }) {
         }
     };
 
-    const showAndroidDatePicker = () => {
-        DateTimePickerAndroid.open({
-            value: dob ? new Date(dob) : new Date(),
-            onChange: (event, selectedDate) => {
-                if (selectedDate) {
-                    const isoDate = selectedDate.toISOString().split('T')[0];
-                    setDob(isoDate);
-                }
-            },
-            mode: 'date',
-            is24Hour: true,
-            maximumDate: new Date(),
-        });
+    const handleConfirmDate = (selectedDate) => {
+        if (selectedDate) {
+            const isoDate = selectedDate.toISOString().split('T')[0];
+            setDob(isoDate);
+        }
+        setDatePickerVisibility(false);
     };
 
     return (
@@ -133,7 +128,7 @@ export default function UpdateProfile({ route }) {
                     </View>
 
                     <Text style={styles.label}>Date of Birth</Text>
-                    <TouchableOpacity onPress={showAndroidDatePicker}>
+                    <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
                         <TextInput
                             style={styles.input}
                             value={dob}
@@ -141,6 +136,14 @@ export default function UpdateProfile({ route }) {
                             editable={false}
                         />
                     </TouchableOpacity>
+
+                    <DateTimePickerModal
+                        isVisible={isDatePickerVisible}
+                        mode="date"
+                        onConfirm={handleConfirmDate}
+                        onCancel={() => setDatePickerVisibility(false)}
+                        maximumDate={new Date()}
+                    />
 
                     {user.role === "STUDENT" && (
                         <>
@@ -172,7 +175,6 @@ export default function UpdateProfile({ route }) {
         </Container>
     );
 }
-
 const styles = StyleSheet.create({
     headerRow: {
         flexDirection: 'row',
