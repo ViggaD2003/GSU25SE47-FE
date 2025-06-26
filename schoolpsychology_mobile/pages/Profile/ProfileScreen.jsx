@@ -16,6 +16,7 @@ export default function ProfileScreen() {
       const response = await api.post("/api/v1/auth/logout");
       await logout();
     } catch (error) {
+      await logout();
       if (error.response?.data?.message) {
         console.error("API error:", error.response.data.message);
         setError(error.response.data.message);
@@ -23,7 +24,7 @@ export default function ProfileScreen() {
         console.error("Unexpected error:", error.message);
         setError("Something went wrong while fetching profile.");
       }
-      await logout();
+      
     }
   };
 
