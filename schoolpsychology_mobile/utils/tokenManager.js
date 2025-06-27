@@ -3,26 +3,14 @@ import { jwtDecode } from "jwt-decode";
 import { AUTH_CONFIG, AUTH_ERRORS } from "../constants";
 
 // Token management functions
-export const setTokens = async (accessToken, refreshToken = null) => {
+export const setTokens = async (token) => {
   try {
     // Validate access token
-    if (
-      !accessToken ||
-      typeof accessToken !== "string" ||
-      accessToken.trim() === ""
-    ) {
+    if (!token || typeof token !== "string" || token.trim() === "") {
       throw new Error(AUTH_ERRORS.INVALID_TOKEN);
     }
 
-    await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_KEY, accessToken);
-
-    // Validate refresh token if provided
-    if (refreshToken) {
-      if (typeof refreshToken !== "string" || refreshToken.trim() === "") {
-        throw new Error(AUTH_ERRORS.INVALID_TOKEN);
-      }
-      await AsyncStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, refreshToken);
-    }
+    await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_KEY, token);
   } catch (error) {
     console.error("Error saving tokens:", error);
     throw error;

@@ -43,7 +43,7 @@ export const refreshAccessToken = async () => {
     }
 
     const response = await api.post(AUTH_CONFIG.ENDPOINTS.REFRESH, {
-      refreshToken: refreshToken,
+      token: refreshToken,
     });
 
     const { token: accessToken } = response.data.data;

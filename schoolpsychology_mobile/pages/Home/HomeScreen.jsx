@@ -1,184 +1,519 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  Dimensions,
+  StatusBar,
+} from "react-native";
 import Container from "../../components/Container";
 import { getPublishedSurveys } from "../../utils/SurveyService";
-export default function HomeScreen() {
+import { surveyData } from "../../constants/survey";
+import Loading from "../../components/common/Loading";
+import SurveyCard from "../../components/common/SurveyCard";
 
-  const [surveys, setSurveys] = useState([]);
+const { width } = Dimensions.get("window");
+const isSmallDevice = width < 375;
+const isMediumDevice = width >= 375 && width < 414;
+// const isLargeDevice = width >= 414;
+
+export default function HomeScreen({ navigation }) {
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState(null);
 
+  const fetchSurveys = async () => {
+    try {
+      const response = await getPublishedSurveys();
+      // setSurveys(Array.isArray(response) ? response : response.data || []);
+      const publishedSurveys = surveyData.filter(
+        (survey) => survey.status === "PUBLISHED"
+      );
 
-  useEffect(() => {
-    const fetchAllSurveys = async () => {
-      try {
-        const response = await getPublishedSurveys();
-        // Nếu response là mảng thì set luôn, nếu response có dạng {data: [...]}, thì set response.data
-        setSurveys(Array.isArray(response) ? response : response.data || []);
-      } catch (error) {
-        console.error("Lỗi khi tải surveys:", error);
-        setSurveys([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAllSurveys();
+      setData(publishedSurveys);
+    } catch (error) {
+      console.error("Lỗi khi tải surveys:", error);
+      const publishedSurveys = surveyData.filter(
+        (survey) => survey.status === "PUBLISHED"
+      );
+
+      setData(publishedSurveys);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      setData([]);
+    } catch (error) {
+      console.error("Lỗi khi tải appointments:", error);
+    }
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      setData([]);
+    } catch (error) {
+      console.error("Lỗi khi tải programs:", error);
+    }
+  };
+
+  const onPress = useCallback((type) => {
+    setActiveTab(type);
+    switch (type) {
+      case "survey":
+        fetchSurveys();
+        break;
+      case "appointment":
+        fetchAppointments();
+      case "program":
+        fetchPrograms();
+        break;
+    }
   }, []);
 
+  useEffect(() => {
+    onPress("survey");
+  }, []);
 
   return (
     <Container>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header User Info */}
-        <View style={styles.headerRow}>
-          <View style={styles.avatarBox}>
-            <Text style={styles.avatarIcon}>👤</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>Nguyen Hoang Khanh Uyen</Text>
-            <Text style={styles.userRole}>Student</Text>
-          </View>
-        </View>
-
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+        bounces={true}
+      >
         {/* Stress Alert */}
-        <View style={styles.alertBox}>
-          <View style={styles.alertRow}>
-            <Text style={styles.alertIcon}>⚠️</Text>
-            <Text style={styles.alertTitle}>High Stress Level Detected</Text>
-          </View>
-          <Text style={styles.alertDesc}>
-            Based on your recent assessments, we recommend taking action to manage your stress levels.
-          </Text>
-          <View style={styles.alertActions}>
-            <TouchableOpacity style={styles.alertBtn}><Text style={styles.alertBtnText}>Book Counseling Session</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.alertBtnOutline}><Text style={styles.alertBtnOutlineText}>Join Mindfulness Workshop</Text></TouchableOpacity>
+        <View style={styles.alertSection}>
+          <View style={styles.alertBox}>
+            <View style={styles.alertHeader}>
+              <Text style={styles.alertIcon}>⚠️</Text>
+              <Text style={styles.alertTitle}>High Stress Level Detected</Text>
+            </View>
+            <Text style={styles.alertDesc}>
+              Based on your recent assessments, we recommend taking action to
+              manage your stress levels.
+            </Text>
+            <View style={styles.alertActions}>
+              <TouchableOpacity style={styles.alertBtn}>
+                <Text style={styles.alertBtnText}>Book Counseling Session</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.alertBtnOutline}>
+                <Text style={styles.alertBtnOutlineText}>
+                  Join Mindfulness Workshop
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         {/* Featured Programs */}
-        <View style={{ marginTop: 24 }}>
-          <View style={styles.sectionRow}>
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Featured Programs</Text>
-            <TouchableOpacity><Text style={styles.sectionLink}>View All</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.sectionLinkContainer}>
+              <Text style={styles.sectionLink}>View All</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.featuredCard}>
-            <Image source={{ uri: 'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2' }} style={styles.featuredImg} />
+            <Image
+              source={{
+                uri: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
+              }}
+              style={styles.featuredImg}
+              resizeMode="cover"
+            />
             <View style={styles.featuredOverlay}>
-              <Text style={styles.featuredTag}>SUPPORT PROGRAM</Text>
-              <Text style={styles.featuredTitle}>Career Development Workshop</Text>
-              <Text style={styles.featuredTime}>May 25,2025  •  13:00 - 15:30</Text>
+              <View style={styles.featuredContent}>
+                <Text style={styles.featuredTag}>SUPPORT PROGRAM</Text>
+                <Text style={styles.featuredTitle}>
+                  Career Development Workshop
+                </Text>
+                <Text style={styles.featuredTime}>
+                  May 25, 2025 • 13:00 - 15:30
+                </Text>
+              </View>
             </View>
           </View>
         </View>
 
         {/* Check & Connect */}
-        <View style={{ marginTop: 32 }}>
-          <Text style={styles.sectionTitle}>Check & Connect</Text>
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Check & Connect</Text>
+          </View>
           <View style={styles.connectRow}>
-            <View style={styles.connectBox}>
-              <Text style={styles.connectIcon}>💬</Text>
+            <TouchableOpacity style={styles.connectBox}>
+              <View style={styles.connectIconContainer}>
+                <Text style={styles.connectIcon}>💬</Text>
+              </View>
               <Text style={styles.connectTitle}>Talk to Expert</Text>
-              <Text style={styles.connectDesc}>Schedule a session with our mental health professionals</Text>
-            </View>
-            <View style={styles.connectBox}>
-              <Text style={styles.connectIcon}>📄</Text>
+              <Text style={styles.connectDesc}>
+                Schedule a session with our mental health professionals
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.connectBox}>
+              <View style={styles.connectIconContainer}>
+                <Text style={styles.connectIcon}>📄</Text>
+              </View>
               <Text style={styles.connectTitle}>Take Assessment</Text>
-              <Text style={styles.connectDesc}>Complete surveys to track your mental wellbeing</Text>
-            </View>
+              <Text style={styles.connectDesc}>
+                Complete surveys to track your mental wellbeing
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 
         {/* My Events */}
-        <View style={{ marginTop: 32 }}>
-          <Text style={styles.sectionTitle}>My Events</Text>
-          <View style={styles.eventTabs}>
-            <TouchableOpacity style={styles.eventTabActive}><Text style={styles.eventTabTextActive}>Survey</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.eventTab}><Text style={styles.eventTabText}>Appointments</Text></TouchableOpacity>
-            <TouchableOpacity style={styles.eventTab}><Text style={styles.eventTabText}>Support Programs</Text></TouchableOpacity>
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>My Events</Text>
+          </View>
+          <View style={styles.eventTabsContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.eventTabsScrollContent}
+            >
+              <TouchableOpacity
+                style={
+                  activeTab === "survey"
+                    ? styles.eventTabActive
+                    : styles.eventTab
+                }
+                onPress={() => onPress("survey")}
+              >
+                <Text
+                  style={
+                    activeTab === "survey"
+                      ? styles.eventTabTextActive
+                      : styles.eventTabText
+                  }
+                >
+                  Survey
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={
+                  activeTab === "appointment"
+                    ? styles.eventTabActive
+                    : styles.eventTab
+                }
+                onPress={() => onPress("appointment")}
+              >
+                <Text
+                  style={
+                    activeTab === "appointment"
+                      ? styles.eventTabTextActive
+                      : styles.eventTabText
+                  }
+                >
+                  Appointments
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={
+                  activeTab === "program"
+                    ? styles.eventTabActive
+                    : styles.eventTab
+                }
+                onPress={() => onPress("program")}
+              >
+                <Text
+                  style={
+                    activeTab === "program"
+                      ? styles.eventTabTextActive
+                      : styles.eventTabText
+                  }
+                >
+                  Support Programs
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
           <View style={styles.requiredSurveys}>
-            <Text style={styles.requiredTitle}>Required Surveys <Text style={styles.pendingBadge}>{surveys.length} pending</Text></Text>
+            {/* <View style={styles.requiredTitleRow}>
+              <Text style={styles.requiredTitle}>Required Surveys</Text>
+              <Badge>{data.length} </Badge>
+            </View> */}
             {loading ? (
-              <ActivityIndicator style={{ marginTop: 20 }} size="large" color="#2E7D32" />
-            ) : (
-              surveys.map(survey => (
-                <View style={styles.surveyCard} key={survey.surveyId}>
-                  <View style={styles.surveyCardRow}>
-                    <Text style={styles.surveyCardTitle}>{survey.name}</Text>
-                    {survey.isRequired && <Text style={styles.surveyUrgent}>Required</Text>}
-                  </View>
-                  <Text style={styles.surveyCardDesc}>{survey.description}</Text>
-                  <Text style={styles.surveyCardDue}>
-                    {survey.startDate && survey.endDate
-                      ? `From: ${new Date(survey.startDate).toLocaleDateString()} - To: ${new Date(survey.endDate).toLocaleDateString()}`
-                      : ""}
-                  </Text>
-                  <Text style={{ color: "#888", fontSize: 12, marginBottom: 4 }}>
-                    {survey.isRecurring
-                      ? `Recurring: ${survey.recurringCycle === "MONTHLY" ? "Monthly" : survey.recurringCycle}`
-                      : "Not recurring"}
-                  </Text>
-                  <Text style={{ color: "#888", fontSize: 12, marginBottom: 4 }}>
-                    Status: {survey.status === "PUBLISHED" ? "Published" : survey.status}
-                  </Text>
-                  <TouchableOpacity>
-                    <Text style={styles.surveyStart}>Start Survey</Text>
-                  </TouchableOpacity>
-                </View>
+              <Loading text={`Loading ${activeTab}s...`} />
+            ) : data.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📋</Text>
+                <Text style={styles.emptyText}>No available {activeTab}</Text>
+              </View>
+            ) : activeTab === "survey" ? (
+              data.map((data, index) => (
+                <SurveyCard survey={data} key={index} navigation={navigation} />
               ))
-            )}
+            ) : null}
           </View>
         </View>
-        <View style={{ height: 80 }} />
       </ScrollView>
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  avatarBox: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#F2F2F2', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  avatarIcon: { fontSize: 32 },
-  userName: { fontSize: 22, fontWeight: 'bold', color: '#222' },
-  userRole: { fontSize: 16, color: '#888', marginTop: 2 },
-  alertBox: { backgroundColor: '#FFECEC', borderRadius: 12, padding: 16, marginBottom: 16 },
-  alertRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  alertIcon: { fontSize: 18, color: '#E53935', marginRight: 6 },
-  alertTitle: { fontWeight: 'bold', color: '#E53935', fontSize: 16 },
-  alertDesc: { color: '#E53935', fontSize: 13, marginBottom: 10 },
-  alertActions: { flexDirection: 'row', gap: 10 },
-  alertBtn: { backgroundColor: '#E53935', borderRadius: 6, paddingVertical: 6, paddingHorizontal: 12, marginRight: 8 },
-  alertBtnText: { color: '#fff', fontWeight: 'bold' },
-  alertBtnOutline: { borderWidth: 1, borderColor: '#E53935', borderRadius: 6, paddingVertical: 6, paddingHorizontal: 12 },
-  alertBtnOutlineText: { color: '#E53935', fontWeight: 'bold' },
-  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#222' },
-  sectionLink: { color: '#5B5BFF', fontWeight: 'bold' },
-  featuredCard: { borderRadius: 20, overflow: 'hidden', marginBottom: 8 },
-  featuredImg: { width: '100%', height: 180 },
-  featuredOverlay: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 16, backgroundColor: 'rgba(0,0,0,0.35)' },
-  featuredTag: { color: '#fff', fontSize: 12, fontWeight: 'bold', marginBottom: 2 },
-  featuredTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold', marginBottom: 2 },
-  featuredTime: { color: '#fff', fontSize: 14 },
-  connectRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
-  connectBox: { flex: 1, backgroundColor: '#F7F7FF', borderRadius: 16, alignItems: 'center', padding: 18 },
-  connectIcon: { fontSize: 32, marginBottom: 8 },
-  connectTitle: { fontSize: 18, fontWeight: 'bold', color: '#222', marginBottom: 2 },
-  connectDesc: { color: '#888', textAlign: 'center', fontSize: 15 },
-  eventTabs: { flexDirection: 'row', gap: 12, marginTop: 12, marginBottom: 12 },
-  eventTab: { flex: 1, backgroundColor: '#fff', borderRadius: 10, paddingVertical: 10, alignItems: 'center', elevation: 2 },
-  eventTabActive: { flex: 1, backgroundColor: '#2E7D32', borderRadius: 10, paddingVertical: 10, alignItems: 'center', elevation: 2 },
-  eventTabText: { color: '#222', fontWeight: 'bold', fontSize: 16 },
-  eventTabTextActive: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  requiredSurveys: { marginTop: 8 },
-  requiredTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 8 },
-  pendingBadge: { backgroundColor: '#FFD600', color: '#fff', borderRadius: 8, paddingHorizontal: 8, fontSize: 12, marginLeft: 4 },
-  surveyCard: { backgroundColor: '#FFFDF6', borderRadius: 12, padding: 16, marginBottom: 12, elevation: 1 },
-  surveyCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
-  surveyCardTitle: { fontWeight: 'bold', fontSize: 16, color: '#222' },
-  surveyUrgent: { color: '#E53935', fontWeight: 'bold', fontSize: 13 },
-  surveyCardDesc: { color: '#444', fontSize: 14, marginBottom: 2 },
-  surveyCardDue: { color: '#888', fontSize: 12, marginBottom: 8 },
-  surveyProgressBar: { height: 6, backgroundColor: '#EEE', borderRadius: 4, marginBottom: 8 },
-  surveyProgress: { width: '0%', height: 6, backgroundColor: '#FFD600', borderRadius: 4 },
-  surveyStart: { color: '#E53935', fontWeight: 'bold', textAlign: 'center', marginTop: 2 },
+  scrollContainer: {
+    paddingTop: 0,
+  },
+  alertSection: {
+    marginTop: 10,
+    marginBottom: 32,
+  },
+  alertBox: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: 20,
+    padding: isSmallDevice ? 20 : 24,
+    borderLeftWidth: 5,
+    borderLeftColor: "#EF4444",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  alertHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  alertIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  alertTitle: {
+    fontWeight: "700",
+    color: "#DC2626",
+    fontSize: isSmallDevice ? 16 : 17,
+    flex: 1,
+  },
+  alertDesc: {
+    color: "#7F1D1D",
+    fontSize: isSmallDevice ? 14 : 15,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  alertActions: {
+    flexDirection: "row",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  alertBtn: {
+    backgroundColor: "#DC2626",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+    minWidth: 150,
+    shadowColor: "#DC2626",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  alertBtnText: {
+    color: "#fff",
+    fontWeight: "600",
+    textAlign: "center",
+    fontSize: 14,
+  },
+  alertBtnOutline: {
+    borderWidth: 2,
+    borderColor: "#DC2626",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+    minWidth: 150,
+    backgroundColor: "#fff",
+  },
+  alertBtnOutlineText: {
+    color: "#DC2626",
+    fontWeight: "600",
+    textAlign: "center",
+    fontSize: 14,
+  },
+  sectionContainer: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: isSmallDevice ? 20 : isMediumDevice ? 22 : 24,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  sectionLinkContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 8,
+  },
+  sectionLink: {
+    color: "#3B82F6",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  featuredCard: {
+    borderRadius: 24,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  featuredImg: {
+    width: "100%",
+    height: isSmallDevice ? 180 : isMediumDevice ? 200 : 220,
+  },
+  featuredOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
+  },
+  featuredContent: {
+    padding: isSmallDevice ? 20 : 24,
+  },
+  featuredTag: {
+    color: "#FBBF24",
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 6,
+    letterSpacing: 0.8,
+  },
+  featuredTitle: {
+    color: "#fff",
+    fontSize: isSmallDevice ? 18 : isMediumDevice ? 20 : 22,
+    fontWeight: "700",
+    marginBottom: 6,
+    lineHeight: isSmallDevice ? 22 : isMediumDevice ? 24 : 26,
+  },
+  featuredTime: {
+    color: "#E5E7EB",
+    fontSize: isSmallDevice ? 13 : 14,
+    fontWeight: "500",
+  },
+  connectRow: {
+    flexDirection: "row",
+    gap: isSmallDevice ? 16 : 20,
+  },
+  connectBox: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 20,
+    alignItems: "center",
+    padding: isSmallDevice ? 20 : 24,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  connectIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#E0F2FE",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  connectIcon: {
+    fontSize: isSmallDevice ? 28 : 32,
+  },
+  connectTitle: {
+    fontSize: isSmallDevice ? 17 : 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  connectDesc: {
+    color: "#64748B",
+    textAlign: "center",
+    fontSize: isSmallDevice ? 14 : 15,
+    lineHeight: 20,
+  },
+  eventTabsContainer: {
+    marginBottom: 20,
+    // backgroundColor: "#F8FAFC",
+    borderRadius: 20,
+  },
+  eventTabsScrollContent: {
+    paddingRight: 4,
+  },
+  eventTab: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: isSmallDevice ? 14 : 16,
+    paddingHorizontal: isSmallDevice ? 18 : 20,
+    marginHorizontal: 2,
+    minWidth: isSmallDevice ? 120 : 140,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  eventTabActive: {
+    backgroundColor: "#059669",
+    borderRadius: 16,
+    paddingVertical: isSmallDevice ? 14 : 16,
+    paddingHorizontal: isSmallDevice ? 18 : 20,
+    marginHorizontal: 2,
+    minWidth: isSmallDevice ? 120 : 140,
+    alignItems: "center",
+    shadowColor: "#059669",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  eventTabText: {
+    color: "#64748B",
+    fontWeight: "600",
+    fontSize: isSmallDevice ? 13 : 14,
+    textAlign: "center",
+  },
+  eventTabTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: isSmallDevice ? 13 : 14,
+    textAlign: "center",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  emptyIcon: {
+    fontSize: 56,
+    marginBottom: 16,
+  },
+  emptyText: {
+    color: "#9CA3AF",
+    fontSize: 17,
+    fontWeight: "500",
+  },
 });

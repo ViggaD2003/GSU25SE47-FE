@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React from "react";
+import { View, StyleSheet } from "react-native";
 
 export default function Container({ children }) {
   return <View style={styles.container}>{children}</View>;
@@ -8,8 +8,8 @@ export default function Container({ children }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingBottom: 10,
   },
-}); 
+});

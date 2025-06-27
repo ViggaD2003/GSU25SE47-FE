@@ -18,6 +18,7 @@ export const login = async (email, password) => {
       email,
       password,
     });
+    console.log("response", response);
     const { token: accessToken } = response.data.data;
 
     // Validate that we received valid tokens
@@ -30,11 +31,10 @@ export const login = async (email, password) => {
     }
 
     const decoded = validateUserRole(accessToken);
-    await setTokens(accessToken, accessToken);
+    await setTokens(accessToken);
 
     return {
       accessToken,
-      refreshToken: accessToken,
       user: {
         token: accessToken,
         role: decoded.role,

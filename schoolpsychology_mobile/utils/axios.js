@@ -8,7 +8,7 @@ import { refreshAccessToken, logout } from "./authActions";
 const baseURL =
   Platform.OS === "android"
     ? APP_CONFIG.ANDROID_API_URL
-    : APP_CONFIG.API_BASE_URL;
+    : APP_CONFIG.API_BASE_URLS[2];
 
 const api = axios.create({
   baseURL,
