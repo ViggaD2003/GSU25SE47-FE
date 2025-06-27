@@ -14,6 +14,8 @@ import { Badge } from "react-native-paper";
 import SurveyScreen from "../pages/Survey/SurveyScreen";
 import SurveyDetails from "../pages/Survey/SurveyDetails";
 import { useNavigation } from "@react-navigation/native";
+import { GlobalStyles } from "../constants";
+import ChangePassword from "../pages/Profile/ChangePassword";
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +30,7 @@ export default function MainTabs() {
         <Stack.Screen name="ProfileMain" component={ProfileScreen} />
         <Stack.Screen name="EditProfile" component={UpdateProfile} />
         <Stack.Screen name="MyChildren" component={MyChildren} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} />
       </Stack.Navigator>
     );
   };
