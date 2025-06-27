@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import Container from "../../components/Container";
@@ -11,6 +11,7 @@ export default function ProfileScreen() {
   const [error, setError] = useState("");
   const { logout, user } = useAuth();
   const navigation = useNavigation();
+  const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -81,7 +82,16 @@ export default function ProfileScreen() {
           ) : (
             <></>
           )}
-          <MenuItem icon="cog-outline" label="Settings" />
+          <MenuItem 
+            icon="cog-outline" 
+            label="Settings" 
+            onPress={() => setShowSettingsDropdown(!showSettingsDropdown)}
+          />
+          {showSettingsDropdown && (
+            <View style={{ marginLeft: 36, borderRadius: 8, marginBottom: 4 }}>
+              <MenuItem icon="lock-reset" label="Change Password" onPress={() => navigation.navigate('ChangePassword')} />
+            </View>
+          )}
           <MenuItem icon="help-circle-outline" label="Need Help?" />
         </View>
 

@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { Text, View } from "react-native-web";
 import { StyleSheet } from "react-native";
 import { GlobalStyles } from "../constants";
+import ChangePassword from "../pages/Profile/ChangePassword";
 
 const Tab = createBottomTabNavigator();
 
@@ -24,6 +25,7 @@ export default function MainTabs() {
         <Stack.Screen name="ProfileMain" component={ProfileScreen} />
         <Stack.Screen name="EditProfile" component={UpdateProfile} />
         <Stack.Screen name="MyChildren" component={MyChildren} />
+        <Stack.Screen name="ChangePassword" component={ChangePassword} />
       </Stack.Navigator>
     );
   };
@@ -49,6 +51,7 @@ export default function MainTabs() {
         tabBarActiveTintColor: GlobalStyles.colors.primary,
         tabBarInactiveTintColor: "gray",
         tabBarShowLabel: false,
+        headerTintColor: "black",
         headerShown: false,
         headerTitle: () => (
           <View>

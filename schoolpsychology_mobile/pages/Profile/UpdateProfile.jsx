@@ -17,6 +17,8 @@ import Container from "../../components/Container";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../utils/axios";
+import Toast from "react-native-toast-message";
+
 
 export default function UpdateProfile({ route }) {
   const navigation = useNavigation();
@@ -68,21 +70,22 @@ export default function UpdateProfile({ route }) {
       };
       const response = await api.put("/api/v1/account", payload);
       setData(response.data);
-      if (Platform.OS === "android") {
-        ToastAndroid.show("Profile updated successfully!", ToastAndroid.SHORT);
-      } else {
-        Alert.alert("Success", "Profile updated successfully!");
-      }
+  
+      Toast.show({
+        type: 'success',
+        text1: 'Profile Updated 🎉',
+        text2: 'Your profile was updated successfully',
+      });
     } catch (error) {
-      if (error.response?.data?.message) {
-        console.error("API error:", error.response.data.message);
-        Alert.alert("Error", error.response.data.message);
-      } else {
-        console.error("Unexpected error:", error.message);
-        Alert.alert("Error", "Something went wrong while fetching profile.");
-      }
+      const message = error.response?.data?.message || "Something went wrong while updating profile.";
+      Toast.show({
+        type: 'error',
+        text1: 'Update Failed ❌',
+        text2: message,
+      });
     }
   };
+  
 
   const handleConfirmDate = (selectedDate) => {
     if (selectedDate) {

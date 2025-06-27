@@ -1,29 +1,31 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator } from "react-native";
 import Container from "../../components/Container";
 import { getPublishedSurveys } from "../../utils/SurveyService";
+import { useFocusEffect } from "@react-navigation/native";
 export default function HomeScreen() {
 
   const [surveys, setSurveys] = useState([]);
   const [loading, setLoading] = useState(true);
 
 
-  useEffect(() => {
-    const fetchAllSurveys = async () => {
-      try {
-        const response = await getPublishedSurveys();
-        // Nếu response là mảng thì set luôn, nếu response có dạng {data: [...]}, thì set response.data
-        setSurveys(Array.isArray(response) ? response : response.data || []);
-      } catch (error) {
-        console.error("Lỗi khi tải surveys:", error);
-        setSurveys([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAllSurveys();
-  }, []);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchAllSurveys = async () => {
+        try {
+          const response = await getPublishedSurveys();
+          // Nếu response là mảng thì set luôn, nếu response có dạng {data: [...]}, thì set response.data
+          setSurveys(Array.isArray(response) ? response : response.data || []);
+        } catch (error) {
+          console.error("Lỗi khi tải surveys:", error);
+          setSurveys([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchAllSurveys();
+    }, [])
+  );
 
   return (
     <Container>
@@ -104,7 +106,6 @@ export default function HomeScreen() {
                 <View style={styles.surveyCard} key={survey.surveyId}>
                   <View style={styles.surveyCardRow}>
                     <Text style={styles.surveyCardTitle}>{survey.name}</Text>
-                    {survey.isRequired && <Text style={styles.surveyUrgent}>Required</Text>}
                   </View>
                   <Text style={styles.surveyCardDesc}>{survey.description}</Text>
                   <Text style={styles.surveyCardDue}>
@@ -123,6 +124,9 @@ export default function HomeScreen() {
                   <TouchableOpacity>
                     <Text style={styles.surveyStart}>Start Survey</Text>
                   </TouchableOpacity>
+                  {survey.isRequired && (
+                    <Text style={[styles.surveyUrgent, {alignSelf: 'flex-end', marginTop: -60, marginBottom: 40, marginRight: 2}]}>Required</Text>
+                  )}
                 </View>
               ))
             )}
@@ -171,11 +175,12 @@ const styles = StyleSheet.create({
   eventTabTextActive: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   requiredSurveys: { marginTop: 8 },
   requiredTitle: { fontWeight: 'bold', fontSize: 16, marginBottom: 8 },
-  pendingBadge: { backgroundColor: '#FFD600', color: '#fff', borderRadius: 8, paddingHorizontal: 8, fontSize: 12, marginLeft: 4 },
+  pendingBadge: {  color: 'green', borderRadius: 8, paddingHorizontal: 8, fontSize: 12, marginLeft: 4 },
   surveyCard: { backgroundColor: '#FFFDF6', borderRadius: 12, padding: 16, marginBottom: 12, elevation: 1 },
   surveyCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   surveyCardTitle: { fontWeight: 'bold', fontSize: 16, color: '#222' },
-  surveyUrgent: { color: '#E53935', fontWeight: 'bold', fontSize: 13 },
+  surveyUrgent: {
+    color: '#E53935', fontWeight: 'bold', fontSize: 13},
   surveyCardDesc: { color: '#444', fontSize: 14, marginBottom: 2 },
   surveyCardDue: { color: '#888', fontSize: 12, marginBottom: 8 },
   surveyProgressBar: { height: 6, backgroundColor: '#EEE', borderRadius: 4, marginBottom: 8 },

@@ -18,6 +18,9 @@ export const login = async (email, password) => {
       email,
       password,
     });
+    console.log(response);
+   
+    
     const { token: accessToken } = response.data.data;
 
     // Validate that we received valid tokens
