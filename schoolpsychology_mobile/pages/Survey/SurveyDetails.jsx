@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -6,179 +6,175 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  StatusBar,
   Modal,
   TouchableWithoutFeedback,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import SurveyInfo from "./components/SurveyInfo";
-import SurveyTaking from "./components/SurveyTaking";
-import SurveyResult from "./components/SurveyResult";
+import SurveyTaking from "./SurveyTaking";
+import Toast from "../../components/common/Toast";
+import {
+  saveSurveyProgress,
+  loadSurveyProgress,
+  clearSurveyProgress,
+} from "../../utils/SurveyService";
+import { surveyResult } from "../../constants/survey";
 
 const SurveyDetails = ({ route, navigation }) => {
   const { survey } = route.params || {};
-  const [surveyState, setSurveyState] = useState("info"); // "info", "taking", "result"
-  const [surveyResult, setSurveyResult] = useState(null);
   const [answers, setAnswers] = useState({});
   const [showExitModal, setShowExitModal] = useState(false);
-
-  // Mock survey result data for completed surveys
-  const mockSurveyResult = {
-    id: 1073741824,
-    noteSuggest:
-      "Bạn có dấu hiệu stress nhẹ. Hãy thử các bài tập thở và nghỉ ngơi đầy đủ.",
-    totalScore: 75,
-    status: "COMPLETED",
-    completedAt: "2025-06-27",
-    surveyId: survey?.surveyId,
-    studentDto: {
-      email: "student@example.com",
-      phoneNumber: "0123456789",
-      fullName: "Nguyễn Văn A",
-      gender: true,
-      dob: "2005-06-27",
-      studentCode: "SV001",
-      isEnableSurvey: true,
-      classDto: {
-        teacher: {
-          teacherCode: "GV001",
-          fullName: "Trần Thị B",
-          phoneNumber: "0987654321",
-          email: "teacher@example.com",
-        },
-        codeClass: "12A1",
-        classYear: "2024-2025",
-      },
-    },
-    mentalEvaluationId: 1073741824,
-    answerRecords:
-      survey?.questions?.map((question, index) => ({
-        id: index + 1,
-        questionResponse: question,
-        answerResponse: question.answers[0], // Mock selected answer
-        skipped: false,
-      })) || [],
-  };
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
   useEffect(() => {
-    // Determine initial state based on survey status
-    if (survey?.status === "ARCHIVED" || survey?.recordStatus === "COMPLETED") {
-      setSurveyState("result");
-      setSurveyResult(mockSurveyResult);
-    } else if (
-      survey?.status === "PUBLISHED" &&
-      survey?.recordStatus === "NOT_STARTED"
-    ) {
-      setSurveyState("info");
+    // Load saved progress if exists
+    if (survey?.surveyId) {
+      loadSavedProgress();
     }
-  }, [survey]);
+  }, [survey?.surveyId]);
 
-  const handleStartSurvey = () => {
-    // console.log("handleStartSurvey called");
-    setSurveyState("taking");
+  const loadSavedProgress = async () => {
+    const savedAnswers = await loadSurveyProgress(survey.surveyId);
+    if (savedAnswers && Object.keys(savedAnswers).length > 0) {
+      setAnswers(savedAnswers);
+      showToast("Đã tải lại tiến độ trước đó", "info");
+    }
+  };
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: "", type: "info" });
   };
 
   const handleBackToInfo = () => {
-    // console.log("handleBackToInfo called - showing modal");
     setShowExitModal(true);
   };
 
-  const handleConfirmExit = () => {
-    // console.log("User confirmed exit - going back to info");
-    setShowExitModal(false);
-    setSurveyState("info");
-    setAnswers({});
-  };
-
-  const handleCancelExit = () => {
-    // console.log("User cancelled exit");
-    setShowExitModal(false);
-  };
-
-  const handleSubmitSurvey = (submittedAnswers) => {
-    // Mock API call
-    setTimeout(() => {
-      const result = {
-        ...mockSurveyResult,
-        totalScore: Math.floor(Math.random() * 100) + 1,
-        completedAt: new Date().toISOString().split("T")[0],
-        answerRecords: survey.questions.map((question, index) => ({
-          id: index + 1,
-          questionResponse: question,
-          answerResponse: question.answers.find(
-            (a) => a.id === submittedAnswers[question.questionId]
-          ),
-          skipped: !submittedAnswers[question.questionId],
-        })),
-      };
-
-      setSurveyResult(result);
-      setSurveyState("result");
-    }, 2000);
-  };
-
-  const renderContent = () => {
-    switch (surveyState) {
-      case "info":
-        return <SurveyInfo survey={survey} onStartSurvey={handleStartSurvey} />;
-      case "taking":
-        return (
-          <SurveyTaking
-            survey={survey}
-            answers={answers}
-            setAnswers={setAnswers}
-            onSubmit={handleSubmitSurvey}
-            onBack={handleBackToInfo}
-          />
-        );
-      case "result":
-        return (
-          <SurveyResult
-            survey={survey}
-            result={surveyResult}
-            onBack={() => navigation.goBack()}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const getHeaderTitle = () => {
-    switch (surveyState) {
-      case "info":
-        return "Thông tin khảo sát";
-      case "taking":
-        return "Làm khảo sát";
-      case "result":
-        return "Kết quả khảo sát";
-      default:
-        return "Khảo sát";
-    }
-  };
-
-  const handleBackPress = () => {
-    console.log("handleBackPress called, surveyState:", surveyState);
-    if (surveyState === "taking") {
-      // console.log("In taking state, calling handleBackToInfo");
-      handleBackToInfo();
+  const handleConfirmExit = async () => {
+    // Save progress before exiting
+    if (survey?.surveyId && Object.keys(answers).length > 0) {
+      const saved = await saveSurveyProgress(survey.surveyId, answers);
+      if (saved) {
+        showToast("Đã lưu tiến độ khảo sát", "success");
+        // Delay to show toast before closing modal and navigating
+        setTimeout(() => {
+          setShowExitModal(false);
+          setTimeout(() => {
+            navigation.goBack();
+          }, 500);
+        }, 2000);
+      } else {
+        showToast("Không thể lưu tiến độ", "error");
+        // Delay to show toast before closing modal and navigating
+        setTimeout(() => {
+          setShowExitModal(false);
+          setTimeout(() => {
+            navigation.goBack();
+          }, 500);
+        }, 2000);
+      }
     } else {
-      // console.log("Not in taking state, going back to previous screen");
+      setShowExitModal(false);
       navigation.goBack();
     }
   };
 
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+  };
+
+  // Get survey configuration based on survey code
+  const getSurveyConfig = useCallback(() => {
+    return surveyResult.find(
+      (config) => config.surveyCode === survey?.surveyCode || "GAD-7"
+    );
+  }, [survey?.surveyCode]);
+
+  // Get level configuration based on score
+  const getLevelConfig = useCallback(
+    (score) => {
+      const config = getSurveyConfig();
+      if (!config) return null;
+
+      return config.levels.find(
+        (level) => score >= level.min && score <= level.max
+      );
+    },
+    [getSurveyConfig]
+  );
+
+  const handleSubmitSurvey = async (submittedAnswers) => {
+    try {
+      // Clear saved progress after successful submission
+      if (survey?.surveyId) {
+        await clearSurveyProgress(survey.surveyId);
+      }
+
+      // Process submitted answers to create proper survey result
+      const answerRecordRequests = Object.entries(submittedAnswers).map(
+        ([questionId, answer]) => ({
+          answerId: parseInt(questionId),
+          skipped: !answer || answer === "",
+          answerValue: answer || null,
+        })
+      );
+
+      // Calculate total score based on answers (you may need to adjust this logic)
+      const totalScore = Object.values(submittedAnswers).reduce(
+        (score, answer) => {
+          const numAnswer = parseInt(answer);
+          return score + (isNaN(numAnswer) ? 0 : numAnswer);
+        },
+        0
+      );
+
+      const scoreLevel = getLevelConfig(totalScore);
+
+      const surveyResult = {
+        level: scoreLevel?.level,
+        noteSuggest: scoreLevel?.noteSuggest,
+        surveyStatus: "COMPLETED",
+        surveyId: survey?.surveyId,
+        totalScore: totalScore,
+        answerRecordRequests: answerRecordRequests,
+      };
+
+      console.log("Survey submitted:", surveyResult);
+
+      showToast("Khảo sát đã được nộp thành công!", "success");
+
+      // Navigate to result screen
+      navigation.navigate("SurveyResult", {
+        survey: { ...survey, surveyCode: "GAD-7" },
+        result: surveyResult,
+        answers: submittedAnswers,
+        type: "orther",
+      });
+    } catch (error) {
+      console.error("Error submitting survey:", error);
+      showToast("Có lỗi xảy ra khi nộp khảo sát", "error");
+    }
+  };
+
+  const handleBackPress = () => {
+    handleBackToInfo();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{getHeaderTitle()}</Text>
+        <Text style={styles.headerTitle}>Làm khảo sát</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -186,8 +182,23 @@ const SurveyDetails = ({ route, navigation }) => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
       >
-        {renderContent()}
+        <SurveyTaking
+          survey={survey}
+          answers={answers}
+          setAnswers={setAnswers}
+          onSubmit={handleSubmitSurvey}
+          onBack={handleBackToInfo}
+          showToast={showToast}
+        />
       </ScrollView>
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
 
       {/* Exit Confirmation Modal */}
       <Modal
@@ -206,8 +217,8 @@ const SurveyDetails = ({ route, navigation }) => {
                 </View>
 
                 <Text style={styles.modalMessage}>
-                  Bạn có chắc chắn muốn thoát? Tiến độ hiện tại sẽ không được
-                  lưu.
+                  Tiến độ hiện tại sẽ được lưu lại. Bạn có thể tiếp tục làm bài
+                  sau.
                 </Text>
 
                 <View style={styles.modalButtons}>
@@ -215,14 +226,18 @@ const SurveyDetails = ({ route, navigation }) => {
                     style={styles.modalButtonCancel}
                     onPress={handleCancelExit}
                   >
-                    <Text style={styles.modalButtonCancelText}>Hủy</Text>
+                    <Text style={styles.modalButtonCancelText}>
+                      Tiếp tục làm
+                    </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.modalButtonConfirm}
                     onPress={handleConfirmExit}
                   >
-                    <Text style={styles.modalButtonConfirmText}>Thoát</Text>
+                    <Text style={styles.modalButtonConfirmText}>
+                      Lưu và thoát
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -325,7 +340,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: "#EF4444",
+    backgroundColor: GlobalStyles.colors.primary,
   },
   modalButtonConfirmText: {
     fontSize: 16,

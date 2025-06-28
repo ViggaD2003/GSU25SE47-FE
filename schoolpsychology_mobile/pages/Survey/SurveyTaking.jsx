@@ -1,11 +1,26 @@
 import React, { useState } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { GlobalStyles } from "../../../constants";
+import { GlobalStyles } from "../../constants";
 
-const SurveyTaking = ({ survey, answers, setAnswers, onSubmit, onBack }) => {
+const SurveyTaking = ({
+  survey,
+  answers,
+  setAnswers,
+  onSubmit,
+  onBack,
+  showToast,
+}) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
 
   const handleAnswerSelect = (questionId, answerId) => {
     setAnswers((prev) => ({
@@ -32,29 +47,24 @@ const SurveyTaking = ({ survey, answers, setAnswers, onSubmit, onBack }) => {
     );
 
     if (unansweredRequired.length > 0) {
-      Alert.alert(
-        "Khảo sát chưa hoàn thành",
-        "Vui lòng trả lời tất cả câu hỏi bắt buộc trước khi nộp bài.",
-        [{ text: "OK" }]
+      showToast(
+        "Vui lòng trả lời tất cả câu hỏi bắt buộc trước khi nộp bài",
+        "warning"
       );
       return;
     }
 
-    Alert.alert(
-      "Nộp bài khảo sát",
-      "Bạn có chắc chắn muốn nộp bài? Không thể sửa đổi sau khi nộp.",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Nộp bài",
-          style: "default",
-          onPress: () => {
-            setIsSubmitting(true);
-            onSubmit(answers);
-          },
-        },
-      ]
-    );
+    setShowSubmitModal(true);
+  };
+
+  const handleConfirmSubmit = () => {
+    setShowSubmitModal(false);
+    setIsSubmitting(true);
+    onSubmit(answers);
+  };
+
+  const handleCancelSubmit = () => {
+    setShowSubmitModal(false);
   };
 
   const currentQuestion = survey.questions[currentQuestionIndex];
@@ -170,6 +180,53 @@ const SurveyTaking = ({ survey, answers, setAnswers, onSubmit, onBack }) => {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Submit Confirmation Modal */}
+      <Modal
+        visible={showSubmitModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancelSubmit}
+      >
+        <TouchableWithoutFeedback onPress={handleCancelSubmit}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={32}
+                    color={GlobalStyles.colors.primary}
+                  />
+                  <Text style={styles.modalTitle}>Nộp bài khảo sát</Text>
+                </View>
+
+                <Text style={styles.modalMessage}>
+                  Bạn có chắc chắn muốn nộp bài? Không thể sửa đổi sau khi nộp.
+                </Text>
+
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity
+                    style={styles.modalButtonCancel}
+                    onPress={handleCancelSubmit}
+                  >
+                    <Text style={styles.modalButtonCancelText}>
+                      Kiểm tra lại
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.modalButtonConfirm}
+                    onPress={handleConfirmSubmit}
+                  >
+                    <Text style={styles.modalButtonConfirmText}>Nộp bài</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
       {/* Bottom Spacing */}
       <View style={styles.bottomSpacing} />
@@ -337,6 +394,74 @@ const styles = StyleSheet.create({
   },
   bottomSpacing: {
     height: 40,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    margin: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    minWidth: 300,
+  },
+  modalHeader: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginTop: 8,
+    textAlign: "center",
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: "#374151",
+    lineHeight: 24,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalButtonCancel: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#fff",
+  },
+  modalButtonCancelText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "center",
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: GlobalStyles.colors.primary,
+  },
+  modalButtonConfirmText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+    textAlign: "center",
   },
 });
 

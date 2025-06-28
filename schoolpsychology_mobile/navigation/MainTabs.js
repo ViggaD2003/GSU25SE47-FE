@@ -1,21 +1,26 @@
 import React, { useState } from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
+import { Text, View, TouchableOpacity } from "react-native";
+import { StyleSheet } from "react-native";
+import { EvilIcons } from "@expo/vector-icons";
+import { Badge } from "react-native-paper";
+
+// Import screens
 import HomeScreen from "../pages/Home/HomeScreen";
 import ProfileScreen from "../pages/Profile/ProfileScreen";
 import BlogScreen from "../pages/Blog/BlogScreen";
 import NotificationScreen from "../pages/Notification/NotificationScreen";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import UpdateProfile from "../pages/Profile/UpdateProfile";
 import MyChildren from "../pages/Profile/MyChildren";
-import { useAuth } from "../context/AuthContext";
-import { Text, View, TouchableOpacity, Pressable } from "react-native";
-import { StyleSheet } from "react-native";
-import { EvilIcons } from "@expo/vector-icons";
-import { Badge } from "react-native-paper";
-import SurveyScreen from "../pages/Survey/SurveyScreen";
-import SurveyDetails from "../pages/Survey/SurveyDetails";
-import { useNavigation } from "@react-navigation/native";
-import { GlobalStyles } from "../constants";
 import ChangePassword from "../pages/Profile/ChangePassword";
+import SurveyRecord from "../pages/Survey/SurveyRecord";
+import SurveyInfo from "../pages/Survey/SurveyInfo";
+import SurveyDetails from "../pages/Survey/SurveyDetails";
+import SurveyResult from "../pages/Survey/SurveyResult";
+
+// Import context
+import { useAuth } from "../context/AuthContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +28,18 @@ export default function MainTabs() {
   const [messageCount, setMessageCount] = useState(3);
   const { user } = useAuth();
   const navigation = useNavigation();
+
+  const SurveyStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="SurveyMain" component={SurveyRecord} />
+        <Stack.Screen name="SurveyRecord" component={SurveyRecord} />
+        <Stack.Screen name="SurveyInfo" component={SurveyInfo} />
+        <Stack.Screen name="SurveyDetails" component={SurveyDetails} />
+        <Stack.Screen name="SurveyResult" component={SurveyResult} />
+      </Stack.Navigator>
+    );
+  };
 
   const ProfileStack = () => {
     return (
@@ -35,18 +52,8 @@ export default function MainTabs() {
     );
   };
 
-  const SurveyStack = () => {
-    return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="SurveyMain" component={SurveyScreen} />
-        <Stack.Screen name="SurveyDetail" component={SurveyDetails} />
-      </Stack.Navigator>
-    );
-  };
-
   const handleNotificationPress = () => {
-    // Navigate to notification screen
-    console.log("Notification pressed");
+    navigation.navigate("Notification");
   };
 
   return (
@@ -64,7 +71,9 @@ export default function MainTabs() {
               style={styles.headerLeft}
             >
               <Text style={styles.nameText}>{user?.fullname || "User"}</Text>
-              <Text style={styles.roleText}>{user.role.toLowerCase()}</Text>
+              <Text style={styles.roleText}>
+                {user?.role?.toLowerCase() || "user"}
+              </Text>
             </TouchableOpacity>
           ),
           headerRight: () => (
@@ -89,7 +98,7 @@ export default function MainTabs() {
       />
       <Stack.Screen
         name="Notification"
-        options={{ headerShown: false }}
+        // options={{ headerShown: false }}
         component={NotificationScreen}
       />
       <Stack.Screen
@@ -97,7 +106,11 @@ export default function MainTabs() {
         options={{ headerShown: false }}
         component={BlogScreen}
       />
-      <Stack.Screen name="Profile" component={ProfileStack} />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileStack}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen
         name="Survey"
         options={{ headerShown: false }}
@@ -143,7 +156,6 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
     borderRadius: 8,
-    // backgroundColor: "#F5F5F5",
   },
   notificationContainer: {
     position: "relative",

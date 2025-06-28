@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import Container from "../../components/Container";
 import api from "../../utils/axios";
 import { useAuth } from "../../context/AuthContext";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { getAccessToken } from "../../utils/tokenManager";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
@@ -24,11 +26,17 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleBackPress = () => {
+    navigation.goBack();
+  };
+
   useFocusEffect(
     React.useCallback(() => {
       const fetchProfile = async () => {
         try {
           const response = await api.get("/api/v1/account");
+
+          console.log("response", response);
           setProfile(response.data);
         } catch (error) {
           const msg = error.response?.data?.message || error.message;
@@ -39,67 +47,95 @@ export default function ProfileScreen() {
       fetchProfile();
     }, [])
   );
+
   const navigateToEditProfile = () => {
     navigation.navigate("EditProfile", { data: profile });
   };
+
   const navigateToMyChildren = () => {
     navigation.navigate("MyChildren", { data: profile.relationships });
   };
+
+  const navigateToSurveyRecords = () => {
+    navigation.navigate("Survey", {
+      screen: "SurveyRecord",
+    });
+  };
+
   return (
     <Container>
       {/* Header */}
-      <View style={styles.headerRow}>
+      {/* <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Profile</Text>
         <View style={{ width: 28 }} />
-      </View>
+      </View> */}
 
-      {/* Card Profile */}
-      <View style={styles.card}>
-        <View style={styles.avatarWrapper}>
-          <Icon
-            name="account"
-            size={90}
-            color="#222"
-            style={styles.avatarIcon}
-          />
-        </View>
-        <Text style={styles.name}>{profile.fullName}</Text>
-        <Text style={styles.email}>{profile.email}</Text>
-
-        {/* Menu List */}
-        <View style={styles.menuList}>
-          <MenuItem
-            icon="account-edit"
-            label="Edit Profile"
-            onPress={navigateToEditProfile}
-          />
-          {user.role === "PARENTS" ? (
-            <MenuItem
-              icon="baby-face-outline"
-              label="My Children"
-              onPress={navigateToMyChildren}
-            />
-          ) : (
-            <></>
-          )}
-          <MenuItem 
-            icon="cog-outline" 
-            label="Settings" 
-            onPress={() => setShowSettingsDropdown(!showSettingsDropdown)}
-          />
-          {showSettingsDropdown && (
-            <View style={{ marginLeft: 36, borderRadius: 8, marginBottom: 4 }}>
-              <MenuItem icon="lock-reset" label="Change Password" onPress={() => navigation.navigate('ChangePassword')} />
-            </View>
-          )}
-          <MenuItem icon="help-circle-outline" label="Need Help?" />
-        </View>
-
-        {/* Logout */}
-        <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
-          <Icon name="power" size={24} color="#F44336" />
-          <Text style={styles.logoutText}>Logout</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
+        <View style={styles.headerSpacer} />
+      </View>
+      <View style={{ paddingHorizontal: 20 }}>
+        <View style={styles.card}>
+          <View style={styles.avatarWrapper}>
+            <Icon
+              name="account"
+              size={90}
+              color="#222"
+              style={styles.avatarIcon}
+            />
+          </View>
+          <Text style={styles.name}>{profile.fullName}</Text>
+          <Text style={styles.email}>{profile.email}</Text>
+
+          {/* Menu List */}
+          <View style={styles.menuList}>
+            <MenuItem
+              icon="account-edit"
+              label="Edit Profile"
+              onPress={navigateToEditProfile}
+            />
+            {user.role === "PARENTS" ? (
+              <MenuItem
+                icon="baby-face-outline"
+                label="My Children"
+                onPress={navigateToMyChildren}
+              />
+            ) : (
+              <></>
+            )}
+            <MenuItem
+              icon="clipboard-text-outline"
+              label="Survey Records"
+              onPress={navigateToSurveyRecords}
+            />
+            <MenuItem
+              icon="cog-outline"
+              label="Settings"
+              onPress={() => setShowSettingsDropdown(!showSettingsDropdown)}
+            />
+            {showSettingsDropdown && (
+              <View
+                style={{ marginLeft: 36, borderRadius: 8, marginBottom: 4 }}
+              >
+                <MenuItem
+                  icon="lock-reset"
+                  label="Change Password"
+                  onPress={() => navigation.navigate("ChangePassword")}
+                />
+              </View>
+            )}
+            <MenuItem icon="help-circle-outline" label="Need Help?" />
+
+            {/* Logout */}
+            <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
+              <Icon name="power" size={24} color="#F44336" />
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </Container>
   );
@@ -121,20 +157,26 @@ function MenuItem({ icon, label, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 16,
     justifyContent: "space-between",
-    paddingHorizontal: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#181A3D",
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
+  },
+  headerSpacer: {
+    width: 40,
   },
   card: {
+    marginTop: 20,
     backgroundColor: "#fff",
     borderRadius: 20,
     padding: 24,
@@ -148,6 +190,9 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     padding: 18,
     marginBottom: 8,
+  },
+  avatarIcon: {
+    // Icon styling if needed
   },
   name: {
     fontSize: 22,
@@ -164,32 +209,34 @@ const styles = StyleSheet.create({
   },
   menuList: {
     width: "100%",
-    marginTop: 8,
-    marginBottom: 12,
+    marginBottom: 20,
   },
   menuRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#eee",
-    paddingHorizontal: 2,
+    paddingVertical: 16,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
   },
   menuLabel: {
-    fontSize: 17,
+    fontSize: 16,
     color: "#181A3D",
-    marginLeft: 10,
+    marginLeft: 12,
+    flex: 1,
   },
   logoutRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 18,
-    alignSelf: "flex-start",
+    paddingTop: 16,
+    paddingHorizontal: 8,
+    borderTopColor: "#F0F0F0",
+    width: "100%",
   },
   logoutText: {
+    fontSize: 16,
     color: "#F44336",
-    fontSize: 17,
+    marginLeft: 12,
     fontWeight: "500",
-    marginLeft: 8,
   },
 });

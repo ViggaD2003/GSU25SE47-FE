@@ -8,7 +8,7 @@ import { refreshAccessToken, logout } from "./authActions";
 const baseURL =
   Platform.OS === "android"
     ? APP_CONFIG.ANDROID_API_URL
-    : APP_CONFIG.API_BASE_URLS[2];
+    : APP_CONFIG.API_BASE_URL;
 
 const api = axios.create({
   baseURL,
@@ -31,6 +31,8 @@ api.interceptors.request.use(
   async (config) => {
     try {
       const token = await getAccessToken();
+      console.log("token", token);
+
       if (token && !isTokenExpired(token)) {
         config.headers.Authorization = `Bearer ${token}`;
       }

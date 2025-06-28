@@ -7,7 +7,6 @@ import {
   Image,
   ScrollView,
   Dimensions,
-  StatusBar,
 } from "react-native";
 import Container from "../../components/Container";
 import { getPublishedSurveys } from "../../utils/SurveyService";
@@ -28,12 +27,7 @@ export default function HomeScreen({ navigation }) {
   const fetchSurveys = async () => {
     try {
       const response = await getPublishedSurveys();
-      // setSurveys(Array.isArray(response) ? response : response.data || []);
-      const publishedSurveys = surveyData.filter(
-        (survey) => survey.status === "PUBLISHED"
-      );
-
-      setData(publishedSurveys);
+      setData(Array.isArray(response) ? response : response.data || []);
     } catch (error) {
       console.error("Lỗi khi tải surveys:", error);
       const publishedSurveys = surveyData.filter(
@@ -70,6 +64,7 @@ export default function HomeScreen({ navigation }) {
         break;
       case "appointment":
         fetchAppointments();
+        break;
       case "program":
         fetchPrograms();
         break;
@@ -78,11 +73,10 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     onPress("survey");
-  }, []);
+  }, [navigation]);
 
   return (
     <Container>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
@@ -99,16 +93,6 @@ export default function HomeScreen({ navigation }) {
               Based on your recent assessments, we recommend taking action to
               manage your stress levels.
             </Text>
-            <View style={styles.alertActions}>
-              <TouchableOpacity style={styles.alertBtn}>
-                <Text style={styles.alertBtnText}>Book Counseling Session</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.alertBtnOutline}>
-                <Text style={styles.alertBtnOutlineText}>
-                  Join Mindfulness Workshop
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
 
@@ -265,15 +249,16 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   scrollContainer: {
     paddingTop: 0,
+    paddingHorizontal: 24,
   },
   alertSection: {
-    marginTop: 10,
+    marginTop: 20,
     marginBottom: 32,
   },
   alertBox: {
     backgroundColor: "#FEF2F2",
     borderRadius: 20,
-    padding: isSmallDevice ? 20 : 24,
+    padding: 18,
     borderLeftWidth: 5,
     borderLeftColor: "#EF4444",
     shadowColor: "#000",
@@ -300,48 +285,7 @@ const styles = StyleSheet.create({
   alertDesc: {
     color: "#7F1D1D",
     fontSize: isSmallDevice ? 14 : 15,
-    marginBottom: 20,
     lineHeight: 22,
-  },
-  alertActions: {
-    flexDirection: "row",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  alertBtn: {
-    backgroundColor: "#DC2626",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    flex: 1,
-    minWidth: 150,
-    shadowColor: "#DC2626",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  alertBtnText: {
-    color: "#fff",
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 14,
-  },
-  alertBtnOutline: {
-    borderWidth: 2,
-    borderColor: "#DC2626",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    flex: 1,
-    minWidth: 150,
-    backgroundColor: "#fff",
-  },
-  alertBtnOutlineText: {
-    color: "#DC2626",
-    fontWeight: "600",
-    textAlign: "center",
-    fontSize: 14,
   },
   sectionContainer: {
     marginBottom: 32,

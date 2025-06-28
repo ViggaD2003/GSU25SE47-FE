@@ -7,7 +7,7 @@ const SurveyCard = ({ survey, navigation }) => {
   const onPress = () => {
     if (navigation) {
       navigation.navigate("Survey", {
-        screen: "SurveyDetail",
+        screen: "SurveyInfo",
         params: { survey },
       });
     }

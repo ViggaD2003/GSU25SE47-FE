@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import api from "../../utils/axios";
 import Container from "../../components/Container";
-import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
-import Toast from "react-native-toast-message";
+import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
+import Toast from "../../components/common/Toast";
 
 export default function ChangePassword({ navigation }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -18,21 +18,37 @@ export default function ChangePassword({ navigation }) {
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
+
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: "", type: "info" });
+  };
 
   const validate = () => {
     const newErrors = {};
 
-    if (!currentPassword) newErrors.currentPassword = "Current password must not be blank";
+    if (!currentPassword)
+      newErrors.currentPassword = "Current password must not be blank";
     if (!newPassword) {
       newErrors.newPassword = "New password must not be blank";
     } else if (newPassword.length < 8 || newPassword.length > 50) {
-      newErrors.newPassword = "New password must be between 8 and 50 characters";
+      newErrors.newPassword =
+        "New password must be between 8 and 50 characters";
     }
 
     if (!confirmNewPassword) {
       newErrors.confirmNewPassword = "Confirm new password must not be blank";
     } else if (newPassword !== confirmNewPassword) {
-      newErrors.confirmNewPassword = "New password and confirm password do not match";
+      newErrors.confirmNewPassword =
+        "New password and confirm password do not match";
     }
 
     setErrors(newErrors);
@@ -42,7 +58,7 @@ export default function ChangePassword({ navigation }) {
   const handleChangePassword = async () => {
     const isValid = validate();
     if (!isValid) return;
-  
+
     setLoading(true);
     try {
       await api.post("/api/v1/auth/change-password", {
@@ -50,35 +66,29 @@ export default function ChangePassword({ navigation }) {
         newPassword,
         confirmNewPassword,
       });
-  
-      Toast.show({
-        type: 'success',
-        text1: 'Success 🎉',
-        text2: 'Password changed successfully',
-      });
-  
+
+      showToast("Password changed successfully", "success");
       navigation.goBack();
     } catch (err) {
       const msg = err.response?.data?.message || err.message;
-      Toast.show({
-        type: 'error',
-        text1: 'Error ❌',
-        text2: msg,
-      });
+      showToast(msg, "error");
     } finally {
       setLoading(false);
     }
   };
-  
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
     <Container>
-      <View style={styles.headerRow}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={28} color="#111" />
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.title}>Change Password</Text>
-        <View style={{ width: 28 }} />
+        <Text style={styles.headerTitle}>Thay đổi mật khẩu</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.wrapper}>
@@ -125,11 +135,42 @@ export default function ChangePassword({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  headerSpacer: {
+    width: 40,
+  },
   wrapper: {
     marginTop: 40,
     paddingHorizontal: 16,

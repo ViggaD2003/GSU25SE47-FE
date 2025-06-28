@@ -3,7 +3,6 @@ import { AUTH_CONFIG, AUTH_ERRORS } from "../constants";
 import {
   setTokens,
   getAccessToken,
-  getRefreshToken,
   clearTokens,
   isTokenExpired,
   shouldRefreshToken,
@@ -83,7 +82,6 @@ export const getCurrentUser = async () => {
 export {
   setTokens,
   getAccessToken,
-  getRefreshToken,
   clearTokens,
   isTokenExpired,
   shouldRefreshToken,

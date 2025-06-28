@@ -9,7 +9,6 @@ export const setTokens = async (token) => {
     if (!token || typeof token !== "string" || token.trim() === "") {
       throw new Error(AUTH_ERRORS.INVALID_TOKEN);
     }
-
     await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_KEY, token);
   } catch (error) {
     console.error("Error saving tokens:", error);
@@ -26,21 +25,14 @@ export const getAccessToken = async () => {
   }
 };
 
+// getRefreshToken sẽ trả về accessToken (vì chỉ lưu 1 biến token)
 export const getRefreshToken = async () => {
-  try {
-    return await AsyncStorage.getItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
-  } catch (error) {
-    console.error("Error getting refresh token:", error);
-    return null;
-  }
+  return getAccessToken();
 };
 
 export const clearTokens = async () => {
   try {
-    await AsyncStorage.multiRemove([
-      AUTH_CONFIG.TOKEN_KEY,
-      AUTH_CONFIG.REFRESH_TOKEN_KEY,
-    ]);
+    await AsyncStorage.removeItem(AUTH_CONFIG.TOKEN_KEY);
   } catch (error) {
     console.error("Error clearing tokens:", error);
   }
@@ -51,12 +43,10 @@ export const isTokenExpired = (token) => {
   if (!token || typeof token !== "string" || token.trim() === "") {
     return true;
   }
-
   try {
     const decoded = jwtDecode(token);
     const currentTime = Date.now() / 1000;
     const bufferTime = AUTH_CONFIG.TOKEN_EXPIRATION_BUFFER;
-
     return decoded.exp < currentTime + bufferTime;
   } catch (error) {
     console.error("Error decoding token:", error);
@@ -64,17 +54,16 @@ export const isTokenExpired = (token) => {
   }
 };
 
+// shouldRefreshToken sẽ kiểm tra accessToken
 export const shouldRefreshToken = async () => {
   try {
     const token = await getAccessToken();
     if (!token || typeof token !== "string" || token.trim() === "") {
       return false;
     }
-
     const decoded = jwtDecode(token);
     const currentTime = Date.now() / 1000;
     const bufferTime = AUTH_CONFIG.TOKEN_EXPIRATION_BUFFER;
-
     return decoded.exp < currentTime + bufferTime;
   } catch (error) {
     console.error("Error checking token refresh:", error);
@@ -85,17 +74,13 @@ export const shouldRefreshToken = async () => {
 // User validation functions
 export const validateUserRole = (token) => {
   try {
-    // Validate that token is a non-empty string
     if (!token || typeof token !== "string" || token.trim() === "") {
       throw new Error(AUTH_ERRORS.INVALID_TOKEN);
     }
-
     const decoded = jwtDecode(token);
-
     if (!AUTH_CONFIG.ALLOWED_ROLES.includes(decoded.role)) {
       throw new Error(AUTH_ERRORS.INVALID_ROLE);
     }
-
     return decoded;
   } catch (error) {
     console.error("Error validating user role:", error);

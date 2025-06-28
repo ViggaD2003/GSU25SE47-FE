@@ -33,7 +33,8 @@ export const refreshAccessToken = async () => {
   isRefreshing = true;
 
   try {
-    const refreshToken = await getRefreshToken();
+    // Lấy accessToken hiện tại để refresh (không còn refreshToken riêng)
+    const refreshToken = await getAccessToken();
     if (
       !refreshToken ||
       typeof refreshToken !== "string" ||
@@ -57,7 +58,7 @@ export const refreshAccessToken = async () => {
       throw new Error(AUTH_ERRORS.INVALID_TOKEN);
     }
 
-    await setTokens(accessToken, accessToken);
+    await setTokens(accessToken);
     processQueue(null, accessToken);
 
     return accessToken;
