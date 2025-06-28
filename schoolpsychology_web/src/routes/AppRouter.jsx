@@ -7,6 +7,7 @@ import {
 } from '../components'
 import React, { lazy } from 'react'
 import { ROUTE_CONFIG } from '@/constants/routeConfig'
+import GoogleCallBack from '@/pages/auth/GoogleCallBack'
 
 // Sử dụng React.lazy cho các trang
 const NotFound = lazy(() => import('../pages/NotFound'))
@@ -62,6 +63,7 @@ const AppRouter = () => {
         <Route index element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path='login-success' element={<GoogleCallBack />} />
       </Route>
 
       {/* Protected routes */}
