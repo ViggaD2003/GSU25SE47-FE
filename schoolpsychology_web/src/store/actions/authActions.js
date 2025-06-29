@@ -20,14 +20,22 @@ export const loginUser = createAsyncThunk(
         credentials.password
       )
 
+      console.log(response)
+
       if (response.success) {
-        // Save token to localStorage
+        const isGoogleOAuthUrl = typeof response.data === 'string' &&
+          response.data.includes('https://accounts.google.com/o/oauth2/auth')
+
+        // ✅ Nếu là MANAGER thì redirect thẳng
+        if (isGoogleOAuthUrl) {
+          window.location.href = response.data // chuyển trình duyệt
+          return
+        }
+
+        // ✅ Nếu là USER thường thì lưu token và login
         localStorage.setItem('token', response.data.token)
 
-        // Decode the JWT token to extract user information
         const decodedToken = decodeJWT(response.data.token)
-
-        // Create user object from decoded token or fallback to mock data
         const user = {
           id: decodedToken?.sub || decodedToken?.userId || 1,
           fullName:
@@ -40,17 +48,12 @@ export const loginUser = createAsyncThunk(
             : null,
         }
 
-        const authData = {
-          user,
-          token: response.data.token,
-        }
-
-        // Save to localStorage
+        const authData = { user, token: response.data.token }
         localStorage.setItem('auth', JSON.stringify(authData))
-
         dispatch(loginSuccess(authData))
         return authData
-      } else {
+      }
+      else {
         throw new Error(response.message || 'Login failed')
       }
     } catch (error) {

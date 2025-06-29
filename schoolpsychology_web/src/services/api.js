@@ -5,7 +5,7 @@ import { isTokenExpired } from '../utils'
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/",
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -52,11 +52,25 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   response => {
+    // Handle 308 PERMANENT_REDIRECT as success for Google OAuth
+    if (response.status === 308) {
+      return response
+    }
     return response
   },
   async error => {
     const originalRequest = error.config
     const excludedPaths = ['/api/v1/auth/login', '/api/v1/auth/forgot-password']
+
+    // Handle 308 (PERMANENT_REDIRECT) - Google OAuth redirect
+    if (error.response?.status === 308) {
+      // Return the response data as success for Google OAuth redirect
+      return Promise.resolve({
+        data: error.response.data,
+        status: 308,
+        success: true
+      })
+    }
 
     // Handle 401 (Unauthorized) - token expired
     if (
