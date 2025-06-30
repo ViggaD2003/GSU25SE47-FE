@@ -21,7 +21,7 @@ const StaffManagement = lazy(
   () => import('@/pages/manager/AccountManagement/StaffManagement')
 )
 const AppointmentManagement = lazy(
-  () => import('@/pages/manager/AppointmentManagement')
+  () => import('@/pages/manager/AppointmentManagement/AppointmentManagement')
 )
 const SurveyManagement = lazy(
   () => import('@/pages/manager/SurveyManagement/SurveyManagement')

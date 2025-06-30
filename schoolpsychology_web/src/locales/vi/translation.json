@@ -235,6 +235,28 @@
     "cancel": "Hủy",
     "daily": "Hàng ngày",
     "weekly": "Hàng tuần",
-    "monthly": "Hàng tháng"
+    "monthly": "Hàng tháng",
+    "clear": "Xóa",
+    "filter": "Lọc",
+    "action": "Thao tác"
+  },
+  "appointment": {
+    "title": "Quản lý cuộc hẹn",
+    "searchStudent": "Tìm kiếm sinh viên...",
+    "status": {
+      "label": "Trạng thái cuộc hẹn",
+      "upcoming": "Sắp tới",
+      "inprogress": "Đang diễn ra",
+      "completed": "Hoàn thành",
+      "canceled": "Đã hủy"
+    },
+    "formality": {
+      "label": "Hình thức",
+      "online": "Trực tuyến",
+      "offline": "Trực tiếp"
+    },
+    "studentId": "Mã sinh viên",
+    "fullName": "Họ và tên",
+    "time": "Thời gian"
   }
 }
