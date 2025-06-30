@@ -51,7 +51,6 @@ export default function MainTabs() {
         tabBarActiveTintColor: GlobalStyles.colors.primary,
         tabBarInactiveTintColor: "gray",
         tabBarShowLabel: false,
-        headerTintColor: "black",
         headerShown: false,
         headerTitle: () => (
           <View>
