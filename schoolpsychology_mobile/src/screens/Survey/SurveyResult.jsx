@@ -12,10 +12,17 @@ import { GlobalStyles } from "../../constants";
 import { surveyResult } from "../../constants/survey";
 import { Toast } from "../../components";
 import { useAuth } from "../../contexts";
+import {
+  formatDate,
+  getScoreColor,
+  getScoreIcon,
+  getScoreLevel,
+} from "../../utils/helpers";
+import { navigateToHome } from "../../utils";
 
 const SurveyResult = ({ route, navigation }) => {
   const { user } = useAuth();
-  const { survey, result, type } = route.params || {};
+  const { survey, result, screen } = route.params || {};
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -31,90 +38,14 @@ const SurveyResult = ({ route, navigation }) => {
   }, []);
 
   const handleBackPress = useCallback(() => {
-    if (type === "record") {
-      navigation.goBack();
+    if (screen === "SurveyTaking") {
+      navigateToHome(navigation);
     } else {
-      navigation.goBack("Home");
+      navigation.goBack();
     }
   }, [navigation]);
 
-  // Get survey configuration based on survey code
-  const getSurveyConfig = useCallback(() => {
-    return surveyResult.find(
-      (config) => config.surveyCode === survey?.surveyCode
-    );
-  }, [survey?.surveyCode]);
-
-  // Get level configuration based on score
-  const getLevelConfig = useCallback(
-    (score) => {
-      const config = getSurveyConfig();
-      if (!config) return null;
-
-      return config.levels.find(
-        (level) => score >= level.min && score <= level.max
-      );
-    },
-    [getSurveyConfig]
-  );
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getScoreColor = (score) => {
-    const levelConfig = getLevelConfig(score);
-    if (!levelConfig) return "#6B7280";
-
-    switch (levelConfig.level) {
-      case "low":
-        return "#10B981"; // Green
-      case "medium":
-        return "#F59E0B"; // Yellow
-      case "high":
-        return "#EF4444"; // Red
-      case "critical":
-        return "#DC2626"; // Dark red
-      default:
-        return "#6B7280";
-    }
-  };
-
-  const getScoreLevel = (score) => {
-    const levelConfig = getLevelConfig(score);
-    if (!levelConfig) return "Không xác định";
-    return levelConfig.level;
-  };
-
-  const getScoreIcon = (score) => {
-    const levelConfig = getLevelConfig(score);
-    if (!levelConfig) return "help-circle";
-
-    switch (levelConfig.level) {
-      case "low":
-        return "happy";
-      case "medium":
-        return "help-circle";
-      case "high":
-      case "critical":
-        return "sad";
-      default:
-        return "help-circle";
-    }
-  };
-
-  const getSuggestions = (score) => {
-    const levelConfig = getLevelConfig(score);
-    return levelConfig?.noteSuggest || result?.noteSuggest || "";
-  };
-
   const currentScore = result?.totalScore || 0;
-  const suggestions = getSuggestions(currentScore);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,11 +66,7 @@ const SurveyResult = ({ route, navigation }) => {
         <View style={styles.resultCard}>
           <View style={styles.resultHeader}>
             <View style={styles.resultIcon}>
-              <Ionicons
-                name="trophy"
-                size={24}
-                color={getScoreColor(currentScore)}
-              />
+              <Ionicons name="trophy" size={24} color={getScoreColor(result)} />
             </View>
             <View style={styles.resultInfo}>
               <Text style={styles.resultTitle}>Kết quả khảo sát</Text>
@@ -153,10 +80,7 @@ const SurveyResult = ({ route, navigation }) => {
           <View style={styles.scoreContainer}>
             <View style={styles.scoreCircle}>
               <Text
-                style={[
-                  styles.scoreText,
-                  { color: getScoreColor(currentScore) },
-                ]}
+                style={[styles.scoreText, { color: getScoreColor(result) }]}
               >
                 {currentScore}
               </Text>
@@ -165,18 +89,15 @@ const SurveyResult = ({ route, navigation }) => {
             <View style={styles.scoreInfo}>
               <View style={styles.scoreIconContainer}>
                 <Ionicons
-                  name={getScoreIcon(currentScore)}
+                  name={getScoreIcon(result)}
                   size={24}
-                  color={getScoreColor(currentScore)}
+                  color={getScoreColor(result)}
                 />
               </View>
               <Text
-                style={[
-                  styles.scoreLevel,
-                  { color: getScoreColor(currentScore) },
-                ]}
+                style={[styles.scoreLevel, { color: getScoreColor(result) }]}
               >
-                {getScoreLevel(currentScore)}
+                {getScoreLevel(result)}
               </Text>
             </View>
           </View>
@@ -199,13 +120,13 @@ const SurveyResult = ({ route, navigation }) => {
         </View>
 
         {/* Suggestions */}
-        {suggestions && (
+        {result?.noteSuggest && (
           <View style={styles.suggestionsCard}>
             <View style={styles.suggestionsHeader}>
               <Ionicons name="bulb" size={24} color="#F59E0B" />
               <Text style={styles.suggestionsTitle}>Gợi ý</Text>
             </View>
-            <Text style={styles.suggestionsText}>{suggestions}</Text>
+            <Text style={styles.suggestionsText}>{result?.noteSuggest}</Text>
           </View>
         )}
 
@@ -253,11 +174,7 @@ const SurveyResult = ({ route, navigation }) => {
 
           <TouchableOpacity
             style={styles.backToRecordsButton}
-            onPress={() =>
-              navigation.navigate("Survey", {
-                screen: "SurveyRecord",
-              })
-            }
+            onPress={() => navigation.navigate("SurveyRecord")}
           >
             <Text style={styles.backToRecordsButtonText}>
               Xem tất cả kết quả

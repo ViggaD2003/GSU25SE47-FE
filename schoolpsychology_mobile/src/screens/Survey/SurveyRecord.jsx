@@ -12,8 +12,16 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { Toast } from "../../components";
-import { getSurveyRecords } from "../../services/api/SurveyService";
-import { useAuth } from "../../contexts";
+import {
+  getSurveyDetail,
+  getSurveyRecords,
+} from "../../services/api/SurveyService";
+import {
+  formatDate,
+  getScoreColor,
+  getScoreIcon,
+  getScoreLevel,
+} from "../../utils/helpers";
 
 const SurveyRecord = ({ navigation }) => {
   const [surveyRecords, setSurveyRecords] = useState([]);
@@ -33,48 +41,35 @@ const SurveyRecord = ({ navigation }) => {
     try {
       setLoading(true);
       const response = await getSurveyRecords();
+      if (response.data) {
+        const surveyRecordsPromises = response.data.map(async (record) => {
+          const survey = await getSurveyDetail(record.surveyId);
+          const {
+            questions,
+            createdAt,
+            updatedAt,
+            status,
+            recurringCycle,
+            isRequired,
+            isRecurring,
+            ...rest
+          } = survey;
 
-      if (response && response.success) {
-        setSurveyRecords(response.data || []);
+          return {
+            ...record,
+            ...rest,
+            surveyId: record.surveyId,
+            surveyCode: survey.surveyCode,
+            surveyName: survey.name,
+          };
+        });
+
+        // Wait for all promises to resolve
+        const surveyRecords = await Promise.all(surveyRecordsPromises);
+        setSurveyRecords(surveyRecords || []);
       } else {
         showToast("Không thể tải dữ liệu khảo sát", "error");
       }
-
-      // Mock data for development
-      // setSurveyRecords([
-      //   {
-      //     id: 1,
-      //     surveyId: 1,
-      //     surveyCode: "GAD-7",
-      //     surveyTitle: "Khảo sát tâm lý học sinh",
-      //     totalScore: 85,
-      //     status: "COMPLETED",
-      //     completedAt: "2024-01-15",
-      //     noteSuggest: "Bạn có tâm lý ổn định. Hãy duy trì lối sống lành mạnh.",
-      //   },
-      //   {
-      //     id: 2,
-      //     surveyId: 2,
-      //     surveyCode: "SCHOOL_ENV",
-      //     surveyTitle: "Đánh giá stress học tập",
-      //     totalScore: 65,
-      //     status: "COMPLETED",
-      //     completedAt: "2024-01-10",
-      //     noteSuggest:
-      //       "Bạn có dấu hiệu stress nhẹ. Hãy thử các bài tập thở và nghỉ ngơi đầy đủ.",
-      //   },
-      //   {
-      //     id: 3,
-      //     surveyId: 3,
-      //     surveyCode: "FAMILY_ENV",
-      //     surveyTitle: "Khảo sát về mối quan hệ bạn bè",
-      //     totalScore: 90,
-      //     status: "COMPLETED",
-      //     completedAt: "2024-01-05",
-      //     noteSuggest:
-      //       "Bạn có mối quan hệ bạn bè tốt. Hãy duy trì và phát triển thêm.",
-      //   },
-      // ]);
     } catch (error) {
       console.error("Error fetching survey records:", error);
       showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
@@ -98,49 +93,24 @@ const SurveyRecord = ({ navigation }) => {
   }, []);
 
   const handleBackPress = useCallback(() => {
-    navigation.goBack("Profile");
+    navigation.popTo("Profile");
   }, [navigation]);
 
   const handleViewResult = useCallback(
     (record) => {
+      const survey = {
+        surveyCode: record.surveyCode,
+        name: record.surveyName,
+        id: record.surveyId,
+      };
       navigation.navigate("SurveyResult", {
-        survey: {
-          title: record.surveyTitle,
-          surveyId: record.surveyId,
-        },
+        survey,
         result: record,
-        type: "record",
+        screen: "SurveyRecord",
       });
     },
     [navigation]
   );
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return "#10B981";
-    if (score >= 60) return "#F59E0B";
-    return "#EF4444";
-  };
-
-  const getScoreLevel = (score) => {
-    if (score >= 80) return "Tốt";
-    if (score >= 60) return "Trung bình";
-    return "Cần cải thiện";
-  };
-
-  const getScoreIcon = (score) => {
-    if (score >= 80) return "happy";
-    if (score >= 60) return "help-circle";
-    return "sad";
-  };
 
   const renderSurveyRecord = (record) => (
     <TouchableOpacity
@@ -153,24 +123,16 @@ const SurveyRecord = ({ navigation }) => {
           <Ionicons name="document-text" size={24} color="#3B82F6" />
         </View>
         <View style={styles.recordInfo}>
-          <Text style={styles.recordTitle}>{record.surveyTitle}</Text>
+          <Text style={styles.recordTitle}>{record.name}</Text>
           <Text style={styles.recordDate}>
             Hoàn thành: {formatDate(record.completedAt)}
           </Text>
         </View>
         <View style={styles.scoreContainer}>
           <View
-            style={[
-              styles.scoreCircle,
-              { borderColor: getScoreColor(record.totalScore) },
-            ]}
+            style={[styles.scoreCircle, { borderColor: getScoreColor(record) }]}
           >
-            <Text
-              style={[
-                styles.scoreText,
-                { color: getScoreColor(record.totalScore) },
-              ]}
-            >
+            <Text style={[styles.scoreText, { color: getScoreColor(record) }]}>
               {record.totalScore}
             </Text>
           </View>
@@ -180,17 +142,12 @@ const SurveyRecord = ({ navigation }) => {
       <View style={styles.recordDetails}>
         <View style={styles.scoreInfo}>
           <Ionicons
-            name={getScoreIcon(record.totalScore)}
+            name={getScoreIcon(record)}
             size={20}
-            color={getScoreColor(record.totalScore)}
+            color={getScoreColor(record)}
           />
-          <Text
-            style={[
-              styles.scoreLevel,
-              { color: getScoreColor(record.totalScore) },
-            ]}
-          >
-            {getScoreLevel(record.totalScore)}
+          <Text style={[styles.scoreLevel, { color: getScoreColor(record) }]}>
+            {getScoreLevel(record)}
           </Text>
         </View>
 
@@ -210,23 +167,23 @@ const SurveyRecord = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <View style={styles.header}>
+  //         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+  //           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+  //         </TouchableOpacity>
+  //         <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
+  //         <View style={styles.headerSpacer} />
+  //       </View>
+  //       <View style={styles.loadingContainer}>
+  //         <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
+  //         <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+  //       </View>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -246,6 +203,13 @@ const SurveyRecord = ({ navigation }) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {loading && (
+          <ActivityIndicator
+            style={styles.loadingIndicator}
+            size={50}
+            color={GlobalStyles.colors.primary}
+          />
+        )}
         {surveyRecords.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
@@ -255,7 +219,7 @@ const SurveyRecord = ({ navigation }) => {
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
-              onPress={() => navigation.navigate("Survey")}
+              onPress={() => navigation.navigate("Home")}
             >
               <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
             </TouchableOpacity>
@@ -302,6 +266,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+  loadingIndicator: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",

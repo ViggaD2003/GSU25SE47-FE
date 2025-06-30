@@ -1,5 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Alert } from "react-native";
+import {
+  isLogoutInProgress,
+  performLogout,
+} from "../services/auth/tokenManager";
+import { AUTH_ERRORS } from "../constants";
 
 /**
  * Custom hook for handling authentication errors
@@ -96,4 +101,157 @@ export const useForm = (initialData = {}) => {
     updateForm,
     resetForm,
   };
+};
+
+// Hook để xử lý token errors và logout tự động
+export const useTokenErrorHandler = (logoutFunction) => {
+  const errorCountRef = useRef(0);
+  const lastErrorTimeRef = useRef(0);
+  const isHandlingErrorRef = useRef(false);
+
+  const handleTokenError = useCallback(
+    async (error, forceLogout = false) => {
+      try {
+        // Prevent multiple simultaneous error handling
+        if (isHandlingErrorRef.current && !forceLogout) {
+          console.log("Token error handling already in progress");
+          return;
+        }
+
+        isHandlingErrorRef.current = true;
+
+        // Check if logout is already in progress
+        if (isLogoutInProgress()) {
+          console.log("Logout already in progress, skipping error handling");
+          return;
+        }
+
+        const currentTime = Date.now();
+        const timeSinceLastError = currentTime - lastErrorTimeRef.current;
+
+        // Reset error count if more than 5 minutes have passed
+        if (timeSinceLastError > 5 * 60 * 1000) {
+          errorCountRef.current = 0;
+        }
+
+        errorCountRef.current++;
+        lastErrorTimeRef.current = currentTime;
+
+        console.log(
+          `Token error detected (count: ${errorCountRef.current}):`,
+          error
+        );
+
+        // Check if this is a token-related error
+        const isTokenError =
+          error?.message?.includes("401") ||
+          error?.message?.includes("403") ||
+          error?.message?.includes("Unauthorized") ||
+          error?.message?.includes("Forbidden") ||
+          error?.message?.includes("TOKEN_EXPIRED") ||
+          error?.message?.includes("REFRESH_FAILED") ||
+          error?.message?.includes("INVALID_TOKEN") ||
+          error?.response?.status === 401 ||
+          error?.response?.status === 403;
+
+        if (isTokenError || forceLogout) {
+          console.log("Token error confirmed, initiating logout");
+
+          // If too many errors in short time, force logout
+          if (errorCountRef.current >= 3 || forceLogout) {
+            console.log("Multiple token errors detected, forcing logout");
+
+            // Use performLogout directly to avoid context loops
+            await performLogout(true);
+
+            // Reset error count
+            errorCountRef.current = 0;
+          } else {
+            // Try normal logout first
+            if (logoutFunction) {
+              await logoutFunction();
+            } else {
+              await performLogout(true);
+            }
+          }
+        }
+      } catch (handleError) {
+        console.error("Error in token error handler:", handleError);
+
+        // Force logout as last resort
+        try {
+          await performLogout(true);
+        } catch (finalError) {
+          console.error("Final logout attempt failed:", finalError);
+        }
+      } finally {
+        isHandlingErrorRef.current = false;
+      }
+    },
+    [logoutFunction]
+  );
+
+  // Reset error count when component unmounts or user changes
+  const resetErrorCount = useCallback(() => {
+    errorCountRef.current = 0;
+    lastErrorTimeRef.current = 0;
+    isHandlingErrorRef.current = false;
+  }, []);
+
+  return {
+    handleTokenError,
+    resetErrorCount,
+    errorCount: errorCountRef.current,
+  };
+};
+
+// Hook để theo dõi trạng thái authentication
+export const useAuthStatus = (user, loading, isAuthenticated) => {
+  const prevAuthStatusRef = useRef(null);
+
+  useEffect(() => {
+    const currentAuthStatus = isAuthenticated;
+
+    if (
+      prevAuthStatusRef.current !== null &&
+      prevAuthStatusRef.current !== currentAuthStatus
+    ) {
+      console.log(
+        `Auth status changed: ${prevAuthStatusRef.current} -> ${currentAuthStatus}`
+      );
+    }
+
+    prevAuthStatusRef.current = currentAuthStatus;
+  }, [isAuthenticated]);
+
+  return {
+    isAuthenticated,
+    user,
+    loading,
+    hasUser: !!user,
+  };
+};
+
+// Hook để xử lý API calls với token error handling
+export const useApiCall = (handleTokenError) => {
+  const makeApiCall = useCallback(
+    async (apiFunction, ...args) => {
+      try {
+        return await apiFunction(...args);
+      } catch (error) {
+        console.error("API call error:", error);
+
+        // Handle token errors automatically
+        if (handleTokenError) {
+          await handleTokenError(error);
+        }
+
+        // Re-throw the error for component handling
+        throw error;
+      }
+    },
+    [handleTokenError]
+  );
+
+  return { makeApiCall };
 };

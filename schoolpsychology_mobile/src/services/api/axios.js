@@ -1,8 +1,13 @@
 import axios from "axios";
 import { Platform } from "react-native";
-import { getAccessToken, isTokenExpired } from "../auth/tokenManager";
+import {
+  getAccessToken,
+  isTokenExpired,
+  performLogout,
+  isLogoutInProgress,
+} from "../auth/tokenManager";
 import { AUTH_CONFIG, AUTH_ERRORS, APP_CONFIG } from "../../constants";
-import { refreshAccessToken, logout } from "../auth/authActions";
+import { refreshAccessToken, logout, forceLogout } from "../auth/authActions";
 
 // Dynamic baseURL based on platform
 const baseURL =
@@ -20,16 +25,37 @@ const api = axios.create({
 
 // Global logout callback
 let logoutCallback = null;
+let isLogoutCallbackTriggered = false;
 
 // Set logout callback function
 export const setLogoutCallback = (callback) => {
   logoutCallback = callback;
+  isLogoutCallbackTriggered = false; // Reset flag when setting new callback
+};
+
+// Safe logout callback trigger
+const triggerLogoutCallback = () => {
+  if (logoutCallback && !isLogoutCallbackTriggered) {
+    isLogoutCallbackTriggered = true;
+    try {
+      console.log("Triggering logout callback");
+      logoutCallback();
+    } catch (callbackError) {
+      console.error("Logout callback error:", callbackError);
+    }
+  }
 };
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use(
   async (config) => {
     try {
+      // Check if logout is in progress
+      if (isLogoutInProgress()) {
+        console.log("Logout in progress, skipping request");
+        return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+      }
+
       const token = await getAccessToken();
       // console.log("token", token);
 
@@ -70,6 +96,12 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
+        // Check if logout is already in progress
+        if (isLogoutInProgress()) {
+          console.log("Logout in progress, skipping token refresh");
+          return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+        }
+
         console.log("Attempting to refresh token due to 401 error");
         // Try to refresh the token
         const newToken = await refreshAccessToken();
@@ -85,20 +117,21 @@ api.interceptors.response.use(
         // Refresh failed, ensure tokens are cleared and logout user
         try {
           console.log("Clearing tokens and logging out due to refresh failure");
-          await logout();
+
+          // Use force logout to ensure cleanup
+          await forceLogout();
         } catch (logoutError) {
           console.error("Logout error during refresh failure:", logoutError);
+          // Try one more time with basic logout
+          try {
+            await performLogout(true);
+          } catch (finalError) {
+            console.error("Final logout attempt failed:", finalError);
+          }
         }
 
         // Call logout callback if available
-        if (logoutCallback) {
-          try {
-            console.log("Triggering logout callback");
-            logoutCallback();
-          } catch (callbackError) {
-            console.error("Logout callback error:", callbackError);
-          }
-        }
+        triggerLogoutCallback();
 
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
@@ -108,18 +141,20 @@ api.interceptors.response.use(
     if (status === 403) {
       console.warn("Access forbidden: insufficient permissions");
       try {
-        await logout();
+        await forceLogout();
       } catch (logoutError) {
         console.error("Logout error during 403:", logoutError);
-      }
-
-      if (logoutCallback) {
+        // Try basic logout as fallback
         try {
-          logoutCallback();
-        } catch (callbackError) {
-          console.error("Logout callback error:", callbackError);
+          await performLogout(true);
+        } catch (finalError) {
+          console.error("Final logout attempt failed:", finalError);
         }
       }
+
+      // Call logout callback if available
+      triggerLogoutCallback();
+
       return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
     }
 

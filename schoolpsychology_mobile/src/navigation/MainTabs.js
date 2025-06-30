@@ -33,7 +33,14 @@ export default function MainTabs() {
         <Stack.Screen name="SurveyMain" component={SurveyRecordScreen} />
         <Stack.Screen name="SurveyRecord" component={SurveyRecordScreen} />
         <Stack.Screen name="SurveyInfo" component={SurveyInfoScreen} />
-        <Stack.Screen name="SurveyTaking" component={SurveyTakingScreen} />
+        <Stack.Screen
+          name="SurveyTaking"
+          component={SurveyTakingScreen}
+          options={{
+            gestureEnabled: false,
+            headerBackVisible: false,
+          }}
+        />
         <Stack.Screen name="SurveyResult" component={SurveyResultScreen} />
       </Stack.Navigator>
     );

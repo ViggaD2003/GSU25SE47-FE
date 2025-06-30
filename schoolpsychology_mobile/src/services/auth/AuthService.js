@@ -9,8 +9,11 @@ import {
   validateUserRole,
   handleRefreshTokenFailure,
   isTokenValidForRefresh,
+  validateToken,
+  performLogout,
+  isLogoutInProgress,
 } from "./tokenManager";
-import { refreshAccessToken, logout } from "./authActions";
+import { refreshAccessToken, logout, forceLogout } from "./authActions";
 
 // Authentication functions
 export const login = async (email, password) => {
@@ -30,6 +33,12 @@ export const login = async (email, password) => {
       accessToken.trim() === ""
     ) {
       throw new Error(AUTH_ERRORS.INVALID_TOKEN);
+    }
+
+    // Validate the token before saving
+    const tokenValidation = await validateToken(accessToken);
+    if (!tokenValidation.isValid) {
+      throw new Error(tokenValidation.error);
     }
 
     const decoded = validateUserRole(accessToken);
@@ -54,10 +63,17 @@ export const login = async (email, password) => {
 
 export const isAuthenticated = async () => {
   try {
+    // Check if logout is in progress
+    if (isLogoutInProgress()) {
+      return false;
+    }
+
     const token = await getAccessToken();
     if (!token) return false;
 
-    return !isTokenExpired(token);
+    // Use enhanced token validation
+    const tokenValidation = await validateToken(token);
+    return tokenValidation.isValid;
   } catch (error) {
     console.error("Error checking authentication:", error);
     return false;
@@ -66,8 +82,20 @@ export const isAuthenticated = async () => {
 
 export const getCurrentUser = async () => {
   try {
+    // Check if logout is in progress
+    if (isLogoutInProgress()) {
+      return null;
+    }
+
     const token = await getAccessToken();
-    if (!token || isTokenExpired(token)) {
+    if (!token) {
+      return null;
+    }
+
+    // Use enhanced token validation
+    const tokenValidation = await validateToken(token);
+    if (!tokenValidation.isValid) {
+      console.log("Token validation failed:", tokenValidation.error);
       return null;
     }
 
@@ -86,12 +114,28 @@ export const getCurrentUser = async () => {
   }
 };
 
-// Check and handle refresh token failures
+// Enhanced check and handle refresh token failures
 export const checkAndHandleRefreshTokenFailure = async () => {
   try {
+    // Check if logout is in progress
+    if (isLogoutInProgress()) {
+      return false;
+    }
+
     const token = await getAccessToken();
     if (!token) {
       return false; // No token to check
+    }
+
+    // Use enhanced token validation
+    const tokenValidation = await validateToken(token);
+    if (!tokenValidation.isValid) {
+      console.log(
+        "Token validation failed, handling failure:",
+        tokenValidation.error
+      );
+      await handleRefreshTokenFailure();
+      return true; // Failure was handled
     }
 
     // Check if token is valid for refresh
@@ -110,6 +154,35 @@ export const checkAndHandleRefreshTokenFailure = async () => {
   }
 };
 
+// Enhanced logout function
+export const authLogout = async () => {
+  try {
+    // Check if logout is already in progress
+    if (isLogoutInProgress()) {
+      console.log("Logout already in progress, waiting...");
+      return await performLogout();
+    }
+
+    // Call logout endpoint if needed
+    const token = await getAccessToken();
+    if (token) {
+      try {
+        await api.post(AUTH_CONFIG.ENDPOINTS.LOGOUT);
+      } catch (error) {
+        console.warn("Logout API call failed:", error);
+        // Continue with local logout even if API call fails
+      }
+    }
+
+    // Use the enhanced logout function
+    return await performLogout();
+  } catch (error) {
+    console.error("Auth logout error:", error);
+    // Force logout even if there's an error
+    return await performLogout(true);
+  }
+};
+
 // Re-export token management functions for backward compatibility
 export {
   setTokens,
@@ -120,6 +193,10 @@ export {
   validateUserRole,
   refreshAccessToken,
   logout,
+  forceLogout,
   handleRefreshTokenFailure,
   isTokenValidForRefresh,
+  validateToken,
+  performLogout,
+  isLogoutInProgress,
 };

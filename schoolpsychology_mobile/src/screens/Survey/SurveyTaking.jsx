@@ -8,6 +8,8 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   SafeAreaView,
+  ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
@@ -19,7 +21,8 @@ import {
   postSurveyResult,
   saveSurveyProgress,
 } from "../../services/api/SurveyService";
-import { ActivityIndicator } from "react-native-paper";
+import { navigateFromSurveyTaking } from "../../utils";
+import { useFocusEffect } from "@react-navigation/native";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey } = route.params || {};
@@ -41,12 +44,66 @@ const SurveyTaking = ({ route, navigation }) => {
     }
   }, [survey?.surveyId]);
 
+  // Clean up invalid answers when survey changes
+  useEffect(() => {
+    if (survey?.questions && Object.keys(answers).length > 0) {
+      const cleanedAnswers = cleanInvalidAnswers(answers);
+      if (Object.keys(cleanedAnswers).length !== Object.keys(answers).length) {
+        console.log("Cleaned up invalid answers due to survey change");
+        setAnswers(cleanedAnswers);
+      }
+    }
+  }, [survey?.questions]);
+
   const loadSavedProgress = async () => {
     const savedAnswers = await loadSurveyProgress(survey.surveyId);
     if (savedAnswers && Object.keys(savedAnswers).length > 0) {
-      setAnswers(savedAnswers);
-      showToast("Đã tải lại tiến độ trước đó của bạn", "info");
+      // Clean up invalid answers before setting state
+      const cleanedAnswers = cleanInvalidAnswers(savedAnswers);
+      setAnswers(cleanedAnswers);
+
+      if (Object.keys(cleanedAnswers).length > 0) {
+        showToast("Đã tải lại tiến độ trước đó của bạn", "info");
+      } else {
+        showToast(
+          "Tiến độ trước đó không hợp lệ, bắt đầu làm bài mới",
+          "warning"
+        );
+      }
     }
+  };
+
+  // Clean up invalid answers that don't exist in current survey
+  const cleanInvalidAnswers = (answers) => {
+    const validQuestionIds = survey.questions.map((q) => q.questionId);
+    const cleanedAnswers = {};
+
+    Object.entries(answers).forEach(([questionId, answerId]) => {
+      const questionIdNum = parseInt(questionId);
+
+      // Check if question exists in current survey
+      if (validQuestionIds.includes(questionIdNum)) {
+        const currentQuestion = survey.questions.find(
+          (q) => q.questionId === questionIdNum
+        );
+
+        // Check if answer exists for this question
+        const validAnswerIds = currentQuestion.answers.map((a) => a.id);
+        if (validAnswerIds.includes(answerId)) {
+          cleanedAnswers[questionId] = answerId;
+        } else {
+          console.warn(
+            `Removing invalid answerId: ${answerId} for questionId: ${questionId}`
+          );
+        }
+      } else {
+        console.warn(
+          `Removing invalid questionId: ${questionId} from saved progress`
+        );
+      }
+    });
+
+    return cleanedAnswers;
   };
 
   const showToast = (message, type = "info") => {
@@ -57,19 +114,42 @@ const SurveyTaking = ({ route, navigation }) => {
     setToast({ visible: false, message: "", type: "info" });
   };
 
-  const handleAnswerSelect = (questionId, answerId) => {
-    // console.log("handleAnswerSelect called with:", {
-    //   questionId,
-    //   answerId,
-    //   type: typeof questionId,
-    // });
+  const handleAnswerSelect = (questionId, answerId, score) => {
+    // Validate questionId exists in current survey
+    const isValidQuestion = survey.questions.some(
+      (question) => question.questionId === questionId
+    );
+
+    if (!isValidQuestion) {
+      console.warn(
+        `Invalid questionId: ${questionId}. Question not found in current survey.`
+      );
+      return;
+    }
+
+    // Validate answerId exists for the given question
+    const currentQuestion = survey.questions.find(
+      (question) => question.questionId === questionId
+    );
+
+    const isValidAnswer = currentQuestion.answers.some(
+      (answer) => answer.id === answerId
+    );
+
+    if (!isValidAnswer) {
+      console.warn(
+        `Invalid answerId: ${answerId} for questionId: ${questionId}`
+      );
+      return;
+    }
+
     setAnswers((prev) => {
       const newAnswers = {
         ...prev,
         [questionId]: answerId,
-        [answerId]: answerId,
       };
-      // console.log("Updated answers:", newAnswers);
+
+      console.log("Updated answers:", newAnswers);
       return newAnswers;
     });
   };
@@ -87,6 +167,18 @@ const SurveyTaking = ({ route, navigation }) => {
   };
 
   const handleSubmit = () => {
+    // Validate all answers before submission
+    const validationResult = validateAllAnswers(answers);
+
+    if (!validationResult.isValid) {
+      console.warn("Invalid answers found:", validationResult.invalidAnswers);
+      showToast(
+        "Có câu trả lời không hợp lệ, vui lòng kiểm tra lại",
+        "warning"
+      );
+      return;
+    }
+
     const unansweredRequired = survey.questions.filter(
       (q) => q.required && !answers[q.questionId]
     );
@@ -100,6 +192,45 @@ const SurveyTaking = ({ route, navigation }) => {
     }
 
     setShowSubmitModal(true);
+  };
+
+  // Validate all answers in the current state
+  const validateAllAnswers = (currentAnswers) => {
+    const validQuestionIds = survey.questions.map((q) => q.questionId);
+    const invalidAnswers = [];
+
+    Object.entries(currentAnswers).forEach(([questionId, answerId]) => {
+      const questionIdNum = parseInt(questionId);
+
+      // Check if question exists
+      if (!validQuestionIds.includes(questionIdNum)) {
+        invalidAnswers.push({
+          questionId,
+          answerId,
+          reason: "Question not found in current survey",
+        });
+        return;
+      }
+
+      // Check if answer exists for this question
+      const currentQuestion = survey.questions.find(
+        (q) => q.questionId === questionIdNum
+      );
+      const validAnswerIds = currentQuestion.answers.map((a) => a.id);
+
+      if (!validAnswerIds.includes(answerId)) {
+        invalidAnswers.push({
+          questionId,
+          answerId,
+          reason: "Answer not found for this question",
+        });
+      }
+    });
+
+    return {
+      isValid: invalidAnswers.length === 0,
+      invalidAnswers,
+    };
   };
 
   const handleConfirmSubmit = () => {
@@ -126,8 +257,8 @@ const SurveyTaking = ({ route, navigation }) => {
         setTimeout(() => {
           setShowExitModal(false);
           setTimeout(() => {
-            // Truyền thông tin về việc đã lưu tiến độ
-            navigation.goBack();
+            // Navigate back to survey info with progress saved flag
+            navigateFromSurveyTaking(navigation);
           }, 500);
         }, 2000);
       } else {
@@ -136,13 +267,13 @@ const SurveyTaking = ({ route, navigation }) => {
         setTimeout(() => {
           setShowExitModal(false);
           setTimeout(() => {
-            navigation.goBack();
+            navigateFromSurveyTaking(navigation, survey, false);
           }, 500);
         }, 2000);
       }
     } else {
       setShowExitModal(false);
-      navigation.goBack();
+      navigateFromSurveyTaking(navigation, survey, false);
     }
   };
 
@@ -276,20 +407,15 @@ const SurveyTaking = ({ route, navigation }) => {
         answerRecordRequests: answerRecordRequests,
       };
 
-      console.log("Survey submitted:", surveyResult);
-      const result = await postSurveyResult(surveyResult);
-
-      console.log("Survey submitted responser:", result);
-
-      showToast("Khảo sát đã được nộp thành công!", "success");
+      // console.log("Survey submitted:", surveyResult);
+      await postSurveyResult(surveyResult);
 
       // Navigate to result screen
-      // navigation.navigate("SurveyResult", {
-      //   survey: { ...survey, surveyCode: "GAD-7" },
-      //   result: surveyResult,
-      //   answers: submittedAnswers,
-      //   type: "orther",
-      // });
+      navigation.navigate("SurveyResult", {
+        survey,
+        result: surveyResult,
+        screen: "SurveyTaking",
+      });
     } catch (error) {
       console.error("Error submitting survey:", error);
       showToast("Có lỗi xảy ra khi nộp khảo sát", "error");
@@ -381,7 +507,11 @@ const SurveyTaking = ({ route, navigation }) => {
                       styles.selectedAnswer,
                   ]}
                   onPress={() =>
-                    handleAnswerSelect(currentQuestion.questionId, answer.id)
+                    handleAnswerSelect(
+                      currentQuestion.questionId,
+                      answer.id,
+                      answer.score
+                    )
                   }
                 >
                   <View style={styles.answerRadio}>
@@ -527,7 +657,8 @@ const SurveyTaking = ({ route, navigation }) => {
 
                 <Text style={styles.modalMessage}>
                   Tiến độ hiện tại sẽ được lưu lại. Bạn có thể tiếp tục làm bài
-                  sau.
+                  sau. Lưu ý: Không thể quay lại màn hình trước đó khi đang làm
+                  khảo sát.
                 </Text>
 
                 <View style={styles.modalButtons}>

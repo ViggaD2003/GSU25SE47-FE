@@ -34,6 +34,28 @@ export const postSurveyResult = async (result) => {
   }
 };
 
+// Get survey result by surveyRecordId
+export const getSurveyResult = async (surveyRecordId) => {
+  try {
+    const response = await api.get(`/api/v1/survey-records/${surveyRecordId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy kết quả khảo sát:", error);
+    throw error;
+  }
+};
+
+//Get survey by surveyId
+export const getSurveyDetail = async (surveyId) => {
+  try {
+    const response = await api.get(`/api/v1/survey/${surveyId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
+    throw error;
+  }
+};
+
 // Save survey progress with user info
 export const saveSurveyProgress = async (surveyId, answers) => {
   try {
