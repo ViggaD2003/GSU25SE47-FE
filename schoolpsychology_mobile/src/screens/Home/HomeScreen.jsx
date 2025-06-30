@@ -9,6 +9,7 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
@@ -24,7 +25,7 @@ export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState(null);
+  const [activeTab, setActiveTab] = useState("survey");
 
   const fetchSurveys = async () => {
     try {
@@ -50,6 +51,7 @@ export default function HomeScreen({ navigation }) {
       console.error("Lỗi khi tải appointments:", error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -60,45 +62,35 @@ export default function HomeScreen({ navigation }) {
       console.error("Lỗi khi tải programs:", error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = async (type = activeTab) => {
     setRefreshing(true);
-    switch (activeTab) {
-      case "survey":
-        fetchSurveys();
-        break;
-      case "appointment":
-        fetchAppointments();
-        break;
-      case "program":
-        fetchPrograms();
-        break;
-      default:
-        fetchSurveys();
-        break;
-    }
-  }, [activeTab]);
-
-  const onPress = useCallback((type) => {
+    setLoading(true);
     setActiveTab(type);
     switch (type) {
       case "survey":
-        fetchSurveys();
+        await fetchSurveys();
         break;
       case "appointment":
-        fetchAppointments();
+        await fetchAppointments();
         break;
       case "program":
-        fetchPrograms();
+        await fetchPrograms();
+        break;
+      default:
+        await fetchSurveys();
         break;
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    onPress("survey");
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      onRefresh();
+    }, [navigation])
+  );
 
   return (
     <Container>
@@ -198,7 +190,7 @@ export default function HomeScreen({ navigation }) {
                     ? styles.eventTabActive
                     : styles.eventTab
                 }
-                onPress={() => onPress("survey")}
+                onPress={() => onRefresh("survey")}
               >
                 <Text
                   style={
@@ -217,7 +209,7 @@ export default function HomeScreen({ navigation }) {
                     ? styles.eventTabActive
                     : styles.eventTab
                 }
-                onPress={() => onPress("appointment")}
+                onPress={() => onRefresh("appointment")}
               >
                 <Text
                   style={
@@ -236,7 +228,7 @@ export default function HomeScreen({ navigation }) {
                     ? styles.eventTabActive
                     : styles.eventTab
                 }
-                onPress={() => onPress("program")}
+                onPress={() => onRefresh("program")}
               >
                 <Text
                   style={
@@ -264,7 +256,12 @@ export default function HomeScreen({ navigation }) {
               </View>
             ) : activeTab === "survey" ? (
               data.map((data, index) => (
-                <SurveyCard survey={data} key={index} navigation={navigation} />
+                <SurveyCard
+                  survey={data}
+                  key={index}
+                  navigation={navigation}
+                  onRefresh={onRefresh}
+                />
               ))
             ) : null}
           </View>
