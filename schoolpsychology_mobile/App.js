@@ -1,32 +1,57 @@
-import { StyleSheet } from "react-native";
+import { StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import AuthStack from "./navigation/AuthStack";
-import MainTabs from "./navigation/MainTabs";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { setLogoutCallback } from "./utils/axios";
-import React, { useEffect } from "react";
-import { StatusBar } from "expo-status-bar";
+import AuthStack from "./src/navigation/AuthStack";
+import MainTabs from "./src/navigation/MainTabs";
+import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
+import { setLogoutCallback } from "./src/services/api/axios";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import Toast from "react-native-toast-message";
-
+import { PaperProvider } from "react-native-paper";
 
 function RootNavigation() {
-  const { user, loading, registerLogoutCallback } = useAuth();
+  const { user, loading, registerLogoutCallback, logout } = useAuth();
+  const logoutCallbackRef = useRef(null);
+
+  // Create a stable logout callback function
+  const handleLogout = useCallback(async () => {
+    console.log("Logout callback triggered from axios interceptor");
+    try {
+      // Ensure user state is cleared and navigate to login
+      await logout();
+    } catch (error) {
+      console.error("Error in logout callback:", error);
+    }
+  }, [logout]);
+
+  // Handle logout notification
+  const handleLogoutNotification = useCallback(() => {
+    console.log("Logout callback triggered from App.js");
+  }, []);
 
   useEffect(() => {
-    const unregister = registerLogoutCallback(() => {
-      // This will be called when axios interceptor triggers logout
-    });
+    // Register logout callback only once
+    if (!logoutCallbackRef.current) {
+      logoutCallbackRef.current = registerLogoutCallback(
+        handleLogoutNotification
+      );
+    }
 
-    setLogoutCallback(() => {
-      console.log("Logout callback triggered");
-    });
+    // Set axios logout callback
+    setLogoutCallback(handleLogout);
 
-    return unregister;
-  }, [registerLogoutCallback]);
+    // Cleanup function
+    return () => {
+      if (logoutCallbackRef.current) {
+        logoutCallbackRef.current();
+        logoutCallbackRef.current = null;
+      }
+    };
+  }, []); // Empty dependency array to run only once
 
   if (loading) return null; // hoặc loading indicator
   return (
     <NavigationContainer>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {user ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );
@@ -34,14 +59,12 @@ function RootNavigation() {
 
 export default function App() {
   return (
-    <>
-
-      <AuthProvider>
-        <StatusBar style='auto' />
+    <AuthProvider>
+      <PaperProvider>
         <RootNavigation />
         <Toast />
-      </AuthProvider>
-    </>
+      </PaperProvider>
+    </AuthProvider>
   );
 }
 

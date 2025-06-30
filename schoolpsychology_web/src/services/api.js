@@ -5,7 +5,7 @@ import { isTokenExpired } from '../utils'
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/",
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ api.interceptors.response.use(
       return Promise.resolve({
         data: error.response.data,
         status: 308,
-        success: true
+        success: true,
       })
     }
 

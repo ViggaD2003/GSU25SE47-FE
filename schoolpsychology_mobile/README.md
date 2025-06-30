@@ -1,105 +1,179 @@
-# School Psychology Mobile App
+# Cấu trúc dự án React Native Mobile
 
-Ứng dụng di động cho School Psychology được xây dựng bằng React Native và Expo.
+## Tổng quan
 
-## 📁 Cấu trúc thư mục
+Dự án được tổ chức theo cấu trúc chuẩn React Native với các thư mục được phân chia rõ ràng theo chức năng.
+
+## Cấu trúc thư mục
 
 ```
 schoolpsychology_mobile/
-├── 📁 assets/                 # Tài nguyên tĩnh (icons, images)
-├── 📁 components/             # Components tái sử dụng
-│   ├── index.js              # Export tất cả components
-│   └── ProtectedRoute.js     # Component bảo vệ route
-├── 📁 constants/             # Constants và configurations
-│   └── index.js              # Tất cả constants (styles, auth config, app config)
-├── 📁 context/               # React Context
-│   └── AuthContext.js        # Authentication context
-├── 📁 navigation/            # Navigation configuration
-│   ├── AuthStack.js          # Stack navigation cho authentication
-│   └── MainTabs.js           # Tab navigation cho main app
-├── 📁 pages/                 # Các màn hình của ứng dụng
-│   ├── 📁 Authentication/    # Màn hình đăng nhập/đăng ký
-│   ├── 📁 Blog/              # Màn hình blog
-│   ├── 📁 Home/              # Màn hình chính
-│   ├── 📁 Notification/      # Màn hình thông báo
-│   └── 📁 Profile/           # Màn hình profile
-├── 📁 utils/                 # Utilities và services
-│   ├── authActions.js        # Authentication actions (refresh, logout)
-│   ├── AuthService.js        # Authentication service
-│   ├── axios.js              # HTTP client configuration
-│   ├── hooks.js              # Custom React hooks
-│   └── tokenManager.js       # Token management utilities
-├── App.js                    # Component gốc của ứng dụng
-├── app.json                  # Expo configuration
-├── index.js                  # Entry point
-└── package.json              # Dependencies
+├── src/                          # Thư mục chính chứa source code
+│   ├── components/               # Các component tái sử dụng
+│   │   ├── common/              # Components chung (Loading, Toast, SurveyCard)
+│   │   ├── ui/                  # UI components (Container, ProtectedRoute)
+│   │   ├── forms/               # Form components (tương lai)
+│   │   └── index.js             # Export tất cả components
+│   │
+│   ├── screens/                 # Các màn hình của ứng dụng
+│   │   ├── Authentication/      # Màn hình đăng nhập/đăng ký
+│   │   ├── Home/               # Màn hình chính
+│   │   ├── Survey/             # Màn hình khảo sát
+│   │   ├── Profile/            # Màn hình hồ sơ
+│   │   ├── Blog/               # Màn hình blog
+│   │   ├── Notification/       # Màn hình thông báo
+│   │   └── index.js            # Export tất cả screens
+│   │
+│   ├── services/               # Các service gọi API
+│   │   ├── api/                # API services
+│   │   │   ├── axios.js        # Axios instance và interceptors
+│   │   │   └── SurveyService.js # Service cho survey
+│   │   ├── auth/               # Authentication services
+│   │   │   ├── AuthService.js  # Service xác thực
+│   │   │   ├── authActions.js  # Actions cho auth
+│   │   │   └── tokenManager.js # Quản lý token
+│   │   └── index.js            # Export tất cả services
+│   │
+│   ├── utils/                  # Các utility functions
+│   │   ├── hooks.js            # Custom hooks
+│   │   └── index.js            # Export tất cả utils
+│   │
+│   ├── constants/              # Các hằng số
+│   │   ├── index.js            # Constants chính
+│   │   ├── survey.js           # Constants cho survey
+│   │   └── index.js            # Export tất cả constants
+│   │
+│   ├── contexts/               # React Context
+│   │   ├── AuthContext.js      # Context cho authentication
+│   │   └── index.js            # Export tất cả contexts
+│   │
+│   ├── navigation/             # Navigation configuration
+│   │   ├── AuthStack.js        # Stack navigation cho auth
+│   │   ├── MainTabs.js         # Tab navigation chính
+│   │   └── index.js            # Export tất cả navigation
+│   │
+│   ├── assets/                 # Tài nguyên (images, icons, fonts)
+│   │   ├── adaptive-icon.png
+│   │   └── logo.svg
+│   │
+│   ├── types/                  # TypeScript types (tương lai)
+│   ├── hooks/                  # Custom hooks (tương lai)
+│   ├── config/                 # Configuration files (tương lai)
+│   └── index.js                # Export chính của src
+│
+├── App.js                      # Component gốc của ứng dụng
+├── index.js                    # Entry point
+├── app.json                    # Expo configuration
+├── package.json                # Dependencies
+├── README.md                   # Documentation
+└── PROJECT_STRUCTURE.md        # File này
 ```
 
-## 🔧 Cải tiến đã thực hiện
+## Quy tắc tổ chức
 
-### 1. **Tối ưu hóa cấu trúc utils**
+### 1. Components
 
-- ✅ **Gộp constants**: Di chuyển `authConfig.js` và `styles.jsx` vào `constants/index.js`
-- ✅ **Tạo hooks.js**: Gộp `useAuthError.js` và thêm các hooks mới (`useLoading`, `useForm`)
-- ✅ **Tách biệt chức năng**: `tokenManager.js`, `authActions.js`, `AuthService.js` có trách nhiệm rõ ràng
+- **common/**: Components được sử dụng ở nhiều nơi (Loading, Toast, SurveyCard)
+- **ui/**: UI components cơ bản (Container, ProtectedRoute)
+- **forms/**: Form components (sẽ thêm trong tương lai)
 
-### 2. **Cấu trúc constants mới**
+### 2. Screens
+
+- Mỗi tính năng có thư mục riêng
+- Tên file theo format: `TênScreen.jsx`
+- Export default cho mỗi screen
+
+### 3. Services
+
+- **api/**: Các service gọi API
+- **auth/**: Các service liên quan đến authentication
+- Mỗi service có trách nhiệm riêng biệt
+
+### 4. Utils
+
+- **hooks.js**: Custom React hooks
+- Các utility functions khác
+
+### 5. Constants
+
+- Tách biệt constants theo domain
+- Export tập trung qua index.js
+
+### 6. Contexts
+
+- Mỗi context quản lý một state domain
+- Export Provider và Hook
+
+### 7. Navigation
+
+- Tách biệt navigation theo flow
+- AuthStack cho authentication
+- MainTabs cho main app
+
+## Import/Export Pattern
+
+### 1. Barrel Exports
+
+Mỗi thư mục có file `index.js` để export tất cả:
 
 ```javascript
-// constants/index.js
-export const GlobalStyles = { ... }        // Styles toàn cục
-export const AUTH_CONFIG = { ... }         // Cấu hình authentication
-export const AUTH_ERRORS = { ... }         // Error messages
-export const AUTH_SUCCESS = { ... }        // Success messages
-export const APP_CONFIG = { ... }          // Cấu hình ứng dụng
+// src/components/index.js
+export { default as Loading } from "./common/Loading";
+export { default as SurveyCard } from "./common/SurveyCard";
 ```
 
-## 🚀 Cách sử dụng
+### 2. Relative Imports
 
-### Import constants
+Sử dụng relative imports trong cùng thư mục:
 
 ```javascript
-import { GlobalStyles, AUTH_CONFIG, APP_CONFIG } from "../constants";
+// Trong cùng thư mục
+import { Loading } from "./Loading";
+
+// Từ thư mục khác
+import { Loading } from "../components/common/Loading";
 ```
 
-### Import hooks
+### 3. Absolute Imports (Tương lai)
+
+Có thể cấu hình để sử dụng absolute imports:
 
 ```javascript
-import { useAuthError, useLoading, useForm } from "../utils/hooks";
+import { Loading } from "@/components/common/Loading";
 ```
 
-### Import services
+## Lợi ích của cấu trúc này
 
-```javascript
-import { login, logout, isAuthenticated } from "../utils/AuthService";
-```
+1. **Tổ chức rõ ràng**: Mỗi file có vị trí logic
+2. **Dễ bảo trì**: Tìm file nhanh chóng
+3. **Scalable**: Dễ dàng mở rộng
+4. **Reusable**: Components có thể tái sử dụng
+5. **Testable**: Dễ dàng viết test
+6. **Team collaboration**: Nhiều developer có thể làm việc song song
 
-## 📦 Dependencies chính
+## Hướng dẫn thêm file mới
 
-- **React Native**: Framework chính
-- **Expo**: Development platform
-- **React Navigation**: Navigation
-- **Axios**: HTTP client
-- **AsyncStorage**: Local storage
-- **JWT Decode**: Token decoding
+### Thêm Component mới:
 
-## 🔐 Authentication Flow
+1. Xác định loại component (common/ui/forms)
+2. Tạo file trong thư mục phù hợp
+3. Export trong `index.js` của thư mục đó
 
-1. **Login**: `AuthService.login()` → Lưu tokens → Update context
-2. **Token Refresh**: `authActions.refreshAccessToken()` → Auto refresh khi 401
-3. **Logout**: `authActions.logout()` → Clear tokens → Update context
-4. **Protected Routes**: `ProtectedRoute` component kiểm tra authentication
+### Thêm Screen mới:
 
-## 🎨 Styling
+1. Tạo thư mục mới trong `screens/` nếu cần
+2. Tạo file screen với tên `TênScreen.jsx`
+3. Export trong `screens/index.js`
 
-Sử dụng `GlobalStyles` từ `constants/index.js`:
+### Thêm Service mới:
 
-```javascript
-import { GlobalStyles } from "../constants";
+1. Xác định loại service (api/auth)
+2. Tạo file trong thư mục phù hợp
+3. Export trong `services/index.js`
 
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: GlobalStyles.colors.primary,
-  },
-});
-```
+## Lưu ý
+
+- Luôn cập nhật file `index.js` khi thêm file mới
+- Sử dụng consistent naming convention
+- Giữ cấu trúc thư mục sạch sẽ
+- Không tạo thư mục con quá sâu (tối đa 3 cấp)
