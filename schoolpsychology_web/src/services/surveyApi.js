@@ -15,4 +15,9 @@ export const surveyAPI = {
     const response = await api.get('/api/v1/categories')
     return response.data
   },
+
+  updateSurvey: async (id, surveyData) => {
+    const response = await api.put(`/api/v1/survey/${id}`, surveyData)
+    return response.data
+  },
 }

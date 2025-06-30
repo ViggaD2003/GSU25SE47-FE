@@ -91,9 +91,12 @@ const SurveyManagement = () => {
     setDetailVisible(true)
   }, [])
 
-  const handleEdit = useCallback(() => {}, [])
-  const handleDelete = useCallback(() => {}, [])
+  const handleEdit = () => {
+    handleRefresh()
+    setDetailVisible(false)
+  }
 
+  const handleDelete = useCallback(() => { }, [])
   const showModal = () => {
     setIsModalVisible(true)
   }
@@ -204,6 +207,7 @@ const SurveyManagement = () => {
         visible={detailVisible}
         survey={selectedSurvey}
         onClose={handleDetailClose}
+        onUpdated={handleEdit}
       />
     </div>
   )
