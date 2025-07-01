@@ -212,28 +212,34 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Check & Connect */}
+        {/* Quick Actions */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Check & Connect</Text>
+            <Text style={styles.sectionTitle}>Quick Actions</Text>
           </View>
           <View style={styles.connectRow}>
-            <TouchableOpacity style={styles.connectBox}>
+            <TouchableOpacity
+              style={styles.connectBox}
+              onPress={() => navigation.navigate("Blog")}
+            >
               <View style={styles.connectIconContainer}>
-                <Text style={styles.connectIcon}>💬</Text>
+                <Text style={styles.connectIcon}>📚</Text>
               </View>
-              <Text style={styles.connectTitle}>Talk to Expert</Text>
+              <Text style={styles.connectTitle}>Doc & Blog</Text>
               <Text style={styles.connectDesc}>
-                Schedule a session with our mental health professionals
+                Khám phá kiến thức và chia sẻ từ chuyên gia
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.connectBox}>
+            <TouchableOpacity
+              style={styles.connectBox}
+              onPress={() => navigation.navigate("Appointment")}
+            >
               <View style={styles.connectIconContainer}>
-                <Text style={styles.connectIcon}>📄</Text>
+                <Text style={styles.connectIcon}>📅</Text>
               </View>
-              <Text style={styles.connectTitle}>Take Assessment</Text>
+              <Text style={styles.connectTitle}>Đặt lịch tư vấn</Text>
               <Text style={styles.connectDesc}>
-                Complete surveys to track your mental wellbeing
+                Hẹn gặp chuyên gia tâm lý để được hỗ trợ
               </Text>
             </TouchableOpacity>
           </View>

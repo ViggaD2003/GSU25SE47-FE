@@ -350,10 +350,6 @@ const SurveyTaking = ({ route, navigation }) => {
       const surveyConfig = getSurveyConfig();
       let totalScore;
 
-      // console.log("Survey Config:", surveyConfig);
-      // console.log("Submitted Answers:", submittedAnswers);
-      // console.log("Survey Questions:", survey.questions);
-
       // Chuyển đổi answerId thành score
       const answerScores = [];
       Object.entries(submittedAnswers).forEach(
@@ -438,13 +434,14 @@ const SurveyTaking = ({ route, navigation }) => {
       };
 
       // console.log("Survey submitted:", surveyResult);
-      await postSurveyResult(surveyResult);
+      const response = await postSurveyResult(surveyResult);
 
       // Navigate to result screen
       navigation.navigate("SurveyResult", {
         survey,
-        result: surveyResult,
+        result: response.data,
         screen: "SurveyTaking",
+        showRecordsButton: true,
       });
     } catch (error) {
       console.error("Error submitting survey:", error);
@@ -527,6 +524,15 @@ const SurveyTaking = ({ route, navigation }) => {
           color={GlobalStyles.colors.primary}
         />
       )}
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -683,14 +689,6 @@ const SurveyTaking = ({ route, navigation }) => {
         <View style={styles.bottomSpacing} />
       </ScrollView>
 
-      {/* Toast */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
-
       {/* Submit Confirmation Modal */}
       <Modal
         visible={showSubmitModal}
@@ -791,6 +789,7 @@ const SurveyTaking = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: "relative",
     backgroundColor: "#F8FAFC",
   },
   loadingIndicator: {

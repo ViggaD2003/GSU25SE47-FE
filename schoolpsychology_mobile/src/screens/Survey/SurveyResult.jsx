@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
@@ -22,12 +23,14 @@ import { navigateToHome } from "../../utils";
 
 const SurveyResult = ({ route, navigation }) => {
   const { user } = useAuth();
-  const { survey, result, screen } = route.params || {};
+  const { survey, result, screen, showRecordsButton } = route.params || {};
   const [toast, setToast] = useState({
     visible: false,
     message: "",
     type: "info",
   });
+  const [showAllAnswers, setShowAllAnswers] = useState(false);
+  const [animation] = useState(new Animated.Value(0));
 
   const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });
@@ -45,7 +48,25 @@ const SurveyResult = ({ route, navigation }) => {
     }
   }, [navigation]);
 
+  const toggleAnswers = useCallback(() => {
+    const toValue = showAllAnswers ? 0 : 1;
+    Animated.timing(animation, {
+      toValue,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+    setShowAllAnswers(!showAllAnswers);
+  }, [showAllAnswers, animation]);
+
   const currentScore = result?.totalScore || 0;
+  const answerRecords = result?.answerRecords || [];
+  const hasAnswers = answerRecords.length > 0;
+
+  // Calculate summary stats
+  const answeredCount = answerRecords.filter(
+    (record) => !record.skipped
+  ).length;
+  const skippedCount = answerRecords.filter((record) => record.skipped).length;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -110,12 +131,12 @@ const SurveyResult = ({ route, navigation }) => {
                 Hoàn thành: {formatDate(result?.completedAt || new Date())}
               </Text>
             </View>
-            <View style={styles.completionItem}>
+            {/* <View style={styles.completionItem}>
               <Ionicons name="time" size={20} color="#6B7280" />
               <Text style={styles.completionText}>
                 Thời gian làm: {result?.estimatedTime || "15 phút"}
               </Text>
-            </View>
+            </View> */}
           </View>
         </View>
 
@@ -137,32 +158,91 @@ const SurveyResult = ({ route, navigation }) => {
             <Text style={styles.summaryTitle}>Tóm tắt câu trả lời</Text>
           </View>
 
-          {result?.answerRecords?.map((record, index) => (
-            <View key={index} style={styles.answerItem}>
-              <View style={styles.questionInfo}>
-                <Text style={styles.questionNumber}>Câu {index + 1}</Text>
-                <Text style={styles.questionText}>
-                  {record.questionResponse?.text || "Câu hỏi"}
-                </Text>
+          {/* Summary Stats */}
+          <View style={styles.summaryStats}>
+            <View style={styles.statItem}>
+              <View style={styles.statIcon}>
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
               </View>
-              <View style={styles.answerInfo}>
-                <Text style={styles.answerLabel}>Trả lời:</Text>
-                <Text style={styles.answerText}>
-                  {record.answerResponse?.text || "Chưa trả lời"}
-                </Text>
-              </View>
-              {record.skipped && (
-                <View style={styles.skippedBadge}>
-                  <Text style={styles.skippedText}>Bỏ qua</Text>
-                </View>
-              )}
+              <Text style={styles.statText}>
+                {answeredCount} câu đã trả lời
+              </Text>
             </View>
-          ))}
+            {skippedCount > 0 && (
+              <View style={styles.statItem}>
+                <View style={styles.statIcon}>
+                  <Ionicons name="close-circle" size={16} color="#EF4444" />
+                </View>
+                <Text style={styles.statText}>{skippedCount} câu bỏ qua</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Toggle Button */}
+          {hasAnswers && (
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={toggleAnswers}
+              activeOpacity={0.8}
+            >
+              <View style={styles.toggleButtonContent}>
+                <Ionicons
+                  name={showAllAnswers ? "chevron-up" : "chevron-down"}
+                  size={20}
+                  color={GlobalStyles.colors.primary}
+                />
+                <Text style={styles.toggleButtonText}>
+                  {showAllAnswers ? "Thu gọn" : "Xem tất cả câu trả lời"}
+                </Text>
+              </View>
+              <View style={styles.toggleButtonBadge}>
+                <Text style={styles.toggleButtonBadgeText}>
+                  {answerRecords.length}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Answer Details */}
+          <Animated.View
+            style={[
+              styles.answerDetails,
+              {
+                maxHeight: animation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0, 1000],
+                }),
+                opacity: animation,
+              },
+            ]}
+          >
+            {answerRecords?.map((record, index) => (
+              <View key={index} style={styles.answerItem}>
+                <View style={styles.questionInfo}>
+                  <Text style={styles.questionNumber}>Câu {index + 1}</Text>
+                  <Text style={styles.questionText}>
+                    {record.questionResponse?.text || "Câu hỏi"}
+                  </Text>
+                </View>
+                <View style={styles.answerInfo}>
+                  <Text style={styles.answerLabel}>Trả lời:</Text>
+                  <Text style={styles.answerText}>
+                    {record.answerResponse?.text || "Chưa trả lời"}
+                  </Text>
+                </View>
+                {record.skipped && (
+                  <View style={styles.skippedBadge}>
+                    <Text style={styles.skippedText}>Bỏ qua</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+          </Animated.View>
         </View>
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.primaryButton}
             onPress={() => {
               showToast("Đã lưu kết quả vào hồ sơ", "success");
@@ -170,16 +250,18 @@ const SurveyResult = ({ route, navigation }) => {
           >
             <Ionicons name="save" size={20} color="#fff" />
             <Text style={styles.primaryButtonText}>Lưu kết quả</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity
-            style={styles.backToRecordsButton}
-            onPress={() => navigation.navigate("SurveyRecord")}
-          >
-            <Text style={styles.backToRecordsButtonText}>
-              Xem tất cả kết quả
-            </Text>
-          </TouchableOpacity>
+          {showRecordsButton && (
+            <TouchableOpacity
+              style={styles.backToRecordsButton}
+              onPress={() => navigation.navigate("SurveyRecord")}
+            >
+              <Text style={styles.backToRecordsButtonText}>
+                Xem tất cả kết quả
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
 
@@ -454,6 +536,64 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: GlobalStyles.colors.primary,
     marginLeft: 8,
+  },
+  summaryStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  statIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#E5E7EB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  statText: {
+    fontSize: 14,
+    color: "#374151",
+  },
+  toggleButton: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: GlobalStyles.colors.primary,
+  },
+  toggleButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  toggleButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: GlobalStyles.colors.primary,
+    marginLeft: 8,
+  },
+  toggleButtonBadge: {
+    backgroundColor: GlobalStyles.colors.primary,
+    borderRadius: 16,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  toggleButtonBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  answerDetails: {
+    overflow: "hidden",
   },
 });
 
