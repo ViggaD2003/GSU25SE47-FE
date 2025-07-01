@@ -6,6 +6,7 @@ import { Container } from "../../components";
 import { api } from "../../services";
 import { useAuth } from "../../contexts";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { GlobalStyles } from "../../constants";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
@@ -79,12 +80,9 @@ export default function ProfileScreen() {
       <View style={{ paddingHorizontal: 20 }}>
         <View style={styles.card}>
           <View style={styles.avatarWrapper}>
-            <Icon
-              name="account"
-              size={90}
-              color="#222"
-              style={styles.avatarIcon}
-            />
+            <Text style={styles.avatarText}>
+              {profile?.fullName?.charAt(0)?.toUpperCase() || "U"}
+            </Text>
           </View>
           <Text style={styles.name}>{profile.fullName}</Text>
           <Text style={styles.email}>{profile.email}</Text>
@@ -185,13 +183,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   avatarWrapper: {
-    backgroundColor: "#F3F3F3",
-    borderRadius: 100,
-    padding: 18,
-    marginBottom: 8,
+    width: 100,
+    height: 100,
+    borderRadius: "50%",
+    backgroundColor: GlobalStyles.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  avatarIcon: {
-    // Icon styling if needed
+  avatarText: {
+    color: "#FFFFFF",
+    fontSize: 40,
+    fontWeight: "600",
   },
   name: {
     fontSize: 22,

@@ -2,14 +2,28 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GlobalStyles } from "../../constants";
+import { postSurveyResult } from "../../services/api/SurveyService";
 
-const SurveyCard = ({ survey, navigation }) => {
+const SurveyCard = ({ survey, navigation, onRefresh }) => {
   const onPress = () => {
     if (navigation) {
       navigation.navigate("Survey", {
         screen: "SurveyInfo",
         params: { survey },
       });
+    }
+  };
+
+  const onPressSkip = async () => {
+    try {
+      const result = {
+        surveyId: survey.surveyId,
+        status: "SKIPPED",
+      };
+      await postSurveyResult(result);
+      onRefresh("survey");
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -53,11 +67,18 @@ const SurveyCard = ({ survey, navigation }) => {
               : "Not recurring"}
           </Text>
         </View>
-        <Ionicons
-          name="play-circle-outline"
-          size={26}
-          color={GlobalStyles.colors.primary}
-        />
+        <View style={styles.surveyCardButtonContainer}>
+          {!survey.isRequired && (
+            <TouchableOpacity style={styles.skipButton} onPress={onPressSkip}>
+              <Text style={styles.skipButtonText}>Skip</Text>
+            </TouchableOpacity>
+          )}
+          <Ionicons
+            name="play-circle-outline"
+            size={32}
+            color={GlobalStyles.colors.primary}
+          />
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -125,6 +146,23 @@ const styles = StyleSheet.create({
   surveyMetaText: {
     color: "#9CA3AF",
     fontSize: 12,
+  },
+  surveyCardButtonContainer: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  skipButton: {
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    borderRadius: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  skipButtonText: {
+    color: "#EF4444",
+    fontWeight: "500",
+    fontSize: 14,
   },
   // surveyStartButton: {
   //   backgroundColor: "#EF4444",
