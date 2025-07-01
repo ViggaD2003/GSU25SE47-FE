@@ -14,7 +14,7 @@ import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
-import { Container } from "../../components";
+import { Container, Alert } from "../../components";
 import Toast from "../../components/common/Toast";
 import { GlobalStyles } from "../../constants";
 import { useAuth } from "../../contexts";
@@ -31,10 +31,11 @@ export default function HomeScreen({ navigation }) {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState("survey");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("survey");
   const [toastType, setToastType] = useState("success");
+  const isEnableSurvey = user?.isEnableSurvey ?? true;
 
   const handleNotificationPress = () => {
     navigation.navigate("Notification");
@@ -101,8 +102,8 @@ export default function HomeScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      onRefresh();
-    }, [navigation])
+      isEnableSurvey ? onRefresh("survey") : onRefresh("appointment");
+    }, [navigation, isEnableSurvey])
   );
 
   return (
@@ -162,18 +163,24 @@ export default function HomeScreen({ navigation }) {
         }
       >
         {/* Stress Alert */}
-        <View style={styles.alertSection}>
-          <View style={styles.alertBox}>
-            <View style={styles.alertHeader}>
-              <Text style={styles.alertIcon}>⚠️</Text>
-              <Text style={styles.alertTitle}>High Stress Level Detected</Text>
-            </View>
-            <Text style={styles.alertDesc}>
-              Based on your recent assessments, we recommend taking action to
-              manage your stress levels.
-            </Text>
-          </View>
-        </View>
+        {user?.isEnableSurvey && (
+          <Alert
+            type="warning"
+            title={"Khảo sát hiện đã bị vô hiệu hóa"}
+            description={
+              user.role === "STUDENT"
+                ? "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại."
+                : "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+            }
+            showCloseButton={false}
+          />
+        )}
+        <Alert
+          type="error"
+          title="Cảnh báo mức độ căng thẳng cao"
+          description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
+          showCloseButton={false}
+        />
 
         {/* Featured Programs */}
         <View style={styles.sectionContainer}>
@@ -243,24 +250,26 @@ export default function HomeScreen({ navigation }) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.eventTabsScrollContent}
             >
-              <TouchableOpacity
-                style={
-                  activeTab === "survey"
-                    ? styles.eventTabActive
-                    : styles.eventTab
-                }
-                onPress={() => onRefresh("survey")}
-              >
-                <Text
+              {isEnableSurvey && (
+                <TouchableOpacity
                   style={
                     activeTab === "survey"
-                      ? styles.eventTabTextActive
-                      : styles.eventTabText
+                      ? styles.eventTabActive
+                      : styles.eventTab
                   }
+                  onPress={() => onRefresh("survey")}
                 >
-                  Survey
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      activeTab === "survey"
+                        ? styles.eventTabTextActive
+                        : styles.eventTabText
+                    }
+                  >
+                    Survey
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={
@@ -313,7 +322,7 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.emptyIcon}>📋</Text>
                 <Text style={styles.emptyText}>No available {activeTab}</Text>
               </View>
-            ) : activeTab === "survey" ? (
+            ) : isEnableSurvey && activeTab === "survey" ? (
               data.map((data, index) => (
                 <SurveyCard
                   survey={data}
@@ -427,7 +436,7 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   scrollContainer: {
-    paddingTop: 0,
+    paddingTop: 13,
     paddingHorizontal: 24,
   },
   alertSection: {
@@ -580,9 +589,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     // backgroundColor: "#F8FAFC",
     borderRadius: 20,
+    minWidth: "100%",
+    // paddingRight: 10,
   },
   eventTabsScrollContent: {
-    paddingRight: 4,
+    // paddingRight: 10,
+    gap: 10,
+    justifyContent: "space-between",
   },
   eventTab: {
     backgroundColor: "#FFFFFF",
