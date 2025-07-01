@@ -128,10 +128,7 @@ const Login = () => {
       </View>
       <Modal visible={loading} transparent animationType="none">
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator
-            size="large"
-            color={GlobalStyles.colors.primary700}
-          />
+          <ActivityIndicator size="large" color={"#059669"} />
         </View>
       </Modal>
     </View>

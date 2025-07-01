@@ -9,11 +9,16 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
-import { Container } from "../../components";
+import { Container, Alert } from "../../components";
+import Toast from "../../components/common/Toast";
+import { GlobalStyles } from "../../constants";
+import { useAuth } from "../../contexts";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -21,10 +26,20 @@ const isMediumDevice = width >= 375 && width < 414;
 // const isLargeDevice = width >= 414;
 
 export default function HomeScreen({ navigation }) {
+  const { user } = useAuth();
+  const [messageCount, setMessageCount] = useState(3);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("survey");
+  const [toastType, setToastType] = useState("success");
+  const isEnableSurvey = user?.isEnableSurvey ?? true;
+
+  const handleNotificationPress = () => {
+    navigation.navigate("Notification");
+  };
 
   const fetchSurveys = async () => {
     try {
@@ -50,6 +65,7 @@ export default function HomeScreen({ navigation }) {
       console.error("Lỗi khi tải appointments:", error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
@@ -60,48 +76,84 @@ export default function HomeScreen({ navigation }) {
       console.error("Lỗi khi tải programs:", error);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = async (type = activeTab) => {
     setRefreshing(true);
-    switch (activeTab) {
-      case "survey":
-        fetchSurveys();
-        break;
-      case "appointment":
-        fetchAppointments();
-        break;
-      case "program":
-        fetchPrograms();
-        break;
-      default:
-        fetchSurveys();
-        break;
-    }
-  }, [activeTab]);
-
-  const onPress = useCallback((type) => {
+    setLoading(true);
     setActiveTab(type);
     switch (type) {
       case "survey":
-        fetchSurveys();
+        await fetchSurveys();
         break;
       case "appointment":
-        fetchAppointments();
+        await fetchAppointments();
         break;
       case "program":
-        fetchPrograms();
+        await fetchPrograms();
+        break;
+      default:
+        await fetchSurveys();
         break;
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    onPress("survey");
-  }, [navigation]);
+  useFocusEffect(
+    useCallback(() => {
+      isEnableSurvey ? onRefresh("survey") : onRefresh("appointment");
+    }, [navigation, isEnableSurvey])
+  );
 
   return (
     <Container>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Profile")}
+          style={styles.userSection}
+        >
+          <View style={styles.avatarContainer}>
+            {user?.avatar ? (
+              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                  {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
+                </Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.greetingText}>Good morning</Text>
+            <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Right side - Actions */}
+        <View style={styles.actionsSection}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={handleNotificationPress}
+          >
+            <View style={styles.notificationContainer}>
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="#374151"
+              />
+              {messageCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>
+                    {messageCount > 9 ? "9+" : messageCount}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
@@ -111,18 +163,24 @@ export default function HomeScreen({ navigation }) {
         }
       >
         {/* Stress Alert */}
-        <View style={styles.alertSection}>
-          <View style={styles.alertBox}>
-            <View style={styles.alertHeader}>
-              <Text style={styles.alertIcon}>⚠️</Text>
-              <Text style={styles.alertTitle}>High Stress Level Detected</Text>
-            </View>
-            <Text style={styles.alertDesc}>
-              Based on your recent assessments, we recommend taking action to
-              manage your stress levels.
-            </Text>
-          </View>
-        </View>
+        {user?.isEnableSurvey && (
+          <Alert
+            type="warning"
+            title={"Khảo sát hiện đã bị vô hiệu hóa"}
+            description={
+              user.role === "STUDENT"
+                ? "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại."
+                : "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+            }
+            showCloseButton={false}
+          />
+        )}
+        <Alert
+          type="error"
+          title="Cảnh báo mức độ căng thẳng cao"
+          description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
+          showCloseButton={false}
+        />
 
         {/* Featured Programs */}
         <View style={styles.sectionContainer}>
@@ -192,24 +250,26 @@ export default function HomeScreen({ navigation }) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.eventTabsScrollContent}
             >
-              <TouchableOpacity
-                style={
-                  activeTab === "survey"
-                    ? styles.eventTabActive
-                    : styles.eventTab
-                }
-                onPress={() => onPress("survey")}
-              >
-                <Text
+              {isEnableSurvey && (
+                <TouchableOpacity
                   style={
                     activeTab === "survey"
-                      ? styles.eventTabTextActive
-                      : styles.eventTabText
+                      ? styles.eventTabActive
+                      : styles.eventTab
                   }
+                  onPress={() => onRefresh("survey")}
                 >
-                  Survey
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={
+                      activeTab === "survey"
+                        ? styles.eventTabTextActive
+                        : styles.eventTabText
+                    }
+                  >
+                    Survey
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 style={
@@ -217,7 +277,7 @@ export default function HomeScreen({ navigation }) {
                     ? styles.eventTabActive
                     : styles.eventTab
                 }
-                onPress={() => onPress("appointment")}
+                onPress={() => onRefresh("appointment")}
               >
                 <Text
                   style={
@@ -236,7 +296,7 @@ export default function HomeScreen({ navigation }) {
                     ? styles.eventTabActive
                     : styles.eventTab
                 }
-                onPress={() => onPress("program")}
+                onPress={() => onRefresh("program")}
               >
                 <Text
                   style={
@@ -262,21 +322,121 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.emptyIcon}>📋</Text>
                 <Text style={styles.emptyText}>No available {activeTab}</Text>
               </View>
-            ) : activeTab === "survey" ? (
+            ) : isEnableSurvey && activeTab === "survey" ? (
               data.map((data, index) => (
-                <SurveyCard survey={data} key={index} navigation={navigation} />
+                <SurveyCard
+                  survey={data}
+                  key={index}
+                  navigation={navigation}
+                  onRefresh={onRefresh}
+                  setShowToast={setShowToast}
+                  setToastMessage={setToastMessage}
+                  setToastType={setToastType}
+                />
               ))
             ) : null}
           </View>
         </View>
       </ScrollView>
+      <Toast message={toastMessage} type={toastType} visible={showToast} />
     </Container>
   );
 }
 
 const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    backgroundColor: "#FFFFFF",
+    elevation: 0,
+    shadowOpacity: 0.1,
+    borderBottomWidth: 1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 1 },
+  },
+  userSection: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  avatarContainer: {
+    marginRight: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  avatarPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: GlobalStyles.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  userInfo: {
+    flex: 1,
+  },
+  greetingText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "400",
+    marginBottom: 2,
+  },
+  nameText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  actionsSection: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconButton: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: "#F9FAFB",
+  },
+  notificationContainer: {
+    position: "relative",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    backgroundColor: "#EF4444",
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  notificationBadgeText: {
+    fontSize: 10,
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  screenHeaderTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#111827",
+  },
   scrollContainer: {
-    paddingTop: 0,
+    paddingTop: 13,
     paddingHorizontal: 24,
   },
   alertSection: {
@@ -429,9 +589,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     // backgroundColor: "#F8FAFC",
     borderRadius: 20,
+    minWidth: "100%",
+    // paddingRight: 10,
   },
   eventTabsScrollContent: {
-    paddingRight: 4,
+    // paddingRight: 10,
+    gap: 10,
+    justifyContent: "space-between",
   },
   eventTab: {
     backgroundColor: "#FFFFFF",
