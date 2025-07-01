@@ -95,7 +95,7 @@ const SurveyRecord = ({ navigation }) => {
   }, []);
 
   const handleBackPress = useCallback(() => {
-    navigation.popTo("Profile");
+    navigation.goBack();
   }, [navigation]);
 
   const handleViewResult = useCallback(
@@ -109,6 +109,7 @@ const SurveyRecord = ({ navigation }) => {
         survey,
         result: record,
         screen: "SurveyRecord",
+        showRecordsButton: false,
       });
     },
     [navigation]

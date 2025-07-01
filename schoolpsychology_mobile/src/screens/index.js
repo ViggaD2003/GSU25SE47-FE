@@ -18,6 +18,7 @@ export { default as UpdateProfileScreen } from "./Profile/UpdateProfile";
 
 // Blog screens
 export { default as BlogScreen } from "./Blog/BlogScreen";
+export { default as BlogDetails } from "./Blog/BlogDetails";
 
 // Notification screens
 export { default as NotificationScreen } from "./Notification/NotificationScreen";

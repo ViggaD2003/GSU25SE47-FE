@@ -88,7 +88,7 @@ const Toast = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 50,
+    top: 0,
     left: 20,
     right: 20,
     borderRadius: 12,

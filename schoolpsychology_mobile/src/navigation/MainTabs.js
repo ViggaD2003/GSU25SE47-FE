@@ -76,6 +76,10 @@ export default function MainTabs() {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Blog" component={BlogScreen} />
+      <Stack.Screen
+        name="BlogDetails"
+        component={require("../screens").BlogDetails}
+      />
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Survey" component={SurveyStack} />
     </Stack.Navigator>
