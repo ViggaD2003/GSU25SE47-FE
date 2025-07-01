@@ -2,6 +2,7 @@
 export { default as Loading } from "./common/Loading";
 export { default as SurveyCard } from "./common/SurveyCard";
 export { default as Toast } from "./common/Toast";
+export { default as ConfirmModal } from "./common/ConfirmModal";
 
 // UI components
 export { default as Container } from "./ui/Container";

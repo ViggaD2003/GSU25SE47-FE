@@ -54,6 +54,7 @@ export default function UpdateProfile({ route }) {
   useFocusEffect(
     React.useCallback(() => {
       const profileData = route?.params?.data;
+      console.log(profileData);
       if (profileData) {
         setData(profileData);
         setFullName(profileData.fullName || "");
