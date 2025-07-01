@@ -35,7 +35,7 @@ export default function HomeScreen({ navigation }) {
   const [toastMessage, setToastMessage] = useState("");
   const [activeTab, setActiveTab] = useState("survey");
   const [toastType, setToastType] = useState("success");
-  const isEnableSurvey = user?.isEnableSurvey ?? true;
+  const isEnableSurvey = user?.isEnableSurvey;
 
   const handleNotificationPress = () => {
     navigation.navigate("Notification");
@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation }) {
     setActiveTab(type);
     switch (type) {
       case "survey":
-        await fetchSurveys();
+        isEnableSurvey && (await fetchSurveys());
         break;
       case "appointment":
         await fetchAppointments();
@@ -163,7 +163,7 @@ export default function HomeScreen({ navigation }) {
         }
       >
         {/* Stress Alert */}
-        {user?.isEnableSurvey && (
+        {!isEnableSurvey && (
           <Alert
             type="warning"
             title={"Khảo sát hiện đã bị vô hiệu hóa"}
