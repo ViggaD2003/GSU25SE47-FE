@@ -313,17 +313,14 @@ const SurveyTaking = ({ route, navigation }) => {
   }, [survey?.surveyCode]);
 
   // Get level configuration based on score
-  const getLevelConfig = useCallback(
-    (score) => {
-      const config = getSurveyConfig();
-      if (!config) return null;
+  const getLevelConfig = useCallback((score) => {
+    const config = getSurveyConfig();
+    if (!config) return null;
 
-      return config.levels.find(
-        (level) => score >= level.min && score <= level.max
-      );
-    },
-    [getSurveyConfig]
-  );
+    return config.levels.find(
+      (level) => score >= level.min && score <= level.max
+    );
+  }, []);
 
   const handleSubmitSurvey = async (submittedAnswers) => {
     try {

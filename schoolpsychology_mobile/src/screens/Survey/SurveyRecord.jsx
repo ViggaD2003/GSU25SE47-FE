@@ -42,6 +42,8 @@ const SurveyRecord = ({ navigation }) => {
       setLoading(true);
       const response = await getSurveyRecords();
       if (response.data) {
+        // console.log("get success");
+
         const surveyRecordsPromises = response.data
           .filter((record) => record.status === "COMPLETED")
           .map(async (record) => {

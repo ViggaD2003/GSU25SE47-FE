@@ -163,6 +163,14 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const updateUser = useCallback((userData) => {
+    setUser((prevUser) => ({
+      ...prevUser,
+      fullName: userData.fullName,
+      isEnableSurvey: userData.isEnableSurvey,
+    }));
+  }, []);
+
   const isAuthenticated = useCallback(() => {
     return user !== null;
   }, [user]);
@@ -182,6 +190,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         loading,
         refreshUser,
+        updateUser,
         isAuthenticated: isAuthenticated(),
         hasRole,
         registerLogoutCallback,

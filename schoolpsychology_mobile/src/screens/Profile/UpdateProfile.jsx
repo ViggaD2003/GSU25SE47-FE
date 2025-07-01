@@ -8,105 +8,135 @@ import {
   Alert,
   Switch,
   ScrollView,
-  ToastAndroid,
-  Platform,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { api } from "../../services";
-import { Toast } from "../../components";
 import { useAuth } from "../../contexts";
 
 export default function UpdateProfile({ route }) {
   const navigation = useNavigation();
-  const [data, setData] = useState({});
-  const { user } = useAuth();
-  const [toast, setToast] = useState({
-    visible: false,
-    message: "",
-    type: "info",
+  const { user, updateUser } = useAuth();
+  const [loading, setLoading] = useState(false);
+  // Form state
+  const [formData, setFormData] = useState({
+    fullName: "",
+    phoneNumber: "",
+    gender: true,
+    dob: "",
+    isEnableSurvey: false,
   });
-
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [gender, setGender] = useState(true);
-  const [dob, setDob] = useState("");
-  const [studentCode, setStudentCode] = useState("");
-  const [isEnableSurvey, setIsEnableSurvey] = useState(false);
-  const [teacherName, setTeacherName] = useState("");
-  const [teacherEmail, setTeacherEmail] = useState("");
-  const [codeClass, setCodeClass] = useState("");
-  const [classYear, setClassYear] = useState("");
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  const showToast = (message, type = "info") => {
-    setToast({ visible: true, message, type });
-  };
-
-  const hideToast = () => {
-    setToast({ visible: false, message: "", type: "info" });
+  const updateFormData = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   useFocusEffect(
     React.useCallback(() => {
       const profileData = route?.params?.data;
-      console.log(profileData);
       if (profileData) {
-        setData(profileData);
-        setFullName(profileData.fullName || "");
-        setEmail(profileData.email || "");
-        setPhoneNumber(profileData.phoneNumber || "");
-        setGender(profileData.gender ?? true);
-        setDob(profileData.dob || "");
-        setStudentCode(profileData.studentCode || "");
-        setIsEnableSurvey(profileData.isEnableSurvey ?? false);
-        setTeacherName(profileData.classDto?.teacher?.fullName || "");
-        setTeacherEmail(profileData.classDto?.teacher?.email || "");
-        setCodeClass(profileData.classDto?.codeClass || "");
-        setClassYear(profileData.classDto?.classYear || "");
+        setFormData({
+          fullName: profileData.fullName || "",
+          phoneNumber: profileData.phoneNumber || "",
+          gender: profileData.gender ?? true,
+          dob: profileData.dob || "",
+          isEnableSurvey: profileData.isEnableSurvey ?? false,
+        });
       }
-    }, [route?.params?.data])
+    }, [])
   );
 
   const handleSave = async () => {
     try {
-      const payload = {
-        fullName,
-        phoneNumber,
-        gender,
-        dob,
-        isEnableSurvey,
-      };
-      const response = await api.put("/api/v1/account", payload);
-      setData(response.data);
+      setLoading(true);
 
-      showToast("Profile Updated 🎉", "success");
+      const payload = {
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        gender: formData.gender,
+        dob: formData.dob,
+        isEnableSurvey: formData.isEnableSurvey,
+      };
+
+      const response = await api.put("/api/v1/account", payload);
+      console.log("Update Profile:", response.data);
+
+      // Update user context with new data
+      setFormData({ ...response.data });
+
+      console.log("About to show success message");
+
+      // Show success message using Alert
+      Alert.alert("Thành công", "Thông tin đã được cập nhật thành công! 🎉", [
+        {
+          text: "OK",
+          onPress: () => {
+            console.log("OK pressed, navigating back");
+            updateUser(response.data);
+            navigation.goBack();
+          },
+        },
+      ]);
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        "Something went wrong while updating profile.";
-      showToast(message, "error");
+      console.log("Error:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleConfirmDate = (selectedDate) => {
     if (selectedDate) {
       const isoDate = selectedDate.toISOString().split("T")[0];
-      setDob(isoDate);
+      updateFormData("dob", isoDate);
     }
     setDatePickerVisibility(false);
   };
 
   const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    // Check if form has been modified
+    const profileData = route?.params?.data;
+    const hasChanges =
+      profileData &&
+      (formData.fullName !== profileData.fullName ||
+        formData.phoneNumber !== profileData.phoneNumber ||
+        formData.gender !== profileData.gender ||
+        formData.dob !== profileData.dob ||
+        formData.isEnableSurvey !== profileData.isEnableSurvey);
+
+    if (hasChanges) {
+      Alert.alert(
+        "Bạn có chắc chắn?",
+        "Những thay đổi chưa được lưu sẽ bị mất. Bạn có muốn thoát không?",
+        [
+          {
+            text: "Ở lại",
+            style: "cancel",
+          },
+          {
+            text: "Thoát",
+            style: "destructive",
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, formData, route?.params?.data]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN");
+  };
 
   return (
     <Container>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
@@ -114,221 +144,352 @@ export default function UpdateProfile({ route }) {
         <Text style={styles.headerTitle}>Cập nhật thông tin</Text>
         <View style={styles.headerSpacer} />
       </View>
-      <View style={{ paddingHorizontal: 20, paddingTop: 26 }}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.avatarWrapper}>
-            <Icon name="account" size={90} color="#222" />
-          </View>
 
-          <View style={styles.form}>
-            <Text style={styles.label}>Full Name</Text>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Profile Avatar */}
+        <View style={styles.avatarSection}>
+          <View style={styles.avatarContainer}>
+            <Icon name="account" size={80} color="#6B7280" />
+          </View>
+          <Text style={styles.avatarText}>Ảnh đại diện</Text>
+        </View>
+
+        {/* Form Section */}
+        <View style={styles.formSection}>
+          {/* Full Name */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Họ và tên</Text>
             <TextInput
               style={styles.input}
-              value={fullName}
-              onChangeText={setFullName}
+              value={formData.fullName}
+              onChangeText={(text) => updateFormData("fullName", text)}
+              placeholder="Nhập họ và tên"
+              placeholderTextColor="#9CA3AF"
             />
+          </View>
 
+          {/* Email (Read-only) */}
+          <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
               style={[styles.input, styles.disabledInput]}
-              value={email}
+              value={user?.email || ""}
               editable={false}
+              placeholderTextColor="#9CA3AF"
             />
+            <Text style={styles.helperText}>Email không thể thay đổi</Text>
+          </View>
 
-            <Text style={styles.label}>Phone Number</Text>
+          {/* Phone Number */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Số điện thoại</Text>
             <TextInput
               style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
+              value={formData.phoneNumber}
+              onChangeText={(text) => updateFormData("phoneNumber", text)}
+              placeholder="Nhập số điện thoại"
+              placeholderTextColor="#9CA3AF"
               keyboardType="phone-pad"
             />
+          </View>
 
-            <Text style={styles.label}>Gender</Text>
-            <View style={styles.genderToggle}>
+          {/* Gender */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Giới tính</Text>
+            <View style={styles.genderContainer}>
               <TouchableOpacity
-                onPress={() => setGender(true)}
-                style={[styles.genderBtn, gender && styles.genderActive]}
+                style={[
+                  styles.genderButton,
+                  formData.gender && styles.genderButtonActive,
+                ]}
+                onPress={() => updateFormData("gender", true)}
               >
-                <Text style={gender && styles.genderActiveText}>Male</Text>
+                <Ionicons
+                  name="male"
+                  size={20}
+                  color={formData.gender ? "#FFFFFF" : "#6B7280"}
+                />
+                <Text
+                  style={[
+                    styles.genderText,
+                    formData.gender && styles.genderTextActive,
+                  ]}
+                >
+                  Nam
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => setGender(false)}
-                style={[styles.genderBtn, !gender && styles.genderActive]}
+                style={[
+                  styles.genderButton,
+                  !formData.gender && styles.genderButtonActive,
+                ]}
+                onPress={() => updateFormData("gender", false)}
               >
-                <Text style={!gender && styles.genderActiveText}>Female</Text>
+                <Ionicons
+                  name="female"
+                  size={20}
+                  color={!formData.gender ? "#FFFFFF" : "#6B7280"}
+                />
+                <Text
+                  style={[
+                    styles.genderText,
+                    !formData.gender && styles.genderTextActive,
+                  ]}
+                >
+                  Nữ
+                </Text>
               </TouchableOpacity>
             </View>
+          </View>
 
-            <Text style={styles.label}>Date of Birth</Text>
-            <TouchableOpacity onPress={() => setDatePickerVisibility(true)}>
-              <TextInput
-                style={styles.input}
-                value={dob}
-                placeholder="YYYY-MM-DD"
-                editable={false}
-              />
-            </TouchableOpacity>
-
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={handleConfirmDate}
-              onCancel={() => setDatePickerVisibility(false)}
-              maximumDate={new Date()}
-            />
-
-            {user.role === "STUDENT" && (
-              <>
-                <Text style={styles.label}>Enable Survey</Text>
-                <Switch
-                  value={isEnableSurvey}
-                  onValueChange={setIsEnableSurvey}
-                />
-
-                <Text style={styles.label}>Student Code</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={studentCode}
-                  editable={false}
-                />
-
-                <Text style={styles.label}>Class</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={codeClass}
-                  editable={false}
-                />
-
-                <Text style={styles.label}>Class Year</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={classYear}
-                  editable={false}
-                />
-
-                <Text style={styles.label}>Teacher Name</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={teacherName}
-                  editable={false}
-                />
-
-                <Text style={styles.label}>Teacher Email</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={teacherEmail}
-                  editable={false}
-                />
-              </>
-            )}
-
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+          {/* Date of Birth */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Ngày sinh</Text>
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={() => setDatePickerVisibility(true)}
+            >
+              <Text
+                style={formData.dob ? styles.dateText : styles.datePlaceholder}
+              >
+                {formData.dob ? formatDate(formData.dob) : "Chọn ngày sinh"}
+              </Text>
+              <Ionicons name="calendar-outline" size={20} color="#6B7280" />
             </TouchableOpacity>
           </View>
-        </ScrollView>
-      </View>
 
-      {/* Toast */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
+          {/* Enable Survey (Student only) */}
+          {user?.role === "STUDENT" && (
+            <View style={styles.inputGroup}>
+              <View style={styles.switchContainer}>
+                <View>
+                  <Text style={styles.label}>Bật khảo sát</Text>
+                  <Text style={styles.helperText}>
+                    Cho phép tham gia các cuộc khảo sát
+                  </Text>
+                </View>
+                <Switch
+                  value={formData.isEnableSurvey}
+                  onValueChange={(value) =>
+                    updateFormData("isEnableSurvey", value)
+                  }
+                  trackColor={{ false: "#E5E7EB", true: "#10B981" }}
+                  thumbColor={formData.isEnableSurvey ? "#FFFFFF" : "#FFFFFF"}
+                />
+              </View>
+            </View>
+          )}
+
+          {/* Save Button */}
+          <TouchableOpacity
+            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={loading}
+          >
+            {loading ? (
+              <View style={styles.loadingContainer}>
+                <Text style={styles.saveButtonText}>Đang cập nhật...</Text>
+              </View>
+            ) : (
+              <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Date Picker Modal */}
+      <DateTimePickerModal
+        isVisible={isDatePickerVisible}
+        mode="date"
+        onConfirm={handleConfirmDate}
+        onCancel={() => setDatePickerVisibility(false)}
+        maximumDate={new Date()}
       />
     </Container>
   );
 }
+
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
+    borderBottomColor: "#E5E7EB",
   },
   backButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+    backgroundColor: "#F3F4F6",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1A1A1A",
+    color: "#1F2937",
   },
   headerSpacer: {
     width: 40,
   },
-  avatarWrapper: {
-    backgroundColor: "#F3F3F3",
-    borderRadius: 100,
-    padding: 18,
-    alignSelf: "center",
-    marginBottom: 18,
+  scrollContainer: {},
+  avatarSection: {
+    alignItems: "center",
+    paddingVertical: 32,
+    backgroundColor: "#FFFFFF",
+    marginBottom: 16,
   },
-  scrollContainer: {
-    paddingBottom: 32,
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
   },
-  form: {
+  avatarText: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  formSection: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
     marginHorizontal: 16,
-    marginTop: 8,
+    padding: 20,
+  },
+  inputGroup: {
+    marginBottom: 24,
   },
   label: {
-    fontSize: 15,
-    color: "#181A3D",
-    marginBottom: 4,
-    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 10,
-    padding: 12,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     fontSize: 16,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
+    color: "#1F2937",
   },
   disabledInput: {
-    opacity: 0.5,
+    backgroundColor: "#F9FAFB",
+    color: "#6B7280",
+  },
+  helperText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    marginTop: 4,
+  },
+  genderContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  genderButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  genderButtonActive: {
+    backgroundColor: "#10B981",
+    borderColor: "#10B981",
+  },
+  genderText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#6B7280",
+  },
+  genderTextActive: {
+    color: "#FFFFFF",
+  },
+  dateInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#FFFFFF",
+  },
+  dateText: {
+    fontSize: 16,
+    color: "#1F2937",
+  },
+  datePlaceholder: {
+    fontSize: 16,
+    color: "#9CA3AF",
+  },
+  switchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   saveButton: {
-    backgroundColor: "#181A3D",
-    borderRadius: 10,
-    marginTop: 28,
-    paddingVertical: 14,
+    backgroundColor: "#10B981",
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: "center",
-    marginBottom: 60,
+    marginTop: 8,
+    shadowColor: "#10B981",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#9CA3AF",
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveButtonText: {
-    color: "#fff",
-    fontSize: 17,
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "600",
   },
-  genderToggle: {
+  loadingContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 8,
-  },
-  genderBtn: {
-    flex: 1,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
     alignItems: "center",
-    borderRadius: 8,
-    marginHorizontal: 4,
+    gap: 8,
   },
-  genderActive: {
-    backgroundColor: "#181A3D",
-    borderColor: "#181A3D",
+  toastContainer: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: "#10B981",
+    borderRadius: 12,
+    padding: 16,
+    zIndex: 9999,
   },
-  genderActiveText: {
-    color: "#fff",
+  toastText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
