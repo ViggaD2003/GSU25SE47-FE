@@ -236,11 +236,33 @@
       "status": "Status"
     }
   },
+  "appointment": {
+    "title": "Appointment Management",
+    "searchStudent": "Search student...",
+    "status": {
+      "label": "Appointment status",
+      "upcoming": "Upcoming",
+      "inprogress": "In-progress",
+      "completed": "Completed",
+      "canceled": "Canceled"
+    },
+    "formality": {
+      "label": "Formality",
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "studentId": "Student ID",
+    "fullName": "Full Name",
+    "time": "Time"
+  },
   "common": {
     "create": "Create",
     "cancel": "Cancel",
     "daily": "Daily",
     "weekly": "Weekly",
-    "monthly": "Monthly"
+    "monthly": "Monthly",
+    "clear": "Clear",
+    "filter": "Filter",
+    "action": "Action"
   }
 }
