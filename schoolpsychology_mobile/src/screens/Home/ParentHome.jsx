@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,11 +8,20 @@ import {
   ScrollView,
   Dimensions,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { useAuth } from "../../contexts";
+import {
+  StatisticsCard,
+  RecordCard,
+  SectionHeader,
+  Chart,
+  Toast,
+} from "../../components";
+import { ParentDashboardService } from "../../services";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -23,6 +32,18 @@ export default function ParentHome({ navigation }) {
   const [messageCount, setMessageCount] = useState(3);
   const [selectedChild, setSelectedChild] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState({
+    statistics: {},
+    surveyRecords: [],
+    appointmentRecords: [],
+    supportProgramRecords: [],
+  });
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
   // Set default selected child when component mounts or user changes
   useEffect(() => {
@@ -31,20 +52,89 @@ export default function ParentHome({ navigation }) {
     }
   }, [user]);
 
+  // Load dashboard data when selected child changes
+  useEffect(() => {
+    if (selectedChild) {
+      loadDashboardData();
+    }
+  }, [selectedChild]);
+
+  const loadDashboardData = async () => {
+    if (!selectedChild?.userId) return;
+
+    try {
+      setLoading(true);
+      const [surveyRecords, appointmentRecords, supportProgramRecords] =
+        await Promise.all([
+          ParentDashboardService.getChildSurveyRecords(selectedChild.userId),
+          ParentDashboardService.getChildAppointmentRecords(
+            selectedChild.userId
+          ),
+          ParentDashboardService.getChildSupportProgramRecords(
+            selectedChild.userId
+          ),
+        ]);
+
+      setDashboardData({
+        surveyRecords: surveyRecords || [],
+        appointmentRecords: appointmentRecords?.data || [],
+        supportProgramRecords: supportProgramRecords?.data || [],
+      });
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+      showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showToast = useCallback((message, type = "info") => {
+    setToast({ visible: true, message, type });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast({ visible: false, message: "", type: "info" });
+  }, []);
+
   const handleNotificationPress = () => {
     navigation.navigate("Notification");
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Add refresh logic here if needed
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
+    await loadDashboardData();
+    setRefreshing(false);
   };
 
   const handleChildSelect = (child) => {
     setSelectedChild(child);
+  };
+
+  const handleViewAllSurveys = () => {
+    navigation.navigate("SurveyRecord");
+  };
+
+  const handleViewAllAppointments = () => {
+    // Navigate to appointments screen
+    navigation.navigate("Appointments");
+  };
+
+  const handleViewAllSupportPrograms = () => {
+    // Navigate to support programs screen
+    navigation.navigate("SupportPrograms");
+  };
+
+  const handleViewSurveyDetail = (record) => {
+    navigation.navigate("SurveyResult", {
+      survey: {
+        surveyCode: record.surveyCode,
+        name: record.surveyName,
+        id: record.surveyId,
+      },
+      result: record,
+      screen: "ParentHome",
+      showRecordsButton: false,
+    });
   };
 
   return (
@@ -154,23 +244,242 @@ export default function ParentHome({ navigation }) {
                   {selectedChild.fullName}
                 </Text>
                 <Text style={styles.selectedChildStatus}>
-                  {selectedChild.isEnable ? "Active" : "Inactive"}
+                  {selectedChild.isEnable ? (
+                    <Text style={styles.selectedChildStatusActive}>
+                      Đang nhận bài khảo sát
+                    </Text>
+                  ) : (
+                    <Text style={styles.selectedChildStatusInactive}>
+                      Đã ngưng nhận bài khảo sát
+                    </Text>
+                  )}
                 </Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* Content placeholder */}
-        <View style={styles.contentContainer}>
-          <Text style={styles.contentTitle}>Child Dashboard</Text>
-          <Text style={styles.contentDescription}>
-            {selectedChild
-              ? `Viewing information for ${selectedChild.fullName}`
-              : "Please select a child to view their information"}
-          </Text>
-        </View>
+        {/* Dashboard Content */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator
+              size="large"
+              color={GlobalStyles.colors.primary}
+            />
+            <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+          </View>
+        ) : selectedChild ? (
+          <>
+            {/* Statistics Section */}
+            <SectionHeader
+              title="Thống kê tổng quan"
+              subtitle="Dữ liệu 30 ngày gần nhất"
+              showViewAll={false}
+            />
+
+            <View style={styles.statisticsGrid}>
+              <StatisticsCard
+                title="Bài khảo sát"
+                value={dashboardData.surveyRecords.length || 0}
+                change={"+12%"}
+                changeType="positive"
+                icon="document-text"
+                color="#3B82F6"
+                subtitle="Đã hoàn thành"
+              />
+              <StatisticsCard
+                title="Điểm trung bình"
+                value={0}
+                change={"+2.1"}
+                changeType="positive"
+                icon="trending-up"
+                color="#10B981"
+                subtitle="Trên 10"
+              />
+              <StatisticsCard
+                title="Lịch hẹn"
+                value={0}
+                change={"+3"}
+                changeType="positive"
+                icon="calendar"
+                color="#F59E0B"
+                subtitle="Đã lên lịch"
+              />
+              <StatisticsCard
+                title="Chương trình hỗ trợ"
+                value={0}
+                change={"+1"}
+                changeType="positive"
+                icon="heart"
+                color="#EF4444"
+                subtitle="Đang tham gia"
+              />
+            </View>
+
+            {/* Charts Section */}
+            <SectionHeader
+              title="Biểu đồ thống kê"
+              subtitle="Xu hướng 7 ngày gần nhất"
+              showViewAll={false}
+            />
+
+            <View style={styles.chartsContainer}>
+              <Chart
+                title="Điểm khảo sát"
+                data={[
+                  { label: "T2", value: 8 },
+                  { label: "T3", value: 7 },
+                  { label: "T4", value: 9 },
+                  { label: "T5", value: 8 },
+                  { label: "T6", value: 9 },
+                  { label: "T7", value: 8 },
+                  { label: "CN", value: 9 },
+                ]}
+                type="line"
+                color="#10B981"
+              />
+              <Chart
+                title="Số bài khảo sát"
+                data={[
+                  { label: "T2", value: 2 },
+                  { label: "T3", value: 1 },
+                  { label: "T4", value: 3 },
+                  { label: "T5", value: 2 },
+                  { label: "T6", value: 1 },
+                  { label: "T7", value: 2 },
+                  { label: "CN", value: 1 },
+                ]}
+                type="bar"
+                color="#3B82F6"
+              />
+            </View>
+
+            {/* Survey Records Section */}
+            <SectionHeader
+              title="Bài khảo sát gần đây"
+              subtitle={`${dashboardData.surveyRecords.length} bài khảo sát`}
+              onViewAll={handleViewAllSurveys}
+            />
+
+            {dashboardData.surveyRecords.length > 0 ? (
+              dashboardData.surveyRecords
+                .slice(0, 3)
+                .map((record, index) => (
+                  <RecordCard
+                    key={record.id || index}
+                    type="survey"
+                    title={record.surveyName || record.name}
+                    subtitle={record.surveyCode}
+                    date={record.completedAt || record.createdAt}
+                    status={record.status}
+                    score={record.totalScore}
+                    icon="document-text"
+                    color="#3B82F6"
+                    onPress={() => handleViewSurveyDetail(record)}
+                  />
+                ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={48}
+                  color="#9CA3AF"
+                />
+                <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
+                <Text style={styles.emptySubtitle}>
+                  Con của bạn chưa hoàn thành bài khảo sát nào
+                </Text>
+              </View>
+            )}
+            <View style={styles.space} />
+
+            {/* Appointment Records Section */}
+            <SectionHeader
+              title="Lịch hẹn gần đây"
+              subtitle={`${dashboardData.appointmentRecords.length} lịch hẹn`}
+              onViewAll={handleViewAllAppointments}
+            />
+
+            {dashboardData.appointmentRecords.length > 0 ? (
+              dashboardData.appointmentRecords
+                .slice(0, 3)
+                .map((record, index) => (
+                  <RecordCard
+                    key={record.id || index}
+                    type="appointment"
+                    title={record.title || record.appointmentType}
+                    subtitle={record.description}
+                    date={record.appointmentDate || record.createdAt}
+                    status={record.status}
+                    icon="calendar"
+                    color="#F59E0B"
+                    onPress={() => {}}
+                  />
+                ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
+                <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
+                <Text style={styles.emptySubtitle}>
+                  Chưa có lịch hẹn nào được lên lịch
+                </Text>
+              </View>
+            )}
+            <View style={styles.space} />
+
+            {/* Support Program Records Section */}
+            <SectionHeader
+              title="Chương trình hỗ trợ"
+              subtitle={`${dashboardData.supportProgramRecords.length} chương trình`}
+              onViewAll={handleViewAllSupportPrograms}
+            />
+
+            {dashboardData.supportProgramRecords.length > 0 ? (
+              dashboardData.supportProgramRecords
+                .slice(0, 3)
+                .map((record, index) => (
+                  <RecordCard
+                    key={record.id || index}
+                    type="support"
+                    title={record.programName || record.title}
+                    subtitle={record.description}
+                    date={record.startDate || record.createdAt}
+                    status={record.status}
+                    icon="heart"
+                    color="#EF4444"
+                    onPress={() => {}}
+                  />
+                ))
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
+                <Text style={styles.emptyTitle}>
+                  Chưa có chương trình hỗ trợ
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  Chưa có chương trình hỗ trợ nào được đề xuất
+                </Text>
+              </View>
+            )}
+          </>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>Chưa chọn con</Text>
+            <Text style={styles.emptySubtitle}>
+              Vui lòng chọn một con để xem thông tin chi tiết
+            </Text>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </View>
   );
 }
@@ -359,20 +668,53 @@ const styles = StyleSheet.create({
     color: "#059669",
     fontWeight: "500",
   },
-  contentContainer: {
+  selectedChildStatusActive: {
+    color: "#059669",
+  },
+  selectedChildStatusInactive: {
+    color: "#EF4444",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
+    paddingVertical: 60,
   },
-  contentTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 12,
-  },
-  contentDescription: {
+  loadingText: {
     fontSize: 16,
     color: "#6B7280",
+    marginTop: 16,
+  },
+  statisticsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 32,
+  },
+  chartsContainer: {
+    marginBottom: 32,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 40,
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#374151",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
     textAlign: "center",
-    lineHeight: 24,
+    marginBottom: 24,
+    paddingHorizontal: 40,
+  },
+
+  space: {
+    marginBottom: 20,
   },
 });

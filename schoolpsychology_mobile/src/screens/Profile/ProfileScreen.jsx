@@ -1,16 +1,15 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { api } from "../../services";
 import { useAuth } from "../../contexts";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
-  const [error, setError] = useState("");
   const { logout, user } = useAuth();
   const navigation = useNavigation();
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
@@ -30,30 +29,31 @@ export default function ProfileScreen() {
     navigation.goBack();
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const fetchProfile = async () => {
-        try {
-          const response = await api.get("/api/v1/account");
+  const onRefresh = useCallback(async () => {
+    try {
+      const response = await api.get("/api/v1/account");
 
-          // console.log("response", response);
-          setProfile(response.data);
-        } catch (error) {
-          const msg = error.response?.data?.message || error.message;
-          console.error("Profile fetch error:", msg);
-        }
-      };
+      // console.log("response", response);
+      setProfile(response.data);
+    } catch (error) {
+      const msg = error.response?.data?.message || error.message;
+      console.error("Profile fetch error:", msg);
+    }
+  }, []);
 
-      fetchProfile();
-    }, [])
-  );
+  useEffect(() => {
+    onRefresh();
+  }, []);
 
   const navigateToEditProfile = () => {
     navigation.navigate("EditProfile", { data: profile });
   };
 
   const navigateToMyChildren = () => {
-    navigation.navigate("MyChildren", { data: profile.relationships });
+    navigation.navigate("MyChildren", {
+      data: profile.relationships,
+      onRefresh,
+    });
   };
 
   const navigateToSurveyRecords = () => {
@@ -94,20 +94,22 @@ export default function ProfileScreen() {
               label="Edit Profile"
               onPress={navigateToEditProfile}
             />
-            {user.role === "PARENTS" ? (
+            {user.role === "PARENTS" && (
               <MenuItem
                 icon="baby-face-outline"
                 label="My Children"
                 onPress={navigateToMyChildren}
               />
-            ) : (
-              <></>
             )}
-            <MenuItem
-              icon="clipboard-text-outline"
-              label="Survey Records"
-              onPress={navigateToSurveyRecords}
-            />
+
+            {user.role === "STUDENT" && (
+              <MenuItem
+                icon="clipboard-text-outline"
+                label="Survey Records"
+                onPress={navigateToSurveyRecords}
+              />
+            )}
+
             <MenuItem
               icon="cog-outline"
               label="Settings"

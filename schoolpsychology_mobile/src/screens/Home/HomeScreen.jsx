@@ -23,7 +23,7 @@ export default function HomeScreen({ navigation }) {
           setToastType={setToastType}
         />
       ) : (
-        <ParentHome />
+        <ParentHome navigation={navigation} />
       )}
       <Toast message={toastMessage} type={toastType} visible={showToast} />
     </Container>

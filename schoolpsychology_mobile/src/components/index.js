@@ -9,6 +9,9 @@ export { default as Alert } from "./common/Alert";
 export { default as Container } from "./ui/Container";
 export { default as ProtectedRoute } from "./ui/ProtectedRoute";
 
+// Dashboard components
+export * from "./dashboard";
+
 // Forms components (future)
 // export { default as LoginForm } from './forms/LoginForm';
 // export { default as SurveyForm } from './forms/SurveyForm';
