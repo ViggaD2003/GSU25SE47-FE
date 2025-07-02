@@ -1,0 +1,168 @@
+import dayjs from 'dayjs'
+
+/**
+ * Validate slot based on business rules
+ * @param {dayjs.Dayjs} start - Start date time
+ * @param {dayjs.Dayjs} end - End date time
+ * @param {string} slotType - Type of slot (APPOINTMENT/PROGRAM)
+ * @param {string} userRole - User role (MANAGER/COUNSELOR/TEACHER)
+ * @param {Function} t - Translation function
+ * @returns {string|null} Error message or null if valid
+ */
+export const validateSlot = (start, end, slotType, userRole, t) => {
+  // Check if start time is before end time
+  if (start.isAfter(end) || start.isSame(end)) {
+    return t('slotManagement.validation.startTimeBeforeEndTime')
+  }
+
+  // Check duration is at least 1 hour
+  const duration = end.diff(start, 'hour', true)
+  if (duration < 1) {
+    return t('slotManagement.validation.durationMin')
+  }
+
+  // Check duration is integer
+  if (duration % 1 !== 0) {
+    return t('slotManagement.validation.durationInteger')
+  }
+
+  // Check end time is not after 17:00
+  const endHour = end.hour()
+  if (endHour > 17 || (endHour === 17 && end.minute() > 0)) {
+    return t('slotManagement.validation.endTimeBefore17')
+  }
+
+  // Check start time is not before 8:00
+  const startHour = start.hour()
+  if (startHour < 8) {
+    return t('slotManagement.validation.startTimeAfter8')
+  }
+
+  // Check lunch break conflict for counselors
+  if (userRole === 'COUNSELOR') {
+    const startTime = start.format('HH:mm')
+    const endTime = end.format('HH:mm')
+    if (
+      (startTime <= '12:00' && endTime > '12:00') ||
+      (startTime < '13:00' && endTime >= '13:00')
+    ) {
+      return t('slotManagement.validation.lunchBreakConflict')
+    }
+  }
+
+  // Check role-based restrictions
+  if (userRole === 'MANAGER' && slotType !== 'PROGRAM') {
+    return t('slotManagement.validation.managerProgramOnly')
+  }
+
+  if (
+    (userRole === 'COUNSELOR' || userRole === 'TEACHER') &&
+    slotType !== 'APPOINTMENT'
+  ) {
+    return t('slotManagement.validation.staffAppointmentOnly')
+  }
+
+  return null
+}
+
+/**
+ * Check if slot conflicts with existing slots
+ * @param {dayjs.Dayjs} start - Start date time
+ * @param {dayjs.Dayjs} end - End date time
+ * @param {number} hostedById - Host user ID
+ * @param {Array} existingSlots - Array of existing slots
+ * @returns {boolean} True if conflict exists
+ */
+export const checkSlotConflict = (
+  start,
+  end,
+  hostedById,
+  existingSlots = []
+) => {
+  if (!existingSlots || !Array.isArray(existingSlots) || !existingSlots.length)
+    return false
+
+  return existingSlots.some(slot => {
+    if (!slot || slot.hosted_by !== hostedById) return false
+
+    const slotStart = dayjs(slot.start_date_time)
+    const slotEnd = dayjs(slot.end_date_time)
+
+    // Check if the new slot overlaps with existing slot
+    return (
+      (start.isBefore(slotEnd) && end.isAfter(slotStart)) ||
+      start.isSame(slotStart) ||
+      end.isSame(slotEnd)
+    )
+  })
+}
+
+/**
+ * Get disabled time options for DatePicker
+ * @param {dayjs.Dayjs} date - Selected date
+ * @returns {Object} Disabled time options
+ */
+export const getDisabledTime = date => {
+  if (!date) return {}
+
+  return {
+    disabledHours: () => {
+      const hours = []
+      // Disable hours before 8:00 and after 17:00
+      for (let i = 0; i < 8; i++) hours.push(i)
+      for (let i = 18; i < 24; i++) hours.push(i)
+      return hours
+    },
+  }
+}
+
+/**
+ * Get disabled date function for DatePicker
+ * @returns {Function} Disabled date function
+ */
+export const getDisabledDate = () => {
+  return current => {
+    // Disable past dates
+    return current && current < dayjs().startOf('day')
+  }
+}
+
+/**
+ * Format date time for display
+ * @param {string|dayjs.Dayjs} dateTime - Date time to format
+ * @returns {string} Formatted date time string
+ */
+export const formatDateTime = dateTime => {
+  return dayjs(dateTime).format('HH:mm - DD/MM/YYYY')
+}
+
+/**
+ * Get status badge configuration
+ * @param {number} status - Status code
+ * @param {Function} t - Translation function
+ * @returns {Object} Badge configuration
+ */
+export const getStatusBadgeConfig = (status, t) => {
+  const statusMap = {
+    1: { text: t('slotManagement.statusOptions.active'), color: 'green' },
+    0: { text: t('slotManagement.statusOptions.inactive'), color: 'red' },
+    2: { text: t('slotManagement.statusOptions.booked'), color: 'blue' },
+    3: { text: t('slotManagement.statusOptions.cancelled'), color: 'orange' },
+  }
+
+  return statusMap[status] || statusMap[0]
+}
+
+/**
+ * Get slot type text
+ * @param {string} type - Slot type
+ * @param {Function} t - Translation function
+ * @returns {string} Translated type text
+ */
+export const getSlotTypeText = (type, t) => {
+  const typeMap = {
+    APPOINTMENT: t('slotManagement.typeOptions.appointment'),
+    PROGRAM: t('slotManagement.typeOptions.program'),
+  }
+  return typeMap[type] || type
+}

@@ -5,6 +5,7 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   AppstoreOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -44,22 +45,29 @@ export const ROUTE_CONFIG = [
     key: '/appointment-management',
     icon: CalendarOutlined,
     labelKey: 'navigation.appointmentsManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
+    allowedRoles: ['teacher', 'counselor'],
     element: 'AppointmentManagement',
   },
   {
     key: '/survey-management',
     icon: FileTextOutlined,
     labelKey: 'navigation.surveyManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
+    allowedRoles: ['manager'],
     element: 'SurveyManagement',
   },
   {
     key: '/program-management',
     icon: AppstoreOutlined,
     labelKey: 'navigation.programManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
+    allowedRoles: ['manager', 'counselor'],
     element: 'ProgramManagement',
+  },
+  {
+    key: '/slot-management',
+    icon: ClockCircleOutlined,
+    labelKey: 'navigation.slotManagement',
+    allowedRoles: ['manager', 'teacher', 'counselor'],
+    element: 'SlotManagement',
   },
 ]
 

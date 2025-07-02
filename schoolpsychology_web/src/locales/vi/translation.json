@@ -13,6 +13,7 @@
     "appointmentsManagement": "Quản lý cuộc hẹn",
     "surveyManagement": "Quản lý khảo sát",
     "programManagement": "Chương trình hỗ trợ",
+    "slotManagement": "Quản lý giờ làm",
     "caseManagement": "Ca tư vấn",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
@@ -179,6 +180,86 @@
       "status": "Trạng thái"
     }
   },
+  "slotManagement": {
+    "title": "Quản lý giờ làm",
+    "description": "Quản lý giờ làm và thông tin của họ",
+    "refresh": "Làm mới",
+    "addSlot": "Tạo giờ làm mới",
+    "search": "Tìm kiếm giờ làm...",
+    "table": {
+      "slotName": "Tên giờ làm",
+      "type": "Loại",
+      "startTime": "Giờ bắt đầu",
+      "endTime": "Giờ kết thúc",
+      "status": "Trạng thái",
+      "hostedBy": "Người phụ trách"
+    },
+    "form": {
+      "details": "Chi tiết giờ làm",
+      "slotName": "Tên giờ làm",
+      "slotNamePlaceholder": "Nhập tên giờ làm",
+      "slotNameRequired": "Vui lòng nhập tên giờ làm",
+      "startDateTime": "Ngày và giờ bắt đầu",
+      "startDateTimeRequired": "Vui lòng chọn ngày và giờ bắt đầu",
+      "duration": "Thời lượng (giờ)",
+      "durationRequired": "Vui lòng nhập thời lượng",
+      "durationMin": "Thời lượng phải ít nhất 1 giờ",
+      "durationInteger": "Thời lượng phải là số nguyên",
+      "slotType": "Loại giờ làm",
+      "slotTypeRequired": "Vui lòng chọn loại giờ làm",
+      "hostedBy": "Người phụ trách",
+      "hostedByRequired": "Vui lòng chọn người phụ trách",
+      "addSlot": "Thêm giờ làm",
+      "createAll": "Tạo tất cả giờ làm",
+      "cancel": "Hủy",
+      "startDateTimeHelp": "Vui lòng chọn ngày và giờ bắt đầu từ hiện tại trở đi. Thời gian hiển thị theo giờ Việt Nam (GMT+7).",
+      "durationHelp": "Thời lượng phải là số nguyên (tối thiểu 1 giờ). Giờ kết thúc phải sau giờ bắt đầu và ở tương lai.",
+      "lunchBreakHelp": "Giờ nghỉ trưa từ 12:00 đến 13:00. Tư vấn viên chỉ được đặt giờ làm từ 08:00 đến 12:00.",
+      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)"
+    },
+    "preview": {
+      "title": "Xem trước giờ làm",
+      "fillForm": "Điền thông tin để xem trước giờ làm",
+      "noSlots": "Chưa có giờ làm nào. Thêm giờ làm để xem trước.",
+      "dateTime": "Ngày và giờ",
+      "duration": "Thời lượng",
+      "hours": "giờ",
+      "host": "Người phụ trách",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa giờ làm này?"
+    },
+    "typeOptions": {
+      "appointment": "Cuộc hẹn",
+      "program": "Chương trình"
+    },
+    "statusOptions": {
+      "active": "Hoạt động",
+      "inactive": "Không hoạt động",
+      "booked": "Đã đặt",
+      "cancelled": "Đã hủy"
+    },
+    "messages": {
+      "createSuccess": "Tạo giờ làm thành công",
+      "createError": "Tạo giờ làm thất bại",
+      "fetchError": "Lấy danh sách giờ làm thất bại",
+      "validationError": "Vui lòng kiểm tra thông tin nhập",
+      "slotAdded": "Thêm giờ làm vào xem trước thành công",
+      "slotRemoved": "Xóa giờ làm khỏi xem trước thành công",
+      "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo"
+    },
+    "validation": {
+      "startTimeBeforeEndTime": "Giờ bắt đầu phải trước giờ kết thúc",
+      "startTimeAfterNow": "Giờ bắt đầu phải là hiện tại hoặc tương lai",
+      "endTimeAfterNow": "Giờ kết thúc phải ở tương lai",
+      "durationMin": "Thời lượng phải ít nhất 1 giờ",
+      "durationInteger": "Thời lượng phải là số nguyên",
+      "endTimeBefore17": "Giờ kết thúc không được sau 17:00",
+      "startTimeAfter8": "Giờ bắt đầu không được trước 08:00",
+      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
+      "slotConflict": "Giờ làm trùng với giờ làm đã có",
+      "managerProgramOnly": "Quản lý chỉ được tạo giờ làm loại CHƯƠNG TRÌNH cho người khác",
+      "staffAppointmentOnly": "Nhân viên chỉ được tạo giờ làm loại CUỘC HẸN cho chính họ"
+    }
+  },
   "surveyManagement": {
     "title": "Quản lý khảo sát",
     "description": "Quản lý khảo sát và thông tin của họ",
@@ -238,7 +319,9 @@
     "monthly": "Hàng tháng",
     "clear": "Xóa",
     "filter": "Lọc",
-    "action": "Thao tác"
+    "action": "Thao tác",
+    "yes": "Có",
+    "no": "Không"
   },
   "appointment": {
     "title": "Quản lý cuộc hẹn",
