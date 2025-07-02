@@ -14,8 +14,8 @@ export const authAPI = {
       if (error.response?.status === 308) {
         return {
           success: true,
-          message: error.response.data.message || "Redirect to Google OAuth",
-          data: error.response.data.data
+          message: error.response.data.message || 'Redirect to Google OAuth',
+          data: error.response.data.data,
         }
       }
       throw error
@@ -29,7 +29,8 @@ export const authAPI = {
 
   // Add other auth methods as needed
   refreshToken: async () => {
-    const response = await api.post('/api/v1/auth/refresh')
+    const token = localStorage.getItem('token')
+    const response = await api.post('/api/v1/auth/refresh', { token })
     return response.data
   },
 }

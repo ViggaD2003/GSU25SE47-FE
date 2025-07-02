@@ -1,6 +1,7 @@
 // API services
 export { default as api } from "./api/axios";
 export { default as SurveyService } from "./api/SurveyService";
+export * as ParentDashboardService from "./api/ParentDashboardService";
 
 // Auth services
 export { default as AuthService } from "./auth/AuthService";

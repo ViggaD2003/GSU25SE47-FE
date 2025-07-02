@@ -96,7 +96,7 @@ const SurveyManagement = () => {
     setDetailVisible(false)
   }
 
-  const handleDelete = useCallback(() => { }, [])
+  const handleDelete = useCallback(() => {}, [])
   const showModal = () => {
     setIsModalVisible(true)
   }

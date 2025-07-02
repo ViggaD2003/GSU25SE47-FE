@@ -3,9 +3,9 @@ import { Table, Tag, Button, Tooltip } from 'antd'
 import { EyeOutlined } from '@ant-design/icons'
 
 const statusColor = {
-  COMPLETED: 'green',
-  PENDING: 'orange',
-  INACTIVE: 'red',
+  PUBLISHED: 'green',
+  DRAFT: 'orange',
+  ARCHIVED: 'red',
 }
 
 const SurveyTable = ({ t, data, loading, pagination, onView }) => {

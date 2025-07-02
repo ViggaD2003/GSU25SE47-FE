@@ -42,27 +42,31 @@ const SurveyRecord = ({ navigation }) => {
       setLoading(true);
       const response = await getSurveyRecords();
       if (response.data) {
-        const surveyRecordsPromises = response.data.map(async (record) => {
-          const survey = await getSurveyDetail(record.surveyId);
-          const {
-            questions,
-            createdAt,
-            updatedAt,
-            status,
-            recurringCycle,
-            isRequired,
-            isRecurring,
-            ...rest
-          } = survey;
+        // console.log("get success");
 
-          return {
-            ...record,
-            ...rest,
-            surveyId: record.surveyId,
-            surveyCode: survey.surveyCode,
-            surveyName: survey.name,
-          };
-        });
+        const surveyRecordsPromises = response.data
+          .filter((record) => record.status === "COMPLETED")
+          .map(async (record) => {
+            const survey = await getSurveyDetail(record.surveyId);
+            const {
+              questions,
+              createdAt,
+              updatedAt,
+              status,
+              recurringCycle,
+              isRequired,
+              isRecurring,
+              ...rest
+            } = survey;
+
+            return {
+              ...record,
+              ...rest,
+              surveyId: record.surveyId,
+              surveyCode: survey.surveyCode,
+              surveyName: survey.name,
+            };
+          });
 
         // Wait for all promises to resolve
         const surveyRecords = await Promise.all(surveyRecordsPromises);
@@ -93,7 +97,7 @@ const SurveyRecord = ({ navigation }) => {
   }, []);
 
   const handleBackPress = useCallback(() => {
-    navigation.popTo("Profile");
+    navigation.goBack();
   }, [navigation]);
 
   const handleViewResult = useCallback(
@@ -107,6 +111,7 @@ const SurveyRecord = ({ navigation }) => {
         survey,
         result: record,
         screen: "SurveyRecord",
+        showRecordsButton: false,
       });
     },
     [navigation]
@@ -304,6 +309,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 20,
+    position: "relative",
   },
   loadingContainer: {
     flex: 1,

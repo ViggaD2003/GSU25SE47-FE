@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View, TouchableOpacity, Image } from "react-native";
 import { StyleSheet } from "react-native";
-import { EvilIcons } from "@expo/vector-icons";
+import { EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Badge } from "react-native-paper";
 import { useAuth } from "../contexts";
 import {
@@ -19,13 +19,14 @@ import {
   SurveyTakingScreen,
   UpdateProfileScreen,
 } from "../screens";
+import { StatusBar } from "expo-status-bar";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();
 
 export default function MainTabs() {
   const [messageCount, setMessageCount] = useState(3);
-  const { user } = useAuth();
-  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
 
   const SurveyStack = () => {
     return (
@@ -57,126 +58,42 @@ export default function MainTabs() {
     );
   };
 
-  const handleNotificationPress = () => {
-    navigation.navigate("Notification");
-  };
+  const CustomHeader = () => (
+    <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
+      <StatusBar style="dark" backgroundColor="#FFFFFF" />
+    </View>
+  );
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: true,
+        header: () => <CustomHeader />,
+        headerStyle: styles.headerStyle,
+        headerStatusBarHeight: 0,
+      }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Notification" component={NotificationScreen} />
+      <Stack.Screen name="Blog" component={BlogScreen} />
       <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          headerShown: true,
-          headerStyle: styles.headerStyle,
-          headerTitle: "",
-          headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Profile")}
-              style={styles.headerLeft}
-            >
-              <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
-              <Text style={styles.roleText}>
-                {user?.role?.toLowerCase() || "user"}
-              </Text>
-            </TouchableOpacity>
-          ),
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={handleNotificationPress}
-              >
-                <View style={styles.notificationContainer}>
-                  <EvilIcons name="bell" size={24} color="#333" />
-                  <Badge
-                    visible={messageCount > 0}
-                    style={styles.notificationBadge}
-                  >
-                    {messageCount}
-                  </Badge>
-                </View>
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
+        name="BlogDetails"
+        component={require("../screens").BlogDetails}
       />
-      <Stack.Screen
-        name="Notification"
-        // options={{ headerShown: false }}
-        component={NotificationScreen}
-      />
-      <Stack.Screen
-        name="Blog"
-        options={{ headerShown: false }}
-        component={BlogScreen}
-      />
-      <Stack.Screen
-        name="Profile"
-        component={ProfileStack}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Survey"
-        options={{ headerShown: false }}
-        component={SurveyStack}
-      />
+      <Stack.Screen name="Profile" component={ProfileStack} />
+      <Stack.Screen name="Survey" component={SurveyStack} />
     </Stack.Navigator>
   );
 }
 
 const styles = StyleSheet.create({
   headerStyle: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
     backgroundColor: "#FFFFFF",
-    elevation: 4,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    elevation: 0,
+    shadowOpacity: 0,
+    borderBottomWidth: 0,
   },
-  headerLeft: {
-    paddingLeft: 20,
-  },
-  nameText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  roleText: {
-    fontSize: 14,
-    fontWeight: "300",
-    color: "#666",
-  },
-  headerRight: {
-    paddingRight: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 8,
-  },
-  notificationContainer: {
-    position: "relative",
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    backgroundColor: "#FF4757",
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
+  headerContainer: {
+    backgroundColor: "#FFFFFF",
   },
 });

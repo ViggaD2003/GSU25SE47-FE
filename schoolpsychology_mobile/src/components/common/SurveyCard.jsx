@@ -1,9 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GlobalStyles } from "../../constants";
+import { postSurveyResult } from "../../services/api/SurveyService";
+import ConfirmModal from "./ConfirmModal";
 
-const SurveyCard = ({ survey, navigation }) => {
+const SurveyCard = ({
+  survey,
+  navigation,
+  onRefresh,
+  setShowToast,
+  setToastMessage,
+  setToastType,
+}) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const onPress = () => {
     if (navigation) {
       navigation.navigate("Survey", {
@@ -11,6 +22,40 @@ const SurveyCard = ({ survey, navigation }) => {
         params: { survey },
       });
     }
+  };
+
+  const onPressSkip = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSkip = async () => {
+    try {
+      const result = {
+        noteSuggest: "",
+        level: "LOW",
+        totalScore: 0,
+        surveyId: survey.surveyId,
+        status: "SKIPPED",
+        answerRecordRequests: [],
+      };
+
+      await postSurveyResult(result);
+      setShowConfirmModal(false);
+      setToastMessage("Survey skipped successfully!");
+      setToastType("success");
+      setShowToast(true);
+      onRefresh("survey");
+    } catch (err) {
+      console.error(err);
+      setShowConfirmModal(false);
+      setToastMessage("Failed to skip survey. Please try again.");
+      setToastType("error");
+      setShowToast(true);
+    }
+  };
+
+  const handleCancelSkip = () => {
+    setShowConfirmModal(false);
   };
 
   return (
@@ -53,12 +98,30 @@ const SurveyCard = ({ survey, navigation }) => {
               : "Not recurring"}
           </Text>
         </View>
-        <Ionicons
-          name="play-circle-outline"
-          size={26}
-          color={GlobalStyles.colors.primary}
-        />
+        <View style={styles.surveyCardButtonContainer}>
+          {!survey.isRequired && (
+            <TouchableOpacity style={styles.skipButton} onPress={onPressSkip}>
+              <Text style={styles.skipButtonText}>Skip</Text>
+            </TouchableOpacity>
+          )}
+          <Ionicons
+            name="play-circle-outline"
+            size={32}
+            color={GlobalStyles.colors.primary}
+          />
+        </View>
       </View>
+
+      <ConfirmModal
+        visible={showConfirmModal}
+        title="Skip Survey"
+        message={`Are you sure you want to skip "${survey?.name}"? This action cannot be undone.`}
+        confirmText="Skip"
+        cancelText="Cancel"
+        onConfirm={handleConfirmSkip}
+        onCancel={handleCancelSkip}
+        type="warning"
+      />
     </TouchableOpacity>
   );
 };
@@ -125,6 +188,23 @@ const styles = StyleSheet.create({
   surveyMetaText: {
     color: "#9CA3AF",
     fontSize: 12,
+  },
+  surveyCardButtonContainer: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  skipButton: {
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    borderRadius: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  skipButtonText: {
+    color: "#EF4444",
+    fontWeight: "500",
+    fontSize: 14,
   },
   // surveyStartButton: {
   //   backgroundColor: "#EF4444",

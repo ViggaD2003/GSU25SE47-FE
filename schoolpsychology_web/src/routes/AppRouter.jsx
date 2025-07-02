@@ -30,6 +30,7 @@ const CaseManagement = lazy(() => import('@/pages/manager/CaseManagement'))
 const ProgramManagement = lazy(
   () => import('@/pages/manager/ProgramManagement')
 )
+const SlotManagement = lazy(() => import('@/pages/manager/SlotManagement'))
 
 const AppRouter = () => {
   const elementMap = {
@@ -40,6 +41,7 @@ const AppRouter = () => {
     SurveyManagement,
     CaseManagement,
     ProgramManagement,
+    SlotManagement,
   }
 
   return (
@@ -63,7 +65,7 @@ const AppRouter = () => {
         <Route index element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path='login-success' element={<GoogleCallBack />} />
+        <Route path="login-success" element={<GoogleCallBack />} />
       </Route>
 
       {/* Protected routes */}

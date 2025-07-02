@@ -4,7 +4,6 @@ import {
   Button,
   Input,
   Select,
-  Form,
   message,
   Row,
   Col,
@@ -28,7 +27,6 @@ const StaffManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
-  const [form] = Form.useForm()
   const [data, setData] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
@@ -198,7 +196,6 @@ const StaffManagement = () => {
               visible={isModalVisible}
               onOk={handleModalOk}
               onCancel={handleModalCancel}
-              form={form}
               editingUser={selectedUser}
               isEdit={isEdit}
               confirmLoading={false}

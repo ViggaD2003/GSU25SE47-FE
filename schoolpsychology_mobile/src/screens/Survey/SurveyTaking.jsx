@@ -21,8 +21,6 @@ import {
   postSurveyResult,
   saveSurveyProgress,
 } from "../../services/api/SurveyService";
-import { navigateFromSurveyTaking } from "../../utils";
-import { useFocusEffect } from "@react-navigation/native";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey } = route.params || {};
@@ -44,18 +42,15 @@ const SurveyTaking = ({ route, navigation }) => {
     }
   }, [survey?.surveyId]);
 
-  // Clean up invalid answers when survey changes
-  useEffect(() => {
-    if (survey?.questions && Object.keys(answers).length > 0) {
-      const cleanedAnswers = cleanInvalidAnswers(answers);
-      if (Object.keys(cleanedAnswers).length !== Object.keys(answers).length) {
-        console.log("Cleaned up invalid answers due to survey change");
-        setAnswers(cleanedAnswers);
-      }
-    }
-  }, [survey?.questions]);
+  // Note: Removed automatic answer cleaning to prevent useInsertionEffect warnings
+  // Answers are now only cleaned when loading saved progress
 
   const loadSavedProgress = async () => {
+    if (!survey?.surveyId) {
+      console.warn("No survey ID available for loading progress");
+      return;
+    }
+
     const savedAnswers = await loadSurveyProgress(survey.surveyId);
     if (savedAnswers && Object.keys(savedAnswers).length > 0) {
       // Clean up invalid answers before setting state
@@ -74,37 +69,44 @@ const SurveyTaking = ({ route, navigation }) => {
   };
 
   // Clean up invalid answers that don't exist in current survey
-  const cleanInvalidAnswers = (answers) => {
-    const validQuestionIds = survey.questions.map((q) => q.questionId);
-    const cleanedAnswers = {};
+  const cleanInvalidAnswers = useCallback(
+    (answers) => {
+      if (!survey || !survey.questions) {
+        return {};
+      }
 
-    Object.entries(answers).forEach(([questionId, answerId]) => {
-      const questionIdNum = parseInt(questionId);
+      const validQuestionIds = survey.questions.map((q) => q.questionId);
+      const cleanedAnswers = {};
 
-      // Check if question exists in current survey
-      if (validQuestionIds.includes(questionIdNum)) {
-        const currentQuestion = survey.questions.find(
-          (q) => q.questionId === questionIdNum
-        );
+      Object.entries(answers).forEach(([questionId, answerId]) => {
+        const questionIdNum = parseInt(questionId);
 
-        // Check if answer exists for this question
-        const validAnswerIds = currentQuestion.answers.map((a) => a.id);
-        if (validAnswerIds.includes(answerId)) {
-          cleanedAnswers[questionId] = answerId;
+        // Check if question exists in current survey
+        if (validQuestionIds.includes(questionIdNum)) {
+          const currentQuestion = survey.questions.find(
+            (q) => q.questionId === questionIdNum
+          );
+
+          // Check if answer exists for this question
+          const validAnswerIds = currentQuestion.answers.map((a) => a.id);
+          if (validAnswerIds.includes(answerId)) {
+            cleanedAnswers[questionId] = answerId;
+          } else {
+            console.warn(
+              `Removing invalid answerId: ${answerId} for questionId: ${questionId}`
+            );
+          }
         } else {
           console.warn(
-            `Removing invalid answerId: ${answerId} for questionId: ${questionId}`
+            `Removing invalid questionId: ${questionId} from saved progress`
           );
         }
-      } else {
-        console.warn(
-          `Removing invalid questionId: ${questionId} from saved progress`
-        );
-      }
-    });
+      });
 
-    return cleanedAnswers;
-  };
+      return cleanedAnswers;
+    },
+    [survey?.questions] // Only depend on survey questions, not the entire survey object
+  );
 
   const showToast = (message, type = "info") => {
     setToast({ visible: true, message, type });
@@ -115,6 +117,12 @@ const SurveyTaking = ({ route, navigation }) => {
   };
 
   const handleAnswerSelect = (questionId, answerId, score) => {
+    // Check if survey and questions exist
+    if (!survey || !survey.questions) {
+      console.warn("Survey or questions not available");
+      return;
+    }
+
     // Validate questionId exists in current survey
     const isValidQuestion = survey.questions.some(
       (question) => question.questionId === questionId
@@ -155,7 +163,10 @@ const SurveyTaking = ({ route, navigation }) => {
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < survey.questions.length - 1) {
+    if (
+      survey?.questions &&
+      currentQuestionIndex < survey.questions.length - 1
+    ) {
       setCurrentQuestionIndex((prev) => prev + 1);
     }
   };
@@ -167,6 +178,12 @@ const SurveyTaking = ({ route, navigation }) => {
   };
 
   const handleSubmit = () => {
+    // Check if survey and questions exist
+    if (!survey || !survey.questions) {
+      showToast("Không tìm thấy thông tin khảo sát", "error");
+      return;
+    }
+
     // Validate all answers before submission
     const validationResult = validateAllAnswers(answers);
 
@@ -196,6 +213,13 @@ const SurveyTaking = ({ route, navigation }) => {
 
   // Validate all answers in the current state
   const validateAllAnswers = (currentAnswers) => {
+    if (!survey || !survey.questions) {
+      return {
+        isValid: false,
+        invalidAnswers: [],
+      };
+    }
+
     const validQuestionIds = survey.questions.map((q) => q.questionId);
     const invalidAnswers = [];
 
@@ -258,7 +282,7 @@ const SurveyTaking = ({ route, navigation }) => {
           setShowExitModal(false);
           setTimeout(() => {
             // Navigate back to survey info with progress saved flag
-            navigateFromSurveyTaking(navigation);
+            navigation.goBack();
           }, 500);
         }, 2000);
       } else {
@@ -267,13 +291,13 @@ const SurveyTaking = ({ route, navigation }) => {
         setTimeout(() => {
           setShowExitModal(false);
           setTimeout(() => {
-            navigateFromSurveyTaking(navigation, survey, false);
+            navigation.goBack();
           }, 500);
         }, 2000);
       }
     } else {
       setShowExitModal(false);
-      navigateFromSurveyTaking(navigation, survey, false);
+      navigation.goBack();
     }
   };
 
@@ -289,20 +313,23 @@ const SurveyTaking = ({ route, navigation }) => {
   }, [survey?.surveyCode]);
 
   // Get level configuration based on score
-  const getLevelConfig = useCallback(
-    (score) => {
-      const config = getSurveyConfig();
-      if (!config) return null;
+  const getLevelConfig = useCallback((score) => {
+    const config = getSurveyConfig();
+    if (!config) return null;
 
-      return config.levels.find(
-        (level) => score >= level.min && score <= level.max
-      );
-    },
-    [getSurveyConfig]
-  );
+    return config.levels.find(
+      (level) => score >= level.min && score <= level.max
+    );
+  }, []);
 
   const handleSubmitSurvey = async (submittedAnswers) => {
     try {
+      // Check if survey and questions exist
+      if (!survey || !survey.questions) {
+        showToast("Không tìm thấy thông tin khảo sát", "error");
+        return;
+      }
+
       // Clear saved progress after successful submission
       if (survey?.surveyId) {
         await clearSurveyProgress(survey.surveyId);
@@ -319,10 +346,6 @@ const SurveyTaking = ({ route, navigation }) => {
       // Calculate total score based on answers (you may need to adjust this logic)
       const surveyConfig = getSurveyConfig();
       let totalScore;
-
-      // console.log("Survey Config:", surveyConfig);
-      // console.log("Submitted Answers:", submittedAnswers);
-      // console.log("Survey Questions:", survey.questions);
 
       // Chuyển đổi answerId thành score
       const answerScores = [];
@@ -408,13 +431,14 @@ const SurveyTaking = ({ route, navigation }) => {
       };
 
       // console.log("Survey submitted:", surveyResult);
-      await postSurveyResult(surveyResult);
+      const response = await postSurveyResult(surveyResult);
 
       // Navigate to result screen
       navigation.navigate("SurveyResult", {
         survey,
-        result: surveyResult,
+        result: response.data,
         screen: "SurveyTaking",
+        showRecordsButton: true,
       });
     } catch (error) {
       console.error("Error submitting survey:", error);
@@ -428,7 +452,64 @@ const SurveyTaking = ({ route, navigation }) => {
     handleBackToInfo();
   };
 
+  // Early return if survey is not available
+  if (!survey || !survey.questions) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Làm khảo sát</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View
+          style={[
+            styles.container,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
+          <Text style={{ fontSize: 16, color: "#6B7280", textAlign: "center" }}>
+            Không tìm thấy thông tin khảo sát. Vui lòng thử lại.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const currentQuestion = survey.questions[currentQuestionIndex];
+
+  // Additional check for currentQuestion
+  if (!currentQuestion) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Làm khảo sát</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View
+          style={[
+            styles.container,
+            { justifyContent: "center", alignItems: "center" },
+          ]}
+        >
+          <Text style={{ fontSize: 16, color: "#6B7280", textAlign: "center" }}>
+            Không tìm thấy câu hỏi hiện tại. Vui lòng thử lại.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const progress = ((currentQuestionIndex + 1) / survey.questions.length) * 100;
 
   return (
@@ -440,6 +521,15 @@ const SurveyTaking = ({ route, navigation }) => {
           color={GlobalStyles.colors.primary}
         />
       )}
+
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -479,7 +569,9 @@ const SurveyTaking = ({ route, navigation }) => {
             )}
           </View>
 
-          <Text style={styles.questionText}>{currentQuestion.text}</Text>
+          <Text style={styles.questionText}>
+            {currentQuestion.text || "Không có nội dung câu hỏi"}
+          </Text>
 
           {currentQuestion.description && (
             <Text style={styles.questionDescription}>
@@ -496,41 +588,51 @@ const SurveyTaking = ({ route, navigation }) => {
 
           {/* Answer Options */}
           <View style={styles.answersContainer}>
-            {currentQuestion.answers
-              .sort((a, b) => (a.score || 0) - (b.score || 0)) // Sắp xếp theo score từ bé đến lớn
-              .map((answer) => (
-                <TouchableOpacity
-                  key={answer.id}
-                  style={[
-                    styles.answerOption,
-                    answers[currentQuestion.questionId] === answer.id &&
-                      styles.selectedAnswer,
-                  ]}
-                  onPress={() =>
-                    handleAnswerSelect(
-                      currentQuestion.questionId,
-                      answer.id,
-                      answer.score
-                    )
-                  }
-                >
-                  <View style={styles.answerRadio}>
-                    {answers[currentQuestion.questionId] === answer.id && (
-                      <View style={styles.radioSelected} />
-                    )}
-                  </View>
-                  <Text
+            {currentQuestion.answers && currentQuestion.answers.length > 0 ? (
+              currentQuestion.answers
+                .sort((a, b) => (a.score || 0) - (b.score || 0)) // Sắp xếp theo score từ bé đến lớn
+                .map((answer) => (
+                  <TouchableOpacity
+                    key={answer.id}
                     style={[
-                      styles.answerText,
+                      styles.answerOption,
                       answers[currentQuestion.questionId] === answer.id &&
-                        styles.selectedAnswerText,
+                        styles.selectedAnswer,
                     ]}
+                    onPress={() =>
+                      handleAnswerSelect(
+                        currentQuestion.questionId,
+                        answer.id,
+                        answer.score
+                      )
+                    }
                   >
-                    {answer.text}
-                  </Text>
-                  <Text style={styles.answerScore}>({answer.score || 0})</Text>
-                </TouchableOpacity>
-              ))}
+                    <View style={styles.answerRadio}>
+                      {answers[currentQuestion.questionId] === answer.id && (
+                        <View style={styles.radioSelected} />
+                      )}
+                    </View>
+                    <Text
+                      style={[
+                        styles.answerText,
+                        answers[currentQuestion.questionId] === answer.id &&
+                          styles.selectedAnswerText,
+                      ]}
+                    >
+                      {answer.text || "Không có nội dung câu trả lời"}
+                    </Text>
+                    <Text style={styles.answerScore}>
+                      ({answer.score || 0})
+                    </Text>
+                  </TouchableOpacity>
+                ))
+            ) : (
+              <Text
+                style={{ textAlign: "center", color: "#6B7280", padding: 20 }}
+              >
+                Không có câu trả lời nào cho câu hỏi này.
+              </Text>
+            )}
           </View>
         </View>
 
@@ -583,14 +685,6 @@ const SurveyTaking = ({ route, navigation }) => {
         {/* Bottom Spacing */}
         <View style={styles.bottomSpacing} />
       </ScrollView>
-
-      {/* Toast */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
 
       {/* Submit Confirmation Modal */}
       <Modal
@@ -692,6 +786,7 @@ const SurveyTaking = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: "relative",
     backgroundColor: "#F8FAFC",
   },
   loadingIndicator: {
