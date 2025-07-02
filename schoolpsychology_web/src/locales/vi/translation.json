@@ -192,7 +192,8 @@
       "startTime": "Giờ bắt đầu",
       "endTime": "Giờ kết thúc",
       "status": "Trạng thái",
-      "hostedBy": "Người phụ trách"
+      "hostedBy": "Người phụ trách",
+      "fullName": "Họ và tên"
     },
     "form": {
       "details": "Chi tiết giờ làm",
@@ -202,6 +203,7 @@
       "startDateTime": "Ngày và giờ bắt đầu",
       "startDateTimeRequired": "Vui lòng chọn ngày và giờ bắt đầu",
       "duration": "Thời lượng (giờ)",
+      "durationPlaceholder": "Nhập thời lượng",
       "durationRequired": "Vui lòng nhập thời lượng",
       "durationMin": "Thời lượng phải ít nhất 1 giờ",
       "durationInteger": "Thời lượng phải là số nguyên",
@@ -232,10 +234,9 @@
       "program": "Chương trình"
     },
     "statusOptions": {
-      "active": "Hoạt động",
-      "inactive": "Không hoạt động",
-      "booked": "Đã đặt",
-      "cancelled": "Đã hủy"
+      "published": "Đã xuất bản",
+      "draft": "Nháp",
+      "closed": "Đã đóng"
     },
     "messages": {
       "createSuccess": "Tạo giờ làm thành công",
@@ -244,7 +245,9 @@
       "validationError": "Vui lòng kiểm tra thông tin nhập",
       "slotAdded": "Thêm giờ làm vào xem trước thành công",
       "slotRemoved": "Xóa giờ làm khỏi xem trước thành công",
-      "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo"
+      "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo",
+      "slotConflict": "Giờ làm trùng với giờ làm đã có",
+      "slotUpdated": "Cập nhật giờ làm thành công"
     },
     "validation": {
       "startTimeBeforeEndTime": "Giờ bắt đầu phải trước giờ kết thúc",
@@ -257,7 +260,8 @@
       "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
       "managerProgramOnly": "Quản lý chỉ được tạo giờ làm loại CHƯƠNG TRÌNH cho người khác",
-      "staffAppointmentOnly": "Nhân viên chỉ được tạo giờ làm loại CUỘC HẸN cho chính họ"
+      "staffAppointmentOnly": "Nhân viên chỉ được tạo giờ làm loại CUỘC HẸN cho chính họ",
+      "conflictDetails": "Giờ làm trùng với giờ làm đã có"
     }
   },
   "surveyManagement": {

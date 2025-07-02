@@ -191,7 +191,8 @@
       "startTime": "Start Time",
       "endTime": "End Time",
       "status": "Status",
-      "hostedBy": "Hosted By"
+      "hostedBy": "Hosted By",
+      "fullName": "Full Name"
     },
     "form": {
       "details": "Slot Details",
@@ -201,6 +202,7 @@
       "startDateTime": "Start Date & Time",
       "startDateTimeRequired": "Please select start date and time",
       "duration": "Duration (hours)",
+      "durationPlaceholder": "Enter duration in hours",
       "durationRequired": "Please enter duration",
       "durationMin": "Duration must be at least 1 hour",
       "durationInteger": "Duration must be a whole number",
@@ -231,10 +233,9 @@
       "program": "Program"
     },
     "statusOptions": {
-      "active": "Active",
-      "inactive": "Inactive",
-      "booked": "Booked",
-      "cancelled": "Cancelled"
+      "published": "Published",
+      "draft": "Draft",
+      "closed": "Closed"
     },
     "messages": {
       "createSuccess": "Slots created successfully",
@@ -243,7 +244,9 @@
       "validationError": "Please check your input",
       "slotAdded": "Slot added to preview successfully",
       "slotRemoved": "Slot removed from preview successfully",
-      "noSlotsToCreate": "Please add at least one slot before creating"
+      "noSlotsToCreate": "Please add at least one slot before creating",
+      "slotConflict": "Slot conflicts with existing slots",
+      "slotUpdated": "Slot updated successfully"
     },
     "validation": {
       "startTimeBeforeEndTime": "Start time must be before end time",
@@ -256,7 +259,8 @@
       "lunchBreakConflict": "Slots cannot overlap with lunch break (12:00-13:00)",
       "slotConflict": "Slot conflicts with existing slots",
       "managerProgramOnly": "Managers can only create PROGRAM slots for others",
-      "staffAppointmentOnly": "Staff can only create APPOINTMENT slots for themselves"
+      "staffAppointmentOnly": "Staff can only create APPOINTMENT slots for themselves",
+      "conflictDetails": "Slot conflicts with existing slots"
     }
   },
   "surveyManagement": {

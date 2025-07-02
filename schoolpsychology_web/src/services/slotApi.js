@@ -20,7 +20,7 @@ export const slotAPI = {
   // Create multiple slots
   createSlots: async slots => {
     try {
-      console.log('slots', slots)
+      // console.log('slots', slots)
       const response = await api.post('/api/v1/slot', slots)
       return {
         success: true,
@@ -30,6 +30,7 @@ export const slotAPI = {
       return {
         success: false,
         error: error.response?.data?.message || error.message,
+        conflicts: error.response?.data?.conflicts,
       }
     }
   },

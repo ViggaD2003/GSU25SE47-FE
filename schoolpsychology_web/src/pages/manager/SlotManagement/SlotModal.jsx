@@ -8,7 +8,6 @@ import {
   Select,
   DatePicker,
   InputNumber,
-  message,
   Space,
   Button,
   Card,
@@ -18,10 +17,11 @@ import {
   Typography,
   Tag,
   Avatar,
-  List,
   Popconfirm,
   Empty,
   Badge,
+  Collapse,
+  Alert,
 } from 'antd'
 import {
   CalendarOutlined,
@@ -33,6 +33,12 @@ import {
   PlusOutlined,
   DeleteOutlined,
   CheckOutlined,
+  EditOutlined,
+  DownOutlined,
+  UpOutlined,
+  SaveOutlined,
+  CloseOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -51,6 +57,7 @@ import { validateSlot, checkSlotConflict } from '../../../utils/slotUtils'
 
 const { Option } = Select
 const { Title, Text } = Typography
+const { Panel } = Collapse
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -99,13 +106,16 @@ const ErrorText = ({ children }) => (
   </div>
 )
 
-const SlotModal = ({ visible, onCancel, onSuccess }) => {
+const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { user } = useAuth()
 
   const [form] = Form.useForm()
   const [previewSlots, setPreviewSlots] = useState([])
+  const [editingSlotId, setEditingSlotId] = useState(null)
+  const [expandedDates, setExpandedDates] = useState(new Set())
+  const [conflictSlots, setConflictSlots] = useState([])
   const createLoading = useSelector(selectCreateLoading)
   const createError = useSelector(selectCreateError)
   const users = useSelector(selectUsers)
@@ -120,13 +130,37 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
 
   useEffect(() => {
     if (createError) {
-      message.error(t('slotManagement.messages.createError'))
       dispatch(clearError())
     }
-  }, [createError, t, dispatch])
+  }, [createError, dispatch])
 
-  // Function to merge slots with same date
-  const mergeSlotsByDate = slots => {
+  // Function to check if a slot is in conflict
+  const isSlotInConflict = slot => {
+    return conflictSlots.some(
+      conflictSlot =>
+        conflictSlot.slotName === slot.slotName &&
+        conflictSlot.startDateTime ===
+          dayjs(slot.startDateTime).format('YYYY-MM-DDTHH:mm:ss') &&
+        conflictSlot.endDateTime ===
+          dayjs(slot.endDateTime).format('YYYY-MM-DDTHH:mm:ss')
+    )
+  }
+
+  // Function to get conflict reason for a slot
+  const getConflictReason = slot => {
+    const conflictSlot = conflictSlots.find(
+      conflict =>
+        conflict.slotName === slot.slotName &&
+        conflict.startDateTime ===
+          dayjs(slot.startDateTime).format('YYYY-MM-DDTHH:mm:ss') &&
+        conflict.endDateTime ===
+          dayjs(slot.endDateTime).format('YYYY-MM-DDTHH:mm:ss')
+    )
+    return conflictSlot?.reason || ''
+  }
+
+  // Function to group slots by date only
+  const groupSlotsByDate = slots => {
     const groupedSlots = {}
 
     slots.forEach(slot => {
@@ -137,27 +171,80 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
       groupedSlots[dateKey].push(slot)
     })
 
-    return Object.values(groupedSlots).map(dateSlots => {
-      if (dateSlots.length === 1) {
-        return dateSlots[0]
-      }
+    return Object.entries(groupedSlots).map(([dateKey, dateSlots]) => ({
+      dateKey,
+      date: dayjs(dateKey),
+      slots: dateSlots.sort((a, b) =>
+        dayjs(a.startDateTime).diff(dayjs(b.startDateTime))
+      ),
+      totalSlots: dateSlots.length,
+    }))
+  }
 
-      // Merge multiple slots on same date
-      const firstSlot = dateSlots[0]
-      const lastSlot = dateSlots[dateSlots.length - 1]
+  // Function to check time conflicts within the same day
+  const checkTimeConflictInPreview = (
+    start,
+    end,
+    hostedById,
+    excludeSlotId = null
+  ) => {
+    const sameDaySlots = previewSlots.filter(slot => {
+      // Exclude the slot being edited
+      if (excludeSlotId && slot.id === excludeSlotId) return false
 
-      return {
-        ...firstSlot,
-        slotName: `${firstSlot.slotName} + ${dateSlots.length - 1} more`,
-        endDateTime: lastSlot.endDateTime,
-        duration: dayjs(lastSlot.endDateTime).diff(
-          dayjs(firstSlot.startDateTime),
-          'hour',
-          true
-        ),
-        mergedSlots: dateSlots,
-      }
+      // Check if same day and same host
+      const slotDate = dayjs(slot.startDateTime).format('YYYY-MM-DD')
+      const newSlotDate = dayjs(start).format('YYYY-MM-DD')
+      return slotDate === newSlotDate && slot.hostedBy === hostedById
     })
+
+    return sameDaySlots.some(slot => {
+      const slotStart = dayjs(slot.startDateTime)
+      const slotEnd = dayjs(slot.endDateTime)
+
+      // Check for overlap: new slot overlaps with existing slot
+      return (
+        (start.isBefore(slotEnd) && end.isAfter(slotStart)) ||
+        start.isSame(slotStart) ||
+        end.isSame(slotEnd) ||
+        (start.isAfter(slotStart) && start.isBefore(slotEnd)) ||
+        (end.isAfter(slotStart) && end.isBefore(slotEnd))
+      )
+    })
+  }
+
+  // Function to get detailed conflict information
+  const getConflictDetails = (start, end, hostedById, excludeSlotId = null) => {
+    const sameDaySlots = previewSlots.filter(slot => {
+      // Exclude the slot being edited
+      if (excludeSlotId && slot.id === excludeSlotId) return false
+
+      // Check if same day and same host
+      const slotDate = dayjs(slot.startDateTime).format('YYYY-MM-DD')
+      const newSlotDate = dayjs(start).format('YYYY-MM-DD')
+      return slotDate === newSlotDate && slot.hostedBy === hostedById
+    })
+
+    const conflicts = sameDaySlots.filter(slot => {
+      const slotStart = dayjs(slot.startDateTime)
+      const slotEnd = dayjs(slot.endDateTime)
+
+      // Check for overlap: new slot overlaps with existing slot
+      return (
+        (start.isBefore(slotEnd) && end.isAfter(slotStart)) ||
+        start.isSame(slotStart) ||
+        end.isSame(slotEnd) ||
+        (start.isAfter(slotStart) && start.isBefore(slotEnd)) ||
+        (end.isAfter(slotStart) && end.isBefore(slotEnd))
+      )
+    })
+
+    return conflicts.map(slot => ({
+      slotName: slot.slotName,
+      startTime: dayjs(slot.startDateTime).format('HH:mm'),
+      endTime: dayjs(slot.endDateTime).format('HH:mm'),
+      duration: slot.duration,
+    }))
   }
 
   const handleAddSlot = async () => {
@@ -182,7 +269,28 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
         return
       }
 
-      // Check for conflicts with existing slots
+      // Check for conflicts with existing slots in preview
+      const hasConflictInPreview = checkTimeConflictInPreview(
+        start,
+        end,
+        hostedBy || user?.id
+      )
+      if (hasConflictInPreview) {
+        const conflictDetails = getConflictDetails(
+          start,
+          end,
+          hostedBy || user?.id
+        )
+        const conflictMessage =
+          conflictDetails.length > 0
+            ? `${t('slotManagement.validation.slotConflict')}\n\n${t('slotManagement.validation.conflictDetails')}:\n${conflictDetails.map(c => `- ${c.slotName}: ${c.startTime} - ${c.endTime} (${c.duration}h)`).join('\n')}`
+            : t('slotManagement.validation.slotConflict')
+
+        message.error(conflictMessage)
+        return
+      }
+
+      // Check for conflicts with existing slots in database (if available)
       const hasConflict = checkSlotConflict(start, end, hostedBy || user?.id)
       if (hasConflict) {
         message.error(t('slotManagement.validation.slotConflict'))
@@ -200,8 +308,7 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
       }
 
       const updatedSlots = [...previewSlots, newSlot]
-      const mergedSlots = mergeSlotsByDate(updatedSlots)
-      setPreviewSlots(mergedSlots)
+      setPreviewSlots(updatedSlots)
 
       // Reset form
       form.resetFields(['slotName', 'startDateTime', 'duration'])
@@ -223,6 +330,87 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
     message.success(t('slotManagement.messages.slotRemoved'))
   }
 
+  const handleStartEdit = slot => {
+    setEditingSlotId(slot.id)
+  }
+
+  const handleCancelEdit = () => {
+    setEditingSlotId(null)
+  }
+
+  const handleSaveEdit = (slot, formValues) => {
+    try {
+      const { slotName, startDateTime, duration, slotType, hostedBy } =
+        formValues
+
+      // Calculate end date time
+      const start = dayjs(startDateTime)
+      const end = start.add(duration, 'hour')
+
+      // Validate business rules
+      const validationError = validateSlot(
+        start,
+        end,
+        slotType,
+        user?.role.toUpperCase(),
+        t
+      )
+      if (validationError) {
+        message.error(validationError)
+        return
+      }
+
+      // Check for conflicts with existing slots in preview (excluding current slot being edited)
+      const hasConflictInPreview = checkTimeConflictInPreview(
+        start,
+        end,
+        hostedBy || user?.id,
+        slot.id
+      )
+      if (hasConflictInPreview) {
+        const conflictDetails = getConflictDetails(
+          start,
+          end,
+          hostedBy || user?.id,
+          slot.id
+        )
+        const conflictMessage =
+          conflictDetails.length > 0
+            ? `${t('slotManagement.validation.slotConflict')}\n\n${t('slotManagement.validation.conflictDetails')}:\n${conflictDetails.map(c => `- ${c.slotName}: ${c.startTime} - ${c.endTime} (${c.duration}h)`).join('\n')}`
+            : t('slotManagement.validation.slotConflict')
+
+        message.error(conflictMessage)
+        return
+      }
+
+      // Check for conflicts with existing slots in database (if available)
+      const hasConflict = checkSlotConflict(start, end, hostedBy || user?.id)
+      if (hasConflict) {
+        message.error(t('slotManagement.validation.slotConflict'))
+        return
+      }
+
+      const updatedSlot = {
+        ...slot,
+        slotName,
+        startDateTime: start,
+        endDateTime: end,
+        duration,
+        slotType,
+        hostedBy: hostedBy || user?.id,
+      }
+
+      const updatedSlots = previewSlots.map(s =>
+        s.id === slot.id ? updatedSlot : s
+      )
+      setPreviewSlots(updatedSlots)
+      setEditingSlotId(null)
+      message.success(t('slotManagement.messages.slotUpdated'))
+    } catch (error) {
+      console.error('Error updating slot:', error)
+    }
+  }
+
   const handleSubmit = async () => {
     if (previewSlots.length === 0) {
       message.warning(t('slotManagement.messages.noSlotsToCreate'))
@@ -230,51 +418,43 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
     }
 
     try {
-      const slotsToCreate = previewSlots.flatMap(slot => {
-        if (slot.mergedSlots) {
-          // Expand merged slots back to individual slots
-          return slot.mergedSlots.map(mergedSlot => ({
-            slotName: mergedSlot.slotName,
-            startDateTime: dayjs(mergedSlot.startDateTime)
-              .tz(VN_TZ)
-              .format(VN_TZ_FORMAT),
-            endDateTime: dayjs(mergedSlot.endDateTime)
-              .tz(VN_TZ)
-              .format(VN_TZ_FORMAT),
-            slotType: mergedSlot.slotType,
-          }))
-        } else {
-          return [
-            {
-              slotName: slot.slotName,
-              startDateTime: dayjs(slot.startDateTime)
-                .tz(VN_TZ)
-                .format(VN_TZ_FORMAT),
-              endDateTime: dayjs(slot.endDateTime)
-                .tz(VN_TZ)
-                .format(VN_TZ_FORMAT),
-              slotType: slot.slotType,
-            },
-          ]
-        }
-      })
+      const slotsToCreate = previewSlots.map(slot => ({
+        slotName: slot.slotName,
+        startDateTime: dayjs(slot.startDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
+        endDateTime: dayjs(slot.endDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
+        slotType: slot.slotType,
+      }))
 
       const result = await dispatch(createSlots(slotsToCreate)).unwrap()
       if (result) {
-        message.success(t('slotManagement.messages.createSuccess'))
         setPreviewSlots([])
         form.resetFields()
-        onSuccess()
+        setConflictSlots([])
+        onSuccess(t('slotManagement.messages.createSuccess'))
       }
     } catch (error) {
-      console.error('Error creating slots:', error)
+      console.log(error.conflicts)
+      setConflictSlots(error.conflicts || [])
+      message.error(t('slotManagement.messages.slotConflict'))
     }
   }
 
   const handleCancel = () => {
     form.resetFields()
     setPreviewSlots([])
+    setEditingSlotId(null)
+    setConflictSlots([])
     onCancel()
+  }
+
+  const toggleDateExpansion = dateKey => {
+    const newExpanded = new Set(expandedDates)
+    if (newExpanded.has(dateKey)) {
+      newExpanded.delete(dateKey)
+    } else {
+      newExpanded.add(dateKey)
+    }
+    setExpandedDates(newExpanded)
   }
 
   const disabledDate = current => {
@@ -350,61 +530,297 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
     return type === 'APPOINTMENT' ? 'blue' : 'green'
   }
 
-  const renderSlotPreview = (slot, index) => (
-    <Card
-      key={index}
-      size="small"
-      style={{ marginBottom: 8 }}
-      extra={
-        <Popconfirm
-          title={t('slotManagement.preview.deleteConfirm')}
-          onConfirm={() => handleRemoveSlot(slot.id)}
-          okText={t('common.yes')}
-          cancelText={t('common.no')}
-        >
-          <Button type="text" danger icon={<DeleteOutlined />} size="small" />
-        </Popconfirm>
-      }
-    >
-      <div style={{ marginBottom: 8 }}>
-        <Space>
-          <Text strong>{slot.slotName}</Text>
-          <Tag color={getSlotTypeColor(slot.slotType)}>
-            {slot.slotType === 'APPOINTMENT'
-              ? t('slotManagement.typeOptions.appointment')
-              : t('slotManagement.typeOptions.program')}
-          </Tag>
-          {slot.mergedSlots && (
-            <Badge count={slot.mergedSlots.length} size="small" />
-          )}
-        </Space>
-      </div>
+  const InlineEditForm = ({ slot, onSave, onCancel }) => {
+    const [editForm] = Form.useForm()
 
-      <div style={{ fontSize: 12, color: '#666' }}>
-        <div>
-          <CalendarOutlined style={{ marginRight: 4 }} />
-          {dayjs(slot.startDateTime).format('DD/MM/YYYY HH:mm')} -{' '}
-          {dayjs(slot.endDateTime).format('HH:mm')}
-        </div>
-        <div>
-          <ClockCircleOutlined style={{ marginRight: 4 }} />
-          {slot.duration} {t('slotManagement.preview.hours')}
-        </div>
-        <div>
-          <UserOutlined style={{ marginRight: 4 }} />
-          {user?.role.toUpperCase() === 'MANAGER' && slot.hostedBy
-            ? getSelectedUser(slot.hostedBy)?.fullName ||
-              getSelectedUser(slot.hostedBy)?.email
-            : user?.fullName || user?.email}
-        </div>
+    useEffect(() => {
+      editForm.setFieldsValue({
+        slotName: slot.slotName,
+        startDateTime: slot.startDateTime,
+        duration: slot.duration,
+        slotType: slot.slotType,
+        hostedBy: slot.hostedBy,
+      })
+    }, [slot, editForm])
+
+    const handleSave = async () => {
+      try {
+        const values = await editForm.validateFields()
+        onSave(slot, values)
+      } catch (error) {
+        console.error('Validation error:', error)
+      }
+    }
+
+    return (
+      <div style={{ padding: '8px 0' }}>
+        <Form form={editForm} layout="vertical" size="small">
+          <Row gutter={8}>
+            <Col span={8}>
+              <Form.Item
+                name="slotName"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <Input placeholder="Slot name" />
+              </Form.Item>
+            </Col>
+            <Col span={6}>
+              <Form.Item
+                name="startDateTime"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <DatePicker
+                  showTime={{ format: 'HH:mm' }}
+                  format="MM-DD HH:mm"
+                  placeholder="Start time"
+                  disabledDate={disabledDate}
+                  disabledTime={disabledTime}
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item
+                name="duration"
+                rules={[{ required: true, message: 'Required' }]}
+              >
+                <InputNumber
+                  min={1}
+                  max={8}
+                  placeholder="Hours"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={4}>
+              <Form.Item name="slotType">
+                <Select size="small">
+                  {user?.role.toUpperCase() === 'MANAGER' ? (
+                    <>
+                      <Option value="PROGRAM">
+                        {t('slotManagement.typeOptions.program')}
+                      </Option>
+                    </>
+                  ) : (
+                    <Option value="APPOINTMENT">
+                      {t('slotManagement.typeOptions.appointment')}
+                    </Option>
+                  )}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={2}>
+              <Space>
+                <Button
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  size="small"
+                  onClick={handleSave}
+                />
+                <Button
+                  icon={<CloseOutlined />}
+                  size="small"
+                  onClick={onCancel}
+                />
+              </Space>
+            </Col>
+          </Row>
+        </Form>
       </div>
-    </Card>
-  )
+    )
+  }
+
+  const renderIndividualSlot = slot => {
+    const isEditing = editingSlotId === slot.id
+    const isConflicting = isSlotInConflict(slot)
+    const conflictReason = getConflictReason(slot)
+
+    return (
+      <Card
+        key={slot.id}
+        size="small"
+        style={{
+          marginBottom: 8,
+          marginLeft: 16,
+          border: isConflicting ? '2px solid #ff4d4f' : undefined,
+          backgroundColor: isConflicting ? '#fff1f0' : undefined,
+        }}
+        extra={
+          <Space>
+            {!isEditing ? (
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                size="small"
+                onClick={() => handleStartEdit(slot)}
+              />
+            ) : null}
+            <Popconfirm
+              title={t('slotManagement.preview.deleteConfirm')}
+              onConfirm={() => handleRemoveSlot(slot.id)}
+              okText={t('common.yes')}
+              cancelText={t('common.no')}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              />
+            </Popconfirm>
+          </Space>
+        }
+      >
+        {isEditing ? (
+          <InlineEditForm
+            slot={slot}
+            onSave={handleSaveEdit}
+            onCancel={handleCancelEdit}
+          />
+        ) : (
+          <>
+            <div style={{ marginBottom: 8 }}>
+              <Space>
+                <Text
+                  strong
+                  style={{ color: isConflicting ? '#ff4d4f' : undefined }}
+                >
+                  {slot.slotName}
+                </Text>
+                <Tag color={getSlotTypeColor(slot.slotType)}>
+                  {slot.slotType === 'APPOINTMENT'
+                    ? t('slotManagement.typeOptions.appointment')
+                    : t('slotManagement.typeOptions.program')}
+                </Tag>
+                {isConflicting && (
+                  <Tag color="red" icon={<ExclamationCircleOutlined />}>
+                    Conflict
+                  </Tag>
+                )}
+              </Space>
+            </div>
+
+            <div
+              style={{
+                fontSize: 12,
+                color: isConflicting ? '#ff4d4f' : '#666',
+              }}
+            >
+              <div>
+                <ClockCircleOutlined style={{ marginRight: 4 }} />
+                {dayjs(slot.startDateTime).format('HH:mm')} -{' '}
+                {dayjs(slot.endDateTime).format('HH:mm')}
+              </div>
+              <div>
+                <ClockCircleOutlined style={{ marginRight: 4 }} />
+                {slot.duration} {t('slotManagement.preview.hours')}
+              </div>
+              <div>
+                <UserOutlined style={{ marginRight: 4 }} />
+                {user?.role.toUpperCase() === 'MANAGER' && slot.hostedBy
+                  ? getSelectedUser(slot.hostedBy)?.fullName ||
+                    getSelectedUser(slot.hostedBy)?.email
+                  : user?.fullName || user?.email}
+              </div>
+              {isConflicting && conflictReason && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    padding: 8,
+                    background: '#fff2f0',
+                    borderRadius: 4,
+                  }}
+                >
+                  <ExclamationCircleOutlined
+                    style={{ color: '#ff4d4f', marginRight: 4 }}
+                  />
+                  <Text type="danger" style={{ fontSize: 11 }}>
+                    {conflictReason}
+                  </Text>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </Card>
+    )
+  }
+
+  const renderDateGroup = dateGroup => {
+    const hasConflictsInGroup = dateGroup.slots.some(slot =>
+      isSlotInConflict(slot)
+    )
+
+    return (
+      <Card
+        key={dateGroup.dateKey}
+        size="small"
+        style={{
+          marginBottom: 8,
+          border: hasConflictsInGroup ? '2px solid #ff4d4f' : undefined,
+          backgroundColor: hasConflictsInGroup ? '#fff1f0' : undefined,
+        }}
+        extra={
+          <Space>
+            {hasConflictsInGroup && (
+              <Tag color="red" icon={<ExclamationCircleOutlined />}>
+                Has Conflicts
+              </Tag>
+            )}
+            <Button
+              type="text"
+              icon={
+                expandedDates.has(dateGroup.dateKey) ? (
+                  <UpOutlined />
+                ) : (
+                  <DownOutlined />
+                )
+              }
+              size="small"
+              onClick={() => toggleDateExpansion(dateGroup.dateKey)}
+            >
+              {expandedDates.has(dateGroup.dateKey) ? 'Thu gọn' : 'Mở rộng'}
+            </Button>
+          </Space>
+        }
+      >
+        <div style={{ marginBottom: 8 }}>
+          <Space>
+            <CalendarOutlined
+              style={{ color: hasConflictsInGroup ? '#ff4d4f' : '#1890ff' }}
+            />
+            <Text
+              strong
+              style={{ color: hasConflictsInGroup ? '#ff4d4f' : undefined }}
+            >
+              {dateGroup.date.format('DD/MM/YYYY')}
+            </Text>
+            <Badge
+              count={dateGroup.totalSlots}
+              size="small"
+              style={{
+                backgroundColor: hasConflictsInGroup ? '#ff4d4f' : undefined,
+              }}
+            />
+          </Space>
+        </div>
+
+        {expandedDates.has(dateGroup.dateKey) && (
+          <div style={{ marginTop: 8 }}>
+            {dateGroup.slots.map(slot => renderIndividualSlot(slot))}
+          </div>
+        )}
+      </Card>
+    )
+  }
+
+  const groupedSlots = groupSlotsByDate(previewSlots)
+  const hasConflicts = conflictSlots.length > 0
 
   return (
     <Modal
       title={
-        <div style={{ textAlign: 'center' }}>
+        <div>
           <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
             {t('slotManagement.addSlot')}
           </Title>
@@ -413,7 +829,7 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
       open={visible}
       onCancel={handleCancel}
       footer={null}
-      width={1200}
+      width={1400}
       centered
     >
       <Row gutter={24}>
@@ -529,7 +945,7 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
                   min={1}
                   max={8}
                   style={{ width: '100%' }}
-                  placeholder="Enter duration in hours"
+                  placeholder={t('slotManagement.form.durationPlaceholder')}
                   size="large"
                 />
               </Form.Item>
@@ -553,12 +969,15 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
                   placeholder={t('slotManagement.form.slotTypeRequired')}
                   size="large"
                 >
-                  <Option value="APPOINTMENT">
-                    {t('slotManagement.typeOptions.appointment')}
-                  </Option>
-                  <Option value="PROGRAM">
-                    {t('slotManagement.typeOptions.program')}
-                  </Option>
+                  {user?.role.toUpperCase() !== 'MANAGER' ? (
+                    <Option value="APPOINTMENT">
+                      {t('slotManagement.typeOptions.appointment')}
+                    </Option>
+                  ) : (
+                    <Option value="PROGRAM">
+                      {t('slotManagement.typeOptions.program')}
+                    </Option>
+                  )}
                 </Select>
               </Form.Item>
 
@@ -622,9 +1041,22 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
           <Card
             title={
               <Space>
-                <InfoCircleOutlined style={{ color: '#52c41a' }} />
-                <Text strong>{t('slotManagement.preview.title')}</Text>
-                <Badge count={previewSlots.length} showZero />
+                <InfoCircleOutlined
+                  style={{ color: hasConflicts ? '#ff4d4f' : '#52c41a' }}
+                />
+                <Text
+                  strong
+                  style={{ color: hasConflicts ? '#ff4d4f' : undefined }}
+                >
+                  {t('slotManagement.preview.title')}
+                </Text>
+                <Badge
+                  count={previewSlots.length}
+                  showZero
+                  style={{
+                    backgroundColor: hasConflicts ? '#ff4d4f' : undefined,
+                  }}
+                />
               </Space>
             }
             style={{ height: '100%' }}
@@ -636,6 +1068,7 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
                   onClick={handleSubmit}
                   loading={createLoading}
                   disabled={previewSlots.length === 0}
+                  danger={hasConflicts}
                 >
                   {t('slotManagement.form.createAll')}
                 </Button>
@@ -645,11 +1078,49 @@ const SlotModal = ({ visible, onCancel, onSuccess }) => {
               </Space>
             }
           >
-            {previewSlots.length > 0 ? (
+            {hasConflicts && (
+              <Alert
+                message="Time Conflicts Detected"
+                description={
+                  <div>
+                    <Text strong>
+                      The following slots have conflicts with existing slots in
+                      the database:
+                    </Text>
+                    <ul style={{ marginTop: 8, marginBottom: 0 }}>
+                      {conflictSlots.map((conflict, index) => (
+                        <li key={index} style={{ marginBottom: 4 }}>
+                          <Text strong>{conflict.slotName}</Text> (
+                          {dayjs(conflict.startDateTime).format('HH:mm')} -{' '}
+                          {dayjs(conflict.endDateTime).format('HH:mm')})
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {conflict.reason}
+                          </Text>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                }
+                type="error"
+                showIcon
+                icon={<ExclamationCircleOutlined />}
+                style={{ marginBottom: 16 }}
+                action={
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => setConflictSlots([])}
+                  >
+                    Clear Conflicts
+                  </Button>
+                }
+              />
+            )}
+
+            {groupedSlots.length > 0 ? (
               <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-                {previewSlots.map((slot, index) =>
-                  renderSlotPreview(slot, index)
-                )}
+                {groupedSlots.map(dateGroup => renderDateGroup(dateGroup))}
               </div>
             ) : (
               <Empty

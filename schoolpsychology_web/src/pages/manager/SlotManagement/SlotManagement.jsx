@@ -34,25 +34,13 @@ import { useTheme } from '@/contexts/ThemeContext'
 const { Search } = Input
 const { Title, Text } = Typography
 
-const mapSlotData = slot => ({
-  id: slot?.id || '',
-  slot_name: slot?.slotName || '',
-  type: slot?.slotType || '',
-  start_date_time: slot?.startDateTime || '',
-  end_date_time: slot?.endDateTime || '',
-  status: slot?.status || 0,
-  hosted_by: slot?.fullName || '',
-  // Thêm các trường khác nếu cần
-})
-
 const SlotManagement = () => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { user } = useAuth()
   const { isDarkMode } = useTheme()
-
-  const rawSlots = useSelector(selectSlots)
-  const slots = Array.isArray(rawSlots) ? rawSlots.map(mapSlotData) : []
+  const [messageApi, contextHolder] = message.useMessage()
+  const slots = useSelector(selectSlots)
   const loading = useSelector(selectSlotLoading)
   const error = useSelector(selectSlotError)
 
@@ -89,7 +77,7 @@ const SlotManagement = () => {
 
     return slots.filter(slot => {
       const matchesSearch =
-        slot?.slot_name?.toLowerCase()?.includes(searchText.toLowerCase()) ??
+        slot?.slotName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
         false
       const matchesType = !filters.slotType || slot.type === filters.slotType
       const matchesStatus = !filters.status || slot.status === filters.status
@@ -157,26 +145,35 @@ const SlotManagement = () => {
   const columns = [
     {
       title: t('slotManagement.table.slotName'),
-      dataIndex: 'slot_name',
-      key: 'slot_name',
-      sorter: (a, b) => (a.slot_name || '').localeCompare(b.slot_name || ''),
+      dataIndex: 'slotName',
+      key: 'slotName',
+      sorter: (a, b) => (a.slotName || '').localeCompare(b.slotName || ''),
+    },
+    {
+      title: t('slotManagement.table.fullName'),
+      dataIndex: 'fullName',
+      key: 'fullName',
+      render: fullName => {
+        // This would need to be enhanced with actual user data
+        return `${fullName}`
+      },
+      hidden: user?.role !== 'manager',
     },
     {
       title: t('slotManagement.table.hostedBy'),
-      dataIndex: 'hosted_by',
-      key: 'hosted_by',
-      render: hostedBy => {
+      dataIndex: 'roleName',
+      key: 'roleName',
+      render: roleName => {
         // This would need to be enhanced with actual user data
-        return `${hostedBy}`
+        return `${roleName}`
       },
-
       hidden: user?.role !== 'manager',
     },
     {
       title: t('slotManagement.table.type'),
-      dataIndex: 'type',
-      key: 'type',
-      render: type => getTypeText(type),
+      dataIndex: 'slotType',
+      key: 'slotType',
+      render: slotType => getTypeText(slotType),
       width: user?.role !== 'manager' ? 170 : 150,
       filters: [
         {
@@ -185,26 +182,25 @@ const SlotManagement = () => {
         },
         { text: t('slotManagement.typeOptions.program'), value: 'PROGRAM' },
       ],
-      onFilter: (value, record) => record.type === value,
+      onFilter: (value, record) => record.slotType === value,
     },
     {
       title: t('slotManagement.table.startTime'),
-      dataIndex: 'start_date_time',
-      key: 'start_date_time',
+      dataIndex: 'startDateTime',
+      key: 'startDateTime',
       render: dateTime => formatDateTime(dateTime),
       width: 200,
       sorter: (a, b) =>
-        dayjs(a.start_date_time || 0).unix() -
-        dayjs(b.start_date_time || 0).unix(),
+        dayjs(a.startDateTime || 0).unix() - dayjs(b.startDateTime || 0).unix(),
     },
     {
       title: t('slotManagement.table.endTime'),
-      dataIndex: 'end_date_time',
-      key: 'end_date_time',
+      dataIndex: 'endDateTime',
+      key: 'endDateTime',
       render: dateTime => formatDateTime(dateTime),
       width: 200,
       sorter: (a, b) =>
-        dayjs(a.end_date_time || 0).unix() - dayjs(b.end_date_time || 0).unix(),
+        dayjs(a.endDateTime || 0).unix() - dayjs(b.endDateTime || 0).unix(),
     },
     {
       title: t('slotManagement.table.status'),
@@ -213,10 +209,12 @@ const SlotManagement = () => {
       render: status => getStatusBadge(status),
       width: 200,
       filters: [
-        { text: t('slotManagement.statusOptions.active'), value: 1 },
-        { text: t('slotManagement.statusOptions.inactive'), value: 0 },
-        { text: t('slotManagement.statusOptions.booked'), value: 2 },
-        { text: t('slotManagement.statusOptions.cancelled'), value: 3 },
+        {
+          text: t('slotManagement.statusOptions.published'),
+          value: 'PUBLISHED',
+        },
+        { text: t('slotManagement.statusOptions.draft'), value: 'DRAFT' },
+        { text: t('slotManagement.statusOptions.closed'), value: 'CLOSED' },
       ],
       onFilter: (value, record) => record.status === value,
     },
@@ -224,6 +222,7 @@ const SlotManagement = () => {
 
   return (
     <div className="p-6">
+      {contextHolder}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -276,7 +275,7 @@ const SlotManagement = () => {
       </Card>
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
         <Table
-          columns={columns}
+          columns={columns.filter(col => !col.hidden)}
           dataSource={paginatedSlots}
           rowKey="id"
           loading={loading}
@@ -295,8 +294,10 @@ const SlotManagement = () => {
       <SlotModal
         visible={isModalVisible}
         onCancel={() => setIsModalVisible(false)}
-        onSuccess={() => {
+        message={messageApi}
+        onSuccess={message => {
           setIsModalVisible(false)
+          messageApi.success(message)
           handleRefresh()
         }}
       />
