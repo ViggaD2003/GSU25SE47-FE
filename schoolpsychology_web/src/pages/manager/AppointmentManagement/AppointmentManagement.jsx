@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 
 
 const STATUS_COLORS = {
@@ -88,7 +89,7 @@ const sampleAppointments = [
 ]
 
 const AppointmentManagement = () => {
-
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
@@ -185,9 +186,9 @@ const AppointmentManagement = () => {
                     <button className="hover:bg-green-50 p-2 rounded" title="Edit">
                       <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a4 4 0 01-1.414.828l-4 1a1 1 0 01-1.263-1.263l1-4a4 4 0 01.828-1.414z" /></svg>
                     </button>
-                    {/* Alert icon */}
-                    <button className="hover:bg-red-50 p-2 rounded" title="Alert">
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01M21 19a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h7l5 5v11z" /></svg>
+                    {/* Details icon */}
+                    <button className="hover:bg-blue-50 p-2 rounded" title="Details" onClick={() => navigate(`/manager/appointments/${item.id}`)}>
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
                     </button>
                   </td>
                 </tr>
