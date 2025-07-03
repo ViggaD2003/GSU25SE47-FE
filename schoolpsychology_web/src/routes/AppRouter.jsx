@@ -31,6 +31,8 @@ const ProgramManagement = lazy(
   () => import('@/pages/manager/ProgramManagement')
 )
 const SlotManagement = lazy(() => import('@/pages/manager/SlotManagement'))
+const AppointmentDetails = lazy(() => import('@/pages/manager/AppointmentManagement/AppointmentDetails'))
+
 
 const AppRouter = () => {
   const elementMap = {
@@ -42,6 +44,7 @@ const AppRouter = () => {
     CaseManagement,
     ProgramManagement,
     SlotManagement,
+    AppointmentDetails
   }
 
   return (
@@ -107,6 +110,14 @@ const AppRouter = () => {
             />
           )
         })}
+        {/* <Route
+          path="/appointment-management/details"
+          element={
+            <ProtectedRoute allowedRoles={['teacher', 'counselor']}>
+              <AppointmentDetails />
+            </ProtectedRoute>
+          }
+        /> */}
       </Route>
 
       {/* 404 route */}

@@ -47,7 +47,21 @@ export const ROUTE_CONFIG = [
     labelKey: 'navigation.appointmentsManagement',
     allowedRoles: ['teacher', 'counselor'],
     element: 'AppointmentManagement',
+    children: [
+      {
+        key: '/appointment-management',
+        labelKey:"Appointment Management",
+        element: 'AppointmentManagement',
+      },
+      {
+        key: '/appointment-management/details',
+        labelKey:"Appointment Details",
+        element: 'AppointmentDetails',
+        hidden: true, 
+      },
+    ],
   },
+
   {
     key: '/survey-management',
     icon: FileTextOutlined,

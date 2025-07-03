@@ -10,6 +10,10 @@ import {
     Legend,
     Title as ChartTitle,
 } from 'chart.js';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '../../../contexts/ThemeContext'
+import { useNavigate } from 'react-router-dom';
+// import { useParams } from 'react-router-dom';
 
 ChartJS.register(
     CategoryScale,
@@ -25,10 +29,7 @@ const surveyTypes = [
     { value: 'emotional', label: 'Emotional Well-being' },
     { value: 'academic', label: 'Academic Performance' },
 ];
-const dateRanges = [
-    { value: 'start-end', label: 'Start Date → End Date' },
-    { value: 'end-start', label: 'End Date → Start Date' },
-];
+
 
 const surveyChartData = {
     labels: ['Dec 1', 'Jan 1', 'Feb 1', 'Mar 1', 'Apr 1', 'May 1'],
@@ -64,9 +65,12 @@ const surveyChartData = {
 };
 
 const AppointmentDetails = () => {
-    // const { t } = useTranslation();
+    const { t } = useTranslation();
+    // const { id } = useParams();
     const [surveyType, setSurveyType] = useState(surveyTypes[0].value);
-    const [dateRange, setDateRange] = useState(dateRanges[0].value);
+    const { isDarkMode } = useTheme();
+    const navigate = useNavigate();
+
 
     // Mock data for appointment and student
     const data = {
@@ -77,7 +81,7 @@ const AppointmentDetails = () => {
             code: 'qtq-gqep-hxe',
             formality: 'Online',
             note: 'I am feeling not well today. My academic grade been so low lately.',
-            status: 'Moderate',
+            status: t('appointmentDetails.moderate'),
         },
         student: {
             fullName: 'Nguyen Van A',
@@ -111,89 +115,96 @@ const AppointmentDetails = () => {
     }), []);
 
     return (
-        <div className="min-h-screen bg-[#f7f7f7] px-4 py-6">
-            <div className="max-w-4xl mx-auto bg-white rounded-xl shadow p-6">
+        <div className="space-y-8">
+            <button
+                className={`mb-4 px-6 py-2 rounded-lg font-semibold transition ${isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+                onClick={() => navigate('/appointment-management')}
+            >
+                &#8592; Back to Management
+            </button>
+            <div className={`max-w-[1200px] mx-auto rounded-2xl shadow-lg p-10 flex flex-col gap-8 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
                 {/* Header */}
-                <div className="flex items-center gap-3 mb-2">
-                    <img src="/logo.svg" alt="logo" className="w-10 h-10" />
-                    <span className="text-lg font-semibold text-gray-900">Meeting with {data.meeting.with}</span>
-                    <span className="ml-2 px-2 py-1 rounded bg-yellow-100 text-yellow-800 text-xs font-semibold">{data.meeting.status}</span>
+                <div className="flex items-center gap-4 mb-2">
+                    <span className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{t('appointmentDetails.meetingWith', { name: data.meeting.with })}</span>
+                    <span className="ml-2 px-3 py-1 rounded bg-yellow-100 text-yellow-800 text-sm font-semibold">{data.meeting.status}</span>
                 </div>
-                <div className="text-gray-700 mb-2">
-                    <span className="mr-4">{data.meeting.date}</span>
+                <div className={`flex gap-8 mb-2 text-base ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <span>{data.meeting.date}</span>
                     <span>{data.meeting.time}</span>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                    <span className="font-mono bg-gray-100 px-2 py-1 rounded text-green-700 text-sm">{data.meeting.code}</span>
-                    <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded text-xs font-semibold">Online</span>
+                <div className="flex items-center gap-3 mb-2">
+                    <span className="font-mono bg-gray-100 px-3 py-1 rounded text-green-700 text-base">{data.meeting.code}</span>
+                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded text-xs font-semibold">{data.meeting.formality}</span>
                 </div>
                 <div className="mb-2">
-                    <span className="font-semibold">Student's Note</span>
-                    <div className="text-gray-800">{data.meeting.note}</div>
+                    <span className={`font-semibold text-base ${isDarkMode ? 'text-gray-300' : ''}`}>{t('appointmentDetails.studentNote')}</span>
+                    <div className={`mt-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{data.meeting.note}</div>
                 </div>
-                <div className="flex gap-2 mb-4">
-                    <button className="bg-green-700 text-white px-6 py-2 rounded font-semibold hover:bg-green-800">Join</button>
-                    <button className="bg-gray-200 text-gray-800 px-6 py-2 rounded font-semibold hover:bg-gray-300">Chat with participant</button>
+                <div className="flex gap-3 mb-6">
+                    <button className="bg-green-700 text-white px-8 py-2 rounded-lg font-semibold hover:bg-green-800 transition">{t('appointmentDetails.join')}</button>
+                    <button className={`px-8 py-2 rounded-lg font-semibold transition ${isDarkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}>{t('appointmentDetails.chat')}</button>
                 </div>
                 {/* Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div>
-                        <div className="font-bold mb-2 text-[22px] text-black">Personal Infomation</div>
-                        <div className="bg-[#f3fff6] rounded-xl p-6">
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Full Name</span>
-                                <span className="text-[#222]">{data.student.fullName}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Sex</span>
-                                <span className="text-[#222]">{data.student.sex}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Date of Birth</span>
-                                <span className="text-[#222]">{data.student.dob}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Address</span>
-                                <span className="text-[#222]">{data.student.address}</span>
-                            </div>
-                            <div className="flex">
-                                <span className="font-bold min-w-[130px] text-[#111]">Phone Number</span>
-                                <span className="text-[#222]">{data.student.phone}</span>
+                <div className="mb-6">
+                    <div className={`rounded-2xl p-6 flex flex-col md:flex-row gap-8 ${isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-[#f3fff6]'}`}>
+                        <div className="flex-1">
+                            <div className={`font-bold mb-3 text-[22px] ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('appointmentDetails.personalInfo')}</div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.fullName')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.fullName}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.sex')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.sex}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.dob')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.dob}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.address')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.address}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.phone')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.phone}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div>
-                        <div className="font-bold mb-2 text-[22px] text-black">Study Information</div>
-                        <div className="bg-[#f3fff6] rounded-xl p-6">
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Code Student</span>
-                                <span className="text-[#222]">{data.student.code}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Admission date</span>
-                                <span className="text-[#222]">{data.student.admission}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Status</span>
-                                <span className="text-[#222]">{data.student.status}</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="font-bold min-w-[130px] text-[#111]">Semester</span>
-                                <span className="text-[#222]">{data.student.semester}</span>
-                            </div>
-                            <div className="flex">
-                                <span className="font-bold min-w-[130px] text-[#111]">Class</span>
-                                <span className="text-[#222]">{data.student.class}</span>
+                        <div className="flex-1">
+                            <div className={`font-bold mb-3 text-[22px] ${isDarkMode ? 'text-white' : 'text-black'}`}>{t('appointmentDetails.studyInfo')}</div>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.codeStudent')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.code}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.admission')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.admission}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.status')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.status}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.semester')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.semester}</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className={`font-bold min-w-[140px] ${isDarkMode ? 'text-gray-300' : 'text-[#111]'}`}>{t('appointmentDetails.class')}</span>
+                                    <span className={isDarkMode ? 'text-gray-100' : 'text-[#222]'}>{data.student.class}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 {/* Survey Progress Chart */}
-                <div className="bg-white rounded-lg p-4 border mt-4">
-                    <div className="flex flex-wrap items-center gap-4 mb-2">
-                        <div className="font-semibold">Survey Progress Over Time</div>
+                <div className={`rounded-2xl shadow-md mt-4 px-8 py-6 w-full border-1 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+                    <div className="flex flex-wrap items-center gap-4 mb-4">
+                        <div className={`font-semibold text-lg ${isDarkMode ? 'text-white' : ''}`}>{t('appointmentDetails.surveyProgress')}</div>
                         <select
-                            className="border rounded px-2 py-1 text-sm"
+                            className={`border rounded px-2 py-1 text-sm ${isDarkMode ? 'bg-gray-900 text-white border-gray-700' : ''}`}
                             value={surveyType}
                             onChange={e => setSurveyType(e.target.value)}
                         >
@@ -201,18 +212,10 @@ const AppointmentDetails = () => {
                                 <option key={opt.value} value={opt.value}>{opt.label}</option>
                             ))}
                         </select>
-                        <select
-                            className="border rounded px-2 py-1 text-sm"
-                            value={dateRange}
-                            onChange={e => setDateRange(e.target.value)}
-                        >
-                            {dateRanges.map(opt => (
-                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                            ))}
-                        </select>
+
                     </div>
-                    <div className="h-64">
-                        <Line data={surveyChartData} options={chartOptions} />
+                    <div className="h-72">
+                        <Line data={surveyChartData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, legend: { ...chartOptions.plugins.legend, labels: { color: isDarkMode ? '#fff' : '#222', font: { size: 14 } } } }, scales: { x: { ticks: { color: isDarkMode ? '#fff' : '#222' } }, y: { ticks: { color: isDarkMode ? '#fff' : '#222' } } } }} />
                     </div>
                 </div>
             </div>

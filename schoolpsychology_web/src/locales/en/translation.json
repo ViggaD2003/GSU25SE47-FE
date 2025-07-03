@@ -347,5 +347,25 @@
     "action": "Action",
     "yes": "Yes",
     "no": "No"
+  },
+  "appointmentDetails": {
+    "meetingWith": "Meeting with {{name}}",
+    "moderate": "Moderate",
+    "studentNote": "Student's Note",
+    "join": "Join",
+    "chat": "Chat with participant",
+    "personalInfo": "Personal Information",
+    "studyInfo": "Study Information",
+    "fullName": "Full Name",
+    "sex": "Sex",
+    "dob": "Date of Birth",
+    "address": "Address",
+    "phone": "Phone Number",
+    "codeStudent": "Student Code",
+    "admission": "Admission Date",
+    "status": "Status",
+    "semester": "Semester",
+    "class": "Class",
+    "surveyProgress": "Survey Progress Over Time"
   }
 }

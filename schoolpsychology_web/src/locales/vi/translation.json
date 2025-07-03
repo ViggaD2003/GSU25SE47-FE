@@ -341,5 +341,25 @@
     "studentId": "Mã sinh viên",
     "fullName": "Họ và tên",
     "time": "Thời gian"
+  },
+  "appointmentDetails": {
+    "meetingWith": "Cuộc hẹn với {{name}}",
+    "moderate": "Trung bình",
+    "studentNote": "Ghi chú của học sinh",
+    "join": "Tham gia",
+    "chat": "Trò chuyện với người tham gia",
+    "personalInfo": "Thông tin cá nhân",
+    "studyInfo": "Thông tin học tập",
+    "fullName": "Họ và tên",
+    "sex": "Giới tính",
+    "dob": "Ngày sinh",
+    "address": "Địa chỉ",
+    "phone": "Số điện thoại",
+    "codeStudent": "Mã học sinh",
+    "admission": "Ngày nhập học",
+    "status": "Trạng thái",
+    "semester": "Học kỳ",
+    "class": "Lớp",
+    "surveyProgress": "Tiến trình khảo sát theo thời gian"
   }
 }
