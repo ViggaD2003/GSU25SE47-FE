@@ -7,6 +7,9 @@ import { EvilIcons, Ionicons } from "@expo/vector-icons";
 import { Badge } from "react-native-paper";
 import { useAuth } from "../contexts";
 import {
+  AppointmentConfirmScreen,
+  AppointmentDetailsScreen,
+  AppointmentRecordScreen,
   BlogScreen,
   ChangePasswordScreen,
   HomeScreen,
@@ -21,6 +24,8 @@ import {
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AppointmentScreen from "../screens/Appointment/AppointmentScreen";
+import SuccessScreen from "../components/common/SuccessScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -58,6 +63,26 @@ export default function MainTabs() {
     );
   };
 
+  const AppointmentStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="AppointmentMain" component={AppointmentScreen} />
+        <Stack.Screen
+          name="AppointmentConfirm"
+          component={AppointmentConfirmScreen}
+        />
+        <Stack.Screen
+          name="AppointmentDetails"
+          component={AppointmentDetailsScreen}
+        />
+        <Stack.Screen
+          name="AppointmentRecord"
+          component={AppointmentRecordScreen}
+        />
+      </Stack.Navigator>
+    );
+  };
+
   const CustomHeader = () => (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
@@ -82,6 +107,8 @@ export default function MainTabs() {
       />
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Survey" component={SurveyStack} />
+      <Stack.Screen name="Appointment" component={AppointmentStack} />
+      <Stack.Screen name="Success" component={SuccessScreen} />
     </Stack.Navigator>
   );
 }

@@ -420,6 +420,7 @@ const SurveyTaking = ({ route, navigation }) => {
       }
 
       const scoreLevel = getLevelConfig(totalScore);
+console.log(survey);
 
       const surveyResult = {
         level: scoreLevel?.level.toUpperCase(),
@@ -428,6 +429,7 @@ const SurveyTaking = ({ route, navigation }) => {
         surveyId: survey?.surveyId,
         totalScore: totalScore,
         answerRecordRequests: answerRecordRequests,
+        categoryId: survey?.questions[0].category.id,
       };
 
       // console.log("Survey submitted:", surveyResult);

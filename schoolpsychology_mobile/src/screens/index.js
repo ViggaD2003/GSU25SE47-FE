@@ -22,3 +22,9 @@ export { default as BlogDetails } from "./Blog/BlogDetails";
 
 // Notification screens
 export { default as NotificationScreen } from "./Notification/NotificationScreen";
+
+// Appointment screens
+export { default as AppointmentScreen } from "./Appointment/AppointmentScreen";
+export { default as AppointmentConfirmScreen } from "./Appointment/AppointmentConfirm";
+export { default as AppointmentDetailsScreen } from "./Appointment/AppointmentDetails";
+export { default as AppointmentRecordScreen } from "./Appointment/AppointmentRecord";

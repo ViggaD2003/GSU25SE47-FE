@@ -8,14 +8,12 @@ import {
   SafeAreaView,
   RefreshControl,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { Toast } from "../../components";
-import {
-  getSurveyDetail,
-  getSurveyRecords,
-} from "../../services/api/SurveyService";
+import { getSurveyRecords } from "../../services/api/SurveyService";
 import {
   formatDate,
   getScoreColor,
@@ -23,7 +21,10 @@ import {
   getScoreLevel,
 } from "../../utils/helpers";
 
+const PAGE_SIZE = 3; // Number of records to fetch per page
+
 const SurveyRecord = ({ navigation }) => {
+  const [allSurveyRecords, setAllSurveyRecords] = useState([]);
   const [surveyRecords, setSurveyRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -32,7 +33,7 @@ const SurveyRecord = ({ navigation }) => {
     message: "",
     type: "info",
   });
-
+  const [page, setPage] = useState(1); // Current page number
   useEffect(() => {
     fetchSurveyRecords();
   }, []);
@@ -44,32 +45,14 @@ const SurveyRecord = ({ navigation }) => {
       if (response.data) {
         // console.log("get success");
 
-        const surveyRecordsPromises = response.data
-          .filter((record) => record.status === "COMPLETED")
-          .map(async (record) => {
-            const survey = await getSurveyDetail(record.surveyId);
-            const {
-              questions,
-              createdAt,
-              updatedAt,
-              status,
-              recurringCycle,
-              isRequired,
-              isRecurring,
-              ...rest
-            } = survey;
+        const allSurveyRecords = response.data.filter(
+          (record) => record.status === "COMPLETED"
+        );
 
-            return {
-              ...record,
-              ...rest,
-              surveyId: record.surveyId,
-              surveyCode: survey.surveyCode,
-              surveyName: survey.name,
-            };
-          });
+        setAllSurveyRecords(allSurveyRecords || []);
+        const surveyRecords = allSurveyRecords.slice(0, PAGE_SIZE);
 
         // Wait for all promises to resolve
-        const surveyRecords = await Promise.all(surveyRecordsPromises);
         setSurveyRecords(surveyRecords || []);
       } else {
         showToast("Không thể tải dữ liệu khảo sát", "error");
@@ -128,7 +111,7 @@ const SurveyRecord = ({ navigation }) => {
           <Ionicons name="document-text" size={24} color="#3B82F6" />
         </View>
         <View style={styles.recordInfo}>
-          <Text style={styles.recordTitle}>{record.name}</Text>
+          <Text style={styles.recordTitle}>{record.survey.name}</Text>
           <Text style={styles.recordDate}>
             Hoàn thành: {formatDate(record.completedAt)}
           </Text>
@@ -172,23 +155,15 @@ const SurveyRecord = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  // if (loading) {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <View style={styles.header}>
-  //         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-  //           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-  //         </TouchableOpacity>
-  //         <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
-  //         <View style={styles.headerSpacer} />
-  //       </View>
-  //       <View style={styles.loadingContainer}>
-  //         <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-  //         <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
-  //       </View>
-  //     </SafeAreaView>
-  //   );
-  // }
+  const loadMore = () => {
+    if (loading) return;
+    const nextPage = page + 1;
+    const nextRecords = allSurveyRecords.slice(0, nextPage * PAGE_SIZE);
+    if (nextRecords.length > surveyRecords.length) {
+      setSurveyRecords(nextRecords);
+      setPage(nextPage);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -201,60 +176,70 @@ const SurveyRecord = ({ navigation }) => {
         <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      <FlatList
+        data={surveyRecords}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => renderSurveyRecord(item)}
+        contentContainerStyle={{ padding: 20 }}
+        ListEmptyComponent={
+          !loading && (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="document-text-outline"
+                size={64}
+                color="#9CA3AF"
+              />
+              <Text style={styles.emptyTitle}>Chưa có kết quả khảo sát</Text>
+              <Text style={styles.emptySubtitle}>
+                Hoàn thành khảo sát đầu tiên để xem kết quả tại đây
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyButton}
+                onPress={() => navigation.navigate("Home")}
+              >
+                <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
+              </TouchableOpacity>
+            </View>
+          )
         }
-      >
-        {loading && (
-          <ActivityIndicator
-            style={styles.loadingIndicator}
-            size={50}
-            color={GlobalStyles.colors.primary}
-          />
-        )}
-        {surveyRecords.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>Chưa có kết quả khảo sát</Text>
-            <Text style={styles.emptySubtitle}>
-              Hoàn thành khảo sát đầu tiên để xem kết quả tại đây
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyButton}
-              onPress={() => navigation.navigate("Home")}
-            >
-              <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
+        ListHeaderComponent={
+          surveyRecords.length > 0 && (
             <View style={styles.statsContainer}>
               <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{surveyRecords.length}</Text>
+                <Text style={styles.statNumber}>{allSurveyRecords.length}</Text>
                 <Text style={styles.statLabel}>Tổng số khảo sát</Text>
               </View>
               <View style={styles.statCard}>
                 <Text style={styles.statNumber}>
-                  {Math.round(
-                    surveyRecords.reduce(
-                      (sum, record) => sum + record.totalScore,
-                      0
-                    ) / surveyRecords.length
-                  )}
+                  {allSurveyRecords.length > 0
+                    ? Math.round(
+                        allSurveyRecords.reduce(
+                          (sum, record) => sum + record.totalScore,
+                          0
+                        ) / allSurveyRecords.length
+                      )
+                    : 0}
                 </Text>
                 <Text style={styles.statLabel}>Điểm trung bình</Text>
               </View>
             </View>
-
-            <View style={styles.recordsContainer}>
-              {surveyRecords.map(renderSurveyRecord)}
-            </View>
-          </>
-        )}
-      </ScrollView>
+          )
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.2}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListFooterComponent={
+          loading && (
+            <ActivityIndicator
+              style={{ marginVertical: 16 }}
+              size={30}
+              color={GlobalStyles.colors.primary}
+            />
+          )
+        }
+      />
 
       {/* Toast */}
       <Toast
@@ -392,6 +377,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+    marginBottom: 16,
   },
   recordHeader: {
     flexDirection: "row",

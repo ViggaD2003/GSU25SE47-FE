@@ -99,7 +99,7 @@ const SurveyResult = ({ route, navigation }) => {
 
           {/* Score Display */}
           <View style={styles.scoreContainer}>
-            <View style={styles.scoreCircle}>
+            <View style={[styles.scoreCircle,{ borderColor: getScoreColor(result) }]}>
               <Text
                 style={[styles.scoreText, { color: getScoreColor(result) }]}
               >

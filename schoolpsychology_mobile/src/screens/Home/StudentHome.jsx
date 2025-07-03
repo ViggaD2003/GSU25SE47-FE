@@ -24,6 +24,8 @@ const isSmallDevice = width < 375;
 const isMediumDevice = width >= 375 && width < 414;
 // const isLargeDevice = width >= 414;
 
+const PAGE_SIZE = 2; // Page size for lazy loading
+
 export default function StudentHome({
   navigation,
   setShowToast,
@@ -32,11 +34,44 @@ export default function StudentHome({
 }) {
   const { user } = useAuth();
   const [messageCount, setMessageCount] = useState(3);
-  const [data, setData] = useState([]);
+  const [allData, setAllData] = useState([]); // Store all data
+  const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("survey");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const isEnableSurvey = user?.isEnableSurvey;
+
+  // Function to load more data
+  const loadMoreData = useCallback(() => {
+    if (!hasMoreData || loadingMore) return;
+
+    setLoadingMore(true);
+
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const newData = allData.slice(startIndex, endIndex);
+
+    if (newData.length > 0) {
+      setDisplayedData((prev) => [...prev, ...newData]);
+      setCurrentPage((prev) => prev + 1);
+      setHasMoreData(endIndex < allData.length);
+    } else {
+      setHasMoreData(false);
+    }
+
+    setLoadingMore(false);
+  }, [allData, currentPage, hasMoreData, loadingMore]);
+
+  // Function to reset pagination
+  const resetPagination = useCallback(() => {
+    setCurrentPage(1);
+    setHasMoreData(true);
+    setDisplayedData([]);
+  }, []);
+
   const handleNotificationPress = () => {
     navigation.navigate("Notification");
   };
@@ -44,14 +79,27 @@ export default function StudentHome({
   const fetchSurveys = async () => {
     try {
       const response = await getPublishedSurveys();
-      setData(Array.isArray(response) ? response : response.data || []);
+      const surveyData = Array.isArray(response)
+        ? response
+        : response.data || [];
+      setAllData(surveyData);
+
+      // Load first page
+      const firstPageData = surveyData.slice(0, PAGE_SIZE);
+      setDisplayedData(firstPageData);
+      setCurrentPage(2); // Next page will be 2
+      setHasMoreData(surveyData.length > PAGE_SIZE);
     } catch (error) {
       console.error("Lỗi khi tải surveys:", error);
       const publishedSurveys = surveyData.filter(
         (survey) => survey.status === "PUBLISHED"
       );
 
-      setData(publishedSurveys);
+      setAllData(publishedSurveys);
+      const firstPageData = publishedSurveys.slice(0, PAGE_SIZE);
+      setDisplayedData(firstPageData);
+      setCurrentPage(2);
+      setHasMoreData(publishedSurveys.length > PAGE_SIZE);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -60,7 +108,9 @@ export default function StudentHome({
 
   const fetchAppointments = async () => {
     try {
-      setData([]);
+      setAllData([]);
+      setDisplayedData([]);
+      setHasMoreData(false);
     } catch (error) {
       console.error("Lỗi khi tải appointments:", error);
     } finally {
@@ -71,7 +121,9 @@ export default function StudentHome({
 
   const fetchPrograms = async () => {
     try {
-      setData([]);
+      setAllData([]);
+      setDisplayedData([]);
+      setHasMoreData(false);
     } catch (error) {
       console.error("Lỗi khi tải programs:", error);
     } finally {
@@ -84,6 +136,8 @@ export default function StudentHome({
     setRefreshing(true);
     setLoading(true);
     setActiveTab(type);
+    resetPagination();
+
     switch (type) {
       case "survey":
         isEnableSurvey && (await fetchSurveys());
@@ -233,7 +287,7 @@ export default function StudentHome({
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.connectBox}
-              onPress={() => navigation.navigate("Appointment")}
+              // onPress={() => navigation.navigate("Appointment")}
             >
               <View style={styles.connectIconContainer}>
                 <Text style={styles.connectIcon}>📅</Text>
@@ -324,23 +378,38 @@ export default function StudentHome({
             </View> */}
             {loading ? (
               <Loading text={`Loading ${activeTab}s...`} />
-            ) : data.length === 0 ? (
+            ) : displayedData.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyIcon}>📋</Text>
                 <Text style={styles.emptyText}>No available {activeTab}</Text>
               </View>
             ) : isEnableSurvey && activeTab === "survey" ? (
-              data.map((data, index) => (
-                <SurveyCard
-                  survey={data}
-                  key={index}
-                  navigation={navigation}
-                  onRefresh={onRefresh}
-                  setShowToast={setShowToast}
-                  setToastMessage={setToastMessage}
-                  setToastType={setToastType}
-                />
-              ))
+              <>
+                {displayedData.map((data, index) => (
+                  <SurveyCard
+                    survey={data}
+                    key={index}
+                    navigation={navigation}
+                    onRefresh={onRefresh}
+                    setShowToast={setShowToast}
+                    setToastMessage={setToastMessage}
+                    setToastType={setToastType}
+                  />
+                ))}
+                {hasMoreData && (
+                  <TouchableOpacity
+                    style={styles.loadMoreButton}
+                    onPress={loadMoreData}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <Loading text="Loading more..." />
+                    ) : (
+                      <Text style={styles.loadMoreText}>Load More</Text>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </>
             ) : null}
           </View>
         </View>
@@ -657,5 +726,20 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 17,
     fontWeight: "500",
+  },
+  loadMoreButton: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  loadMoreText: {
+    color: "#374151",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
