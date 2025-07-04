@@ -31,6 +31,8 @@ const ProgramManagement = lazy(
   () => import('@/pages/manager/ProgramManagement')
 )
 const SlotManagement = lazy(() => import('@/pages/manager/SlotManagement'))
+const AppointmentDetails = lazy(() => import('@/pages/manager/AppointmentManagement/AppointmentDetails'))
+
 
 const AppRouter = () => {
   const elementMap = {
@@ -42,6 +44,7 @@ const AppRouter = () => {
     CaseManagement,
     ProgramManagement,
     SlotManagement,
+    AppointmentDetails
   }
 
   return (
@@ -108,7 +111,7 @@ const AppRouter = () => {
           )
         })}
       </Route>
-
+      
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
