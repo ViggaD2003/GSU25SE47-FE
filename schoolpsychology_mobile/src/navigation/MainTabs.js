@@ -6,7 +6,6 @@ import {
   ChangePasswordScreen,
   HomeScreen,
   MyChildrenScreen,
-  NotificationScreen,
   ProfileScreen,
   StatusScreen,
   SurveyInfoScreen,
@@ -18,7 +17,6 @@ import {
 import BookingScreenWrapper from "../screens/Appointment/BookingScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import SuccessScreen from "../screens/Appointment/StatusScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -92,7 +90,6 @@ export default function MainTabs() {
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Blog" component={BlogScreen} />
       <Stack.Screen
         name="BlogDetails"

@@ -20,9 +20,6 @@ export { default as UpdateProfileScreen } from "./Profile/UpdateProfile";
 export { default as BlogScreen } from "./Blog/BlogScreen";
 export { default as BlogDetails } from "./Blog/BlogDetails";
 
-// Notification screens
-export { default as NotificationScreen } from "./Notification/NotificationScreen";
-
 // Appointment screens
 export { default as BookingScreen } from "./Appointment/BookingScreen";
 export { default as BookingScreenWrapper } from "./Appointment/BookingScreenWrapper";
