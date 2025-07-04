@@ -110,16 +110,8 @@ const AppRouter = () => {
             />
           )
         })}
-        {/* <Route
-          path="/appointment-management/details"
-          element={
-            <ProtectedRoute allowedRoles={['teacher', 'counselor']}>
-              <AppointmentDetails />
-            </ProtectedRoute>
-          }
-        /> */}
       </Route>
-
+      
       {/* 404 route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
