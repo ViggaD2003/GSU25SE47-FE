@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -14,10 +14,7 @@ import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
-import { Container, Alert } from "../../components";
-import { GlobalStyles } from "../../constants";
-import { useAuth } from "../../contexts";
-import { Ionicons } from "@expo/vector-icons";
+import { Alert } from "../../components";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -27,13 +24,13 @@ const isMediumDevice = width >= 375 && width < 414;
 const PAGE_SIZE = 2; // Page size for lazy loading
 
 export default function StudentHome({
+  user,
   navigation,
   setShowToast,
   setToastMessage,
   setToastType,
 }) {
-  const { user } = useAuth();
-  const [messageCount, setMessageCount] = useState(3);
+  const scrollViewRef = React.useRef(null);
   const [allData, setAllData] = useState([]); // Store all data
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
@@ -71,10 +68,6 @@ export default function StudentHome({
     setHasMoreData(true);
     setDisplayedData([]);
   }, []);
-
-  const handleNotificationPress = () => {
-    navigation.navigate("Notification");
-  };
 
   const fetchSurveys = async () => {
     try {
@@ -134,382 +127,262 @@ export default function StudentHome({
 
   const onRefresh = async (type = activeTab) => {
     setRefreshing(true);
-    setLoading(true);
+    await loadTabData(type);
+  };
+
+  // Function to handle tab change with immediate scroll
+  const handleTabChange = async (type) => {
+    // Immediately scroll to bottom for better UX
+    scrollViewRef.current?.scrollToEnd({ animated: true });
+
+    // Update state and fetch data
+    await loadTabData(type);
+  };
+
+  // Centralized function to load tab data
+  const loadTabData = async (type) => {
     setActiveTab(type);
+    setLoading(true);
     resetPagination();
 
-    switch (type) {
-      case "survey":
-        isEnableSurvey && (await fetchSurveys());
-        break;
-      case "appointment":
-        await fetchAppointments();
-        break;
-      case "program":
-        await fetchPrograms();
-        break;
-      default:
-        await fetchSurveys();
-        break;
+    try {
+      switch (type) {
+        case "survey":
+          if (isEnableSurvey) {
+            await fetchSurveys();
+          }
+          break;
+        case "appointment":
+          await fetchAppointments();
+          break;
+        case "program":
+          await fetchPrograms();
+          break;
+        default:
+          if (isEnableSurvey) {
+            await fetchSurveys();
+          }
+          break;
+      }
+    } catch (error) {
+      console.error(`Error loading ${type} data:`, error);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      isEnableSurvey ? onRefresh("survey") : onRefresh("appointment");
+      const initialTab = isEnableSurvey ? "survey" : "appointment";
+      loadTabData(initialTab);
     }, [navigation, isEnableSurvey])
   );
 
   return (
-    <View>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
-          style={styles.userSection}
-        >
-          <View style={styles.avatarContainer}>
-            {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>
-                  {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
-                </Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Good morning</Text>
-            <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
-          </View>
-        </TouchableOpacity>
+    <ScrollView
+      ref={scrollViewRef}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      {/* Stress Alert */}
+      {!isEnableSurvey && (
+        <Alert
+          type="warning"
+          title={"Khảo sát hiện đã bị vô hiệu hóa"}
+          description={
+            user.role === "STUDENT"
+              ? "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại."
+              : "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+          }
+          showCloseButton={false}
+        />
+      )}
+      <Alert
+        type="error"
+        title="Cảnh báo mức độ căng thẳng cao"
+        description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
+        showCloseButton={false}
+      />
 
-        {/* Right side - Actions */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleNotificationPress}
-          >
-            <View style={styles.notificationContainer}>
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                color="#374151"
-              />
-              {messageCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {messageCount > 9 ? "9+" : messageCount}
-                  </Text>
-                </View>
-              )}
+      {/* Featured Programs */}
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured Programs</Text>
+          <TouchableOpacity style={styles.sectionLinkContainer}>
+            <Text style={styles.sectionLink}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.featuredCard}>
+          <Image
+            source={{
+              uri: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
+            }}
+            style={styles.featuredImg}
+            resizeMode="cover"
+          />
+          <View style={styles.featuredOverlay}>
+            <View style={styles.featuredContent}>
+              <Text style={styles.featuredTag}>SUPPORT PROGRAM</Text>
+              <Text style={styles.featuredTitle}>
+                Career Development Workshop
+              </Text>
+              <Text style={styles.featuredTime}>
+                May 25, 2025 • 13:00 - 15:30
+              </Text>
             </View>
+          </View>
+        </View>
+      </View>
+
+      {/* Quick Actions */}
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+        </View>
+        <View style={styles.connectRow}>
+          <TouchableOpacity
+            style={styles.connectBox}
+            onPress={() => navigation.navigate("Blog")}
+          >
+            <View style={styles.connectIconContainer}>
+              <Text style={styles.connectIcon}>📚</Text>
+            </View>
+            <Text style={styles.connectTitle}>Doc & Blog</Text>
+            <Text style={styles.connectDesc}>
+              Khám phá kiến thức và chia sẻ từ chuyên gia
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.connectBox}
+            onPress={() => navigation.navigate("Appointment")}
+          >
+            <View style={styles.connectIconContainer}>
+              <Text style={styles.connectIcon}>📅</Text>
+            </View>
+            <Text style={styles.connectTitle}>Đặt lịch tư vấn</Text>
+            <Text style={styles.connectDesc}>
+              Hẹn gặp chuyên gia tâm lý để được hỗ trợ
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-        bounces={true}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Stress Alert */}
-        {!isEnableSurvey && (
-          <Alert
-            type="warning"
-            title={"Khảo sát hiện đã bị vô hiệu hóa"}
-            description={
-              user.role === "STUDENT"
-                ? "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại."
-                : "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
-            }
-            showCloseButton={false}
-          />
-        )}
-        <Alert
-          type="error"
-          title="Cảnh báo mức độ căng thẳng cao"
-          description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
-          showCloseButton={false}
-        />
-
-        {/* Featured Programs */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Programs</Text>
-            <TouchableOpacity style={styles.sectionLinkContainer}>
-              <Text style={styles.sectionLink}>View All</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.featuredCard}>
-            <Image
-              source={{
-                uri: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
-              }}
-              style={styles.featuredImg}
-              resizeMode="cover"
-            />
-            <View style={styles.featuredOverlay}>
-              <View style={styles.featuredContent}>
-                <Text style={styles.featuredTag}>SUPPORT PROGRAM</Text>
-                <Text style={styles.featuredTitle}>
-                  Career Development Workshop
-                </Text>
-                <Text style={styles.featuredTime}>
-                  May 25, 2025 • 13:00 - 15:30
-                </Text>
-              </View>
-            </View>
-          </View>
+      {/* My Events */}
+      <View style={styles.sectionContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>My Events</Text>
         </View>
-
-        {/* Quick Actions */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-          </View>
-          <View style={styles.connectRow}>
-            <TouchableOpacity
-              style={styles.connectBox}
-              onPress={() => navigation.navigate("Blog")}
-            >
-              <View style={styles.connectIconContainer}>
-                <Text style={styles.connectIcon}>📚</Text>
-              </View>
-              <Text style={styles.connectTitle}>Doc & Blog</Text>
-              <Text style={styles.connectDesc}>
-                Khám phá kiến thức và chia sẻ từ chuyên gia
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.connectBox}
-              // onPress={() => navigation.navigate("Appointment")}
-            >
-              <View style={styles.connectIconContainer}>
-                <Text style={styles.connectIcon}>📅</Text>
-              </View>
-              <Text style={styles.connectTitle}>Đặt lịch tư vấn</Text>
-              <Text style={styles.connectDesc}>
-                Hẹn gặp chuyên gia tâm lý để được hỗ trợ
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* My Events */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Events</Text>
-          </View>
-          <View style={styles.eventTabsContainer}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.eventTabsScrollContent}
-            >
-              {isEnableSurvey && (
-                <TouchableOpacity
+        <View style={styles.eventTabsContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.eventTabsScrollContent}
+            bounces={false}
+          >
+            {isEnableSurvey && (
+              <TouchableOpacity
+                style={
+                  activeTab === "survey"
+                    ? styles.eventTabActive
+                    : styles.eventTab
+                }
+                onPress={() => handleTabChange("survey")}
+              >
+                <Text
                   style={
                     activeTab === "survey"
-                      ? styles.eventTabActive
-                      : styles.eventTab
+                      ? styles.eventTabTextActive
+                      : styles.eventTabText
                   }
-                  onPress={() => onRefresh("survey")}
                 >
-                  <Text
-                    style={
-                      activeTab === "survey"
-                        ? styles.eventTabTextActive
-                        : styles.eventTabText
-                    }
-                  >
-                    Survey
-                  </Text>
-                </TouchableOpacity>
-              )}
+                  Survey
+                </Text>
+              </TouchableOpacity>
+            )}
 
-              <TouchableOpacity
+            <TouchableOpacity
+              style={
+                activeTab === "appointment"
+                  ? styles.eventTabActive
+                  : styles.eventTab
+              }
+              onPress={() => handleTabChange("appointment")}
+            >
+              <Text
                 style={
                   activeTab === "appointment"
-                    ? styles.eventTabActive
-                    : styles.eventTab
+                    ? styles.eventTabTextActive
+                    : styles.eventTabText
                 }
-                onPress={() => onRefresh("appointment")}
               >
-                <Text
-                  style={
-                    activeTab === "appointment"
-                      ? styles.eventTabTextActive
-                      : styles.eventTabText
-                  }
-                >
-                  Appointments
-                </Text>
-              </TouchableOpacity>
+                Appointments
+              </Text>
+            </TouchableOpacity>
 
-              <TouchableOpacity
+            <TouchableOpacity
+              style={
+                activeTab === "program"
+                  ? styles.eventTabActive
+                  : styles.eventTab
+              }
+              onPress={() => handleTabChange("program")}
+            >
+              <Text
                 style={
                   activeTab === "program"
-                    ? styles.eventTabActive
-                    : styles.eventTab
+                    ? styles.eventTabTextActive
+                    : styles.eventTabText
                 }
-                onPress={() => onRefresh("program")}
               >
-                <Text
-                  style={
-                    activeTab === "program"
-                      ? styles.eventTabTextActive
-                      : styles.eventTabText
-                  }
-                >
-                  Support Programs
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-          <View style={styles.requiredSurveys}>
-            {/* <View style={styles.requiredTitleRow}>
-              <Text style={styles.requiredTitle}>Required Surveys</Text>
-              <Badge>{data.length} </Badge>
-            </View> */}
-            {loading ? (
-              <Loading text={`Loading ${activeTab}s...`} />
-            ) : displayedData.length === 0 ? (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyIcon}>📋</Text>
-                <Text style={styles.emptyText}>No available {activeTab}</Text>
-              </View>
-            ) : isEnableSurvey && activeTab === "survey" ? (
-              <>
-                {displayedData.map((data, index) => (
-                  <SurveyCard
-                    survey={data}
-                    key={index}
-                    navigation={navigation}
-                    onRefresh={onRefresh}
-                    setShowToast={setShowToast}
-                    setToastMessage={setToastMessage}
-                    setToastType={setToastType}
-                  />
-                ))}
-                {hasMoreData && (
-                  <TouchableOpacity
-                    style={styles.loadMoreButton}
-                    onPress={loadMoreData}
-                    disabled={loadingMore}
-                  >
-                    {loadingMore ? (
-                      <Loading text="Loading more..." />
-                    ) : (
-                      <Text style={styles.loadMoreText}>Load More</Text>
-                    )}
-                  </TouchableOpacity>
-                )}
-              </>
-            ) : null}
-          </View>
+                Support Programs
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </View>
+        <View style={styles.requiredEventContainer}>
+          {loading ? (
+            <Loading text={`Loading ${activeTab}s...`} />
+          ) : displayedData.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyIcon}>📋</Text>
+              <Text style={styles.emptyText}>No available {activeTab}</Text>
+            </View>
+          ) : isEnableSurvey && activeTab === "survey" ? (
+            <>
+              {displayedData.map((data, index) => (
+                <SurveyCard
+                  survey={data}
+                  key={index}
+                  navigation={navigation}
+                  onRefresh={onRefresh}
+                  setShowToast={setShowToast}
+                  setToastMessage={setToastMessage}
+                  setToastType={setToastType}
+                />
+              ))}
+              {hasMoreData && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={loadMoreData}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? (
+                    <Loading text="Loading more..." />
+                  ) : (
+                    <Text style={styles.loadMoreText}>Load More</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          ) : null}
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-    backgroundColor: "#FFFFFF",
-    elevation: 0,
-    shadowOpacity: 0.1,
-    borderBottomWidth: 1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  userSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  avatarContainer: {
-    marginRight: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: GlobalStyles.colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  userInfo: {
-    flex: 1,
-  },
-  greetingText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "400",
-    marginBottom: 2,
-  },
-  nameText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  actionsSection: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#F9FAFB",
-  },
-  notificationContainer: {
-    position: "relative",
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#EF4444",
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  notificationBadgeText: {
-    fontSize: 10,
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  screenHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
-  },
   scrollContainer: {
     paddingTop: 13,
     paddingHorizontal: 24,
@@ -714,9 +587,14 @@ const styles = StyleSheet.create({
     fontSize: isSmallDevice ? 13 : 14,
     textAlign: "center",
   },
+  requiredEventContainer: {
+    minHeight: 450,
+    paddingBottom: 25,
+  },
   emptyContainer: {
+    flex: 1,
     alignItems: "center",
-    paddingVertical: 60,
+    paddingVertical: 100,
   },
   emptyIcon: {
     fontSize: 56,

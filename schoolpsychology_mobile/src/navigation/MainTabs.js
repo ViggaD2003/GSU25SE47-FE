@@ -1,36 +1,28 @@
-import React, { useState } from "react";
+import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useNavigation } from "@react-navigation/native";
-import { Text, View, TouchableOpacity, Image } from "react-native";
-import { StyleSheet } from "react-native";
-import { EvilIcons, Ionicons } from "@expo/vector-icons";
-import { Badge } from "react-native-paper";
-import { useAuth } from "../contexts";
+import { View, StyleSheet } from "react-native";
 import {
-  AppointmentConfirmScreen,
-  AppointmentDetailsScreen,
-  AppointmentRecordScreen,
   BlogScreen,
   ChangePasswordScreen,
   HomeScreen,
   MyChildrenScreen,
   NotificationScreen,
   ProfileScreen,
+  StatusScreen,
   SurveyInfoScreen,
   SurveyRecordScreen,
   SurveyResultScreen,
   SurveyTakingScreen,
   UpdateProfileScreen,
 } from "../screens";
+import BookingScreenWrapper from "../screens/Appointment/BookingScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import AppointmentScreen from "../screens/Appointment/AppointmentScreen";
-import SuccessScreen from "../components/common/SuccessScreen";
+import SuccessScreen from "../screens/Appointment/StatusScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function MainTabs() {
-  const [messageCount, setMessageCount] = useState(3);
   const insets = useSafeAreaInsets();
 
   const SurveyStack = () => {
@@ -66,8 +58,9 @@ export default function MainTabs() {
   const AppointmentStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="AppointmentMain" component={AppointmentScreen} />
-        <Stack.Screen
+        <Stack.Screen name="AppointmentMain" component={BookingScreenWrapper} />
+        <Stack.Screen name="StatusScreen" component={StatusScreen} />
+        {/* <Stack.Screen
           name="AppointmentConfirm"
           component={AppointmentConfirmScreen}
         />
@@ -78,7 +71,7 @@ export default function MainTabs() {
         <Stack.Screen
           name="AppointmentRecord"
           component={AppointmentRecordScreen}
-        />
+        /> */}
       </Stack.Navigator>
     );
   };
@@ -108,7 +101,6 @@ export default function MainTabs() {
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Survey" component={SurveyStack} />
       <Stack.Screen name="Appointment" component={AppointmentStack} />
-      <Stack.Screen name="Success" component={SuccessScreen} />
     </Stack.Navigator>
   );
 }

@@ -4,6 +4,8 @@ export { default as SurveyCard } from "./common/SurveyCard";
 export { default as Toast } from "./common/Toast";
 export { default as ConfirmModal } from "./common/ConfirmModal";
 export { default as Alert } from "./common/Alert";
+export { default as Dropdown } from "./common/Dropdown";
+export { default as SlotDayCard } from "./common/SlotDayCard";
 
 // UI components
 export { default as Container } from "./ui/Container";

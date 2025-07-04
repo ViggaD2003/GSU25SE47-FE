@@ -24,7 +24,6 @@ export { default as BlogDetails } from "./Blog/BlogDetails";
 export { default as NotificationScreen } from "./Notification/NotificationScreen";
 
 // Appointment screens
-export { default as AppointmentScreen } from "./Appointment/AppointmentScreen";
-export { default as AppointmentConfirmScreen } from "./Appointment/AppointmentConfirm";
-export { default as AppointmentDetailsScreen } from "./Appointment/AppointmentDetails";
-export { default as AppointmentRecordScreen } from "./Appointment/AppointmentRecord";
+export { default as BookingScreen } from "./Appointment/BookingScreen";
+export { default as BookingScreenWrapper } from "./Appointment/BookingScreenWrapper";
+export { default as StatusScreen } from "./Appointment/StatusScreen";

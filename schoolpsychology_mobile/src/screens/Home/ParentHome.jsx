@@ -1,35 +1,30 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
-  Dimensions,
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { useAuth } from "../../contexts";
 import {
   StatisticsCard,
   RecordCard,
   SectionHeader,
   Chart,
-  Toast,
 } from "../../components";
 import { ParentDashboardService } from "../../services";
 
-const { width } = Dimensions.get("window");
-const isSmallDevice = width < 375;
-const isMediumDevice = width >= 375 && width < 414;
-
-export default function ParentHome({ navigation }) {
-  const { user } = useAuth();
-  const [messageCount, setMessageCount] = useState(3);
+export default function ParentHome({
+  user,
+  navigation,
+  setShowToast,
+  setToastMessage,
+  setToastType,
+}) {
   const [selectedChild, setSelectedChild] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,11 +33,6 @@ export default function ParentHome({ navigation }) {
     surveyRecords: [],
     appointmentRecords: [],
     supportProgramRecords: [],
-  });
-  const [toast, setToast] = useState({
-    visible: false,
-    message: "",
-    type: "info",
   });
 
   // Set default selected child when component mounts or user changes
@@ -82,22 +72,12 @@ export default function ParentHome({ navigation }) {
       });
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-      showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
+      setShowToast(true);
+      setToastMessage("Có lỗi xảy ra khi tải dữ liệu");
+      setToastType("error");
     } finally {
       setLoading(false);
     }
-  };
-
-  const showToast = useCallback((message, type = "info") => {
-    setToast({ visible: true, message, type });
-  }, []);
-
-  const hideToast = useCallback(() => {
-    setToast({ visible: false, message: "", type: "info" });
-  }, []);
-
-  const handleNotificationPress = () => {
-    navigation.navigate("Notification");
   };
 
   const onRefresh = async () => {
@@ -138,349 +118,291 @@ export default function ParentHome({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
-          style={styles.userSection}
-        >
-          <View style={styles.avatarContainer}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {user?.fullName?.charAt(0)?.toUpperCase() || "P"}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.scrollContainer}
+      bounces={true}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      {/* Child Selection Header */}
+      {user?.children && user.children.length > 1 && (
+        <View style={styles.childSelectionContainer}>
+          <Text style={styles.childSelectionTitle}>Select Child</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.childSelectionScroll}
+          >
+            {user.children.map((child, index) => (
+              <TouchableOpacity
+                key={child.userId}
+                style={[
+                  styles.childOption,
+                  selectedChild?.userId === child.userId &&
+                    styles.childOptionActive,
+                ]}
+                onPress={() => handleChildSelect(child)}
+              >
+                <View style={styles.childAvatarContainer}>
+                  <Text style={styles.childAvatarText}>
+                    {child.fullName?.charAt(0)?.toUpperCase() || "C"}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.childName,
+                    selectedChild?.userId === child.userId &&
+                      styles.childNameActive,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {child.fullName}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Selected Child Info */}
+      {selectedChild && (
+        <View style={styles.selectedChildContainer}>
+          <View style={styles.selectedChildHeader}>
+            <View style={styles.selectedChildAvatar}>
+              <Text style={styles.selectedChildAvatarText}>
+                {selectedChild.fullName?.charAt(0)?.toUpperCase() || "C"}
+              </Text>
+            </View>
+            <View style={styles.selectedChildInfo}>
+              <Text style={styles.selectedChildName}>
+                {selectedChild.fullName}
+              </Text>
+              <Text style={styles.selectedChildStatus}>
+                {selectedChild.isEnable ? (
+                  <Text style={styles.selectedChildStatusActive}>
+                    Đang nhận bài khảo sát
+                  </Text>
+                ) : (
+                  <Text style={styles.selectedChildStatusInactive}>
+                    Đã ngưng nhận bài khảo sát
+                  </Text>
+                )}
               </Text>
             </View>
           </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Good morning</Text>
-            <Text style={styles.nameText}>{user?.fullName || "Parent"}</Text>
-          </View>
-        </TouchableOpacity>
-
-        {/* Right side - Actions */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={handleNotificationPress}
-          >
-            <View style={styles.notificationContainer}>
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                color="#374151"
-              />
-              {messageCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {messageCount > 9 ? "9+" : messageCount}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </TouchableOpacity>
         </View>
-      </View>
+      )}
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-        bounces={true}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        {/* Child Selection Header */}
-        {user?.children && user.children.length > 1 && (
-          <View style={styles.childSelectionContainer}>
-            <Text style={styles.childSelectionTitle}>Select Child</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.childSelectionScroll}
-            >
-              {user.children.map((child, index) => (
-                <TouchableOpacity
-                  key={child.userId}
-                  style={[
-                    styles.childOption,
-                    selectedChild?.userId === child.userId &&
-                      styles.childOptionActive,
-                  ]}
-                  onPress={() => handleChildSelect(child)}
-                >
-                  <View style={styles.childAvatarContainer}>
-                    <Text style={styles.childAvatarText}>
-                      {child.fullName?.charAt(0)?.toUpperCase() || "C"}
-                    </Text>
-                  </View>
-                  <Text
-                    style={[
-                      styles.childName,
-                      selectedChild?.userId === child.userId &&
-                        styles.childNameActive,
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {child.fullName}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
+      {/* Dashboard Content */}
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
+          <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+        </View>
+      ) : selectedChild ? (
+        <>
+          {/* Statistics Section */}
+          <SectionHeader
+            title="Thống kê tổng quan"
+            subtitle="Dữ liệu 30 ngày gần nhất"
+            showViewAll={false}
+          />
 
-        {/* Selected Child Info */}
-        {selectedChild && (
-          <View style={styles.selectedChildContainer}>
-            <View style={styles.selectedChildHeader}>
-              <View style={styles.selectedChildAvatar}>
-                <Text style={styles.selectedChildAvatarText}>
-                  {selectedChild.fullName?.charAt(0)?.toUpperCase() || "C"}
-                </Text>
-              </View>
-              <View style={styles.selectedChildInfo}>
-                <Text style={styles.selectedChildName}>
-                  {selectedChild.fullName}
-                </Text>
-                <Text style={styles.selectedChildStatus}>
-                  {selectedChild.isEnable ? (
-                    <Text style={styles.selectedChildStatusActive}>
-                      Đang nhận bài khảo sát
-                    </Text>
-                  ) : (
-                    <Text style={styles.selectedChildStatusInactive}>
-                      Đã ngưng nhận bài khảo sát
-                    </Text>
-                  )}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Dashboard Content */}
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={GlobalStyles.colors.primary}
+          <View style={styles.statisticsGrid}>
+            <StatisticsCard
+              title="Bài khảo sát"
+              value={dashboardData.surveyRecords.length || 0}
+              change={"+12%"}
+              changeType="positive"
+              icon="document-text"
+              color="#3B82F6"
+              subtitle="Đã hoàn thành"
             />
-            <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
-          </View>
-        ) : selectedChild ? (
-          <>
-            {/* Statistics Section */}
-            <SectionHeader
-              title="Thống kê tổng quan"
-              subtitle="Dữ liệu 30 ngày gần nhất"
-              showViewAll={false}
+            <StatisticsCard
+              title="Điểm trung bình"
+              value={0}
+              change={"+2.1"}
+              changeType="positive"
+              icon="trending-up"
+              color="#10B981"
+              subtitle="Trên 10"
             />
-
-            <View style={styles.statisticsGrid}>
-              <StatisticsCard
-                title="Bài khảo sát"
-                value={dashboardData.surveyRecords.length || 0}
-                change={"+12%"}
-                changeType="positive"
-                icon="document-text"
-                color="#3B82F6"
-                subtitle="Đã hoàn thành"
-              />
-              <StatisticsCard
-                title="Điểm trung bình"
-                value={0}
-                change={"+2.1"}
-                changeType="positive"
-                icon="trending-up"
-                color="#10B981"
-                subtitle="Trên 10"
-              />
-              <StatisticsCard
-                title="Lịch hẹn"
-                value={0}
-                change={"+3"}
-                changeType="positive"
-                icon="calendar"
-                color="#F59E0B"
-                subtitle="Đã lên lịch"
-              />
-              <StatisticsCard
-                title="Chương trình hỗ trợ"
-                value={0}
-                change={"+1"}
-                changeType="positive"
-                icon="heart"
-                color="#EF4444"
-                subtitle="Đang tham gia"
-              />
-            </View>
-
-            {/* Charts Section */}
-            <SectionHeader
-              title="Biểu đồ thống kê"
-              subtitle="Xu hướng 7 ngày gần nhất"
-              showViewAll={false}
+            <StatisticsCard
+              title="Lịch hẹn"
+              value={0}
+              change={"+3"}
+              changeType="positive"
+              icon="calendar"
+              color="#F59E0B"
+              subtitle="Đã lên lịch"
             />
-
-            <View style={styles.chartsContainer}>
-              <Chart
-                title="Điểm khảo sát"
-                data={[
-                  { label: "T2", value: 8 },
-                  { label: "T3", value: 7 },
-                  { label: "T4", value: 9 },
-                  { label: "T5", value: 8 },
-                  { label: "T6", value: 9 },
-                  { label: "T7", value: 8 },
-                  { label: "CN", value: 9 },
-                ]}
-                type="line"
-                color="#10B981"
-              />
-              <Chart
-                title="Số bài khảo sát"
-                data={[
-                  { label: "T2", value: 2 },
-                  { label: "T3", value: 1 },
-                  { label: "T4", value: 3 },
-                  { label: "T5", value: 2 },
-                  { label: "T6", value: 1 },
-                  { label: "T7", value: 2 },
-                  { label: "CN", value: 1 },
-                ]}
-                type="bar"
-                color="#3B82F6"
-              />
-            </View>
-
-            {/* Survey Records Section */}
-            <SectionHeader
-              title="Bài khảo sát gần đây"
-              subtitle={`${dashboardData.surveyRecords.length} bài khảo sát`}
-              onViewAll={handleViewAllSurveys}
-            />
-
-            {dashboardData.surveyRecords.length > 0 ? (
-              dashboardData.surveyRecords
-                .slice(0, 3)
-                .map((record, index) => (
-                  <RecordCard
-                    key={record.id || index}
-                    type="survey"
-                    title={record.surveyName || record.name}
-                    subtitle={record.surveyCode}
-                    date={record.completedAt || record.createdAt}
-                    status={record.status}
-                    score={record.totalScore}
-                    icon="document-text"
-                    color="#3B82F6"
-                    onPress={() => handleViewSurveyDetail(record)}
-                  />
-                ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={48}
-                  color="#9CA3AF"
-                />
-                <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
-                <Text style={styles.emptySubtitle}>
-                  Con của bạn chưa hoàn thành bài khảo sát nào
-                </Text>
-              </View>
-            )}
-            <View style={styles.space} />
-
-            {/* Appointment Records Section */}
-            <SectionHeader
-              title="Lịch hẹn gần đây"
-              subtitle={`${dashboardData.appointmentRecords.length} lịch hẹn`}
-              onViewAll={handleViewAllAppointments}
-            />
-
-            {dashboardData.appointmentRecords.length > 0 ? (
-              dashboardData.appointmentRecords
-                .slice(0, 3)
-                .map((record, index) => (
-                  <RecordCard
-                    key={record.id || index}
-                    type="appointment"
-                    title={record.title || record.appointmentType}
-                    subtitle={record.description}
-                    date={record.appointmentDate || record.createdAt}
-                    status={record.status}
-                    icon="calendar"
-                    color="#F59E0B"
-                    onPress={() => {}}
-                  />
-                ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-                <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
-                <Text style={styles.emptySubtitle}>
-                  Chưa có lịch hẹn nào được lên lịch
-                </Text>
-              </View>
-            )}
-            <View style={styles.space} />
-
-            {/* Support Program Records Section */}
-            <SectionHeader
+            <StatisticsCard
               title="Chương trình hỗ trợ"
-              subtitle={`${dashboardData.supportProgramRecords.length} chương trình`}
-              onViewAll={handleViewAllSupportPrograms}
+              value={0}
+              change={"+1"}
+              changeType="positive"
+              icon="heart"
+              color="#EF4444"
+              subtitle="Đang tham gia"
             />
-
-            {dashboardData.supportProgramRecords.length > 0 ? (
-              dashboardData.supportProgramRecords
-                .slice(0, 3)
-                .map((record, index) => (
-                  <RecordCard
-                    key={record.id || index}
-                    type="support"
-                    title={record.programName || record.title}
-                    subtitle={record.description}
-                    date={record.startDate || record.createdAt}
-                    status={record.status}
-                    icon="heart"
-                    color="#EF4444"
-                    onPress={() => {}}
-                  />
-                ))
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
-                <Text style={styles.emptyTitle}>
-                  Chưa có chương trình hỗ trợ
-                </Text>
-                <Text style={styles.emptySubtitle}>
-                  Chưa có chương trình hỗ trợ nào được đề xuất
-                </Text>
-              </View>
-            )}
-          </>
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>Chưa chọn con</Text>
-            <Text style={styles.emptySubtitle}>
-              Vui lòng chọn một con để xem thông tin chi tiết
-            </Text>
           </View>
-        )}
-      </ScrollView>
 
-      {/* Toast */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
-    </View>
+          {/* Charts Section */}
+          <SectionHeader
+            title="Biểu đồ thống kê"
+            subtitle="Xu hướng 7 ngày gần nhất"
+            showViewAll={false}
+          />
+
+          <View style={styles.chartsContainer}>
+            <Chart
+              title="Điểm khảo sát"
+              data={[
+                { label: "T2", value: 8 },
+                { label: "T3", value: 7 },
+                { label: "T4", value: 9 },
+                { label: "T5", value: 8 },
+                { label: "T6", value: 9 },
+                { label: "T7", value: 8 },
+                { label: "CN", value: 9 },
+              ]}
+              type="line"
+              color="#10B981"
+            />
+            <Chart
+              title="Số bài khảo sát"
+              data={[
+                { label: "T2", value: 2 },
+                { label: "T3", value: 1 },
+                { label: "T4", value: 3 },
+                { label: "T5", value: 2 },
+                { label: "T6", value: 1 },
+                { label: "T7", value: 2 },
+                { label: "CN", value: 1 },
+              ]}
+              type="bar"
+              color="#3B82F6"
+            />
+          </View>
+
+          {/* Survey Records Section */}
+          <SectionHeader
+            title="Bài khảo sát gần đây"
+            subtitle={`${dashboardData.surveyRecords.length} bài khảo sát`}
+            onViewAll={handleViewAllSurveys}
+          />
+
+          {dashboardData.surveyRecords.length > 0 ? (
+            dashboardData.surveyRecords
+              .slice(0, 3)
+              .map((record, index) => (
+                <RecordCard
+                  key={record.id || index}
+                  type="survey"
+                  title={record.surveyName || record.name}
+                  subtitle={record.surveyCode}
+                  date={record.completedAt || record.createdAt}
+                  status={record.status}
+                  score={record.totalScore}
+                  icon="document-text"
+                  color="#3B82F6"
+                  onPress={() => handleViewSurveyDetail(record)}
+                />
+              ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons
+                name="document-text-outline"
+                size={48}
+                color="#9CA3AF"
+              />
+              <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
+              <Text style={styles.emptySubtitle}>
+                Con của bạn chưa hoàn thành bài khảo sát nào
+              </Text>
+            </View>
+          )}
+          <View style={styles.space} />
+
+          {/* Appointment Records Section */}
+          <SectionHeader
+            title="Lịch hẹn gần đây"
+            subtitle={`${dashboardData.appointmentRecords.length} lịch hẹn`}
+            onViewAll={handleViewAllAppointments}
+          />
+
+          {dashboardData.appointmentRecords.length > 0 ? (
+            dashboardData.appointmentRecords
+              .slice(0, 3)
+              .map((record, index) => (
+                <RecordCard
+                  key={record.id || index}
+                  type="appointment"
+                  title={record.title || record.appointmentType}
+                  subtitle={record.description}
+                  date={record.appointmentDate || record.createdAt}
+                  status={record.status}
+                  icon="calendar"
+                  color="#F59E0B"
+                  onPress={() => {}}
+                />
+              ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
+              <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
+              <Text style={styles.emptySubtitle}>
+                Chưa có lịch hẹn nào được lên lịch
+              </Text>
+            </View>
+          )}
+          <View style={styles.space} />
+
+          {/* Support Program Records Section */}
+          <SectionHeader
+            title="Chương trình hỗ trợ"
+            subtitle={`${dashboardData.supportProgramRecords.length} chương trình`}
+            onViewAll={handleViewAllSupportPrograms}
+          />
+
+          {dashboardData.supportProgramRecords.length > 0 ? (
+            dashboardData.supportProgramRecords
+              .slice(0, 3)
+              .map((record, index) => (
+                <RecordCard
+                  key={record.id || index}
+                  type="support"
+                  title={record.programName || record.title}
+                  subtitle={record.description}
+                  date={record.startDate || record.createdAt}
+                  status={record.status}
+                  icon="heart"
+                  color="#EF4444"
+                  onPress={() => {}}
+                />
+              ))
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
+              <Text style={styles.emptyTitle}>Chưa có chương trình hỗ trợ</Text>
+              <Text style={styles.emptySubtitle}>
+                Chưa có chương trình hỗ trợ nào được đề xuất
+              </Text>
+            </View>
+          )}
+        </>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="people-outline" size={48} color="#9CA3AF" />
+          <Text style={styles.emptyTitle}>Chưa chọn con</Text>
+          <Text style={styles.emptySubtitle}>
+            Vui lòng chọn một con để xem thông tin chi tiết
+          </Text>
+        </View>
+      )}
+    </ScrollView>
   );
 }
 
