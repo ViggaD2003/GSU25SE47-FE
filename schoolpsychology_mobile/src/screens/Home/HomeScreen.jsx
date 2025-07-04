@@ -21,10 +21,7 @@ export default function HomeScreen({ navigation }) {
     <Container>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("Profile")}
-          style={styles.userSection}
-        >
+        <View style={styles.userSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>
@@ -36,30 +33,18 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.greetingText}>Good morning</Text>
             <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
           </View>
-        </TouchableOpacity>
-
+        </View>
         {/* Right side - Actions */}
-        {/* <View style={styles.actionsSection}>
+        <View style={styles.actionsSection}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={handleNotificationPress}
+            onPress={() => navigation.navigate("Profile")}
           >
             <View style={styles.notificationContainer}>
-              <Ionicons
-                name="notifications-outline"
-                size={24}
-                color="#374151"
-              />
-              {messageCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationBadgeText}>
-                    {messageCount > 9 ? "9+" : messageCount}
-                  </Text>
-                </View>
-              )}
+              <Ionicons name="settings-outline" size={24} color="#374151" />
             </View>
           </TouchableOpacity>
-        </View> */}
+        </View>
       </View>
 
       {/* Content */}
