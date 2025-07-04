@@ -1,6 +1,7 @@
 // Common components
 export { default as Loading } from "./common/Loading";
 export { default as SurveyCard } from "./common/SurveyCard";
+export { default as AppointmentCard } from "./common/AppointmentCard";
 export { default as Toast } from "./common/Toast";
 export { default as ConfirmModal } from "./common/ConfirmModal";
 export { default as Alert } from "./common/Alert";

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Text, Button } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
 
@@ -23,7 +24,6 @@ const StatusScreen = ({ route }) => {
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
-  const checkmarkScale = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const confettiAnim = useRef(new Animated.Value(0)).current;
 
@@ -47,11 +47,6 @@ const StatusScreen = ({ route }) => {
           useNativeDriver: true,
         }),
       ]),
-      Animated.timing(checkmarkScale, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
       Animated.timing(confettiAnim, {
         toValue: 1,
         duration: 300,
@@ -80,17 +75,26 @@ const StatusScreen = ({ route }) => {
   }, []);
 
   const handleGoHome = () => {
-    navigation.navigate("Home");
+    navigation.popTo("Home");
   };
 
   const handleViewAppointments = () => {
     navigation.navigate("Appointments");
   };
 
-  const formatDateTime = (dateTimeString) => {
+  const formatTime = (dateTimeString) => {
     if (!dateTimeString) return "Chưa xác định";
     try {
-      return dayjs(dateTimeString).format("HH:mm - DD/MM/YYYY");
+      return dayjs(dateTimeString).format("HH:mm");
+    } catch (error) {
+      return dateTimeString;
+    }
+  };
+
+  const formatDate = (dateTimeString) => {
+    if (!dateTimeString) return "Chưa xác định";
+    try {
+      return dayjs(dateTimeString).format("DD/MM/YYYY");
     } catch (error) {
       return dateTimeString;
     }
@@ -103,36 +107,12 @@ const StatusScreen = ({ route }) => {
   return (
     <View style={styles.container}>
       {/* Background with gradient effect */}
-      <View style={styles.backgroundGradient} />
-
-      {/* Confetti effect */}
-      <Animated.View
-        style={[
-          styles.confettiContainer,
-          {
-            opacity: confettiAnim,
-          },
-        ]}
-      >
-        <MaterialIcons
-          name="celebration"
-          size={24}
-          color="rgba(255,255,255,0.3)"
-          style={styles.confetti1}
-        />
-        <MaterialIcons
-          name="celebration"
-          size={20}
-          color="rgba(255,255,255,0.4)"
-          style={styles.confetti2}
-        />
-        <MaterialIcons
-          name="celebration"
-          size={18}
-          color="rgba(255,255,255,0.3)"
-          style={styles.confetti3}
-        />
-      </Animated.View>
+      <LinearGradient
+        colors={["#4CAF50", "#45a049", "#2E7D32"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.backgroundGradient}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -153,17 +133,21 @@ const StatusScreen = ({ route }) => {
             style={[
               styles.iconContainer,
               {
-                transform: [{ scale: pulseAnim }, { scale: checkmarkScale }],
+                transform: [{ scale: pulseAnim }],
               },
             ]}
           >
-            <View style={styles.iconBackground}>
+            <LinearGradient
+              colors={["#4CAF50", "#45a049", "#2E7D32"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.iconBackground}
+            >
               <View style={styles.iconInnerCircle}>
-                <MaterialIcons name="check" size={50} color="#4CAF50" />
+                <MaterialIcons name="check-circle" size={60} color="#4CAF50" />
               </View>
-            </View>
+            </LinearGradient>
           </Animated.View>
-
           {/* Title with gradient text effect */}
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
@@ -171,22 +155,22 @@ const StatusScreen = ({ route }) => {
             </Text>
             <View style={styles.titleUnderline} />
           </View>
-
           {/* Message */}
           <Text style={styles.message}>
             {message ||
               "Lịch hẹn của bạn đã được xác nhận. Chúng tôi sẽ gửi thông báo chi tiết qua email."}
           </Text>
-
           {/* Appointment details with enhanced design */}
           {response && (
             <View style={styles.detailsContainer}>
               <View style={styles.detailsHeader}>
-                <MaterialIcons
-                  name="event-available"
-                  size={23}
-                  color="#4CAF50"
-                />
+                <View style={styles.detailsHeaderIcon}>
+                  <MaterialIcons
+                    name="event-available"
+                    size={23}
+                    color="#4CAF50"
+                  />
+                </View>
                 <Text style={styles.detailsHeaderText}>Chi tiết lịch hẹn</Text>
               </View>
 
@@ -195,24 +179,29 @@ const StatusScreen = ({ route }) => {
                   <MaterialIcons name="schedule" size={20} color="#4CAF50" />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Thời gian bắt đầu</Text>
+                  <Text style={styles.detailLabel}>Ngày tư vấn</Text>
                   <Text style={styles.detailText}>
-                    {formatDateTime(response.startDateTime)}
+                    {formatDate(response.startDateTime)}
                   </Text>
                 </View>
               </View>
-              {/* 
+
               <View style={styles.detailRow}>
                 <View style={styles.detailIconContainer}>
-                  <MaterialIcons name="access-time" size={20} color="#4CAF50" />
+                  <MaterialIcons
+                    name="access-alarm"
+                    size={20}
+                    color="#4CAF50"
+                  />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Thời gian kết thúc</Text>
+                  <Text style={styles.detailLabel}>Thời gian tư vấn</Text>
                   <Text style={styles.detailText}>
-                    {formatDateTime(response.endDateTime)}
+                    {formatTime(response.startDateTime)} -{" "}
+                    {formatTime(response.endDateTime)}
                   </Text>
                 </View>
-              </View> */}
+              </View>
 
               <View style={styles.detailRow}>
                 <View style={styles.detailIconContainer}>
@@ -221,7 +210,9 @@ const StatusScreen = ({ route }) => {
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>Địa điểm</Text>
                   <Text style={styles.detailText}>
-                    {response.location || "Phòng tư vấn"}
+                    {response.isOnline
+                      ? response.location || "Link meeting"
+                      : "Địa điểm sẽ được cập nhật sau"}
                   </Text>
                 </View>
               </View>
@@ -237,21 +228,8 @@ const StatusScreen = ({ route }) => {
                   </Text>
                 </View>
               </View>
-
-              {response.reason && (
-                <View style={styles.detailRow}>
-                  <View style={styles.detailIconContainer}>
-                    <MaterialIcons name="note" size={20} color="#4CAF50" />
-                  </View>
-                  <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Lý do tư vấn</Text>
-                    <Text style={styles.detailText}>{response.reason}</Text>
-                  </View>
-                </View>
-              )}
             </View>
           )}
-
           {/* Action buttons with enhanced design */}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
@@ -259,13 +237,22 @@ const StatusScreen = ({ route }) => {
               onPress={handleViewAppointments}
               activeOpacity={0.8}
             >
-              <MaterialIcons
-                name="calendar-today"
-                size={20}
-                color="white"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.primaryButtonText}>Xem lịch hẹn của tôi</Text>
+              <LinearGradient
+                colors={["#4CAF50", "#45a049"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.primaryButtonGradient}
+              >
+                <MaterialIcons
+                  name="calendar-today"
+                  size={20}
+                  color="white"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.primaryButtonText}>
+                  Xem lịch hẹn của tôi
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -273,16 +260,22 @@ const StatusScreen = ({ route }) => {
               onPress={handleGoHome}
               activeOpacity={0.8}
             >
-              <MaterialIcons
-                name="home"
-                size={20}
-                color="#4CAF50"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.secondaryButtonText}>Về trang chủ</Text>
+              <LinearGradient
+                colors={["rgba(76, 175, 80, 0.1)", "rgba(69, 160, 73, 0.1)"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.secondaryButtonGradient}
+              >
+                <MaterialIcons
+                  name="home"
+                  size={20}
+                  color="#4CAF50"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.secondaryButtonText}>Về trang chủ</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-
           {/* Additional info with enhanced design */}
           <View style={styles.infoContainer}>
             <View style={styles.infoIconContainer}>
@@ -301,7 +294,6 @@ const StatusScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#4CAF50",
   },
   backgroundGradient: {
     position: "absolute",
@@ -309,7 +301,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "#4CAF50",
   },
   confettiContainer: {
     position: "absolute",
@@ -357,17 +348,15 @@ const styles = StyleSheet.create({
     elevation: 15,
   },
   iconContainer: {
-    marginBottom: 24,
+    marginBottom: 10,
   },
   iconBackground: {
-    width: 120,
-    height: 120,
+    width: 110,
+    height: 110,
     borderRadius: 60,
     backgroundColor: "#E8F5E8",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 4,
-    borderColor: "#4CAF50",
     shadowColor: "#4CAF50",
     shadowOffset: {
       width: 0,
@@ -378,9 +367,9 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   iconInnerCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: "50%",
     backgroundColor: "white",
     justifyContent: "center",
     alignItems: "center",
@@ -435,6 +424,14 @@ const styles = StyleSheet.create({
     color: "#2E7D32",
     marginLeft: 8,
   },
+  detailsHeaderIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(76, 175, 80, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
   detailRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -444,7 +441,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: "#E8F5E8",
+    backgroundColor: "rgba(76, 175, 80, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -470,13 +467,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   primaryButton: {
-    backgroundColor: "#4CAF50",
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
     shadowColor: "#4CAF50",
     shadowOffset: {
       width: 0,
@@ -485,6 +476,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
+    overflow: "hidden",
+  },
+  primaryButtonGradient: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   },
   primaryButtonText: {
     color: "white",
@@ -492,15 +492,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   secondaryButton: {
-    backgroundColor: "transparent",
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+    overflow: "hidden",
+  },
+  secondaryButtonGradient: {
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#4CAF50",
   },
   secondaryButtonText: {
     color: "#4CAF50",

@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, StyleSheet } from "react-native";
 import {
   BlogScreen,
+  BookingScreen,
   ChangePasswordScreen,
   HomeScreen,
   MyChildrenScreen,
@@ -14,7 +15,6 @@ import {
   SurveyTakingScreen,
   UpdateProfileScreen,
 } from "../screens";
-import BookingScreenWrapper from "../screens/Appointment/BookingScreenWrapper";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -56,7 +56,7 @@ export default function MainTabs() {
   const AppointmentStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="AppointmentMain" component={BookingScreenWrapper} />
+        <Stack.Screen name="AppointmentMain" component={BookingScreen} />
         <Stack.Screen name="StatusScreen" component={StatusScreen} />
         {/* <Stack.Screen
           name="AppointmentConfirm"

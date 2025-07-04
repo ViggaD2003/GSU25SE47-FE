@@ -10,6 +10,11 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import Loading from "./Loading";
 import { ActivityIndicator } from "react-native-paper";
+import {
+  formatDate,
+  formatTime,
+  generateTimeSlots,
+} from "../../utils/slotUtils";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -23,103 +28,13 @@ const SlotDayCard = ({
   const [visibleSlots, setVisibleSlots] = useState(6); // Show first 6 slots initially
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const formatTime = (dateTimeString) => {
-    if (!dateTimeString) return "";
-    const date = new Date(dateTimeString);
-    return date.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
-
-  const getDateFromDateTime = (dateTimeString) => {
-    return new Date(dateTimeString).toDateString();
-  };
-
-  const generateTimeSlots = (slots) => {
-    if (!slots || slots.length === 0) return [];
-
-    // Sort slots by start time
-    const sortedSlots = [...slots].sort(
-      (a, b) => new Date(a.startDateTime) - new Date(b.startDateTime)
-    );
-
-    const timeSlots = [];
-    const date = getDateFromDateTime(sortedSlots[0].startDateTime);
-
-    // Find the earliest and latest time for the day
-    const earliestTime = new Date(sortedSlots[0].startDateTime);
-    const latestTime = new Date(
-      sortedSlots[sortedSlots.length - 1].endDateTime
-    );
-
-    // Generate 30-minute slots from earliest to latest
-    let currentTime = new Date(earliestTime);
-    currentTime.setMinutes(Math.floor(currentTime.getMinutes() / 30) * 30);
-    currentTime.setSeconds(0);
-    currentTime.setMilliseconds(0);
-
-    while (currentTime < latestTime) {
-      const slotStart = new Date(currentTime);
-      const slotEnd = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30 minutes
-
-      // Check if this time slot overlaps with any available slot
-      const overlappingSlot = sortedSlots.find((slot) => {
-        const slotStartTime = new Date(slot.startDateTime);
-        const slotEndTime = new Date(slot.endDateTime);
-
-        return slotStart < slotEndTime && slotEnd > slotStartTime;
-      });
-
-      if (overlappingSlot) {
-        timeSlots.push({
-          id: `${date}_${slotStart.getTime()}`,
-          startTime: slotStart,
-          endTime: slotEnd,
-          slot: overlappingSlot,
-          isAvailable: true,
-          isBooked: overlappingSlot.status === "BOOKED",
-          exactStartTime: slotStart,
-          exactEndTime: slotEnd,
-        });
-      } else {
-        timeSlots.push({
-          id: `${date}_${slotStart.getTime()}`,
-          startTime: slotStart,
-          endTime: slotEnd,
-          slot: null,
-          isAvailable: false,
-          isBooked: false,
-          exactStartTime: slotStart,
-          exactEndTime: slotEnd,
-        });
-      }
-
-      currentTime = slotEnd;
-    }
-
-    return timeSlots;
-  };
-
+  // Generate time slots using utility function
   const timeSlots = generateTimeSlots(daySlots);
-  const timeSlotsAvailable = timeSlots.filter((slot) => slot.isAvailable);
 
-  const date =
-    daySlots && daySlots.length > 0
-      ? getDateFromDateTime(daySlots[0].startDateTime)
-      : "";
+  // Filter only available and non-booked slots
+  const timeSlotsAvailable = timeSlots.filter(
+    (slot) => slot.isAvailable && !slot.isBooked
+  );
 
   // Load more slots
   const loadMoreSlots = useCallback(async () => {
@@ -134,6 +49,10 @@ const SlotDayCard = ({
     setLoadingMore(false);
   }, [loadingMore, visibleSlots, timeSlotsAvailable.length]);
 
+  /**
+   * Handle slot selection
+   * Only allow selection of available and non-booked slots
+   */
   const handleSlotPress = (timeSlot) => {
     if (timeSlot.isAvailable && !timeSlot.isBooked && !disabled) {
       // Create a modified slot object with the exact time of the selected card

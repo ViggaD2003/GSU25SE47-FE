@@ -1,7 +1,7 @@
 import api from "./axios";
 
-//Get Slots Of Teacher
-export const getSlotsOfTeacher = async () => {
+//Get Slots for Student
+export const getSlotsForStudent = async () => {
   try {
     const response = await api.get("/api/v1/slot");
     return response.data;
@@ -11,8 +11,8 @@ export const getSlotsOfTeacher = async () => {
   }
 };
 
-//Get Slots Of Counselor
-export const getSlotsOfCounselor = async (counselorId) => {
+//Get Slots with hostById
+export const getSlotsWithHostById = async (counselorId) => {
   try {
     const response = await api.get(`/api/v1/slot?hostById=${counselorId}`);
     return response.data;

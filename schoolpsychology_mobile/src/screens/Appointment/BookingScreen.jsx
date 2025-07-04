@@ -16,18 +16,24 @@ import { useAuth } from "../../contexts";
 import Dropdown from "../../components/common/Dropdown";
 import SlotDayCard from "../../components/common/SlotDayCard";
 import {
-  getSlotsOfTeacher,
-  getSlotsOfCounselor,
+  getSlotsForStudent,
+  getSlotsWithHostById,
 } from "../../services/api/SlotService";
 import {
   getAllCounselors,
   createAppointment,
 } from "../../services/api/AppointmentService";
+import { Toast } from "../../components";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import localeData from "dayjs/plugin/localeData";
 import "dayjs/locale/vi";
+import {
+  groupSlotsByDate,
+  getAvailableDays,
+  countTotalAvailableSlots,
+} from "../../utils/slotUtils";
 
 // Extend dayjs with plugins
 dayjs.extend(utc);
@@ -36,20 +42,14 @@ dayjs.extend(localeData);
 dayjs.locale("vi");
 
 const { width } = Dimensions.get("window");
-const isSmallDevice = width < 375;
 const VISIBLE_DAYS = 2;
 const VN_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSS[Z]";
 const LOCALES = "vi-VN";
 
-const BookingScreen = ({
-  navigation,
-  setShowToast,
-  setToastMessage,
-  setToastType,
-}) => {
+const BookingScreen = ({ navigation }) => {
   const { user } = useAuth();
 
-  // State for host type selection
+  // State for host type selection (teacher/counselor)
   const [hostType, setHostType] = useState(null);
 
   // State for counselor selection
@@ -71,11 +71,22 @@ const BookingScreen = ({
   const [bookingLoading, setBookingLoading] = useState(false);
 
   // New fields for appointment request
-  //   const [location, setLocation] = useState("");
   const [isOnline, setIsOnline] = useState(true);
   const [reason, setReason] = useState("");
-  const [bookedForId, setBookedForId] = useState(user?.id || null);
-  const [bookedById, setBookedById] = useState(user?.id || null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("info");
+
+  const [selectedChild, setSelectedChild] = useState(
+    global.selectedChildForAppointment
+  );
+
+  // Get child from global variable or route params or use current user
+  const childFromGlobal = global.selectedChildForAppointment;
+
+  const [bookedForId, setBookedForId] = useState(
+    childFromGlobal?.userId || user?.id || null
+  );
 
   // Host type options
   const hostTypeOptions = [
@@ -83,7 +94,10 @@ const BookingScreen = ({
     { id: "counselor", label: "Tư vấn viên", value: "counselor" },
   ];
 
-  // Fetch counselors when host type is counselor
+  /**
+   * Fetch counselors when host type is counselor
+   * Lấy danh sách tư vấn viên và map data cho dropdown
+   */
   const fetchCounselors = useCallback(async () => {
     if (hostType?.value !== "counselor") return;
 
@@ -93,7 +107,20 @@ const BookingScreen = ({
       const counselorsData = Array.isArray(response)
         ? response
         : response.data || [];
-      setCounselors(counselorsData);
+
+      // Map data để phù hợp với Dropdown component
+      // Format: "Mã - Tên - Giới tính"
+      const mappedCounselors = counselorsData.map((counselor) => ({
+        ...counselor,
+        label: `${counselor.counselorCode} - ${counselor.fullName} - ${
+          counselor.gender === true ? "Nam" : "Nữ"
+        }`,
+        name: counselor.fullName, // Fallback
+      }));
+
+      setCounselors(mappedCounselors);
+      // Tự động chọn counselor đầu tiên
+      setSelectedCounselor(mappedCounselors[0]);
     } catch (error) {
       console.error("Lỗi khi tải danh sách tư vấn viên:", error);
       setToastMessage("Không thể tải danh sách tư vấn viên");
@@ -104,7 +131,6 @@ const BookingScreen = ({
     }
   }, [hostType, setToastMessage, setToastType, setShowToast]);
 
-  // Fetch slots based on host type and selection
   const fetchSlots = useCallback(async () => {
     if (!hostType) return;
 
@@ -114,22 +140,27 @@ const BookingScreen = ({
     try {
       let response;
 
-      if (hostType.value === "teacher") {
-        response = await getSlotsOfTeacher();
+      // Xác định API call dựa trên role và host type
+      if (user.role === "STUDENT" && hostType.value === "teacher") {
+        response = await getSlotsForStudent();
+      } else if (user.role === "PARENTS" && hostType.value === "teacher") {
+        response = await getSlotsWithHostById(selectedChild.teacherId);
       } else if (hostType.value === "counselor" && selectedCounselor) {
-        response = await getSlotsOfCounselor(selectedCounselor.id);
+        response = await getSlotsWithHostById(selectedCounselor.id);
       } else {
         setSlots([]);
         setLoadingSlots(false);
         return;
       }
 
+      // console.log("Slots response:", response);
+
       const slotsData = Array.isArray(response)
         ? response
         : response.data || [];
       setSlots(slotsData);
 
-      // Group slots by date
+      // Group slots by date using utility function
       const grouped = groupSlotsByDate(slotsData);
       setGroupedSlots(grouped);
     } catch (error) {
@@ -152,7 +183,7 @@ const BookingScreen = ({
   ]);
 
   // Handle host type selection
-  const handleHostTypeSelect = (type) => {
+  const handleHostTypeSelect = async (type) => {
     setHostType(type);
     setSelectedCounselor(null);
     setSelectedSlot(null);
@@ -170,101 +201,22 @@ const BookingScreen = ({
     setVisibleDays(VISIBLE_DAYS); // Reset to initial state
   };
 
-  // Generate time slots for a specific day (for counting purposes)
-  const generateTimeSlotsForDay = useCallback((daySlots) => {
-    if (!daySlots || daySlots.length === 0) return [];
+  // Import generateTimeSlots from utility functions
+  const { generateTimeSlots } = require("../../utils/slotUtils");
 
-    // Sort slots by start time
-    const sortedSlots = [...daySlots].sort(
-      (a, b) => new Date(a.startDateTime) - new Date(b.startDateTime)
-    );
-
-    const timeSlots = [];
-
-    // Find the earliest and latest time for the day
-    const earliestTime = new Date(sortedSlots[0].startDateTime);
-    const latestTime = new Date(
-      sortedSlots[sortedSlots.length - 1].endDateTime
-    );
-
-    // Generate 30-minute slots from earliest to latest
-    let currentTime = new Date(earliestTime);
-    currentTime.setMinutes(Math.floor(currentTime.getMinutes() / 30) * 30);
-    currentTime.setSeconds(0);
-    currentTime.setMilliseconds(0);
-
-    while (currentTime < latestTime) {
-      const slotStart = new Date(currentTime);
-      const slotEnd = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30 minutes
-
-      // Check if this time slot overlaps with any available slot
-      const overlappingSlot = sortedSlots.find((slot) => {
-        const slotStartTime = new Date(slot.startDateTime);
-        const slotEndTime = new Date(slot.endDateTime);
-
-        return slotStart < slotEndTime && slotEnd > slotStartTime;
-      });
-
-      if (overlappingSlot) {
-        timeSlots.push({
-          id: `${slotStart.getTime()}`,
-          startTime: slotStart,
-          endTime: slotEnd,
-          slot: overlappingSlot,
-          isAvailable: true,
-        });
-      } else {
-        timeSlots.push({
-          id: `${slotStart.getTime()}`,
-          startTime: slotStart,
-          endTime: slotEnd,
-          slot: null,
-          isAvailable: false,
-        });
-      }
-
-      currentTime = slotEnd;
-    }
-
-    return timeSlots;
+  // Group slots by date using utility function
+  const groupSlotsByDateCallback = useCallback((slotsData) => {
+    return groupSlotsByDate(slotsData);
   }, []);
 
-  // Group slots by date
-  const groupSlotsByDate = useCallback((slotsData) => {
-    const grouped = {};
-
-    slotsData.forEach((slot) => {
-      const date = new Date(slot.startDateTime).toDateString();
-      if (!grouped[date]) {
-        grouped[date] = [];
-      }
-      grouped[date].push(slot);
-    });
-
-    // Sort dates chronologically
-    const sortedGrouped = {};
-    Object.keys(grouped)
-      .sort((a, b) => new Date(a) - new Date(b))
-      .forEach((date) => {
-        sortedGrouped[date] = grouped[date];
-      });
-
-    return sortedGrouped;
-  }, []);
-
-  // Get available days (days with at least one available slot)
-  const getAvailableDays = useCallback(() => {
-    return Object.keys(groupedSlots).filter((date) => {
-      const daySlots = groupedSlots[date];
-      const timeSlots = generateTimeSlotsForDay(daySlots);
-      const availableSlots = timeSlots.filter((slot) => slot.isAvailable);
-      return availableSlots.length > 0;
-    });
-  }, [groupedSlots, generateTimeSlotsForDay]);
+  // Get available days using utility function
+  const getAvailableDaysCallback = useCallback(() => {
+    return getAvailableDays(groupedSlots);
+  }, [groupedSlots]);
 
   // Load more days
   const loadMoreDays = useCallback(async () => {
-    const availableDays = getAvailableDays();
+    const availableDays = getAvailableDaysCallback();
 
     if (loadingMoreDays || visibleDays >= availableDays.length) return;
 
@@ -275,7 +227,7 @@ const BookingScreen = ({
 
     setVisibleDays((prev) => Math.min(prev + 2, availableDays.length));
     setLoadingMoreDays(false);
-  }, [loadingMoreDays, visibleDays, getAvailableDays]);
+  }, [loadingMoreDays, visibleDays, getAvailableDaysCallback]);
 
   // Handle slot selection
   const handleSlotSelect = (slot) => {
@@ -327,7 +279,6 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
             const bookingData = {
               slotId: selectedSlot.id,
               bookedForId: bookedForId,
-              bookedById: bookedById,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT
@@ -338,16 +289,13 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
               reason: reason || "Không có lý do",
             };
 
-            // const response = await createAppointment(bookingData);
+            await createAppointment(bookingData);
 
             // Navigate back or to appointment history
             navigation.navigate("StatusScreen", {
               title: "Đặt lịch hẹn thành công",
               message: "Bạn đã đặt lịch hẹn thành công",
-              response: {
-                ...bookingData,
-                location: "Phòng tư vấn",
-              },
+              response: bookingData,
             });
           } catch (error) {
             console.error("Lỗi khi đặt lịch hẹn:", error);
@@ -370,6 +318,20 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
   useEffect(() => {
     fetchSlots();
   }, [fetchSlots]);
+
+  // Load child from global variable when component mounts
+  useEffect(() => {
+    if (global.selectedChildForAppointment) {
+      // console.log(
+      //   "Found child in global variable:",
+      //   global.selectedChildForAppointment
+      // );
+      setBookedForId(global.selectedChildForAppointment.userId);
+
+      // Clear the global variable after reading
+      global.selectedChildForAppointment = null;
+    }
+  }, []);
 
   const handleBackPress = () => {
     Alert.alert(
@@ -407,6 +369,44 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
+        {/* Child Selection (if user is parent with multiple children) */}
+        {user?.role === "PARENTS" &&
+          user?.children &&
+          user.children.length > 1 && (
+            <View style={styles.section}>
+              <View style={styles.dropdownContainer}>
+                <Dropdown
+                  label=""
+                  placeholder="Chọn học sinh để đặt lịch"
+                  data={user.children.map((child) => ({
+                    ...child,
+                    label: child.fullName,
+                    value: child.userId,
+                  }))}
+                  value={selectedChild?.userId}
+                  onSelect={(child) => {
+                    setSelectedChild(child);
+                    setBookedForId(child.userId);
+                    // Reset other selections when child changes
+                    setHostType(null);
+                    setSelectedCounselor(null);
+                    setSelectedSlot(null);
+                    setSlots([]);
+                    setGroupedSlots({});
+                  }}
+                />
+              </View>
+              {selectedChild && (
+                <View style={styles.selectedChildIndicator}>
+                  <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                  <Text style={styles.selectedChildText}>
+                    Đã chọn: {selectedChild.fullName}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
         {/* Host Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Chọn người tư vấn</Text>
@@ -451,6 +451,7 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
               placeholder="Chọn tư vấn viên"
               data={counselors}
               value={selectedCounselor?.id}
+              key={selectedCounselor?.id}
               onSelect={handleCounselorSelect}
               loading={loadingCounselors}
             />
@@ -510,16 +511,8 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
               {Object.keys(groupedSlots).length > 0 && (
                 <View style={styles.slotsOverview}>
                   <Text style={styles.slotsOverviewText}>
-                    {getAvailableDays().length} ngày •{" "}
-                    {Object.values(groupedSlots).reduce((total, daySlots) => {
-                      // Generate time slots for this day and count available ones
-                      const timeSlots = generateTimeSlotsForDay(daySlots);
-                      const availableSlots = timeSlots.filter(
-                        (slot) => slot.isAvailable
-                      ).length;
-                      return total + availableSlots;
-                    }, 0)}{" "}
-                    khung giờ khả dụng
+                    {getAvailableDaysCallback().length} ngày •{" "}
+                    {countTotalAvailableSlots(groupedSlots)} khung giờ khả dụng
                   </Text>
                 </View>
               )}
@@ -539,7 +532,7 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
               <View style={styles.slotsContainer}>
                 {Object.keys(groupedSlots).length > 0 ? (
                   <>
-                    {getAvailableDays()
+                    {getAvailableDaysCallback()
                       .slice(0, visibleDays)
                       .map((date) => (
                         <SlotDayCard
@@ -553,7 +546,7 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
 
                     {/* Load More Days Button */}
                     {(() => {
-                      const availableDays = getAvailableDays();
+                      const availableDays = getAvailableDaysCallback();
 
                       return visibleDays < availableDays.length ? (
                         <TouchableOpacity
@@ -587,7 +580,7 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
                     {/* Days Info */}
                     <View style={styles.daysInfoContainer}>
                       {(() => {
-                        const availableDays = getAvailableDays();
+                        const availableDays = getAvailableDaysCallback();
 
                         return (
                           <>
@@ -596,21 +589,6 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
                               {Math.min(visibleDays, availableDays.length)}{" "}
                               trong tổng số {availableDays.length} ngày khả dụng
                             </Text>
-                            {/* <Text style={styles.slotsCountText}>
-                              Tổng cộng{" "}
-                              {Object.values(groupedSlots).reduce(
-                                (total, daySlots) => {
-                                  const timeSlots =
-                                    generateTimeSlotsForDay(daySlots);
-                                  const availableSlots = timeSlots.filter(
-                                    (slot) => slot.isAvailable
-                                  ).length;
-                                  return total + availableSlots;
-                                },
-                                0
-                              )}{" "}
-                              khung giờ khả dụng
-                            </Text> */}
                             {visibleDays < availableDays.length && (
                               <Text style={styles.lazyLoadHint}>
                                 Nhấn nút để xem thêm
@@ -697,43 +675,6 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
                   <Text style={styles.summaryValue}>{reason}</Text>
                 </View>
               )}
-
-              {/* Validation Status */}
-              {/* <View style={styles.validationSection}>
-                <Text style={styles.validationTitle}>
-                  Trạng thái thông tin:
-                </Text>
-                <View style={styles.validationRow}>
-                  <Ionicons
-                    name={location.trim() ? "checkmark-circle" : "close-circle"}
-                    size={16}
-                    color={location.trim() ? "#059669" : "#DC2626"}
-                  />
-                  <Text
-                    style={[
-                      styles.validationText,
-                      { color: location.trim() ? "#059669" : "#DC2626" },
-                    ]}
-                  >
-                    Địa điểm {location.trim() ? "đã nhập" : "chưa nhập"}
-                  </Text>
-                </View>
-                <View style={styles.validationRow}>
-                  <Ionicons
-                    name={reason.trim() ? "checkmark-circle" : "close-circle"}
-                    size={16}
-                    color={reason.trim() ? "#059669" : "#DC2626"}
-                  />
-                  <Text
-                    style={[
-                      styles.validationText,
-                      { color: reason.trim() ? "#059669" : "#DC2626" },
-                    ]}
-                  >
-                    Lý do {reason.trim() ? "đã nhập" : "chưa nhập"}
-                  </Text>
-                </View>
-              </View> */}
             </View>
           </View>
         )}
@@ -761,6 +702,13 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
           </TouchableOpacity>
         </View>
       )}
+
+      <Toast
+        visible={showToast}
+        message={toastMessage}
+        type={toastType}
+        onDismiss={() => setShowToast(false)}
+      />
     </Container>
   );
 };
@@ -793,10 +741,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
+    flex: 1,
     padding: 20,
+    backgroundColor: "#F9FAFB",
   },
   section: {
     marginBottom: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
@@ -1060,6 +1018,119 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#FFFFFF",
+  },
+  childInfoCard: {
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  childHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E2E8F0",
+  },
+  childAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#3B82F6",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  childAvatarText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  childHeaderInfo: {
+    flex: 1,
+  },
+  childName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  childSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  dropdownContainer: {
+    borderRadius: 12,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+    gap: 8,
+  },
+  selectedChildIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#D1FAE5",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 0,
+    gap: 6,
+  },
+  selectedChildText: {
+    fontSize: 14,
+    color: "#065F46",
+    fontWeight: "500",
+  },
+  childInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    paddingVertical: 4,
+  },
+  childInfoLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginLeft: 12,
+    marginRight: 12,
+    minWidth: 60,
+    fontWeight: "500",
+  },
+  childInfoValue: {
+    fontSize: 14,
+    color: "#1A1A1A",
+    fontWeight: "600",
+    flex: 1,
+  },
+  debugSection: {
+    marginBottom: 24,
+  },
+  debugTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginBottom: 8,
+  },
+  debugText: {
+    fontSize: 12,
+    color: "#92400E",
+    marginBottom: 4,
+  },
+  testButton: {
+    backgroundColor: "#3B82F6",
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    alignItems: "center",
+  },
+  testButtonText: {
+    fontSize: 12,
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
 });
 

@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { surveyResult } from "../../constants/survey";
 import { Toast } from "../../components";
 import { useAuth } from "../../contexts";
 import {
@@ -99,7 +98,12 @@ const SurveyResult = ({ route, navigation }) => {
 
           {/* Score Display */}
           <View style={styles.scoreContainer}>
-            <View style={[styles.scoreCircle,{ borderColor: getScoreColor(result) }]}>
+            <View
+              style={[
+                styles.scoreCircle,
+                { borderColor: getScoreColor(result) },
+              ]}
+            >
               <Text
                 style={[styles.scoreText, { color: getScoreColor(result) }]}
               >

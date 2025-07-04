@@ -33,9 +33,9 @@ const Dropdown = ({
     setIsOpen(false);
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, isLast }) => (
     <TouchableOpacity
-      style={styles.dropdownItem}
+      style={[styles.dropdownItem, isLast && { borderBottomWidth: 0 }]}
       onPress={() => handleSelect(item)}
     >
       <Text style={styles.dropdownItemText}>{item.label || item.name}</Text>
@@ -92,7 +92,9 @@ const Dropdown = ({
 
             <FlatList
               data={data || []}
-              renderItem={renderItem}
+              renderItem={({ item, index }) =>
+                renderItem({ item, isLast: index === data.length - 1 })
+              }
               keyExtractor={(item, index) => index.toString()}
               showsVerticalScrollIndicator={false}
               style={styles.dropdownList}

@@ -1,6 +1,6 @@
 import api from "./axios";
 
-// Get parent dashboard data for a specific child
+// Get parent survey records data for a specific child
 export const getChildSurveyRecords = async (accountId) => {
   try {
     const response = await api.get(
@@ -9,7 +9,7 @@ export const getChildSurveyRecords = async (accountId) => {
     const data = response.data.data || [];
     return data.filter((item) => item.status === "COMPLETED");
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu dashboard:", error);
+    console.error("Lỗi khi lấy dữ liệu survey record:", error);
     throw error;
   }
 };

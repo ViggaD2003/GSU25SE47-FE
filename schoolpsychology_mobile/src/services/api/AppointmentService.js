@@ -4,6 +4,7 @@ import api from "./axios";
 export const createAppointment = async (appointment) => {
   try {
     const response = await api.post("/api/v1/appointment", appointment);
+
     return response.data;
   } catch (err) {
     console.error("Lỗi khi tạo lịch hẹn:", err);
@@ -11,8 +12,8 @@ export const createAppointment = async (appointment) => {
   }
 };
 
-//Get Appointment Records
-export const getAppointmentRecords = async () => {
+//Get Appointment History
+export const getAppointmentHistory = async () => {
   try {
     const response = await api.get("/api/v1/appointment/show-history");
     return response.data;
@@ -25,7 +26,7 @@ export const getAppointmentRecords = async () => {
 //Get All Counselors
 export const getAllCounselors = async () => {
   try {
-    const response = await api.get("/api/v1/counselor");
+    const response = await api.get("/api/v1/account/view-counselor");
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy danh sách tư vấn viên:", err);

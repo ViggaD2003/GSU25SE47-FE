@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { GlobalStyles } from "../../constants";
 import {
   StatisticsCard,
@@ -95,13 +96,27 @@ export default function ParentHome({
   };
 
   const handleViewAllAppointments = () => {
+    console.log("Appointment Records");
+
     // Navigate to appointments screen
-    navigation.navigate("Appointments");
+    // navigation.navigate("AppointmentRecord");
   };
 
   const handleViewAllSupportPrograms = () => {
+    console.log("Program Records");
+
     // Navigate to support programs screen
-    navigation.navigate("SupportPrograms");
+    // navigation.navigate("ProgramRecord");
+  };
+
+  const handleBooking = () => {
+    // Lưu selectedChild vào global variable
+    global.selectedChildForAppointment = selectedChild;
+
+    // Navigate to Appointment stack
+    navigation.navigate("Appointment", {
+      screen: "AppointmentMain",
+    });
   };
 
   const handleViewSurveyDetail = (record) => {
@@ -203,6 +218,52 @@ export default function ParentHome({
         </View>
       ) : selectedChild ? (
         <>
+          {/* Quick Booking Button */}
+          <View style={styles.bookingSection}>
+            <TouchableOpacity
+              style={styles.bookingButton}
+              onPress={handleBooking}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={["#4CAF50", "#45a049"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.bookingGradient}
+              >
+                <View style={styles.bookingButtonContent}>
+                  <View style={styles.bookingIconContainer}>
+                    <Ionicons name="calendar" size={22} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.bookingTextContainer}>
+                    <Text style={styles.bookingTitle}>Đặt lịch tư vấn</Text>
+                    <View style={{ gap: 4 }}>
+                      <Text style={styles.bookingSubtitle}>
+                        Hẹn gặp chuyên gia tâm lý cho
+                      </Text>
+
+                      <Text
+                        style={{
+                          fontWeight: 600,
+                          color: "#FFFFFF",
+                        }}
+                      >
+                        {selectedChild.fullName}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.bookingArrowContainer}>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color="#FFFFFF"
+                    />
+                  </View>
+                </View>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+
           {/* Statistics Section */}
           <SectionHeader
             title="Thống kê tổng quan"
@@ -301,8 +362,8 @@ export default function ParentHome({
                 <RecordCard
                   key={record.id || index}
                   type="survey"
-                  title={record.surveyName || record.name}
-                  subtitle={record.surveyCode}
+                  title={record.survey.name || record.name}
+                  subtitle={record.survey.surveyCode}
                   date={record.completedAt || record.createdAt}
                   status={record.status}
                   score={record.totalScore}
@@ -638,5 +699,61 @@ const styles = StyleSheet.create({
 
   space: {
     marginBottom: 20,
+  },
+  bookingSection: {
+    marginBottom: 24,
+  },
+  bookingButton: {
+    borderRadius: 16,
+    shadowColor: "#4F46E5",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+    overflow: "hidden",
+  },
+  bookingGradient: {
+    borderRadius: 16,
+    padding: 20,
+  },
+  bookingButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  bookingIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 16,
+  },
+  bookingTextContainer: {
+    flex: 1,
+  },
+  bookingTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginBottom: 4,
+  },
+  bookingSubtitle: {
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.85)",
+    fontWeight: "400",
+    lineHeight: 18,
+  },
+  bookingArrowContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
   },
 });

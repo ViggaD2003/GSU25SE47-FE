@@ -13,7 +13,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
+import AppointmentCard from "../../components/common/AppointmentCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
+import { getAppointmentHistory } from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
 
 const { width } = Dimensions.get("window");
@@ -22,6 +24,7 @@ const isMediumDevice = width >= 375 && width < 414;
 // const isLargeDevice = width >= 414;
 
 const PAGE_SIZE = 2; // Page size for lazy loading
+const APPNT_PAGE_SIZE = 1;
 
 export default function StudentHome({
   user,
@@ -101,11 +104,29 @@ export default function StudentHome({
 
   const fetchAppointments = async () => {
     try {
-      setAllData([]);
-      setDisplayedData([]);
-      setHasMoreData(false);
+      const response = await getAppointmentHistory();
+      const appointmentData = Array.isArray(response)
+        ? response
+        : response.data || [];
+
+      // Sort appointments by date (newest first)
+      const sortedAppointments = appointmentData.sort(
+        (a, b) => new Date(a.startDateTime) - new Date(b.startDateTime)
+      );
+
+      setAllData(sortedAppointments);
+
+      // Load first page
+      const firstPageData = sortedAppointments.slice(0, APPNT_PAGE_SIZE);
+      setDisplayedData(firstPageData);
+      setCurrentPage(2); // Next page will be 2
+      setHasMoreData(sortedAppointments.length > APPNT_PAGE_SIZE);
     } catch (error) {
       console.error("Lỗi khi tải appointments:", error);
+      setAllData([]);
+      setDisplayedData([]);
+      setCurrentPage(1);
+      setHasMoreData(false);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -175,6 +196,10 @@ export default function StudentHome({
       loadTabData(initialTab);
     }, [navigation, isEnableSurvey])
   );
+
+  const handleAppointmentPress = (appointment) => {
+    navigation.navigate("AppointmentDetail", { appointment });
+  };
 
   return (
     <ScrollView
@@ -342,11 +367,31 @@ export default function StudentHome({
         </View>
         <View style={styles.requiredEventContainer}>
           {loading ? (
-            <Loading text={`Loading ${activeTab}s...`} />
+            <Loading
+              text={
+                activeTab === "survey"
+                  ? "Đang tải khảo sát..."
+                  : activeTab === "appointment"
+                  ? "Đang tải lịch hẹn..."
+                  : "Đang tải chương trình..."
+              }
+            />
           ) : displayedData.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📋</Text>
-              <Text style={styles.emptyText}>No available {activeTab}</Text>
+              <Text style={styles.emptyIcon}>
+                {activeTab === "survey"
+                  ? "📋"
+                  : activeTab === "appointment"
+                  ? "📅"
+                  : "🎯"}
+              </Text>
+              <Text style={styles.emptyText}>
+                {activeTab === "survey"
+                  ? "Không có khảo sát nào"
+                  : activeTab === "appointment"
+                  ? "Chưa có lịch hẹn nào"
+                  : "Không có chương trình nào"}
+              </Text>
             </View>
           ) : isEnableSurvey && activeTab === "survey" ? (
             <>
@@ -359,6 +404,29 @@ export default function StudentHome({
                   setShowToast={setShowToast}
                   setToastMessage={setToastMessage}
                   setToastType={setToastType}
+                />
+              ))}
+              {hasMoreData && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={loadMoreData}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? (
+                    <Loading text="Loading more..." />
+                  ) : (
+                    <Text style={styles.loadMoreText}>Load More</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          ) : activeTab === "appointment" ? (
+            <>
+              {displayedData.map((appointment, index) => (
+                <AppointmentCard
+                  appointment={appointment}
+                  key={appointment.id || index}
+                  onPress={handleAppointmentPress}
                 />
               ))}
               {hasMoreData && (
@@ -534,7 +602,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   eventTabsContainer: {
-    marginBottom: 20,
+    marginBottom: 25,
     // backgroundColor: "#F8FAFC",
     borderRadius: 20,
     minWidth: "100%",
