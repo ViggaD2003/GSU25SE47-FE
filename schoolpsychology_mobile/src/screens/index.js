@@ -23,6 +23,8 @@ export { default as BlogDetails } from "./Blog/BlogDetails";
 // Appointment screens
 export { default as BookingScreen } from "./Appointment/BookingScreen";
 export { default as StatusScreen } from "./Appointment/StatusScreen";
+export { default as AppointmentDetailsScreen } from "./Appointment/AppointmentDetails";
+export { default as AppointmentRecordScreen } from "./Appointment/AppointmentRecord";
 
 // Calendar screens
 export { default as CalendarAccess } from "./Calendar/CalendarAccess";

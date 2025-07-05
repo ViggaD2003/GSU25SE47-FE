@@ -197,7 +197,11 @@ export default function StudentHome({
   );
 
   const handleAppointmentPress = (appointment) => {
-    navigation.navigate("AppointmentDetail", { appointment });
+    // Pass only the appointment ID to avoid circular reference issues
+    navigation.navigate("Appointment", {
+      screen: "AppointmentDetails",
+      params: { appointment: appointment },
+    });
   };
 
   return (
@@ -425,7 +429,7 @@ export default function StudentHome({
                 <AppointmentCard
                   appointment={appointment}
                   key={appointment.id || index}
-                  onPress={handleAppointmentPress}
+                  onPress={() => handleAppointmentPress(appointment)}
                 />
               ))}
               {hasMoreData && (

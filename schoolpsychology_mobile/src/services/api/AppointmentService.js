@@ -23,6 +23,17 @@ export const getAppointmentHistory = async () => {
   }
 };
 
+//Get Appointment by ID
+export const getAppointmentById = async (appointmentId) => {
+  try {
+    const response = await api.get(`/api/v1/appointment/${appointmentId}`);
+    return response.data;
+  } catch (err) {
+    console.error("Lỗi khi lấy chi tiết lịch hẹn:", err);
+    throw err;
+  }
+};
+
 //Get All Counselors
 export const getAllCounselors = async () => {
   try {
@@ -30,6 +41,19 @@ export const getAllCounselors = async () => {
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy danh sách tư vấn viên:", err);
+    throw err;
+  }
+};
+
+//Cancel Appointment
+export const cancelAppointment = async (appointmentId, reasonCancel) => {
+  try {
+    const response = await api.patch(
+      `/api/v1/appointment/cancel/${appointmentId}?reasonCancel=${reasonCancel}`
+    );
+    return response.data;
+  } catch (err) {
+    console.error("Lỗi khi hủy lịch hẹn:", err);
     throw err;
   }
 };

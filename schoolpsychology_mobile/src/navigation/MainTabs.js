@@ -2,6 +2,8 @@ import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, StyleSheet } from "react-native";
 import {
+  AppointmentDetailsScreen,
+  AppointmentRecordScreen,
   BlogScreen,
   BookingScreen,
   CalendarAccess,
@@ -60,10 +62,7 @@ export default function MainTabs() {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="AppointmentMain" component={BookingScreen} />
         <Stack.Screen name="StatusScreen" component={StatusScreen} />
-        {/* <Stack.Screen
-          name="AppointmentConfirm"
-          component={AppointmentConfirmScreen}
-        />
+
         <Stack.Screen
           name="AppointmentDetails"
           component={AppointmentDetailsScreen}
@@ -71,7 +70,7 @@ export default function MainTabs() {
         <Stack.Screen
           name="AppointmentRecord"
           component={AppointmentRecordScreen}
-        /> */}
+        />
       </Stack.Navigator>
     );
   };
