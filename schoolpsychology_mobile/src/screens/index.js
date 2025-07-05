@@ -25,4 +25,4 @@ export { default as BookingScreen } from "./Appointment/BookingScreen";
 export { default as StatusScreen } from "./Appointment/StatusScreen";
 
 // Calendar screens
-export { default as CalendarScreen } from "./Calendar/CalendarScreen";
+export { default as CalendarAccess } from "./Calendar/CalendarAccess";

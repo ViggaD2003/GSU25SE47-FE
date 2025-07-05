@@ -4,7 +4,7 @@ import { View, StyleSheet } from "react-native";
 import {
   BlogScreen,
   BookingScreen,
-  CalendarScreen,
+  CalendarAccess,
   ChangePasswordScreen,
   HomeScreen,
   MyChildrenScreen,
@@ -50,6 +50,7 @@ export default function MainTabs() {
         <Stack.Screen name="EditProfile" component={UpdateProfileScreen} />
         <Stack.Screen name="MyChildren" component={MyChildrenScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="CalendarAccess" component={CalendarAccess} />
       </Stack.Navigator>
     );
   };
@@ -99,7 +100,6 @@ export default function MainTabs() {
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Survey" component={SurveyStack} />
       <Stack.Screen name="Appointment" component={AppointmentStack} />
-      <Stack.Screen name="Calendar" component={CalendarScreen} />
     </Stack.Navigator>
   );
 }

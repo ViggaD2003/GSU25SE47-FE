@@ -65,12 +65,6 @@ export default function ProfileScreen() {
   return (
     <Container>
       {/* Header */}
-      {/* <View style={styles.headerRow}>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View style={{ width: 28 }} />
-      </View> */}
-
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
@@ -117,12 +111,17 @@ export default function ProfileScreen() {
             />
             {showSettingsDropdown && (
               <View
-                style={{ marginLeft: 36, borderRadius: 8, marginBottom: 4 }}
+                style={{ paddingLeft: 36, borderRadius: 8, marginBottom: 4 }}
               >
                 <MenuItem
                   icon="lock-reset"
                   label="Change Password"
                   onPress={() => navigation.navigate("ChangePassword")}
+                />
+                <MenuItem
+                  icon="calendar-outline"
+                  label="Calendar Access"
+                  onPress={() => navigation.navigate("CalendarAccess")}
                 />
               </View>
             )}

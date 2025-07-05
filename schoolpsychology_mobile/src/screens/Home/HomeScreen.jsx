@@ -38,14 +38,6 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.actionsSection}>
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => navigation.navigate("Calendar")}
-          >
-            <View style={styles.notificationContainer}>
-              <Ionicons name="calendar-outline" size={24} color="#374151" />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
             onPress={() => navigation.navigate("Profile")}
           >
             <View style={styles.notificationContainer}>

@@ -24,6 +24,7 @@ import {
   createAppointment,
 } from "../../services/api/AppointmentService";
 import { Toast } from "../../components";
+import CalendarService from "../../services/CalendarService";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
@@ -77,6 +78,14 @@ const BookingScreen = ({ navigation }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("info");
+
+  // Calendar sync settings
+  const [calendarSettings, setCalendarSettings] = useState({
+    syncEnabled: false,
+    autoSync: false,
+    reminderEnabled: false,
+    reminderTime: 15,
+  });
 
   const [selectedChild, setSelectedChild] = useState(
     global.selectedChildForAppointment
@@ -237,7 +246,7 @@ const BookingScreen = ({ navigation }) => {
     }
 
     // Create confirmation message with all details
-    const confirmationMessage = `Xác nhận thông tin lịch hẹn:
+    let confirmationMessage = `Xác nhận thông tin lịch hẹn:
 
 • Người tư vấn: ${
       hostType?.value === "teacher"
@@ -255,9 +264,18 @@ const BookingScreen = ({ navigation }) => {
       )
     }
 • Hình thức: ${isOnline ? "Trực tuyến" : "Trực tiếp"}
-• Lý do: ${reason || "Không có lý do"}
+• Lý do: ${reason || "Không có lý do"}`;
 
-Bạn có chắc chắn muốn đặt lịch hẹn này?`;
+    // Add calendar sync information
+    if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
+      confirmationMessage += `\n\n📅 Đồng bộ lịch: Sẽ được thêm vào calendar`;
+
+      if (calendarSettings.reminderEnabled) {
+        confirmationMessage += `\n⏰ Nhắc nhở: ${calendarSettings.reminderTime} phút trước`;
+      }
+    }
+
+    confirmationMessage += `\n\nBạn có chắc chắn muốn đặt lịch hẹn này?`;
 
     Alert.alert("Xác nhận đặt lịch", confirmationMessage, [
       {
@@ -283,6 +301,39 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
             };
 
             await createAppointment(bookingData);
+
+            // Auto sync with calendar if enabled
+            // if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
+            //   try {
+            //     // Sync to calendar
+            //     const syncResult = await CalendarService.syncEvent(
+            //       "appointment",
+            //       appointmentResponse
+            //     );
+
+            //     if (syncResult.success) {
+            //       console.log(
+            //         "Appointment synced to calendar:",
+            //         syncResult.message
+            //       );
+            //       // Show success toast for calendar sync
+            //       setToastMessage("Đã đồng bộ lịch hẹn với calendar");
+            //       setToastType("success");
+            //       setShowToast(true);
+            //     } else {
+            //       console.log(
+            //         "Failed to sync to calendar:",
+            //         syncResult.message
+            //       );
+            //       // Show warning toast for sync failure
+            //       setToastMessage("Không thể đồng bộ với calendar");
+            //       setToastType("warning");
+            //       setShowToast(true);
+            //     }
+            //   } catch (error) {
+            //     console.error("Error syncing appointment to calendar:", error);
+            //   }
+            // }
 
             // Navigate back or to appointment history
             navigation.navigate("StatusScreen", {
@@ -324,6 +375,23 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
       // Clear the global variable after reading
       global.selectedChildForAppointment = null;
     }
+  }, []);
+
+  // Load calendar settings when component mounts
+  useEffect(() => {
+    const loadCalendarSettings = async () => {
+      try {
+        // Initialize calendar service if needed
+        await CalendarService.initialize();
+
+        const settings = CalendarService.getSettings();
+        setCalendarSettings(settings);
+      } catch (error) {
+        console.error("Error loading calendar settings:", error);
+      }
+    };
+
+    loadCalendarSettings();
   }, []);
 
   const handleBackPress = () => {
@@ -645,6 +713,32 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
                   />
                   <Text style={styles.summaryLabel}>Lý do:</Text>
                   <Text style={styles.summaryValue}>{reason}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Calendar Sync Information */}
+        {calendarSettings.autoSync && CalendarService.isSyncEnabled() && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="calendar-outline" size={20} color="#3B82F6" />
+              <Text style={styles.sectionTitle}>Đồng bộ lịch</Text>
+            </View>
+            <View style={styles.calendarInfoContainer}>
+              <View style={styles.calendarInfoRow}>
+                <Ionicons name="checkmark-circle" size={16} color="#059669" />
+                <Text style={styles.calendarInfoText}>
+                  Lịch hẹn sẽ được thêm vào calendar của bạn
+                </Text>
+              </View>
+              {calendarSettings.reminderEnabled && (
+                <View style={styles.calendarInfoRow}>
+                  <Ionicons name="alarm" size={16} color="#F59E0B" />
+                  <Text style={styles.calendarInfoText}>
+                    Nhắc nhở {calendarSettings.reminderTime} phút trước
+                  </Text>
                 </View>
               )}
             </View>
@@ -1102,6 +1196,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#FFFFFF",
     fontWeight: "600",
+  },
+  calendarInfoContainer: {
+    backgroundColor: "#F0F9FF",
+    borderRadius: 8,
+    padding: 12,
+  },
+  calendarInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  calendarInfoText: {
+    fontSize: 14,
+    color: "#1E40AF",
+    fontWeight: "500",
+    marginLeft: 8,
+    flex: 1,
   },
 });
 
