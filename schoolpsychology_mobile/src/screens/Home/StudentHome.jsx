@@ -24,7 +24,6 @@ const isMediumDevice = width >= 375 && width < 414;
 // const isLargeDevice = width >= 414;
 
 const PAGE_SIZE = 2; // Page size for lazy loading
-const APPNT_PAGE_SIZE = 1;
 
 export default function StudentHome({
   user,
@@ -115,12 +114,12 @@ export default function StudentHome({
       );
 
       setAllData(sortedAppointments);
-
+      console.log("sortedAppointments", sortedAppointments);
       // Load first page
-      const firstPageData = sortedAppointments.slice(0, APPNT_PAGE_SIZE);
+      const firstPageData = sortedAppointments.slice(0, PAGE_SIZE);
       setDisplayedData(firstPageData);
       setCurrentPage(2); // Next page will be 2
-      setHasMoreData(sortedAppointments.length > APPNT_PAGE_SIZE);
+      setHasMoreData(sortedAppointments.length > PAGE_SIZE);
     } catch (error) {
       console.error("Lỗi khi tải appointments:", error);
       setAllData([]);
