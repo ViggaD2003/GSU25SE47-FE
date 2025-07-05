@@ -721,7 +721,7 @@ const BookingScreen = ({ navigation }) => {
 
         {/* Calendar Sync Information */}
         {calendarSettings.autoSync && CalendarService.isSyncEnabled() && (
-          <View style={styles.section}>
+          <View style={[styles.section, { marginBottom: 5 }]}>
             <View style={styles.sectionHeader}>
               <Ionicons name="calendar-outline" size={20} color="#3B82F6" />
               <Text style={styles.sectionTitle}>Đồng bộ lịch</Text>
@@ -951,7 +951,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   summarySection: {
-    marginTop: 16,
+    marginBottom: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   summaryTitle: {
     fontSize: 18,
