@@ -30,9 +30,10 @@ import timezone from "dayjs/plugin/timezone";
 import localeData from "dayjs/plugin/localeData";
 import "dayjs/locale/vi";
 import {
-  groupSlotsByDate,
-  getAvailableDays,
-  countTotalAvailableSlots,
+  processAndFilterSlots,
+  getAvailableDaysWithTimeValidation,
+  countTotalAvailableSlotsWithTimeValidation,
+  hasAvailableSlots,
 } from "../../utils/slotUtils";
 
 // Extend dayjs with plugins
@@ -141,10 +142,10 @@ const BookingScreen = ({ navigation }) => {
       let response;
 
       // Xác định API call dựa trên role và host type
-      if (user.role === "STUDENT" && hostType.value === "teacher") {
-        response = await getSlotsForStudent();
-      } else if (user.role === "PARENTS" && hostType.value === "teacher") {
-        response = await getSlotsWithHostById(selectedChild.teacherId);
+      if (hostType.value === "teacher") {
+        response = await getSlotsWithHostById(
+          selectedChild?.teacherId || user?.teacherId
+        );
       } else if (hostType.value === "counselor" && selectedCounselor) {
         response = await getSlotsWithHostById(selectedCounselor.id);
       } else {
@@ -160,9 +161,9 @@ const BookingScreen = ({ navigation }) => {
         : response.data || [];
       setSlots(slotsData);
 
-      // Group slots by date using utility function
-      const grouped = groupSlotsByDate(slotsData);
-      setGroupedSlots(grouped);
+      // Process and filter slots by date with time validation
+      const processedGrouped = processAndFilterSlots(slotsData);
+      setGroupedSlots(processedGrouped);
     } catch (error) {
       console.error("Lỗi khi tải danh sách slot:", error);
       setToastMessage("Không thể tải danh sách lịch hẹn");
@@ -201,17 +202,9 @@ const BookingScreen = ({ navigation }) => {
     setVisibleDays(VISIBLE_DAYS); // Reset to initial state
   };
 
-  // Import generateTimeSlots from utility functions
-  const { generateTimeSlots } = require("../../utils/slotUtils");
-
-  // Group slots by date using utility function
-  const groupSlotsByDateCallback = useCallback((slotsData) => {
-    return groupSlotsByDate(slotsData);
-  }, []);
-
-  // Get available days using utility function
+  // Get available days using utility function with time validation
   const getAvailableDaysCallback = useCallback(() => {
-    return getAvailableDays(groupedSlots);
+    return getAvailableDaysWithTimeValidation(groupedSlots);
   }, [groupedSlots]);
 
   // Load more days
@@ -512,7 +505,8 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
                 <View style={styles.slotsOverview}>
                   <Text style={styles.slotsOverviewText}>
                     {getAvailableDaysCallback().length} ngày •{" "}
-                    {countTotalAvailableSlots(groupedSlots)} khung giờ khả dụng
+                    {countTotalAvailableSlotsWithTimeValidation(groupedSlots)}{" "}
+                    khung giờ khả dụng
                   </Text>
                 </View>
               )}
@@ -520,7 +514,7 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
 
             {loadingSlots ? (
               <Loading text="Đang tải lịch hẹn..." />
-            ) : slots.length === 0 ? (
+            ) : !hasAvailableSlots(groupedSlots) ? (
               <View style={styles.emptyContainer}>
                 <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
                 <Text style={styles.emptyText}>Không có lịch hẹn khả dụng</Text>
@@ -530,90 +524,68 @@ Bạn có chắc chắn muốn đặt lịch hẹn này?`;
               </View>
             ) : (
               <View style={styles.slotsContainer}>
-                {Object.keys(groupedSlots).length > 0 ? (
-                  <>
-                    {getAvailableDaysCallback()
-                      .slice(0, visibleDays)
-                      .map((date) => (
-                        <SlotDayCard
-                          key={date}
-                          daySlots={groupedSlots[date]}
-                          selectedSlot={selectedSlot}
-                          onSelectSlot={handleSlotSelect}
-                          disabled={false}
-                        />
-                      ))}
-
-                    {/* Load More Days Button */}
-                    {(() => {
-                      const availableDays = getAvailableDaysCallback();
-
-                      return visibleDays < availableDays.length ? (
-                        <TouchableOpacity
-                          style={styles.loadMoreDaysButton}
-                          onPress={loadMoreDays}
-                          disabled={loadingMoreDays}
-                        >
-                          {loadingMoreDays ? (
-                            <Loading text="Đang tải thêm ngày..." />
-                          ) : (
-                            <>
-                              <Ionicons
-                                name="calendar-outline"
-                                size={20}
-                                color="#3B82F6"
-                              />
-                              <Text style={styles.loadMoreDaysText}>
-                                Tải thêm{" "}
-                                {Math.min(
-                                  2,
-                                  availableDays.length - visibleDays
-                                )}{" "}
-                                ngày
-                              </Text>
-                            </>
-                          )}
-                        </TouchableOpacity>
-                      ) : null;
-                    })()}
-
-                    {/* Days Info */}
-                    <View style={styles.daysInfoContainer}>
-                      {(() => {
-                        const availableDays = getAvailableDaysCallback();
-
-                        return (
-                          <>
-                            <Text style={styles.daysInfoText}>
-                              Hiển thị{" "}
-                              {Math.min(visibleDays, availableDays.length)}{" "}
-                              trong tổng số {availableDays.length} ngày khả dụng
-                            </Text>
-                            {visibleDays < availableDays.length && (
-                              <Text style={styles.lazyLoadHint}>
-                                Nhấn nút để xem thêm
-                              </Text>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </View>
-                  </>
-                ) : (
-                  <View style={styles.emptyContainer}>
-                    <Ionicons
-                      name="calendar-outline"
-                      size={48}
-                      color="#9CA3AF"
+                {getAvailableDaysCallback()
+                  .slice(0, visibleDays)
+                  .map((date) => (
+                    <SlotDayCard
+                      key={date}
+                      daySlots={groupedSlots[date]}
+                      selectedSlot={selectedSlot}
+                      onSelectSlot={handleSlotSelect}
+                      disabled={false}
                     />
-                    <Text style={styles.emptyText}>
-                      Không có lịch hẹn khả dụng
-                    </Text>
-                    <Text style={styles.emptySubtext}>
-                      Vui lòng thử lại sau hoặc liên hệ để được hỗ trợ
-                    </Text>
-                  </View>
-                )}
+                  ))}
+
+                {/* Load More Days Button */}
+                {(() => {
+                  const availableDays = getAvailableDaysCallback();
+
+                  return visibleDays < availableDays.length ? (
+                    <TouchableOpacity
+                      style={styles.loadMoreDaysButton}
+                      onPress={loadMoreDays}
+                      disabled={loadingMoreDays}
+                    >
+                      {loadingMoreDays ? (
+                        <Loading text="Đang tải thêm ngày..." />
+                      ) : (
+                        <>
+                          <Ionicons
+                            name="calendar-outline"
+                            size={20}
+                            color="#3B82F6"
+                          />
+                          <Text style={styles.loadMoreDaysText}>
+                            Tải thêm{" "}
+                            {Math.min(2, availableDays.length - visibleDays)}{" "}
+                            ngày
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ) : null;
+                })()}
+
+                {/* Days Info */}
+                <View style={styles.daysInfoContainer}>
+                  {(() => {
+                    const availableDays = getAvailableDaysCallback();
+
+                    return (
+                      <>
+                        <Text style={styles.daysInfoText}>
+                          Hiển thị {Math.min(visibleDays, availableDays.length)}{" "}
+                          trong tổng số {availableDays.length} ngày khả dụng
+                        </Text>
+                        {visibleDays < availableDays.length && (
+                          <Text style={styles.lazyLoadHint}>
+                            Nhấn nút để xem thêm
+                          </Text>
+                        )}
+                      </>
+                    );
+                  })()}
+                </View>
               </View>
             )}
           </View>
@@ -739,11 +711,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    backgroundColor: "#F9FAFB",
   },
   contentContainer: {
-    flex: 1,
     padding: 20,
-    backgroundColor: "#F9FAFB",
   },
   section: {
     marginBottom: 24,

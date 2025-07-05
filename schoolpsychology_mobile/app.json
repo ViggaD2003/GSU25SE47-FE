@@ -22,6 +22,14 @@
     },
     "web": {
       "favicon": "./src/assets/adaptive-icon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow MindfulCare to access your calendar."
+        }
+      ]
+    ]
   }
 }

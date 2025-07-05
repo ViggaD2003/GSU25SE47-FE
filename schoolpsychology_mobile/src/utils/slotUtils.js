@@ -73,6 +73,19 @@ export const isSlotBooked = (timeSlot, bookedSlots) => {
 };
 
 /**
+ * Check if a time slot is in the past
+ * Hàm kiểm tra xem một khung giờ có phải là quá khứ hay không
+ *
+ * @param {Date|string} startTime - Start time of the slot
+ * @returns {boolean} True if slot is in the past
+ */
+export const isSlotInPast = (startTime) => {
+  const slotStart = new Date(startTime);
+  const currentTime = new Date();
+  return slotStart <= currentTime;
+};
+
+/**
  * Generate time slots for a specific day with 30-minute intervals
  * @param {Array} daySlots - Array of slot objects for a day
  * @returns {Array} Array of time slot objects
@@ -87,20 +100,27 @@ export const generateTimeSlots = (daySlots) => {
 
   const timeSlots = [];
   const date = getDateFromDateTime(sortedSlots[0].startDateTime);
+  const currentTime = new Date(); // Get current time
 
   // Find the earliest and latest time for the day
   const earliestTime = new Date(sortedSlots[0].startDateTime);
   const latestTime = new Date(sortedSlots[sortedSlots.length - 1].endDateTime);
 
   // Generate 30-minute slots from earliest to latest
-  let currentTime = new Date(earliestTime);
-  currentTime.setMinutes(Math.floor(currentTime.getMinutes() / 30) * 30);
-  currentTime.setSeconds(0);
-  currentTime.setMilliseconds(0);
+  let slotTime = new Date(earliestTime);
+  slotTime.setMinutes(Math.floor(slotTime.getMinutes() / 30) * 30);
+  slotTime.setSeconds(0);
+  slotTime.setMilliseconds(0);
 
-  while (currentTime < latestTime) {
-    const slotStart = new Date(currentTime);
-    const slotEnd = new Date(currentTime.getTime() + 30 * 60 * 1000); // 30 minutes
+  while (slotTime < latestTime) {
+    const slotStart = new Date(slotTime);
+    const slotEnd = new Date(slotTime.getTime() + 30 * 60 * 1000); // 30 minutes
+
+    // Skip slots that start before or at current time
+    if (slotStart <= currentTime) {
+      slotTime = slotEnd;
+      continue;
+    }
 
     // Check if this time slot overlaps with any available slot
     const overlappingSlot = sortedSlots.find((slot) => {
@@ -140,7 +160,7 @@ export const generateTimeSlots = (daySlots) => {
       });
     }
 
-    currentTime = slotEnd;
+    slotTime = slotEnd;
   }
 
   return timeSlots;
@@ -202,4 +222,75 @@ export const countTotalAvailableSlots = (groupedSlots) => {
     );
     return total + availableSlots.length;
   }, 0);
+};
+
+/**
+ * Process and filter slots by date with time validation
+ * Groups slots by date, generates time slots, and filters out days with no available slots
+ * @param {Array} slotsData - Array of slot objects from API
+ * @returns {Object} Filtered grouped slots object
+ */
+export const processAndFilterSlots = (slotsData) => {
+  if (!slotsData || slotsData.length === 0) return {};
+
+  // Group slots by date
+  const grouped = groupSlotsByDate(slotsData);
+
+  // Filter out days with no available slots
+  const filteredGrouped = {};
+
+  Object.keys(grouped).forEach((date) => {
+    const daySlots = grouped[date];
+    const timeSlots = generateTimeSlots(daySlots);
+    const availableSlots = timeSlots.filter(
+      (slot) => slot.isAvailable && !slot.isBooked
+    );
+
+    // Only include days that have at least one available slot
+    if (availableSlots.length > 0) {
+      filteredGrouped[date] = daySlots;
+    }
+  });
+
+  return filteredGrouped;
+};
+
+/**
+ * Get available days with time validation
+ * @param {Object} groupedSlots - Grouped slots object (already processed)
+ * @returns {Array} Array of available date strings
+ */
+export const getAvailableDaysWithTimeValidation = (groupedSlots) => {
+  return Object.keys(groupedSlots).filter((date) => {
+    const daySlots = groupedSlots[date];
+    const timeSlots = generateTimeSlots(daySlots);
+    const availableSlots = timeSlots.filter(
+      (slot) => slot.isAvailable && !slot.isBooked
+    );
+    return availableSlots.length > 0;
+  });
+};
+
+/**
+ * Count total available slots with time validation
+ * @param {Object} groupedSlots - Grouped slots object (already processed)
+ * @returns {number} Total count of available slots
+ */
+export const countTotalAvailableSlotsWithTimeValidation = (groupedSlots) => {
+  return Object.values(groupedSlots).reduce((total, daySlots) => {
+    const timeSlots = generateTimeSlots(daySlots);
+    const availableSlots = timeSlots.filter(
+      (slot) => slot.isAvailable && !slot.isBooked
+    );
+    return total + availableSlots.length;
+  }, 0);
+};
+
+/**
+ * Check if there are any available slots after time validation
+ * @param {Object} groupedSlots - Grouped slots object (already processed)
+ * @returns {boolean} True if there are available slots
+ */
+export const hasAvailableSlots = (groupedSlots) => {
+  return countTotalAvailableSlotsWithTimeValidation(groupedSlots) > 0;
 };

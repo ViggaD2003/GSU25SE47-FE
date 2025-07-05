@@ -15,6 +15,7 @@ import {
   formatTime,
   generateTimeSlots,
 } from "../../utils/slotUtils";
+import { log } from "console";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -35,6 +36,9 @@ const SlotDayCard = ({
   const timeSlotsAvailable = timeSlots.filter(
     (slot) => slot.isAvailable && !slot.isBooked
   );
+
+  // Nếu không còn slot khả dụng thì không render gì cả
+  if (timeSlotsAvailable.length === 0) return null;
 
   // Load more slots
   const loadMoreSlots = useCallback(async () => {
@@ -177,22 +181,6 @@ const SlotDayCard = ({
           </TouchableOpacity>
         )}
       </ScrollView>
-
-      {/* Legend */}
-      {/* <View style={styles.legend}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, styles.availableDot]} />
-          <Text style={styles.legendText}>Khả dụng</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, styles.bookedDot]} />
-          <Text style={styles.legendText}>Đã đặt</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, styles.unavailableDot]} />
-          <Text style={styles.legendText}>Không khả dụng</Text>
-        </View>
-      </View> */}
     </View>
   );
 };

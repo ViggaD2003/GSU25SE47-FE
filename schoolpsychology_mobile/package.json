@@ -19,12 +19,17 @@
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
     "expo": "53.0.15",
+    "expo-calendar": "~14.1.4",
     "expo-linear-gradient": "^14.1.5",
     "expo-status-bar": "~2.2.3",
     "jwt-decode": "^4.0.0",
+    "lodash": "^4.17.21",
+    "metro": "^0.82.4",
+    "metro-resolver": "^0.82.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.4",
+    "react-native-calendars": "^1.1313.0",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.14.5",
     "react-native-safe-area-context": "^5.4.0",
@@ -34,7 +39,11 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "babel-preset-expo": "~13.0.0"
+    "@types/node": "^24.0.10",
+    "@types/react": "~19.0.10",
+    "babel-plugin-module-resolver": "^5.0.2",
+    "babel-preset-expo": "~13.0.0",
+    "typescript": "~5.8.3"
   },
   "private": true,
   "expo": {

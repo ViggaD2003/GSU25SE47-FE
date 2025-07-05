@@ -4,6 +4,7 @@ import { View, StyleSheet } from "react-native";
 import {
   BlogScreen,
   BookingScreen,
+  CalendarScreen,
   ChangePasswordScreen,
   HomeScreen,
   MyChildrenScreen,
@@ -98,6 +99,7 @@ export default function MainTabs() {
       <Stack.Screen name="Profile" component={ProfileStack} />
       <Stack.Screen name="Survey" component={SurveyStack} />
       <Stack.Screen name="Appointment" component={AppointmentStack} />
+      <Stack.Screen name="Calendar" component={CalendarScreen} />
     </Stack.Navigator>
   );
 }
