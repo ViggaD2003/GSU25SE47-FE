@@ -17,7 +17,7 @@ import { GlobalStyles } from "../../constants";
 import Loading from "../../components/common/Loading";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import { cancelAppointment } from "@/services/api/AppointmentService";
-import { log } from "console";
+import CalendarService from "@/services/CalendarService";
 import { LinearGradient } from "expo-linear-gradient";
 
 const AppointmentDetails = ({ route, navigation }) => {
@@ -60,6 +60,57 @@ const AppointmentDetails = ({ route, navigation }) => {
       return dayjs(dateTimeString).locale("vi").format("dddd");
     } catch (error) {
       return "";
+    }
+  };
+
+  const removeEventFromCalendar = async (appointmentId) => {
+    try {
+      // Kiểm tra xem appointment có được sync với calendar không
+      const isSynced = await CalendarService.isAppointmentAlreadySynced(
+        appointmentId
+      );
+
+      if (!isSynced) {
+        console.log(
+          "Appointment not synced with calendar, skipping calendar deletion"
+        );
+        return {
+          success: true,
+          message: "Appointment not synced with calendar",
+        };
+      }
+
+      // Lấy event ID từ mapping
+      const eventId = await CalendarService.getEventIdForAppointment(
+        appointmentId
+      );
+
+      if (!eventId) {
+        console.log("No event ID found for appointment, removing mapping");
+        await CalendarService.removeEventMapping(appointmentId);
+        return { success: true, message: "No calendar event found" };
+      }
+
+      // Xóa event khỏi calendar
+      const deleteSuccess = await CalendarService.deleteEvent(eventId);
+
+      if (deleteSuccess) {
+        // Xóa mapping sau khi xóa event thành công
+        await CalendarService.removeEventMapping(appointmentId);
+        return {
+          success: true,
+          message: "Calendar event deleted successfully",
+        };
+      } else {
+        // Nếu xóa event thất bại, vẫn xóa mapping để tránh inconsistency
+        await CalendarService.removeEventMapping(appointmentId);
+        return { success: false, message: "Failed to delete calendar event" };
+      }
+    } catch (error) {
+      console.error("Error removing event from calendar:", error);
+      // Xóa mapping để tránh inconsistency
+      await CalendarService.removeEventMapping(appointmentId);
+      return { success: false, message: "Error removing calendar event" };
     }
   };
 
@@ -138,7 +189,24 @@ const AppointmentDetails = ({ route, navigation }) => {
   // Event handlers
   const handleCancelAppointment = () => setShowCancelModal(true);
 
-  const handleConfirmCancel = () => {
+  const handleConfirmCancel = async () => {
+    try {
+      setLoading(true);
+
+      // Kiểm tra và xóa event trong calendar
+      const calendarResult = await removeEventFromCalendar(appointment.id);
+
+      if (!calendarResult.success) {
+        console.warn("Calendar cleanup warning:", calendarResult.message);
+        // Không dừng quá trình hủy hẹn nếu calendar có lỗi
+      }
+    } catch (error) {
+      console.error("Error during calendar cleanup:", error);
+      // Không dừng quá trình hủy hẹn nếu calendar có lỗi
+    } finally {
+      setLoading(false);
+    }
+
     setShowCancelModal(false);
     setShowReasonModal(true);
   };
@@ -156,25 +224,57 @@ const AppointmentDetails = ({ route, navigation }) => {
       Alert.alert("Lỗi", "Vui lòng chọn hoặc nhập lý do hủy hẹn");
       return;
     }
-    console.log(finalReason);
 
-    const result = await cancelAppointment(appointment.id, finalReason);
-    console.log("Cancelling appointment with reason:", result);
+    setLoading(true);
 
-    setShowReasonModal(false);
-    setSelectedReason("");
-    setCustomReason("");
+    try {
+      // Hủy cuộc hẹn
+      const result = await cancelAppointment(appointment.id, finalReason);
+      console.log("Cancelling appointment with reason:", result);
 
-    Alert.alert("Thành công", "Đã hủy lịch hẹn thành công", [
-      { text: "OK", onPress: () => navigation.goBack() },
-    ]);
+      // Kiểm tra và xóa event trong calendar
+      const calendarResult = await removeEventFromCalendar(appointment.id);
+
+      setShowReasonModal(false);
+      setSelectedReason("");
+      setCustomReason("");
+
+      // Hiển thị thông báo thành công với thông tin về calendar
+      let message = "Đã hủy lịch hẹn thành công!";
+
+      if (
+        calendarResult.success &&
+        calendarResult.message.includes("deleted successfully")
+      ) {
+        message += "\n\n📅 Sự kiện đã được xóa khỏi lịch của bạn.";
+      } else if (calendarResult.message.includes("not synced")) {
+        message += "\n\n📅 Lịch hẹn này chưa được đồng bộ với lịch.";
+      } else if (!calendarResult.success) {
+        message +=
+          "\n\n⚠️ Lưu ý: Không thể xóa sự kiện khỏi lịch. Bạn có thể xóa thủ công.";
+      }
+
+      Alert.alert("Thành công", message, [
+        {
+          text: "OK",
+          onPress: () => navigation.goBack(),
+        },
+      ]);
+    } catch (error) {
+      console.error("Error cancelling appointment:", error);
+      Alert.alert("Lỗi", "Không thể hủy lịch hẹn. Vui lòng thử lại sau.", [
+        { text: "OK" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Loading and error states
   if (loading) {
     return (
       <Container>
-        <Loading text="Đang tải thông tin lịch hẹn..." />
+        <Loading text="Đang xử lý yêu cầu..." />
       </Container>
     );
   }
@@ -454,7 +554,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       <ConfirmModal
         visible={showCancelModal}
         title="Hủy lịch hẹn"
-        message="Bạn có chắc chắn muốn hủy lịch hẹn này không? Hành động này không thể hoàn tác."
+        message={`Bạn có chắc chắn muốn hủy lịch hẹn này không? Hành động này không thể hoàn tác.\n\n*Lưu ý: Nếu lịch hẹn đã được đồng bộ với lịch của bạn, sự kiện cũng sẽ được xóa khỏi lịch.`}
         confirmText="Hủy lịch hẹn"
         cancelText="Giữ lại"
         onConfirm={handleConfirmCancel}
@@ -837,10 +937,6 @@ const styles = StyleSheet.create({
   },
   reasonItemSelected: {
     backgroundColor: "#EFF6FF",
-  },
-  reasonText: {
-    fontSize: 16,
-    color: "#111827",
   },
   reasonTextSelected: {
     color: GlobalStyles.colors.primary,

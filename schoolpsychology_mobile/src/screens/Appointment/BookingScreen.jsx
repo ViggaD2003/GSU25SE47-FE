@@ -300,7 +300,7 @@ const BookingScreen = ({ navigation }) => {
               reason: reason || "Không có lý do",
             };
 
-            await createAppointment(bookingData);
+            const response = await createAppointment(bookingData);
 
             // Auto sync with calendar if enabled
             // if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
@@ -308,7 +308,7 @@ const BookingScreen = ({ navigation }) => {
             //     // Sync to calendar
             //     const syncResult = await CalendarService.syncEvent(
             //       "appointment",
-            //       appointmentResponse
+            //       response
             //     );
 
             //     if (syncResult.success) {
@@ -316,25 +316,17 @@ const BookingScreen = ({ navigation }) => {
             //         "Appointment synced to calendar:",
             //         syncResult.message
             //       );
-            //       // Show success toast for calendar sync
-            //       setToastMessage("Đã đồng bộ lịch hẹn với calendar");
-            //       setToastType("success");
-            //       setShowToast(true);
             //     } else {
             //       console.log(
             //         "Failed to sync to calendar:",
             //         syncResult.message
             //       );
-            //       // Show warning toast for sync failure
-            //       setToastMessage("Không thể đồng bộ với calendar");
-            //       setToastType("warning");
-            //       setShowToast(true);
             //     }
             //   } catch (error) {
             //     console.error("Error syncing appointment to calendar:", error);
             //   }
             // }
-
+            console.log(response);
             // Navigate back or to appointment history
             navigation.navigate("StatusScreen", {
               title: "Đặt lịch hẹn thành công",

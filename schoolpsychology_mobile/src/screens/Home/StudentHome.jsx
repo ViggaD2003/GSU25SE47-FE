@@ -114,7 +114,7 @@ export default function StudentHome({
       );
 
       setAllData(sortedAppointments);
-      console.log("sortedAppointments", sortedAppointments);
+      // console.log("sortedAppointments", sortedAppointments);
       // Load first page
       const firstPageData = sortedAppointments.slice(0, PAGE_SIZE);
       setDisplayedData(firstPageData);
