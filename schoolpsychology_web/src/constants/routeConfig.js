@@ -49,11 +49,10 @@ export const ROUTE_CONFIG = [
     element: 'AppointmentManagement',
   },
   {
-    key: '/appointment-management/details',
-    labelKey:"Appointment Details",
+    key: '/appointment-management/details/:id',
     element: 'AppointmentDetails',
     allowedRoles: ['teacher', 'counselor'],
-    hidden: true, 
+    hidden: true,
   },
   {
     key: '/survey-management',

@@ -40,10 +40,11 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
         ...survey,
         startDate: dayjs(survey.startDate),
         endDate: dayjs(survey.endDate),
-        questions: survey.questions?.map(q => ({
-          ...q,
-          categoryId: q.categoryId ?? q.category?.id ?? null,
-        })) || [],
+        questions:
+          survey.questions?.map(q => ({
+            ...q,
+            categoryId: q.categoryId ?? q.category?.id ?? null,
+          })) || [],
       })
       setEditMode(false)
       setFieldErrors({})
@@ -135,8 +136,12 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
     try {
       const payload = {
         ...formValue,
-        startDate: formValue.startDate ? formValue.startDate.format('YYYY-MM-DD') : null,
-        endDate: formValue.endDate ? formValue.endDate.format('YYYY-MM-DD') : null,
+        startDate: formValue.startDate
+          ? formValue.startDate.format('YYYY-MM-DD')
+          : null,
+        endDate: formValue.endDate
+          ? formValue.endDate.format('YYYY-MM-DD')
+          : null,
       }
 
       await surveyAPI.updateSurvey(survey.id || survey.surveyId, payload)
@@ -198,11 +203,15 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                   <div>
                     <Input.TextArea
                       value={formValue.description}
-                      onChange={e => handleChange('description', e.target.value)}
+                      onChange={e =>
+                        handleChange('description', e.target.value)
+                      }
                       rows={2}
                     />
                     {fieldErrors.description && (
-                      <div style={{ color: 'red', fontSize: 12 }}>{fieldErrors.description}</div>
+                      <div style={{ color: 'red', fontSize: 12 }}>
+                        {fieldErrors.description}
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -232,11 +241,15 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                       status={fieldErrors.startDate ? 'error' : undefined}
                     />
                     {fieldErrors.startDate && (
-                      <div style={{ color: 'red', fontSize: 12 }}>{fieldErrors.startDate}</div>
+                      <div style={{ color: 'red', fontSize: 12 }}>
+                        {fieldErrors.startDate}
+                      </div>
                     )}
                   </div>
+                ) : formValue.startDate ? (
+                  dayjs(formValue.startDate).format('YYYY-MM-DD')
                 ) : (
-                  formValue.startDate ? dayjs(formValue.startDate).format('YYYY-MM-DD') : ''
+                  ''
                 )}
               </Descriptions.Item>
               <Descriptions.Item label="Kết thúc">
@@ -249,11 +262,15 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                       status={fieldErrors.endDate ? 'error' : undefined}
                     />
                     {fieldErrors.endDate && (
-                      <div style={{ color: 'red', fontSize: 12 }}>{fieldErrors.endDate}</div>
+                      <div style={{ color: 'red', fontSize: 12 }}>
+                        {fieldErrors.endDate}
+                      </div>
                     )}
                   </div>
+                ) : formValue.endDate ? (
+                  dayjs(formValue.endDate).format('YYYY-MM-DD')
                 ) : (
-                  formValue.endDate ? dayjs(formValue.endDate).format('YYYY-MM-DD') : ''
+                  ''
                 )}
               </Descriptions.Item>
               <Descriptions.Item label="Lặp lại" span={2}>
@@ -269,11 +286,17 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                       status={fieldErrors.recurringCycle ? 'error' : undefined}
                     />
                     {fieldErrors.recurringCycle && (
-                      <div style={{ color: 'red', fontSize: 12 }}>{fieldErrors.recurringCycle}</div>
+                      <div style={{ color: 'red', fontSize: 12 }}>
+                        {fieldErrors.recurringCycle}
+                      </div>
                     )}
                   </div>
+                ) : formValue.isRecurring ? (
+                  recurringOptions.find(
+                    opt => opt.value === formValue.recurringCycle
+                  )?.label || formValue.recurringCycle
                 ) : (
-                  formValue.isRecurring ? (recurringOptions.find(opt => opt.value === formValue.recurringCycle)?.label || formValue.recurringCycle) : 'Không'
+                  'Không'
                 )}
               </Descriptions.Item>
               <Descriptions.Item label="Bắt buộc" span={2}>
@@ -284,8 +307,10 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                     checkedChildren="Có"
                     unCheckedChildren="Không"
                   />
+                ) : formValue.isRequired ? (
+                  'Có'
                 ) : (
-                  formValue.isRequired ? 'Có' : 'Không'
+                  'Không'
                 )}
               </Descriptions.Item>
             </Descriptions>
@@ -293,7 +318,10 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
               Danh sách câu hỏi
             </Divider>
           </div>
-          <div className="h-full" style={{ overflowY: 'auto', marginBottom: 16 }}>
+          <div
+            className="h-full"
+            style={{ overflowY: 'auto', marginBottom: 16 }}
+          >
             <List
               dataSource={formValue.questions}
               renderItem={(q, qIdx) => (
@@ -306,32 +334,50 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                       {editMode ? (
                         <Input
                           value={q.text}
-                          onChange={e => handleQuestionChange(qIdx, 'text', e.target.value)}
+                          onChange={e =>
+                            handleQuestionChange(qIdx, 'text', e.target.value)
+                          }
                           style={{ fontWeight: 600, minWidth: 300 }}
                         />
                       ) : (
                         <Typography.Text>{q.text}</Typography.Text>
                       )}
-
                     </Space>
                   }
-                  extra={editMode ? (
-                    <Select
-                      value={q.categoryId}
-                      style={{ width: 180 }}
-                      onChange={value => handleQuestionChange(qIdx, 'categoryId', value)}
-                      options={categories.map(c => ({ value: c.id, label: c.name }))}
-                      placeholder="Chọn danh mục"
-                    />
-                  ) : (
-                    <Tag>{q.category?.name || (categories.find(c => c.id === q.categoryId)?.name) || ''}</Tag>
-                  )}
+                  extra={
+                    editMode ? (
+                      <Select
+                        value={q.categoryId}
+                        style={{ width: 180 }}
+                        onChange={value =>
+                          handleQuestionChange(qIdx, 'categoryId', value)
+                        }
+                        options={categories.map(c => ({
+                          value: c.id,
+                          label: c.name,
+                        }))}
+                        placeholder="Chọn danh mục"
+                      />
+                    ) : (
+                      <Tag>
+                        {q.category?.name ||
+                          categories.find(c => c.id === q.categoryId)?.name ||
+                          ''}
+                      </Tag>
+                    )
+                  }
                 >
                   <Typography.Text type="secondary">
                     {editMode ? (
                       <Input
                         value={q.description}
-                        onChange={e => handleQuestionChange(qIdx, 'description', e.target.value)}
+                        onChange={e =>
+                          handleQuestionChange(
+                            qIdx,
+                            'description',
+                            e.target.value
+                          )
+                        }
                         placeholder="Mô tả"
                       />
                     ) : (
@@ -348,7 +394,14 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                             {editMode ? (
                               <Input
                                 value={a.score}
-                                onChange={e => handleAnswerChange(qIdx, aIdx, 'score', e.target.value)}
+                                onChange={e =>
+                                  handleAnswerChange(
+                                    qIdx,
+                                    aIdx,
+                                    'score',
+                                    e.target.value
+                                  )
+                                }
                                 style={{ width: 60 }}
                                 placeholder="Score"
                               />
@@ -358,7 +411,14 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
                             {editMode ? (
                               <Input
                                 value={a.text}
-                                onChange={e => handleAnswerChange(qIdx, aIdx, 'text', e.target.value)}
+                                onChange={e =>
+                                  handleAnswerChange(
+                                    qIdx,
+                                    aIdx,
+                                    'text',
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Đáp án"
                               />
                             ) : (

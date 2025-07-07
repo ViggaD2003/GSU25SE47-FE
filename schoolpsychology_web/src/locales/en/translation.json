@@ -323,22 +323,49 @@
   },
   "appointment": {
     "title": "Appointment Management",
+    "description": "Manage your appointments and their information",
+    "refresh": "Refresh",
     "searchStudent": "Search student...",
+    "tabs": {
+      "active": "Active Appointments",
+      "completed": "Completed Appointments"
+    },
     "status": {
-      "label": "Appointment status",
-      "upcoming": "Upcoming",
-      "inprogress": "In-progress",
+      "label": "Status",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
       "completed": "Completed",
-      "canceled": "Canceled"
+      "cancelled": "Cancelled"
     },
     "formality": {
       "label": "Formality",
       "online": "Online",
       "offline": "Offline"
     },
-    "studentId": "Student ID",
-    "fullName": "Full Name",
-    "time": "Time"
+    "table": {
+      "studentId": "Student ID",
+      "hostName": "Host Name",
+      "bookByName": "Booked By",
+      "bookForName": "Booked For",
+      "hostType": "Host Type",
+      "location": "Location",
+      "type": "Type",
+      "reason": "Reason",
+      "time": "Time",
+      "duration": "Duration",
+      "actions": "Actions"
+    },
+    "hostType": {
+      "teacher": "Teacher",
+      "counselor": "Counselor",
+      "student": "Student"
+    },
+    "messages": {
+      "fetchSuccess": "Appointments fetched successfully",
+      "fetchError": "Failed to fetch appointments",
+      "updateSuccess": "Appointment updated successfully",
+      "updateError": "Failed to update appointment"
+    }
   },
   "common": {
     "create": "Create",
@@ -350,9 +377,42 @@
     "filter": "Filter",
     "action": "Action",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "back": "Back",
+    "edit": "Edit",
+    "save": "Save",
+    "loading": "Loading..."
   },
   "appointmentDetails": {
+    "title": "Appointment Details",
+    "basicInfo": "Basic Information",
+    "dateTime": "Date & Time",
+    "duration": "Duration",
+    "timeAndDuration": "Time & Duration",
+    "meetingType": "Meeting Type",
+    "contactInfo": "Contact Information",
+    "hostContact": "Host Contact",
+    "participantContact": "Participant Contact",
+    "meetingLink": "Meeting Link",
+    "joinMeeting": "Join Meeting",
+    "startSession": "Start Session",
+    "sessionStarted": "Session started successfully",
+    "updateSuccess": "Appointment updated successfully",
+    "updateError": "Failed to update appointment",
+    "locationPlaceholder": "Enter location",
+    "noLocation": "No location specified",
+    "joinInstructions": "Click the button below to join the online meeting",
+    "noMeetingLink": "No meeting link available",
+    "notes": "Notes",
+    "addNote": "Add Note",
+    "noNotes": "No notes available",
+    "notePlaceholder": "Enter your notes here...",
+    "noteSaved": "Note saved successfully",
+    "activityHistory": "Activity History",
+    "editAppointment": "Edit Appointment",
+    "editFeatureComingSoon": "Edit feature coming soon",
     "meetingWith": "Meeting with {{name}}",
     "moderate": "Moderate",
     "studentNote": "Student's Note",
@@ -370,6 +430,13 @@
     "status": "Status",
     "semester": "Semester",
     "class": "Class",
-    "surveyProgress": "Survey Progress Over Time"
+    "surveyProgress": "Survey Progress Over Time",
+    "location": "Location",
+    "noLocation": "No location",
+    "updateSuccess": "Update appointment successfully",
+    "updateError": "Update appointment failed",
+    "notFound": "Appointment not found",
+    "notFoundDescription": "The appointment you are looking for doesn't exist or has been deleted.",
+    "error": "Error"
   }
 }
