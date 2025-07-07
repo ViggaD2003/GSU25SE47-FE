@@ -35,6 +35,19 @@ export const slotAPI = {
     }
   },
 
+  // Publish slot
+  publishSlot: async slotId => {
+    try {
+      const response = await api.patch(`/api/v1/slot/${slotId}/status`)
+      return response.data
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.message || error.message,
+      }
+    }
+  },
+
   // Get users by role (for manager to select host)
   getUsersByRole: async role => {
     try {

@@ -184,6 +184,7 @@
     "title": "Slot Management",
     "description": "Manage your time slots and their information",
     "refresh": "Refresh",
+    "publish": "Publish",
     "addSlot": "Create New Slot",
     "search": "Search slot...",
     "table": {
@@ -247,7 +248,8 @@
       "slotRemoved": "Slot removed from preview successfully",
       "noSlotsToCreate": "Please add at least one slot before creating",
       "slotConflict": "Slot conflicts with existing slots",
-      "slotUpdated": "Slot updated successfully"
+      "slotUpdated": "Slot updated successfully",
+      "publishSuccess": "Slot published successfully"
     },
     "validation": {
       "startTimeBeforeEndTime": "Start time must be before end time",

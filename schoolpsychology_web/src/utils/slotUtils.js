@@ -144,9 +144,12 @@ export const formatDateTime = dateTime => {
  */
 export const getStatusBadgeConfig = (status, t) => {
   const statusMap = {
-    1: { text: t('slotManagement.statusOptions.published'), color: 'green' },
-    0: { text: t('slotManagement.statusOptions.draft'), color: 'gray' },
-    2: { text: t('slotManagement.statusOptions.closed'), color: 'red' },
+    PUBLISHED: {
+      text: t('slotManagement.statusOptions.published'),
+      color: 'green',
+    },
+    DRAFT: { text: t('slotManagement.statusOptions.draft'), color: 'gray' },
+    CLOSED: { text: t('slotManagement.statusOptions.closed'), color: 'red' },
   }
 
   return statusMap[status] || statusMap[0]

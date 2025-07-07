@@ -185,6 +185,7 @@
     "title": "Quản lý giờ làm",
     "description": "Quản lý giờ làm và thông tin của họ",
     "refresh": "Làm mới",
+    "publish": "Xuất bản",
     "addSlot": "Tạo giờ làm mới",
     "search": "Tìm kiếm giờ làm...",
     "table": {
@@ -248,7 +249,8 @@
       "slotRemoved": "Xóa giờ làm khỏi xem trước thành công",
       "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
-      "slotUpdated": "Cập nhật giờ làm thành công"
+      "slotUpdated": "Cập nhật giờ làm thành công",
+      "publishSuccess": "Xuất bản giờ làm thành công"
     },
     "validation": {
       "startTimeBeforeEndTime": "Giờ bắt đầu phải trước giờ kết thúc",

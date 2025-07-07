@@ -12,14 +12,19 @@ import {
   Col,
   Typography,
 } from 'antd'
-import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
-import { useAuth } from '../../../contexts/AuthContext'
 import {
-  fetchSlots,
+  EditOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from '@ant-design/icons'
+import dayjs from 'dayjs'
+import { fetchSlots, publishSlot } from '../../../store/actions/slotActions'
+import {
   selectSlots,
   selectSlotLoading,
   selectSlotError,
+  selectPublishLoading,
   clearError,
 } from '../../../store/slices/slotSlice'
 import {
@@ -28,27 +33,24 @@ import {
   formatDateTime,
 } from '../../../utils/slotUtils'
 import SlotModal from './SlotModal'
-import SlotFilters from './SlotFilters'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 const { Search } = Input
 const { Title, Text } = Typography
 
 const SlotManagement = () => {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const dispatch = useDispatch()
-  const { user } = useAuth()
   const { isDarkMode } = useTheme()
   const [messageApi, contextHolder] = message.useMessage()
   const slots = useSelector(selectSlots)
   const loading = useSelector(selectSlotLoading)
   const error = useSelector(selectSlotError)
+  const publishLoading = useSelector(selectPublishLoading)
 
   const [searchText, setSearchText] = useState('')
-  const [filters, setFilters] = useState({
-    slotType: undefined,
-    status: undefined,
-  })
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [pagination, setPagination] = useState({
     current: 1,
@@ -58,10 +60,10 @@ const SlotManagement = () => {
 
   // Fetch slots on component mount
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchSlots(user.id))
+    if (!slots.length) {
+      dispatch(fetchSlots())
     }
-  }, [dispatch, user?.id])
+  }, [dispatch, slots.length])
 
   // Handle error messages
   useEffect(() => {
@@ -75,16 +77,37 @@ const SlotManagement = () => {
   const filteredSlots = useMemo(() => {
     if (!slots || !Array.isArray(slots)) return []
 
-    return slots.filter(slot => {
-      const matchesSearch =
-        slot?.slotName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
-        false
-      const matchesType = !filters.slotType || slot.type === filters.slotType
-      const matchesStatus = !filters.status || slot.status === filters.status
+    // Define status priority order: draft → published → closed
+    const statusPriority = {
+      DRAFT: 1,
+      PUBLISHED: 2,
+      CLOSED: 3,
+    }
 
-      return matchesSearch && matchesType && matchesStatus
-    })
-  }, [slots, searchText, filters])
+    return slots
+      .filter(slot => {
+        const matchesSearch =
+          slot?.slotName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
+          false
+
+        return matchesSearch
+      })
+      .sort((a, b) => {
+        // Sort by status priority first
+        const statusA = statusPriority[a.status] || 999
+        const statusB = statusPriority[b.status] || 999
+
+        if (statusA !== statusB) {
+          return statusA - statusB
+        }
+
+        // If status is the same, sort by startDateTime (newest first)
+        return (
+          dayjs(b.startDateTime || 0).unix() -
+          dayjs(a.startDateTime || 0).unix()
+        )
+      })
+  }, [slots, searchText])
 
   // Update pagination
   useEffect(() => {
@@ -117,17 +140,9 @@ const SlotManagement = () => {
     setPagination(prev => ({ ...prev, current: 1 }))
   }
 
-  // Handle filters change
-  const handleFiltersChange = newFilters => {
-    setFilters(newFilters)
-    setPagination(prev => ({ ...prev, current: 1 }))
-  }
-
   // Handle refresh
   const handleRefresh = () => {
-    if (user?.id) {
-      dispatch(fetchSlots(user.id))
-    }
+    dispatch(fetchSlots())
   }
 
   // Get status badge color
@@ -141,13 +156,25 @@ const SlotManagement = () => {
     return getSlotTypeText(type, t)
   }
 
+  const handlePublish = async record => {
+    try {
+      await dispatch(publishSlot(record.id)).unwrap()
+      messageApi.success(t('slotManagement.messages.publishSuccess'))
+      // Refresh slots data after successful publish
+      dispatch(fetchSlots())
+    } catch (error) {
+      messageApi.error(t('slotManagement.messages.publishError'))
+      console.error('Publish error:', error)
+    }
+  }
+
   // Table columns
   const columns = [
     {
       title: t('slotManagement.table.slotName'),
       dataIndex: 'slotName',
       key: 'slotName',
-      sorter: (a, b) => (a.slotName || '').localeCompare(b.slotName || ''),
+      hidden: true,
     },
     {
       title: t('slotManagement.table.fullName'),
@@ -157,6 +184,7 @@ const SlotManagement = () => {
         // This would need to be enhanced with actual user data
         return `${fullName}`
       },
+      sorter: (a, b) => (a.fullName || '').localeCompare(b.fullName || ''),
       hidden: user?.role !== 'manager',
     },
     {
@@ -167,6 +195,17 @@ const SlotManagement = () => {
         // This would need to be enhanced with actual user data
         return `${roleName}`
       },
+      filters: [
+        {
+          text: t('role.teacher'),
+          value: 'TEACHER',
+        },
+        {
+          text: t('role.counselor'),
+          value: 'COUNSELOR',
+        },
+      ],
+      onFilter: (value, record) => record.roleName === value,
       hidden: user?.role !== 'manager',
     },
     {
@@ -207,7 +246,7 @@ const SlotManagement = () => {
       dataIndex: 'status',
       key: 'status',
       render: status => getStatusBadge(status),
-      width: 200,
+      width: 150,
       filters: [
         {
           text: t('slotManagement.statusOptions.published'),
@@ -217,6 +256,27 @@ const SlotManagement = () => {
         { text: t('slotManagement.statusOptions.closed'), value: 'CLOSED' },
       ],
       onFilter: (value, record) => record.status === value,
+    },
+    {
+      dataIndex: 'actions',
+      key: 'actions',
+      render: (_, record) =>
+        record.status === 'DRAFT' && (
+          <div className="flex items-center space-x-2">
+            <Button
+              type="link"
+              loading={publishLoading}
+              onClick={() => handlePublish(record)}
+            >
+              {t('slotManagement.publish')}
+            </Button>
+          </div>
+        ),
+      width: 100,
+      fixed: 'right',
+      hidden:
+        user?.role !== 'manager' ||
+        !filteredSlots?.some(slot => slot.status === 'DRAFT'),
     },
   ]
 
@@ -265,12 +325,6 @@ const SlotManagement = () => {
               prefix={<SearchOutlined />}
             />
           </Col>
-          <Col xs={24} sm={12} md={16} lg={18}>
-            <SlotFilters
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-            />
-          </Col>
         </Row>
       </Card>
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
@@ -287,7 +341,7 @@ const SlotManagement = () => {
               `${range[0]}-${range[1]} of ${total} items`,
           }}
           onChange={handleTableChange}
-          scroll={{ x: 900 }}
+          scroll={{ x: 1200 }}
         />
       </Card>
 
