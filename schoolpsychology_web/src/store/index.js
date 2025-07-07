@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice'
 import surveyReducer from './slices/surveySlice'
 import slotReducer from './slices/slotSlice'
 import appointmentReducer from './slices/appointmentSlice'
+import classReducer from './slices/classSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     survey: surveyReducer,
     slot: slotReducer,
     appointment: appointmentReducer,
+    class: classReducer,
   },
 })
 

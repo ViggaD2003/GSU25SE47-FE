@@ -6,6 +6,7 @@ import {
   FileTextOutlined,
   AppstoreOutlined,
   ClockCircleOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -34,12 +35,19 @@ export const ROUTE_CONFIG = [
       },
     ],
   },
+  // {
+  //   key: '/case-management',
+  //   icon: AlertOutlined,
+  //   labelKey: 'navigation.caseManagement',
+  //   allowedRoles: ['manager', 'teacher', 'counselor'],
+  //   element: 'CaseManagement',
+  // },
   {
-    key: '/case-management',
-    icon: AlertOutlined,
-    labelKey: 'navigation.caseManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
-    element: 'CaseManagement',
+    key: '/survey-management',
+    icon: FileTextOutlined,
+    labelKey: 'navigation.surveyManagement',
+    allowedRoles: ['manager'],
+    element: 'SurveyManagement',
   },
   {
     key: '/appointment-management',
@@ -54,13 +62,7 @@ export const ROUTE_CONFIG = [
     allowedRoles: ['teacher', 'counselor'],
     hidden: true,
   },
-  {
-    key: '/survey-management',
-    icon: FileTextOutlined,
-    labelKey: 'navigation.surveyManagement',
-    allowedRoles: ['manager'],
-    element: 'SurveyManagement',
-  },
+
   {
     key: '/program-management',
     icon: AppstoreOutlined,
@@ -74,6 +76,13 @@ export const ROUTE_CONFIG = [
     labelKey: 'navigation.slotManagement',
     allowedRoles: ['manager', 'teacher', 'counselor'],
     element: 'SlotManagement',
+  },
+  {
+    key: '/class-management',
+    icon: TeamOutlined,
+    labelKey: 'navigation.classManagement',
+    allowedRoles: ['manager', 'teacher'],
+    element: 'ClassManagement',
   },
 ]
 
