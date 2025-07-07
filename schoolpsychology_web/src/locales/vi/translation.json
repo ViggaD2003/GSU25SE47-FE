@@ -325,28 +325,88 @@
     "filter": "Lọc",
     "action": "Thao tác",
     "yes": "Có",
-    "no": "Không"
+    "no": "Không",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "back": "Quay lại",
+    "edit": "Sửa",
+    "save": "Lưu",
+    "loading": "Đang tải..."
   },
   "appointment": {
     "title": "Quản lý cuộc hẹn",
+    "description": "Quản lý các cuộc hẹn và thông tin của chúng",
+    "refresh": "Làm mới",
     "searchStudent": "Tìm kiếm sinh viên...",
+    "tabs": {
+      "active": "Cuộc hẹn đang hoạt động",
+      "completed": "Cuộc hẹn đã hoàn thành"
+    },
     "status": {
-      "label": "Trạng thái cuộc hẹn",
-      "upcoming": "Sắp tới",
-      "inprogress": "Đang diễn ra",
+      "label": "Trạng thái",
+      "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
       "completed": "Hoàn thành",
-      "canceled": "Đã hủy"
+      "cancelled": "Đã hủy"
     },
     "formality": {
       "label": "Hình thức",
       "online": "Trực tuyến",
       "offline": "Trực tiếp"
     },
-    "studentId": "Mã sinh viên",
-    "fullName": "Họ và tên",
-    "time": "Thời gian"
+    "table": {
+      "studentId": "Mã sinh viên",
+      "hostName": "Người chủ trì",
+      "bookByName": "Người đặt",
+      "bookForName": "Đặt cho",
+      "hostType": "Loại người chủ trì",
+      "location": "Địa điểm",
+      "type": "Hình thức",
+      "reason": "Lý do",
+      "time": "Thời gian",
+      "duration": "Thời lượng",
+      "actions": "Hành động"
+    },
+    "hostType": {
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên",
+      "student": "Học sinh"
+    },
+    "messages": {
+      "fetchSuccess": "Tải cuộc hẹn thành công",
+      "fetchError": "Không thể tải cuộc hẹn",
+      "updateSuccess": "Cập nhật cuộc hẹn thành công",
+      "updateError": "Không thể cập nhật cuộc hẹn"
+    }
   },
   "appointmentDetails": {
+    "title": "Chi tiết cuộc hẹn",
+    "basicInfo": "Thông tin cơ bản",
+    "dateTime": "Ngày & Giờ",
+    "duration": "Thời lượng",
+    "timeAndDuration": "Thời gian & Thời lượng",
+    "meetingType": "Loại cuộc họp",
+    "contactInfo": "Thông tin liên hệ",
+    "hostContact": "Liên hệ người chủ trì",
+    "participantContact": "Liên hệ người tham gia",
+    "meetingLink": "Liên kết cuộc họp",
+    "joinMeeting": "Tham gia cuộc họp",
+    "startSession": "Bắt đầu phiên",
+    "sessionStarted": "Phiên đã bắt đầu thành công",
+    "updateSuccess": "Cập nhật cuộc hẹn thành công",
+    "updateError": "Không thể cập nhật cuộc hẹn",
+    "locationPlaceholder": "Nhập địa điểm",
+    "noLocation": "Không có địa điểm",
+    "joinInstructions": "Nhấp vào nút bên dưới để tham gia cuộc họp trực tuyến",
+    "noMeetingLink": "Không có liên kết cuộc họp",
+    "notes": "Ghi chú",
+    "addNote": "Thêm ghi chú",
+    "noNotes": "Không có ghi chú",
+    "notePlaceholder": "Nhập ghi chú của bạn tại đây...",
+    "noteSaved": "Ghi chú đã được lưu thành công",
+    "activityHistory": "Lịch sử hoạt động",
+    "editAppointment": "Sửa cuộc hẹn",
+    "editFeatureComingSoon": "Tính năng sửa sẽ có sớm",
     "meetingWith": "Cuộc hẹn với {{name}}",
     "moderate": "Trung bình",
     "studentNote": "Ghi chú của học sinh",
@@ -364,6 +424,13 @@
     "status": "Trạng thái",
     "semester": "Học kỳ",
     "class": "Lớp",
-    "surveyProgress": "Tiến trình khảo sát theo thời gian"
+    "surveyProgress": "Tiến trình khảo sát theo thời gian",
+    "location": "Địa điểm",
+    "noLocation": "Chưa có địa điểm",
+    "updateSuccess": "Cập nhật cuộc hẹn thành công",
+    "updateError": "Cập nhật cuộc hẹn thất bại",
+    "notFound": "Không tìm thấy cuộc hẹn",
+    "notFoundDescription": "Cuộc hẹn bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
+    "error": "Lỗi"
   }
 }

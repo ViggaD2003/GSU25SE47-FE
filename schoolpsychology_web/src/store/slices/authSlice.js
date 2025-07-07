@@ -77,7 +77,51 @@ export const hasRouteAccess = (userRole, path) => {
   if (!userRole || !ROLE_PERMISSIONS[userRole]) {
     return false
   }
-  return ROLE_PERMISSIONS[userRole].includes(path)
+
+  // Check for exact match first
+  if (ROLE_PERMISSIONS[userRole].includes(path)) {
+    return true
+  }
+
+  // Check for dynamic routes (paths ending with /:id or containing dynamic segments)
+  return ROLE_PERMISSIONS[userRole].some(route => {
+    // If the route ends with /:id, check if the path starts with the base route
+    if (route.endsWith('/:id')) {
+      const baseRoute = route.replace('/:id', '')
+      return path.startsWith(baseRoute + '/') && path !== baseRoute
+    }
+
+    // If the route contains /:id in the middle, create a regex pattern
+    if (route.includes('/:id/')) {
+      const regexPattern = route
+        .replace(/\/:id\//g, '/[^/]+/')
+        .replace('/:id', '/[^/]+')
+      const regex = new RegExp(`^${regexPattern}$`)
+      return regex.test(path)
+    }
+
+    // If the route ends with /:id, create a regex pattern
+    if (route.endsWith('/:id')) {
+      const regexPattern = route.replace('/:id', '/[^/]+')
+      const regex = new RegExp(`^${regexPattern}$`)
+      return regex.test(path)
+    }
+
+    // Handle routes that start with /:id
+    if (route.startsWith('/:id/')) {
+      const regexPattern = route.replace('/:id/', '/[^/]+/')
+      const regex = new RegExp(`^${regexPattern}`)
+      return regex.test(path)
+    }
+
+    // Handle routes that are just /:id
+    if (route === '/:id') {
+      const regex = /^\/[^/]+$/
+      return regex.test(path)
+    }
+
+    return false
+  })
 }
 
 export default authSlice.reducer

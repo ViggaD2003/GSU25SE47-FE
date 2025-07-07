@@ -6,7 +6,6 @@ import { LanguageProvider } from './contexts/LanguageContext'
 import { AuthProvider } from './contexts/AuthContext'
 import AppRouter from './routes/AppRouter'
 import store from './store'
-import AppointmentDetails from './pages/manager/AppointmentManagement/AppointmentDetails'
 
 // Create a separate component that uses the theme hook inside ThemeProvider
 const AppContent = () => {
@@ -15,7 +14,6 @@ const AppContent = () => {
   return (
     <LanguageProvider>
       <ConfigProvider theme={antdTheme}>
-
         <AppRouter />
       </ConfigProvider>
     </LanguageProvider>

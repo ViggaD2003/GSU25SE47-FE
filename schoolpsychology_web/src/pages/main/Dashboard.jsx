@@ -22,9 +22,9 @@ import {
   LineChartOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
-import { useTheme } from '../contexts/ThemeContext'
+import { useTheme } from '../../contexts/ThemeContext'
 import { Line, Bar, Pie } from 'react-chartjs-2'
-import { TokenDebugger } from '../components/common'
+import { TokenDebugger } from '../../components/common'
 import {
   Chart as ChartJS,
   CategoryScale,

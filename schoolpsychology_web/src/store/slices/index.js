@@ -6,3 +6,6 @@ export * from './surveySlice'
 
 // Slot slice
 export * from './slotSlice'
+
+// Appointment slice
+export * from './appointmentSlice'
