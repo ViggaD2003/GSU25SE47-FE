@@ -3,6 +3,7 @@
     {
       "name": "GAD-7 (Khảo sát lo âu tổng quát)",
       "description": "Khảo sát đánh giá mức độ lo âu tổng quát - 7 câu hỏi",
+      "code": "GAD-7",
       "questions": [
         {
           "text": "Cảm thấy lo lắng, bồn chồn hoặc căng thẳng",
@@ -97,7 +98,7 @@
         }
       ],
       "survey_scoring": {
-        "surveyCode": "GAD7",
+        "surveyCode": "GAD-7",
         "method": "sum",
         "levels": [
           { "min": 0, "max": 4, "label": "Lo âu tối thiểu" },
@@ -110,6 +111,7 @@
     {
       "name": "PHQ-9 (Khảo sát trầm cảm)",
       "description": "Khảo sát đánh giá mức độ trầm cảm - 9 câu hỏi",
+      "code": "PHQ-9",
       "questions": [
         {
           "text": "Ít quan tâm hoặc ít thích thú làm việc gì",
@@ -230,7 +232,7 @@
         }
       ],
       "survey_scoring": {
-        "surveyCode": "PHQ9",
+        "surveyCode": "PHQ-9",
         "method": "sum",
         "levels": [
           { "min": 0, "max": 4, "label": "Trầm cảm tối thiểu" },
@@ -250,6 +252,7 @@
     {
       "name": "Môi trường gia đình",
       "description": "Khảo sát đánh giá môi trường gia đình - 10 câu hỏi",
+      "code": "FAMILY_ENV",
       "questions": [
         {
           "text": "Gia đình tôi thường xuyên giao tiếp và chia sẻ với nhau",
@@ -414,6 +417,7 @@
     {
       "name": "Môi trường học đường",
       "description": "Khảo sát đánh giá môi trường học đường - 10 câu hỏi",
+      "code": "SCHOOL_ENV",
       "questions": [
         {
           "text": "Tôi cảm thấy an toàn khi ở trường",

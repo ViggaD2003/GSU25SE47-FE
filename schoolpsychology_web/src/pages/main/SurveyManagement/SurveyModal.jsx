@@ -15,7 +15,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import QuestionTabs from './QuestionTabs'
 import { surveyAPI } from '../../../services/surveyApi'
-import { SAMPLE_SURVEYS } from '../../../constants'
+import { surveyCode, surveyData } from '../../../constants/surveyData'
 
 const { TextArea } = Input
 const { Option } = Select
@@ -43,6 +43,7 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
       if (response.success) {
         setCategories(response.data)
       }
+      form.setFieldValue('categoryId', categories[0].id)
     } catch (error) {
       console.error('Failed to fetch categories:', error)
     } finally {
@@ -54,16 +55,40 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
     setSelectedCategory(categoryId)
     const category = categories.find(cat => cat.id === categoryId)
 
-    if (category && SAMPLE_SURVEYS[category.code]) {
-      setSampleSurveys(SAMPLE_SURVEYS[category.code])
+    if (category && surveyData[category.code]) {
+      setSampleSurveys(surveyData[category.code])
     } else {
       setSampleSurveys([])
+    }
+
+    // Reset survey code when category changes
+    form.setFieldsValue({
+      surveyCode: undefined,
+    })
+  }
+
+  const handleSurveyCodeChange = surveyCode => {
+    // Handle survey code selection
+    console.log('Selected survey code:', surveyCode)
+
+    // You can add additional logic here if needed
+    // For example, auto-load questions based on survey code
+    const selectedSurvey = sampleSurveys.find(
+      survey => survey.code === surveyCode
+    )
+    if (selectedSurvey) {
+      form.setFieldsValue({
+        name: selectedSurvey.name,
+        description: selectedSurvey.description,
+        questions: selectedSurvey.questions,
+      })
     }
   }
 
   const loadSampleSurvey = sampleSurvey => {
     form.setFieldsValue({
       name: sampleSurvey.name,
+      surveyCode: sampleSurvey.code,
       description: sampleSurvey.description,
       questions: sampleSurvey.questions,
     })
@@ -120,36 +145,88 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
           <Col span={11}>
             <Title level={5}>Survey Information</Title>
 
-            <Form.Item
-              name="categoryId"
-              label={t('surveyManagement.form.category')}
-              rules={[
-                {
-                  required: true,
-                  message: t('surveyManagement.form.categoryRequired'),
-                },
-              ]}
-            >
-              <Select
-                loading={loading}
-                placeholder={t('surveyManagement.form.categoryPlaceholder')}
-                onChange={handleCategoryChange}
-              >
-                {categories.map(category => (
-                  <Option key={category.id} value={category.id}>
-                    {category.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
+            {/* Category & Survey Code*/}
+            <Row gutter={16}>
+              <Col span={16}>
+                <Form.Item
+                  name="categoryId"
+                  label={t('surveyManagement.form.category')}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('surveyManagement.form.categoryRequired'),
+                    },
+                  ]}
+                >
+                  <Select
+                    loading={loading}
+                    placeholder={t('surveyManagement.form.categoryPlaceholder')}
+                    onChange={handleCategoryChange}
+                  >
+                    {categories.map(category => (
+                      <Option key={category.id} value={category.id}>
+                        {category.name}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </Col>
 
+              <Col span={8}>
+                <Form.Item
+                  name="surveyCode"
+                  label={t('surveyManagement.form.surveyCode')}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('surveyManagement.form.surveyCodeRequired'),
+                    },
+                  ]}
+                >
+                  <Select
+                    loading={loading}
+                    placeholder={t(
+                      'surveyManagement.form.surveyCodePlaceholder'
+                    )}
+                    onChange={handleSurveyCodeChange}
+                    disabled={!selectedCategory}
+                  >
+                    {selectedCategory &&
+                      categories.find(cat => cat.id === selectedCategory) &&
+                      surveyCode[
+                        categories.find(cat => cat.id === selectedCategory)
+                          ?.code
+                      ] &&
+                      surveyCode[
+                        categories.find(cat => cat.id === selectedCategory)
+                          ?.code
+                      ].map(code => (
+                        <Option key={code} value={code}>
+                          {code}
+                        </Option>
+                      ))}
+                  </Select>
+                </Form.Item>
+              </Col>
+            </Row>
             {/* Sample Surveys Section */}
-            {sampleSurveys.length > 0 && (
+            {selectedCategory && sampleSurveys.length > 0 && (
               <div style={{ marginBottom: 16 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  {t('surveyManagement.form.sampleSurveys')}
-                  {categories.find(cat => cat.id === selectedCategory)?.name}
-                </Text>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    marginBottom: 8,
+                  }}
+                >
+                  <Text strong style={{ display: 'block' }}>
+                    {t('surveyManagement.form.sampleSurveys')}
+                  </Text>
+                  <Text strong style={{ display: 'block' }}>
+                    {categories.find(cat => cat.id === selectedCategory)?.name}
+                  </Text>
+                </div>
                 <Space direction="vertical" style={{ width: '100%' }}>
                   {sampleSurveys.map((survey, index) => (
                     <Card
