@@ -14,6 +14,7 @@
     "surveyManagement": "Quản lý khảo sát",
     "programManagement": "Chương trình hỗ trợ",
     "slotManagement": "Quản lý giờ làm",
+    "classManagement": "Quản lý lớp học",
     "caseManagement": "Ca tư vấn",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
@@ -335,6 +336,64 @@
     "edit": "Sửa",
     "save": "Lưu",
     "loading": "Đang tải..."
+  },
+  "classManagement": {
+    "title": "Quản lý lớp học",
+    "description": "Quản lý lớp học và thông tin của chúng",
+    "refresh": "Làm mới",
+    "addClass": "Thêm lớp học",
+    "search": "Tìm kiếm lớp học...",
+    "table": {
+      "codeClass": "Mã lớp",
+      "classYear": "Năm học",
+      "teacherName": "Tên giáo viên",
+      "teacherCode": "Mã giáo viên",
+      "teacherPhone": "Số điện thoại GV",
+      "teacherEmail": "Email giáo viên",
+      "actions": "Thao tác"
+    },
+    "form": {
+      "codeClass": "Mã lớp",
+      "codeClassPlaceholder": "Nhập mã lớp",
+      "codeClassRequired": "Vui lòng nhập mã lớp",
+      "classYear": "Năm học",
+      "classYearRequired": "Vui lòng chọn năm học",
+      "teacherInfo": "Thông tin giáo viên",
+      "teacherCode": "Mã giáo viên",
+      "teacherCodePlaceholder": "Nhập mã giáo viên",
+      "teacherCodeRequired": "Vui lòng nhập mã giáo viên",
+      "teacherName": "Tên giáo viên",
+      "teacherNamePlaceholder": "Nhập tên giáo viên",
+      "teacherNameRequired": "Vui lòng nhập tên giáo viên",
+      "teacherPhone": "Số điện thoại GV",
+      "teacherPhonePlaceholder": "Nhập số điện thoại giáo viên",
+      "teacherPhoneRequired": "Vui lòng nhập số điện thoại giáo viên",
+      "teacherEmail": "Email giáo viên",
+      "teacherEmailPlaceholder": "Nhập email giáo viên",
+      "teacherEmailRequired": "Vui lòng nhập email giáo viên",
+      "teacherEmailInvalid": "Vui lòng nhập địa chỉ email hợp lệ"
+    },
+    "modal": {
+      "addTitle": "Thêm lớp học mới",
+      "editTitle": "Sửa lớp học",
+      "viewTitle": "Xem chi tiết lớp học"
+    },
+    "messages": {
+      "fetchSuccess": "Tải danh sách lớp học thành công",
+      "fetchError": "Không thể tải danh sách lớp học",
+      "addSuccess": "Thêm lớp học thành công",
+      "addError": "Không thể thêm lớp học",
+      "editSuccess": "Cập nhật lớp học thành công",
+      "editError": "Không thể cập nhật lớp học",
+      "deleteSuccess": "Xóa lớp học thành công",
+      "deleteError": "Không thể xóa lớp học",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa lớp học này?",
+      "deleteTitle": "Xóa lớp học"
+    },
+    "filters": {
+      "classYear": "Lọc theo năm học",
+      "teacher": "Lọc theo giáo viên"
+    }
   },
   "appointment": {
     "title": "Quản lý cuộc hẹn",

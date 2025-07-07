@@ -121,6 +121,10 @@ const AppointmentDetails = createLazyComponent(
   () => import('@/pages/main/AppointmentManagement/AppointmentDetails'),
   'AppointmentDetails'
 )
+const ClassManagement = createLazyComponent(
+  () => import('@/pages/main/ClassManagement/ClassManagement'),
+  'ClassManagement'
+)
 
 const AppRouter = () => {
   const elementMap = {
@@ -133,6 +137,7 @@ const AppRouter = () => {
     ProgramManagement,
     SlotManagement,
     AppointmentDetails,
+    ClassManagement,
   }
 
   return (

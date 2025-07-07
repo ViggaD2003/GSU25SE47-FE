@@ -14,6 +14,7 @@
     "surveyManagement": "Survey Management",
     "programManagement": "Support Program Management",
     "slotManagement": "Slot Management",
+    "classManagement": "Class Management",
     "caseManagement": "Student Support Cases",
     "login": "Login",
     "logout": "Logout"
@@ -387,6 +388,64 @@
     "edit": "Edit",
     "save": "Save",
     "loading": "Loading..."
+  },
+  "classManagement": {
+    "title": "Class Management",
+    "description": "Manage your classes and their information",
+    "refresh": "Refresh",
+    "addClass": "Add Class",
+    "search": "Search class...",
+    "table": {
+      "codeClass": "Class Code",
+      "classYear": "Class Year",
+      "teacherName": "Teacher Name",
+      "teacherCode": "Teacher Code",
+      "teacherPhone": "Teacher Phone",
+      "teacherEmail": "Teacher Email",
+      "actions": "Actions"
+    },
+    "form": {
+      "codeClass": "Class Code",
+      "codeClassPlaceholder": "Enter class code",
+      "codeClassRequired": "Please enter class code",
+      "classYear": "Class Year",
+      "classYearRequired": "Please select class year",
+      "teacherInfo": "Teacher Information",
+      "teacherCode": "Teacher Code",
+      "teacherCodePlaceholder": "Enter teacher code",
+      "teacherCodeRequired": "Please enter teacher code",
+      "teacherName": "Teacher Name",
+      "teacherNamePlaceholder": "Enter teacher name",
+      "teacherNameRequired": "Please enter teacher name",
+      "teacherPhone": "Teacher Phone",
+      "teacherPhonePlaceholder": "Enter teacher phone",
+      "teacherPhoneRequired": "Please enter teacher phone",
+      "teacherEmail": "Teacher Email",
+      "teacherEmailPlaceholder": "Enter teacher email",
+      "teacherEmailRequired": "Please enter teacher email",
+      "teacherEmailInvalid": "Please enter valid email address"
+    },
+    "modal": {
+      "addTitle": "Add New Class",
+      "editTitle": "Edit Class",
+      "viewTitle": "View Class Details"
+    },
+    "messages": {
+      "fetchSuccess": "Classes fetched successfully",
+      "fetchError": "Failed to fetch classes",
+      "addSuccess": "Class added successfully",
+      "addError": "Failed to add class",
+      "editSuccess": "Class updated successfully",
+      "editError": "Failed to update class",
+      "deleteSuccess": "Class deleted successfully",
+      "deleteError": "Failed to delete class",
+      "deleteConfirm": "Are you sure you want to delete this class?",
+      "deleteTitle": "Delete Class"
+    },
+    "filters": {
+      "classYear": "Filter by Class Year",
+      "teacher": "Filter by Teacher"
+    }
   },
   "appointmentDetails": {
     "title": "Appointment Details",

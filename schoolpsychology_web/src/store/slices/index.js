@@ -9,3 +9,6 @@ export * from './slotSlice'
 
 // Appointment slice
 export * from './appointmentSlice'
+
+// Class slice
+export * from './classSlice'
