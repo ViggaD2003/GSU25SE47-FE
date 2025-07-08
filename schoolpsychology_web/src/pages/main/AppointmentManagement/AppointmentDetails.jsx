@@ -11,11 +11,10 @@ import {
   Tag,
   Descriptions,
   Input,
-  Select,
   message,
-  Spin,
   Alert,
 } from 'antd'
+
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -34,10 +33,10 @@ import {
   getAppointments,
 } from '../../../store/actions/appointmentActions'
 import {
-  selectAppointmentLoading,
   selectAppointmentError,
   selectAppointmentById,
 } from '../../../store/slices/appointmentSlice'
+import AssessmentForm from '../../../components/Assessment/AssessmentForm'
 
 const { Title, Text } = Typography
 
@@ -116,6 +115,7 @@ const MemoizedActionButtons = memo(
     onJoinMeeting,
     onStartSession,
     t,
+    showAssessmentForm,
   }) => {
     const isAppointmentToday = useMemo(() => {
       if (!appointment.startDateTime) return false
@@ -137,6 +137,7 @@ const MemoizedActionButtons = memo(
             onClick={onJoinMeeting}
             className="bg-green-600 hover:bg-green-700"
             size="large"
+            disabled={showAssessmentForm}
           >
             {t('appointmentDetails.joinMeeting')}
           </Button>
@@ -149,6 +150,7 @@ const MemoizedActionButtons = memo(
             onClick={onStartSession}
             className="bg-blue-600 hover:bg-blue-700"
             size="large"
+            disabled={showAssessmentForm}
           >
             {t('appointmentDetails.startSession')}
           </Button>
@@ -160,6 +162,7 @@ const MemoizedActionButtons = memo(
       onJoinMeeting,
       onStartSession,
       t,
+      showAssessmentForm,
     ])
 
     return (
@@ -202,7 +205,6 @@ const AppointmentDetails = () => {
   const appointmentFromId = useSelector(state =>
     selectAppointmentById(state, id)
   )
-  const loading = useSelector(selectAppointmentLoading)
   const error = useSelector(selectAppointmentError)
 
   const [appointment, setAppointment] = useState(appointmentFromId)
@@ -210,6 +212,18 @@ const AppointmentDetails = () => {
   // Local state
   const [isEditing, setIsEditing] = useState(false)
   const [editedAppointment, setEditedAppointment] = useState(appointment)
+  const [showAssessmentForm, setShowAssessmentForm] = useState(false)
+
+  // Handler for assessment form submission
+  const handleAssessmentSubmit = useCallback(
+    data => {
+      console.log('Assessment data:', data)
+      // TODO: Send data to API
+      messageApi.success('Đánh giá đã được lưu thành công!')
+      setShowAssessmentForm(false)
+    },
+    [messageApi]
+  )
 
   // Memoized utility functions
   const formatDateTime = useCallback(dateTime => {
@@ -225,12 +239,17 @@ const AppointmentDetails = () => {
       : `${minutes}m`
   }, [])
 
+  // Local state to track if appointments have been fetched
+  const [appointmentsFetched, setAppointmentsFetched] = useState(false)
+
   // Effect to fetch appointments if not loaded or appointment not found
   useEffect(() => {
-    if (id) {
-      dispatch(getAppointments())
+    if (id && !appointmentsFetched) {
+      dispatch(getAppointments()).then(() => {
+        setAppointmentsFetched(true)
+      })
     }
-  }, [dispatch, id])
+  }, [dispatch, id, appointmentsFetched])
 
   // Effect to update local appointment when appointment changes
   useEffect(() => {
@@ -278,17 +297,22 @@ const AppointmentDetails = () => {
   }, [])
 
   const handleJoinMeeting = useCallback(() => {
-    if (appointment.meetingLink) {
-      window.open(appointment.meetingLink, '_blank')
+    if (appointment && appointment?.isOnline) {
+      // Mở form assessment trước khi join meeting
+      setShowAssessmentForm(true)
     } else {
       messageApi.info(t('appointmentDetails.noMeetingLink'))
     }
-  }, [appointment.meetingLink, messageApi, t])
+  }, [appointment, messageApi, t])
 
   const handleStartSession = useCallback(() => {
-    messageApi.success(t('appointmentDetails.sessionStarted'))
-    // Here you would navigate to session or update status
-  }, [messageApi, t])
+    // Mở form assessment trước khi start session
+    setShowAssessmentForm(true)
+  }, [])
+
+  const handleCloseAssessmentForm = useCallback(() => {
+    setShowAssessmentForm(false)
+  }, [])
 
   // Memoized description styles
   const descriptionStyles = useMemo(
@@ -307,17 +331,8 @@ const AppointmentDetails = () => {
     [isDarkMode]
   )
 
-  // Show loading spinner while fetching data
-  if (loading && !appointment) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spin size="large" />
-      </div>
-    )
-  }
-
-  // Show error if appointment not found
-  if (!loading && !appointment) {
+  // Show error if appointment not found (only after appointments have been fetched)
+  if (appointmentsFetched && !appointment) {
     return (
       <div className="max-w-6xl mx-auto">
         <Alert
@@ -393,6 +408,7 @@ const AppointmentDetails = () => {
           onJoinMeeting={handleJoinMeeting}
           onStartSession={handleStartSession}
           t={t}
+          showAssessmentForm={showAssessmentForm}
         />
       </div>
 
@@ -496,6 +512,18 @@ const AppointmentDetails = () => {
           </Descriptions>
         </Card>
       </div>
+
+      {/* Assessment Form */}
+      {showAssessmentForm && (
+        <AssessmentForm
+          isVisible={showAssessmentForm}
+          onClose={handleCloseAssessmentForm}
+          onSubmit={handleAssessmentSubmit}
+          t={t}
+          isDarkMode={isDarkMode}
+          appointmentId={appointment.id}
+        />
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@
     "slotManagement": "Quản lý giờ làm",
     "classManagement": "Quản lý lớp học",
     "caseManagement": "Ca tư vấn",
+    "categoryManagement": "Quản lý danh mục",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
   },
@@ -337,7 +338,9 @@
     "back": "Quay lại",
     "edit": "Sửa",
     "save": "Lưu",
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "view": "Xem",
+    "delete": "Xóa"
   },
   "classManagement": {
     "title": "Quản lý lớp học",
@@ -496,5 +499,69 @@
     "notFound": "Không tìm thấy cuộc hẹn",
     "notFoundDescription": "Cuộc hẹn bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
     "error": "Lỗi"
+  },
+  "categoryManagement": {
+    "title": "Quản lý danh mục",
+    "description": "Quản lý danh mục và thông tin của chúng",
+    "refresh": "Làm mới",
+    "addCategory": "Thêm danh mục",
+    "search": "Tìm kiếm danh mục...",
+    "table": {
+      "name": "Tên danh mục",
+      "code": "Mã danh mục",
+      "actions": "Thao tác"
+    },
+    "form": {
+      "name": "Tên danh mục",
+      "namePlaceholder": "Nhập tên danh mục",
+      "nameRequired": "Vui lòng nhập tên danh mục",
+      "code": "Mã danh mục",
+      "codePlaceholder": "Nhập mã danh mục",
+      "codeRequired": "Vui lòng nhập mã danh mục"
+    },
+    "modal": {
+      "addTitle": "Thêm danh mục mới",
+      "editTitle": "Sửa danh mục",
+      "viewTitle": "Xem chi tiết danh mục"
+    },
+    "messages": {
+      "fetchSuccess": "Tải danh sách danh mục thành công",
+      "fetchError": "Không thể tải danh sách danh mục",
+      "addSuccess": "Thêm danh mục thành công",
+      "addError": "Không thể thêm danh mục",
+      "editSuccess": "Cập nhật danh mục thành công",
+      "editError": "Không thể cập nhật danh mục",
+      "deleteSuccess": "Xóa danh mục thành công",
+      "deleteError": "Không thể xóa danh mục",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa danh mục này?",
+      "deleteTitle": "Xóa danh mục"
+    }
+  },
+  "assessmentForm": {
+    "title": "Form Đánh Giá Tình Trạng Học Sinh",
+    "mentalHealth": "Tình Trạng Tâm Lý",
+    "environment": "Yếu Tố Môi Trường",
+    "impact": "Mức Độ Ảnh Hưởng",
+    "results": "Kết Quả Đánh Giá",
+    "totalScore": "Tổng Điểm",
+    "breakdown": "Chi Tiết Điểm Số",
+    "reset": "Đặt Lại",
+    "cancel": "Hủy",
+    "confirm": "Xác Nhận Đánh Giá",
+    "back": "Quay Lại",
+    "complete": "Hoàn Thành",
+    "summary": "Tóm tắt",
+    "suggestion": "Gợi ý",
+    "scoreRange": "Thang điểm: 0 (Không ảnh hưởng) - 4 (Ảnh hưởng rất nghiêm trọng)",
+    "scoreLevel": {
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao"
+    },
+    "categories": {
+      "mentalHealth": "Tâm Lý",
+      "environment": "Môi Trường",
+      "impact": "Ảnh Hưởng"
+    }
   }
 }
