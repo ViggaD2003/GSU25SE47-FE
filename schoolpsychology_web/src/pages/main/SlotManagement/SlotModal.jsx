@@ -48,6 +48,8 @@ import { useAuth } from '../../../contexts/AuthContext'
 import {
   createSlots,
   fetchUsersByRole,
+} from '../../../store/actions/slotActions'
+import {
   selectCreateLoading,
   selectCreateError,
   selectUsers,

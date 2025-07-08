@@ -81,8 +81,15 @@ export const ROUTE_CONFIG = [
     key: '/class-management',
     icon: TeamOutlined,
     labelKey: 'navigation.classManagement',
-    allowedRoles: ['manager', 'teacher'],
+    allowedRoles: ['manager'],
     element: 'ClassManagement',
+  },
+  {
+    key: '/category-management',
+    icon: AppstoreOutlined,
+    labelKey: 'navigation.categoryManagement',
+    allowedRoles: ['manager'],
+    element: 'CategoryManagement',
   },
 ]
 
