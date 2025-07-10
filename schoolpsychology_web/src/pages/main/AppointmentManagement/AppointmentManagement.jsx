@@ -29,6 +29,7 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   EnvironmentOutlined,
+  VideoCameraOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { getAppointments } from '../../../store/actions/appointmentActions'
@@ -310,15 +311,24 @@ const AppointmentManagement = () => {
         dataIndex: 'type',
         key: 'type',
         render: (text, record) => (
-          <div className="flex items-center gap-1">
-            <EnvironmentOutlined className="text-gray-400" />
+          <Tag color={record.isOnline ? 'blue' : 'green'}>
+            {record.isOnline ? (
+              <VideoCameraOutlined />
+            ) : (
+              <EnvironmentOutlined />
+            )}
             <Text>
               {record.isOnline
                 ? t('appointment.formality.online')
                 : text || t('appointment.formality.offline')}
             </Text>
-          </div>
+          </Tag>
         ),
+        filters: [
+          { text: t('appointment.formality.online'), value: true },
+          { text: t('appointment.formality.offline'), value: false },
+        ],
+        onFilter: (value, record) => record.isOnline === value,
       },
       {
         title: t('appointment.table.location'),
@@ -326,7 +336,7 @@ const AppointmentManagement = () => {
         key: 'location',
         render: text => (
           <Text ellipsis className="max-w-[200px]">
-            {text}
+            {text || 'Chưa cập nhật'}
           </Text>
         ),
       },

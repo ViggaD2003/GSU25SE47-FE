@@ -60,10 +60,8 @@ const SlotManagement = () => {
 
   // Fetch slots on component mount
   useEffect(() => {
-    if (!slots.length) {
-      dispatch(fetchSlots())
-    }
-  }, [dispatch, slots.length])
+    dispatch(fetchSlots())
+  }, [dispatch])
 
   // Handle error messages
   useEffect(() => {

@@ -303,36 +303,38 @@ const BookingScreen = ({ navigation }) => {
             const response = await createAppointment(bookingData);
 
             // Auto sync with calendar if enabled
-            // if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
-            //   try {
-            //     // Sync to calendar
-            //     const syncResult = await CalendarService.syncEvent(
-            //       "appointment",
-            //       response
-            //     );
+            if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
+              try {
+                // Sync to calendar
+                const syncResult = await CalendarService.syncEvent(
+                  "appointment",
+                  response
+                );
 
-            //     if (syncResult.success) {
-            //       console.log(
-            //         "Appointment synced to calendar:",
-            //         syncResult.message
-            //       );
-            //     } else {
-            //       console.log(
-            //         "Failed to sync to calendar:",
-            //         syncResult.message
-            //       );
-            //     }
-            //   } catch (error) {
-            //     console.error("Error syncing appointment to calendar:", error);
-            //   }
-            // }
-            console.log(response);
+                if (syncResult.success) {
+                  console.log(
+                    "Appointment synced to calendar:",
+                    syncResult.message
+                  );
+                } else {
+                  console.log(
+                    "Failed to sync to calendar:",
+                    syncResult.message
+                  );
+                }
+              } catch (error) {
+                console.error("Error syncing appointment to calendar:", error);
+              }
+            }
+
             // Navigate back or to appointment history
-            navigation.navigate("StatusScreen", {
-              title: "Đặt lịch hẹn thành công",
-              message: "Bạn đã đặt lịch hẹn thành công",
-              response: bookingData,
-            });
+            setTimeout(() => {
+              navigation.navigate("StatusScreen", {
+                title: "Đặt lịch hẹn thành công",
+                message: "Bạn đã đặt lịch hẹn thành công",
+                response: response,
+              });
+            }, 1000);
           } catch (error) {
             console.error("Lỗi khi đặt lịch hẹn:", error);
             setToastMessage("Không thể đặt lịch hẹn. Vui lòng thử lại");
