@@ -80,7 +80,7 @@ export const AUTH_SUCCESS = {
 export const APP_CONFIG = {
   NAME: "School Psychology",
   VERSION: "1.0.0",
-  API_BASE_URL: "http://100.113.96.41:8080",
+  API_BASE_URL: "http://100.64.215.41:8080",
   ANDROID_API_URL: "http://10.0.2.2:8080",
 };
 
