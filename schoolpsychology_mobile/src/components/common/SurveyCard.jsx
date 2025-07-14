@@ -1,10 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { GlobalStyles } from "../../constants";
 import { postSurveyResult } from "../../services/api/SurveyService";
+import ConfirmModal from "./ConfirmModal";
 
-const SurveyCard = ({ survey, navigation, onRefresh }) => {
+const SurveyCard = ({
+  survey,
+  navigation,
+  onRefresh,
+  setShowToast,
+  setToastMessage,
+  setToastType,
+}) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
   const onPress = () => {
     if (navigation) {
       navigation.navigate("Survey", {
@@ -14,17 +24,38 @@ const SurveyCard = ({ survey, navigation, onRefresh }) => {
     }
   };
 
-  const onPressSkip = async () => {
+  const onPressSkip = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmSkip = async () => {
     try {
       const result = {
+        noteSuggest: "",
+        level: "LOW",
+        totalScore: 0,
         surveyId: survey.surveyId,
         status: "SKIPPED",
+        answerRecordRequests: [],
       };
+
       await postSurveyResult(result);
+      setShowConfirmModal(false);
+      setToastMessage("Survey skipped successfully!");
+      setToastType("success");
+      setShowToast(true);
       onRefresh("survey");
     } catch (err) {
       console.error(err);
+      setShowConfirmModal(false);
+      setToastMessage("Failed to skip survey. Please try again.");
+      setToastType("error");
+      setShowToast(true);
     }
+  };
+
+  const handleCancelSkip = () => {
+    setShowConfirmModal(false);
   };
 
   return (
@@ -80,6 +111,17 @@ const SurveyCard = ({ survey, navigation, onRefresh }) => {
           />
         </View>
       </View>
+
+      <ConfirmModal
+        visible={showConfirmModal}
+        title="Skip Survey"
+        message={`Are you sure you want to skip "${survey?.name}"? This action cannot be undone.`}
+        confirmText="Skip"
+        cancelText="Cancel"
+        onConfirm={handleConfirmSkip}
+        onCancel={handleCancelSkip}
+        type="warning"
+      />
     </TouchableOpacity>
   );
 };

@@ -1,5 +1,3 @@
-import sampleSurveys from './sampleSurveys.json'
-
 // App configuration
 export const APP_CONFIG = {
   NAME: 'School Psychology',
@@ -23,6 +21,3 @@ export const STORAGE_KEYS = {
   THEME: 'theme',
   LANGUAGE: 'language',
 }
-
-// Sample surveys based on categories
-export const SAMPLE_SURVEYS = sampleSurveys

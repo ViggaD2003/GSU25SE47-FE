@@ -7,6 +7,7 @@ import { setLogoutCallback } from "./src/services/api/axios";
 import React, { useEffect, useCallback, useState, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { PaperProvider } from "react-native-paper";
+import { PermissionProvider } from "@/contexts";
 
 function RootNavigation() {
   const { user, loading, registerLogoutCallback, logout } = useAuth();
@@ -60,10 +61,12 @@ function RootNavigation() {
 export default function App() {
   return (
     <AuthProvider>
-      <PaperProvider>
-        <RootNavigation />
-        <Toast />
-      </PaperProvider>
+      <PermissionProvider>
+        <PaperProvider>
+          <RootNavigation />
+          <Toast />
+        </PaperProvider>
+      </PermissionProvider>
     </AuthProvider>
   );
 }

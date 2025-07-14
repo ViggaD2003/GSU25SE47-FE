@@ -19,8 +19,8 @@ export const useToken = () => {
     getUserInfo: () =>
       decodedToken
         ? {
-            id: decodedToken.sub || decodedToken.userId,
-            email: decodedToken.email,
+            id: decodedToken.userId || decodedToken['user-id'],
+            email: decodedToken.sub || decodedToken.email,
             name: decodedToken.name || decodedToken.fullName,
             role: decodedToken.role
               ? String(decodedToken.role).toLowerCase()

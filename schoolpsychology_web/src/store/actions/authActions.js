@@ -23,7 +23,8 @@ export const loginUser = createAsyncThunk(
       console.log(response)
 
       if (response.success) {
-        const isGoogleOAuthUrl = typeof response.data === 'string' &&
+        const isGoogleOAuthUrl =
+          typeof response.data === 'string' &&
           response.data.includes('https://accounts.google.com/o/oauth2/auth')
 
         // ✅ Nếu là MANAGER thì redirect thẳng
@@ -37,12 +38,12 @@ export const loginUser = createAsyncThunk(
 
         const decodedToken = decodeJWT(response.data.token)
         const user = {
-          id: decodedToken?.sub || decodedToken?.userId || 1,
+          id: decodedToken['user-id'] || decodedToken?.userId || 1,
           fullName:
             decodedToken?.name ||
             decodedToken?.fullName ||
             credentials.email.split('@')[0],
-          email: decodedToken?.email || credentials.email,
+          email: decodedToken?.sub || decodedToken?.email || credentials.email,
           role: decodedToken?.role
             ? String(decodedToken.role).toLowerCase()
             : null,
@@ -52,8 +53,7 @@ export const loginUser = createAsyncThunk(
         localStorage.setItem('auth', JSON.stringify(authData))
         dispatch(loginSuccess(authData))
         return authData
-      }
-      else {
+      } else {
         throw new Error(response.message || 'Login failed')
       }
     } catch (error) {
@@ -87,12 +87,16 @@ export const refreshToken = createAsyncThunk(
           if (decodedToken) {
             authData.user = {
               ...authData.user,
-              id: decodedToken.sub || decodedToken.userId || authData.user.id,
+              id:
+                decodedToken['user-id'] ||
+                decodedToken.userId ||
+                authData.user.id,
               fullName:
                 decodedToken.name ||
                 decodedToken.fullName ||
                 authData.user.fullName,
-              email: decodedToken.email || authData.user.email,
+              email:
+                decodedToken.sub || decodedToken.email || authData.user.email,
               role: decodedToken.role
                 ? String(decodedToken.role).toLowerCase()
                 : null,
@@ -161,12 +165,16 @@ export const initializeAuthFromStorage = createAsyncThunk(
           // Update user data with fresh data from token
           authData.user = {
             ...authData.user,
-            id: decodedToken.sub || decodedToken.userId || authData.user.id,
+            id:
+              decodedToken['user-id'] ||
+              decodedToken.userId ||
+              authData.user.id,
             fullName:
               decodedToken.name ||
               decodedToken.fullName ||
               authData.user.fullName,
-            email: decodedToken.email || authData.user.email,
+            email:
+              decodedToken.sub || decodedToken.email || authData.user.email,
             role: decodedToken.role
               ? String(decodedToken.role).toLowerCase()
               : null,

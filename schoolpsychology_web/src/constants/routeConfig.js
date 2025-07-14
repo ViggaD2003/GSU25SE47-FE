@@ -5,6 +5,8 @@ import {
   CalendarOutlined,
   FileTextOutlined,
   AppstoreOutlined,
+  ClockCircleOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -33,33 +35,61 @@ export const ROUTE_CONFIG = [
       },
     ],
   },
+  // {
+  //   key: '/case-management',
+  //   icon: AlertOutlined,
+  //   labelKey: 'navigation.caseManagement',
+  //   allowedRoles: ['manager', 'teacher', 'counselor'],
+  //   element: 'CaseManagement',
+  // },
   {
-    key: '/case-management',
-    icon: AlertOutlined,
-    labelKey: 'navigation.caseManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
-    element: 'CaseManagement',
+    key: '/survey-management',
+    icon: FileTextOutlined,
+    labelKey: 'navigation.surveyManagement',
+    allowedRoles: ['manager'],
+    element: 'SurveyManagement',
   },
   {
     key: '/appointment-management',
     icon: CalendarOutlined,
     labelKey: 'navigation.appointmentsManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
+    allowedRoles: ['teacher', 'counselor'],
     element: 'AppointmentManagement',
   },
   {
-    key: '/survey-management',
-    icon: FileTextOutlined,
-    labelKey: 'navigation.surveyManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
-    element: 'SurveyManagement',
+    key: '/appointment-management/details/:id',
+    element: 'AppointmentDetails',
+    allowedRoles: ['teacher', 'counselor'],
+    hidden: true,
   },
+
   {
     key: '/program-management',
     icon: AppstoreOutlined,
     labelKey: 'navigation.programManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
+    allowedRoles: ['manager', 'counselor'],
     element: 'ProgramManagement',
+  },
+  {
+    key: '/slot-management',
+    icon: ClockCircleOutlined,
+    labelKey: 'navigation.slotManagement',
+    allowedRoles: ['manager', 'teacher', 'counselor'],
+    element: 'SlotManagement',
+  },
+  {
+    key: '/class-management',
+    icon: TeamOutlined,
+    labelKey: 'navigation.classManagement',
+    allowedRoles: ['manager'],
+    element: 'ClassManagement',
+  },
+  {
+    key: '/category-management',
+    icon: AppstoreOutlined,
+    labelKey: 'navigation.categoryManagement',
+    allowedRoles: ['manager'],
+    element: 'CategoryManagement',
   },
 ]
 

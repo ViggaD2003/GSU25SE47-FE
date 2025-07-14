@@ -15,7 +15,9 @@ export const getPublishedSurveys = async () => {
 //Get survey records
 export const getSurveyRecords = async () => {
   try {
-    const response = await api.get("/api/v1/survey-records");
+    const response = await api.get(
+      "/api/v1/survey-records?field=completedAt&direction=desc"
+    );
     return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu khảo sát:", error);
@@ -26,6 +28,7 @@ export const getSurveyRecords = async () => {
 // Post survey result
 export const postSurveyResult = async (result) => {
   try {
+    console.log(result);
     const response = await api.post("/api/v1/survey-records", result);
     return response.data;
   } catch (error) {

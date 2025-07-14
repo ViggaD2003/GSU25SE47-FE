@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import {
@@ -9,6 +9,31 @@ import {
 } from '../../store/slices/authSlice'
 import AccessFail from '../../pages/AccessFail'
 
+// Helper function to normalize dynamic routes for permission checking
+const normalizeRouteForPermission = pathname => {
+  // Remove leading slash if present
+  let path = pathname.startsWith('/') ? pathname.slice(1) : pathname
+
+  // Check if this is a dynamic route (contains numeric segments that could be IDs)
+  const segments = path.split('/')
+  const normalizedSegments = segments.map(segment => {
+    // If segment is numeric or looks like an ID, replace with :id
+    if (/^\d+$/.test(segment) || /^[a-f0-9-]+$/i.test(segment)) {
+      return ':id'
+    }
+    return segment
+  })
+
+  return '/' + normalizedSegments.join('/')
+}
+
+// Loading component for better UX
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+)
+
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const userRole = useSelector(selectUserRole)
@@ -17,11 +42,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   // Show loading spinner while auth is being initialized
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingSpinner />
   }
 
   if (!isAuthenticated) {
@@ -34,11 +55,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // Check route-based permissions using the current path
-  if (!hasRouteAccess(userRole, location.pathname)) {
+  // First try exact match, then try normalized dynamic route
+  const normalizedPath = normalizeRouteForPermission(location.pathname)
+  if (
+    !hasRouteAccess(userRole, location.pathname) &&
+    !hasRouteAccess(userRole, normalizedPath)
+  ) {
     return <AccessFail isCurrentPath={true} userRole={userRole} />
   }
 
-  return children
+  return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
 }
 
 export default ProtectedRoute

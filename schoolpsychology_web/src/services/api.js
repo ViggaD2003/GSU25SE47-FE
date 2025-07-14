@@ -76,7 +76,7 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !excludedPaths.some(path => originalRequest.url.includes(path))
+      !excludedPaths?.some(path => originalRequest.url.includes(path))
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

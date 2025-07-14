@@ -29,6 +29,9 @@ const Toast = ({
 
   useEffect(() => {
     if (visible) {
+      // Reset animation value first
+      fadeAnim.setValue(0);
+
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
@@ -40,8 +43,11 @@ const Toast = ({
       }, duration);
 
       return () => clearTimeout(timer);
+    } else {
+      // Hide immediately when not visible
+      fadeAnim.setValue(0);
     }
-  }, [visible, duration, hideToast]);
+  }, [visible, duration, fadeAnim, hideToast]);
 
   const getToastStyle = () => {
     switch (type) {
@@ -82,7 +88,7 @@ const Toast = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 50,
+    top: 0,
     left: 20,
     right: 20,
     borderRadius: 12,
