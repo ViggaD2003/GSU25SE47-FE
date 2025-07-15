@@ -77,7 +77,9 @@ export default function StudentHome({
       const surveyData = Array.isArray(response)
         ? response
         : response.data || [];
+      console.log("surveyData", surveyData);
       setAllData(surveyData);
+      console.log("allData", allData);
 
       // Load first page
       const firstPageData = surveyData.slice(0, PAGE_SIZE);

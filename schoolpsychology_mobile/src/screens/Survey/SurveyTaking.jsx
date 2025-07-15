@@ -335,48 +335,59 @@ const SurveyTaking = ({ route, navigation }) => {
         await clearSurveyProgress(survey.surveyId);
       }
 
-      // Process submitted answers to create proper survey result
-      const answerRecordRequests = Object.entries(submittedAnswers).map(
-        ([answer, answerId]) => ({
-          answerId: parseInt(answerId),
-          skipped: !answer || answer === "",
-        })
-      );
+      // Process all questions to create proper survey result
+      const answerRecordRequests = survey.questions.map((question) => {
+        const answerId = submittedAnswers[question.questionId];
+
+        if (answerId) {
+          // User selected an answer
+          return {
+            answerId: parseInt(answerId),
+            questionId: null,
+            skipped: false,
+          };
+        } else {
+          // User did not select an answer
+          return {
+            answerId: null,
+            questionId: question.questionId,
+            skipped: true,
+          };
+        }
+      });
 
       // Calculate total score based on answers (you may need to adjust this logic)
       const surveyConfig = getSurveyConfig();
       let totalScore;
 
-      // Chuyển đổi answerId thành score
+      // Calculate scores only for answered questions (not skipped)
       const answerScores = [];
-      Object.entries(submittedAnswers).forEach(
-        ([questionId, answerId], index) => {
-          // Chuyển đổi sang number để so sánh
-          const questionIdNum = parseInt(questionId);
-          const answerIdNum = parseInt(answerId);
+      survey.questions.forEach((question, index) => {
+        const answerId = submittedAnswers[question.questionId];
 
-          const question = survey.questions.find(
-            (q) => q.questionId === questionIdNum
-          );
-          if (question) {
-            const answer = question.answers.find((a) => a.id === answerIdNum);
-            if (answer && answer.score !== undefined) {
-              answerScores.push(answer.score);
-              console.log(
-                `Question ${index + 1}, Answer ${answerId}, Score: ${
-                  answer.score
-                }`
-              );
-            } else {
-              console.log(
-                `No valid answer found for Question ${questionId}, Answer ${answerId}`
-              );
-            }
+        if (answerId) {
+          // Only calculate score for answered questions
+          const answerIdNum = parseInt(answerId);
+          const answer = question.answers.find((a) => a.id === answerIdNum);
+
+          if (answer && answer.score !== undefined) {
+            answerScores.push(answer.score);
+            console.log(
+              `Question ${index + 1}, Answer ${answerId}, Score: ${
+                answer.score
+              }`
+            );
           } else {
-            console.log(`No question found for QuestionId: ${questionId}`);
+            console.log(
+              `No valid answer found for Question ${question.questionId}, Answer ${answerId}`
+            );
           }
+        } else {
+          console.log(
+            `Question ${index + 1} (ID: ${question.questionId}) was skipped`
+          );
         }
-      );
+      });
 
       if (!surveyConfig) {
         console.log("No survey config found, using default SUM method");
@@ -420,7 +431,6 @@ const SurveyTaking = ({ route, navigation }) => {
       }
 
       const scoreLevel = getLevelConfig(totalScore);
-console.log(survey);
 
       const surveyResult = {
         level: scoreLevel?.level.toUpperCase(),
@@ -566,9 +576,25 @@ console.log(survey);
             <Text style={styles.questionNumber}>
               Q{currentQuestionIndex + 1}
             </Text>
-            {currentQuestion.required && (
-              <Text style={styles.requiredText}>*</Text>
-            )}
+            <View
+              style={[
+                styles.requiredBadge,
+                currentQuestion.required
+                  ? styles.requiredBadgeTrue
+                  : styles.requiredBadgeFalse,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.requiredText,
+                  currentQuestion.required
+                    ? styles.requiredTextTrue
+                    : styles.requiredTextFalse,
+                ]}
+              >
+                {currentQuestion.required ? "bắt buộc" : "có thể bỏ qua"}
+              </Text>
+            </View>
           </View>
 
           <Text style={styles.questionText}>
@@ -882,10 +908,28 @@ const styles = StyleSheet.create({
     color: GlobalStyles.colors.primary,
     marginRight: 4,
   },
+  requiredBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  requiredBadgeTrue: {
+    backgroundColor: "#FEF2F2",
+  },
+  requiredBadgeFalse: {
+    backgroundColor: "#F0FDF4",
+  },
   requiredText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  requiredTextTrue: {
     color: "#EF4444",
+  },
+  requiredTextFalse: {
+    color: "#059669",
   },
   questionText: {
     fontSize: 18,

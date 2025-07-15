@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "expo start --tunnel",
+    "start": "expo start",
+    "start-lan": "expo start --lan",
+    "start-tunnel": "expo start --tunnel",
+    "expo-ngrok": "node expo-ngrok.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -26,6 +29,7 @@
     "lodash": "^4.17.21",
     "metro": "^0.82.4",
     "metro-resolver": "^0.82.4",
+    "qrcode": "^1.5.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.4",
