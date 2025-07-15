@@ -46,7 +46,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
   const addQuestion = useCallback(() => {
     add({
       required: true,
-      questionType: 'LINKERT_SCAKE',
+      questionType: 'LINKERT_SCALE',
       answers: [
         { text: '', score: 0 },
         { text: '', score: 1 },
@@ -124,7 +124,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
             label="Question Type"
           >
             <Select>
-              <Option value="LINKERT_SCAKE">Linkert Scale</Option>
+              <Option value="LINKERT_SCALE">Linkert Scale</Option>
               <Option value="MULTIPLE_CHOICE">Multiple Choice</Option>
               <Option value="TEXT">Text</Option>
             </Select>
