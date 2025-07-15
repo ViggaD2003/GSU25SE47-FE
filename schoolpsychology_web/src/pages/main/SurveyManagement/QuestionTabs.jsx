@@ -11,19 +11,53 @@ import {
   InputNumber,
   Tabs,
 } from 'antd'
-import { useTranslation } from 'react-i18next'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
+import { surveyCode as surveyCodeConfig } from '@constants/surveyData'
 
 const { Option } = Select
 
-const QuestionTabs = ({ fields, add, remove, surveyCode }) => {
-  const { t } = useTranslation()
+const QuestionTabs = ({
+  t,
+  fields,
+  add,
+  remove,
+  surveyCode,
+  resetTabKey,
+  selectedCategory,
+  categories,
+  messageApi,
+}) => {
   const [activeKey, setActiveKey] = useState()
   const prevFieldsLength = useRef(0)
   const isInitialized = useRef(false)
 
+  // Get survey limitations based on current selection
+  const getSurveyLimitations = useMemo(() => {
+    if (!surveyCode || !selectedCategory || !categories)
+      return { isLimited: false, maxQuestions: null }
+
+    const category = categories.find(cat => cat.id === selectedCategory)
+    if (!category) return { isLimited: false, maxQuestions: null }
+
+    const categoryCode = category.code
+    const surveyInfo = surveyCodeConfig[categoryCode]?.find(
+      code => code.code === surveyCode
+    )
+
+    return {
+      isLimited: surveyInfo?.limitedQuestions || false,
+      maxQuestions: surveyInfo?.length || null,
+      surveyInfo,
+    }
+  }, [surveyCode, selectedCategory, categories])
+
   // Check if current survey code has limited questions and forces required
   const isLimitedSurvey = surveyCode === 'GAD-7' || surveyCode === 'PHQ-9'
+
+  // Check if add button should be disabled
+  const isAddDisabled =
+    getSurveyLimitations.isLimited &&
+    fields.length >= getSurveyLimitations.maxQuestions
 
   useEffect(() => {
     if (!isInitialized.current && fields.length === 0) {
@@ -45,6 +79,13 @@ const QuestionTabs = ({ fields, add, remove, surveyCode }) => {
       setActiveKey(fields[0].key.toString())
     }
   }, [fields, activeKey])
+
+  // Reset to first tab when resetTabKey changes
+  useEffect(() => {
+    if (resetTabKey && fields.length > 0) {
+      setActiveKey(fields[0].key.toString())
+    }
+  }, [resetTabKey, fields])
 
   const addQuestion = useCallback(() => {
     add({
@@ -76,6 +117,13 @@ const QuestionTabs = ({ fields, add, remove, surveyCode }) => {
 
   const onEdit = (targetKey, action) => {
     if (action === 'add') {
+      // Check if adding is disabled due to question limit
+      if (isAddDisabled) {
+        messageApi.warning(
+          `${surveyCode} survey requires exactly ${getSurveyLimitations.maxQuestions} questions. Cannot add more.`
+        )
+        return
+      }
       addQuestion()
     } else if (action === 'remove') {
       removeQuestion(targetKey)
@@ -233,13 +281,36 @@ const QuestionTabs = ({ fields, add, remove, surveyCode }) => {
   }, [fields, t, isLimitedSurvey, surveyCode])
 
   return (
-    <Tabs
-      type="editable-card"
-      onChange={setActiveKey}
-      activeKey={activeKey}
-      onEdit={onEdit}
-      items={items}
-    />
+    <div>
+      {/* Show limitation warning when approaching or at limit */}
+      {getSurveyLimitations.isLimited && (
+        <div style={{ marginBottom: 16 }}>
+          <div
+            style={{
+              padding: '8px 12px',
+              backgroundColor: isAddDisabled ? '#fff2e8' : '#f6ffed',
+              border: `1px solid ${isAddDisabled ? '#ffbb96' : '#b7eb8f'}`,
+              borderRadius: '6px',
+              fontSize: '13px',
+            }}
+          >
+            <span style={{ color: isAddDisabled ? '#d4380d' : '#389e0d' }}>
+              📋 {surveyCode}: {fields.length}/
+              {getSurveyLimitations.maxQuestions} questions
+              {isAddDisabled && ' (Maximum reached)'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <Tabs
+        type="editable-card"
+        onChange={setActiveKey}
+        activeKey={activeKey}
+        onEdit={onEdit}
+        items={items}
+      />
+    </div>
   )
 }
 

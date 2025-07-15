@@ -309,7 +309,14 @@
       "addQuestion": "Add Question",
       "startDateBeforeToday": "Start date must be today or after today",
       "endDateBeforeStartDate": "End date must be after start date",
-      "sampleSurveys": "Sample surveys for category"
+      "sampleSurveys": "Sample surveys for category",
+      "recurringValidation": {
+        "invalidCycle": "For recurring surveys, please select a valid cycle: Daily, Weekly, or Monthly",
+        "endDateTooFar": "For {{cycle}} recurring surveys, end date must be within {{maxDays}} days from start date",
+        "endDateDaily": "For daily recurring surveys, end date must be within 1 day from start date",
+        "endDateWeekly": "For weekly recurring surveys, end date must be within 7 days from start date",
+        "endDateMonthly": "For monthly recurring surveys, end date must be within 30 days from start date"
+      }
     },
     "messages": {
       "addSuccess": "Survey created successfully",

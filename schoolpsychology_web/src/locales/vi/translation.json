@@ -310,7 +310,14 @@
       "addQuestion": "Thêm câu hỏi",
       "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
       "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
-      "sampleSurveys": "Khảo sát mẫu cho danh mục"
+      "sampleSurveys": "Khảo sát mẫu cho danh mục",
+      "recurringValidation": {
+        "invalidCycle": "Đối với khảo sát lặp lại, vui lòng chọn chu kỳ hợp lệ: Hàng ngày, Hàng tuần, hoặc Hàng tháng",
+        "endDateTooFar": "Đối với khảo sát lặp lại {{cycle}}, ngày kết thúc phải trong vòng {{maxDays}} ngày từ ngày bắt đầu",
+        "endDateDaily": "Đối với khảo sát lặp lại hàng ngày, ngày kết thúc phải trong vòng 1 ngày từ ngày bắt đầu",
+        "endDateWeekly": "Đối với khảo sát lặp lại hàng tuần, ngày kết thúc phải trong vòng 7 ngày từ ngày bắt đầu",
+        "endDateMonthly": "Đối với khảo sát lặp lại hàng tháng, ngày kết thúc phải trong vòng 30 ngày từ ngày bắt đầu"
+      }
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",

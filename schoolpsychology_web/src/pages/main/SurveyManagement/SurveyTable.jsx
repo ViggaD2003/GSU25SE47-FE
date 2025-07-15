@@ -9,6 +9,15 @@ const statusColor = {
 }
 
 const SurveyTable = ({ t, data, loading, pagination, onView }) => {
+  // Enhanced rowKey function to ensure uniqueness
+  const getRowKey = (record, index) => {
+    const keys = [record.surveyId]
+
+    // Find first non-null, non-undefined key
+    const uniqueKey = keys.find(key => key != null && key !== '')
+
+    return uniqueKey || `survey-fallback-${index}-${Date.now()}`
+  }
   const columns = [
     {
       title: t('surveyManagement.table.name'),
@@ -66,7 +75,7 @@ const SurveyTable = ({ t, data, loading, pagination, onView }) => {
 
   return (
     <Table
-      rowKey={record => record.surveyId || record.id}
+      rowKey={getRowKey}
       columns={columns}
       dataSource={data}
       loading={loading}

@@ -156,16 +156,6 @@ const SurveyDetailModal = ({
 
       setEditMode(false)
       setFieldErrors({})
-      // Cập nhật lại formValue để view hiển thị đúng category mới
-      // setFormValue({
-      //   ...updatedSurvey.data,
-      //   startDate: updatedSurvey.data.startDate ? dayjs(updatedSurvey.data.startDate) : dayjs(survey.startDate),
-      //   endDate: updatedSurvey.data.endDate ? dayjs(updatedSurvey.data.endDate) : dayjs(survey.endDate),
-      //   questions: updatedSurvey.data.questions?.map(q => ({
-      //     ...q,
-      //     categoryId: q.categoryId ?? q.category?.id ?? null,
-      //   })) || [],
-      // })
       onUpdated()
     } catch (err) {
       let msg = 'Cập nhật thất bại'
