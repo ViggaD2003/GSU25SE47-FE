@@ -18,14 +18,18 @@ import {
 import { surveyAPI } from '../../../services/surveyApi'
 import { categoriesAPI } from '../../../services/categoryApi'
 import dayjs from 'dayjs'
-import useMessage from 'antd/es/message/useMessage'
 
-const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
+const SurveyDetailModal = ({
+  visible,
+  survey,
+  onClose,
+  onUpdated,
+  messageApi,
+}) => {
   const [editMode, setEditMode] = useState(false)
   const [formValue, setFormValue] = useState(null)
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState([])
-  const [messageApi, contextHolder] = useMessage()
   const [fieldErrors, setFieldErrors] = useState({})
 
   const recurringOptions = [
@@ -186,7 +190,6 @@ const SurveyDetailModal = ({ visible, survey, onClose, onUpdated }) => {
 
   return (
     <>
-      {contextHolder}
       <Modal
         open={visible}
         title={<span style={{ fontWeight: 600 }}>{formValue.name}</span>}

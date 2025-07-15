@@ -16,11 +16,14 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 
 const { Option } = Select
 
-const QuestionTabs = ({ fields, add, remove }) => {
+const QuestionTabs = ({ fields, add, remove, surveyCode }) => {
   const { t } = useTranslation()
   const [activeKey, setActiveKey] = useState()
   const prevFieldsLength = useRef(0)
   const isInitialized = useRef(false)
+
+  // Check if current survey code has limited questions and forces required
+  const isLimitedSurvey = surveyCode === 'GAD-7' || surveyCode === 'PHQ-9'
 
   useEffect(() => {
     if (!isInitialized.current && fields.length === 0) {
@@ -45,7 +48,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
 
   const addQuestion = useCallback(() => {
     add({
-      required: true,
+      required: true, // Always default to required
       questionType: 'LINKERT_SCALE',
       answers: [
         { text: '', score: 0 },
@@ -106,8 +109,22 @@ const QuestionTabs = ({ fields, add, remove }) => {
                 {...restField}
                 name={[name, 'required']}
                 valuePropName="checked"
+                initialValue={isLimitedSurvey ? true : undefined}
               >
-                <Checkbox>Required</Checkbox>
+                <Checkbox disabled={isLimitedSurvey}>
+                  Required
+                  {isLimitedSurvey && (
+                    <span
+                      style={{
+                        color: '#666',
+                        fontSize: '12px',
+                        marginLeft: '8px',
+                      }}
+                    >
+                      (Bắt buộc cho {surveyCode})
+                    </span>
+                  )}
+                </Checkbox>
               </Form.Item>
             </Col>
           </Row>
@@ -213,7 +230,7 @@ const QuestionTabs = ({ fields, add, remove }) => {
         </div>
       ),
     }))
-  }, [fields, t])
+  }, [fields, t, isLimitedSurvey, surveyCode])
 
   return (
     <Tabs

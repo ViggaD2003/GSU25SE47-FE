@@ -21,12 +21,13 @@ const { TextArea } = Input
 const { Option } = Select
 const { Title, Text } = Typography
 
-const SurveyModal = ({ visible, onCancel, onOk }) => {
+const SurveyModal = ({ visible, onCancel, onOk, messageApi }) => {
   const { t } = useTranslation()
   const [form] = Form.useForm()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedSurveyCode, setSelectedSurveyCode] = useState(null)
   const [sampleSurveys, setSampleSurveys] = useState([])
 
   // Fetch categories when modal opens
@@ -65,16 +66,24 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
     form.setFieldsValue({
       surveyCode: undefined,
     })
+    setSelectedSurveyCode(null)
   }
 
-  const handleSurveyCodeChange = surveyCode => {
-    // Handle survey code selection
-    console.log('Selected survey code:', surveyCode)
+  const handleSurveyCodeChange = selectedCode => {
+    setSelectedSurveyCode(selectedCode)
+    console.log('Selected survey code:', selectedCode)
 
-    // You can add additional logic here if needed
-    // For example, auto-load questions based on survey code
+    // Get survey code info for validation
+    const categoryCode = categories.find(
+      cat => cat.id === selectedCategory
+    )?.code
+    const surveyInfo = surveyCode[categoryCode]?.find(
+      code => code.code === selectedCode
+    )
+
+    // Auto-load questions based on survey code
     const selectedSurvey = sampleSurveys.find(
-      survey => survey.code === surveyCode
+      survey => survey.code === selectedCode
     )
     if (selectedSurvey) {
       form.setFieldsValue({
@@ -82,6 +91,19 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
         description: selectedSurvey.description,
         questions: selectedSurvey.questions,
       })
+    }
+
+    // For limited surveys, ensure questions are required
+    if (
+      surveyInfo?.limitedQuestions &&
+      (selectedCode === 'GAD-7' || selectedCode === 'PHQ-9')
+    ) {
+      const currentQuestions = form.getFieldValue('questions') || []
+      const updatedQuestions = currentQuestions.map(q => ({
+        ...q,
+        required: true,
+      }))
+      form.setFieldsValue({ questions: updatedQuestions })
     }
   }
 
@@ -92,12 +114,54 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
       description: sampleSurvey.description,
       questions: sampleSurvey.questions,
     })
+    setSelectedSurveyCode(sampleSurvey.code)
+  }
+
+  const validateLimitedSurvey = values => {
+    if (!selectedSurveyCode) return true
+
+    const categoryCode = categories.find(
+      cat => cat.id === selectedCategory
+    )?.code
+    const surveyInfo = surveyCode[categoryCode]?.find(
+      code => code.code === selectedSurveyCode
+    )
+
+    if (surveyInfo?.limitedQuestions) {
+      const questionsCount = values.questions?.length || 0
+      const requiredCount = surveyInfo.length
+
+      if (questionsCount !== requiredCount) {
+        messageApi.error(
+          `Survey ${selectedSurveyCode} yêu cầu đúng ${requiredCount} câu hỏi, hiện tại có ${questionsCount} câu hỏi`
+        )
+        return false
+      }
+
+      // Check if all questions are required for GAD-7 and PHQ-9
+      if (selectedSurveyCode === 'GAD-7' || selectedSurveyCode === 'PHQ-9') {
+        const hasOptionalQuestions = values.questions?.some(q => !q.required)
+        if (hasOptionalQuestions) {
+          messageApi.error(
+            `Tất cả câu hỏi trong ${selectedSurveyCode} phải là bắt buộc`
+          )
+          return false
+        }
+      }
+    }
+
+    return true
   }
 
   const handleOk = () => {
     form
       .validateFields()
       .then(values => {
+        // Validate limited surveys
+        if (!validateLimitedSurvey(values)) {
+          return
+        }
+
         const { categoryId, ...surveyData } = values
         const requestData = {
           ...surveyData,
@@ -119,15 +183,18 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
       })
   }
 
+  const handleCancel = () => {
+    form.resetFields()
+    setSelectedSurveyCode(null)
+    onCancel()
+  }
+
   return (
     <Modal
       title={t('surveyManagement.addSurvey')}
       open={visible}
       onOk={handleOk}
-      onCancel={() => {
-        form.resetFields()
-        onCancel()
-      }}
+      onCancel={handleCancel}
       width={1200}
       okText={t('common.create')}
       cancelText={t('common.cancel')}
@@ -201,15 +268,84 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
                         categories.find(cat => cat.id === selectedCategory)
                           ?.code
                       ].map(code => (
-                        <Option key={code} value={code}>
-                          {code}
+                        <Option key={code.code} value={code.code}>
+                          {code.code}
                         </Option>
                       ))}
                   </Select>
                 </Form.Item>
               </Col>
             </Row>
-            {/* Sample Surveys Section */}
+
+            {/* Survey Code Requirements Note */}
+            {selectedCategory && (
+              <div style={{ marginBottom: 16 }}>
+                <div
+                  style={{
+                    padding: '12px 16px',
+                    backgroundColor: '#f6f8fa',
+                    border: '1px solid #d0d7de',
+                    borderRadius: '6px',
+                  }}
+                >
+                  <Text
+                    strong
+                    style={{
+                      color: '#1f2328',
+                      fontSize: '14px',
+                      display: 'block',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    📋 Yêu cầu số lượng câu hỏi cho từng loại survey:
+                  </Text>
+                  {categories.find(cat => cat.id === selectedCategory) &&
+                    surveyCode[
+                      categories.find(cat => cat.id === selectedCategory)?.code
+                    ] &&
+                    surveyCode[
+                      categories.find(cat => cat.id === selectedCategory)?.code
+                    ].map(code => (
+                      <div key={code.code} style={{ marginBottom: '4px' }}>
+                        <Text style={{ fontSize: '13px' }}>
+                          <span
+                            style={{
+                              fontWeight: 'bold',
+                              color:
+                                selectedSurveyCode === code.code
+                                  ? '#0969da'
+                                  : '#656d76',
+                              backgroundColor:
+                                selectedSurveyCode === code.code
+                                  ? '#ddf4ff'
+                                  : 'transparent',
+                              padding: '2px 6px',
+                              borderRadius: '3px',
+                            }}
+                          >
+                            {code.code}
+                          </span>
+                          {code.limitedQuestions ? (
+                            <span
+                              style={{ color: '#cf222e', marginLeft: '8px' }}
+                            >
+                              → Yêu cầu đúng {code.length} câu hỏi (tất cả bắt
+                              buộc)
+                            </span>
+                          ) : (
+                            <span
+                              style={{ color: '#1f883d', marginLeft: '8px' }}
+                            >
+                              → Không giới hạn số lượng câu hỏi
+                            </span>
+                          )}
+                        </Text>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {selectedCategory && sampleSurveys.length > 0 && (
               <div style={{ marginBottom: 16 }}>
                 <div
@@ -422,7 +558,12 @@ const SurveyModal = ({ visible, onCancel, onOk }) => {
             >
               <Form.List name="questions">
                 {(fields, { add, remove }) => (
-                  <QuestionTabs fields={fields} add={add} remove={remove} />
+                  <QuestionTabs
+                    fields={fields}
+                    add={add}
+                    remove={remove}
+                    surveyCode={selectedSurveyCode}
+                  />
                 )}
               </Form.List>
             </div>
