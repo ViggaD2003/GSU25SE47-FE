@@ -46,31 +46,35 @@ export default function ProfileScreen() {
   }, []);
 
   const navigateToEditProfile = () => {
-    navigation.navigate("EditProfile", { data: profile });
-  };
-
-  const navigateToMyChildren = () => {
-    navigation.navigate("MyChildren", {
-      data: profile.relationships,
-      onRefresh,
+    navigation.navigate("Profile", {
+      screen: "EditProfile",
+      params: { data: profile },
     });
   };
 
-  const navigateToSurveyRecords = () => {
-    navigation.navigate("Survey", {
-      screen: "SurveyRecord",
+  const navigateToMyChildren = () => {
+    navigation.navigate("Profile", {
+      screen: "MyChildren",
+      params: {
+        data: profile.relationships,
+        onRefresh,
+      },
     });
   };
 
   return (
     <Container>
       {/* Header */}
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={styles.headerSubtitle}>
+            Manage your account and preferences
+          </Text>
+        </View>
       </View>
+
       <View style={{ paddingHorizontal: 20 }}>
         <View style={styles.card}>
           <View style={styles.avatarWrapper}>
@@ -95,15 +99,6 @@ export default function ProfileScreen() {
                 onPress={navigateToMyChildren}
               />
             )}
-
-            {user.role === "STUDENT" && (
-              <MenuItem
-                icon="clipboard-text-outline"
-                label="Survey Records"
-                onPress={navigateToSurveyRecords}
-              />
-            )}
-
             <MenuItem
               icon="cog-outline"
               label="Settings"
@@ -116,12 +111,16 @@ export default function ProfileScreen() {
                 <MenuItem
                   icon="lock-reset"
                   label="Change Password"
-                  onPress={() => navigation.navigate("ChangePassword")}
+                  onPress={() =>
+                    navigation.navigate("Profile", { screen: "ChangePassword" })
+                  }
                 />
                 <MenuItem
                   icon="calendar-outline"
                   label="Calendar Access"
-                  onPress={() => navigation.navigate("CalendarAccess")}
+                  onPress={() =>
+                    navigation.navigate("Profile", { screen: "CalendarAccess" })
+                  }
                 />
               </View>
             )}
@@ -156,22 +155,25 @@ function MenuItem({ icon, label, onPress }) {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 24,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
-  backButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+  headerContent: {
+    alignItems: "center",
   },
-  headerSpacer: {
-    width: 40,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#181A3D",
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
   },
   card: {
     marginTop: 20,

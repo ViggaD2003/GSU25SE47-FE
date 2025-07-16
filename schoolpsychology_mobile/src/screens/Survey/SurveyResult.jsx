@@ -11,18 +11,15 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { Toast } from "../../components";
-import { useAuth } from "../../contexts";
 import {
   formatDate,
   getScoreColor,
   getScoreIcon,
   getScoreLevel,
 } from "../../utils/helpers";
-import { navigateToHome } from "../../utils";
 
 const SurveyResult = ({ route, navigation }) => {
-  const { user } = useAuth();
-  const { survey, result, screen, showRecordsButton } = route.params || {};
+  const { survey, result, showRecordsButton } = route.params || {};
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -40,8 +37,8 @@ const SurveyResult = ({ route, navigation }) => {
   }, []);
 
   const handleBackPress = useCallback(() => {
-    if (screen === "SurveyTaking") {
-      navigateToHome(navigation);
+    if (route.params?.screen === "SurveyTaking") {
+      navigation.popTo("MainBottomTabs");
     } else {
       navigation.goBack();
     }

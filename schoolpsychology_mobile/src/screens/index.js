@@ -28,3 +28,9 @@ export { default as AppointmentRecordScreen } from "./Appointment/AppointmentRec
 
 // Calendar screens
 export { default as CalendarAccess } from "./Calendar/CalendarAccess";
+
+//Program screens
+export { default as ProgramRecordScreen } from "./Program/ProgramRecord";
+
+// Record screens./Program/ProgramRecord
+export { default as RecordScreen } from "./Record/Record";

@@ -88,12 +88,16 @@ const SurveyRecord = ({ navigation }) => {
         surveyCode: record.surveyCode,
         name: record.surveyName,
         id: record.surveyId,
+        ...record,
       };
-      navigation.navigate("SurveyResult", {
-        survey,
-        result: record,
-        screen: "SurveyRecord",
-        showRecordsButton: false,
+
+      navigation.navigate("Survey", {
+        screen: "SurveyResult",
+        params: {
+          survey,
+          result: record,
+          showRecordsButton: false,
+        },
       });
     },
     [navigation]
@@ -194,7 +198,7 @@ const SurveyRecord = ({ navigation }) => {
               </Text>
               <TouchableOpacity
                 style={styles.emptyButton}
-                onPress={() => navigation.navigate("Home")}
+                onPress={() => navigation.navigate("MainBottomTabs")}
               >
                 <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
               </TouchableOpacity>

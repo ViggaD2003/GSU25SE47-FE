@@ -92,7 +92,7 @@ export default function ParentHome({
   };
 
   const handleViewAllSurveys = () => {
-    navigation.navigate("SurveyRecord");
+    navigation.navigate("Survey", { screen: "SurveyRecord" });
   };
 
   const handleViewAllAppointments = () => {
@@ -120,15 +120,18 @@ export default function ParentHome({
   };
 
   const handleViewSurveyDetail = (record) => {
-    navigation.navigate("SurveyResult", {
-      survey: {
-        surveyCode: record.surveyCode,
-        name: record.surveyName,
-        id: record.surveyId,
+    navigation.navigate("Survey", {
+      screen: "SurveyResult",
+      params: {
+        survey: {
+          surveyCode: record.surveyCode,
+          name: record.surveyName,
+          id: record.surveyId,
+        },
+        result: record,
+        screen: "ParentHome",
+        showRecordsButton: false,
       },
-      result: record,
-      screen: "ParentHome",
-      showRecordsButton: false,
     });
   };
 

@@ -21,7 +21,10 @@ export default function BlogScreen() {
   }, []);
 
   const handlePress = (blog) => {
-    navigation.navigate("BlogDetails", { blogId: blog.id });
+    navigation.navigate("Blog", {
+      screen: "BlogDetails",
+      params: { blogId: blog.id },
+    });
   };
 
   const handleBackPress = () => {
@@ -48,14 +51,16 @@ export default function BlogScreen() {
 
   return (
     <Container>
+      {/* Header */}
       <View style={styles.header}>
-        {/* Header */}
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Bài viết nổi bật</Text>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Blog</Text>
+          <Text style={styles.headerSubtitle}>
+            Explore insights for mental wellness and growth
+          </Text>
+        </View>
       </View>
+
       <FlatList
         data={blogs}
         renderItem={renderItem}
@@ -69,27 +74,25 @@ export default function BlogScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
     backgroundColor: "#fff",
+    paddingHorizontal: 20,
+    paddingVertical: 24,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
-  backButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#F1F5F9",
+  headerContent: {
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1A1A1A",
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#181A3D",
+    marginBottom: 4,
   },
-  headerSpacer: {
-    width: 40,
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
   },
   card: {
     flexDirection: "row",

@@ -79,7 +79,7 @@ const StatusScreen = ({ route }) => {
   };
 
   const handleViewAppointments = () => {
-    navigation.navigate("Appointments");
+    navigation.navigate("MainBottomTabs", { screen: "AppointmentMain" });
   };
 
   const formatTime = (dateTimeString) => {

@@ -353,7 +353,7 @@ const SurveyTaking = ({ route, navigation }) => {
           // User selected an answer
           return {
             answerId: parseInt(answerId),
-            questionId: null,
+            questionId: question.questionId,
             skipped: false,
           };
         } else {
@@ -453,15 +453,20 @@ const SurveyTaking = ({ route, navigation }) => {
       };
 
       console.log("Survey submitted:", surveyResult);
-      // const response = await postSurveyResult(surveyResult);
+      const response = await postSurveyResult(surveyResult);
 
       // Navigate to result screen
-      navigation.navigate("SurveyResult", {
-        survey,
-        result: response.data,
-        screen: "SurveyTaking",
-        showRecordsButton: true,
-      });
+      if (response.data) {
+        navigation.navigate("Survey", {
+          screen: "SurveyResult",
+          params: {
+            survey,
+            result: response.data,
+            showRecordsButton: true,
+            screen: "SurveyTaking",
+          },
+        });
+      }
     } catch (error) {
       console.error("Error submitting survey:", error);
       showToast("Có lỗi xảy ra khi nộp khảo sát", "error");

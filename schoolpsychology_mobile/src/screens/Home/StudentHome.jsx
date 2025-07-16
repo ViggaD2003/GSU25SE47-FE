@@ -273,7 +273,7 @@ export default function StudentHome({
         <View style={styles.connectRow}>
           <TouchableOpacity
             style={styles.connectBox}
-            onPress={() => navigation.navigate("Blog")}
+            onPress={() => navigation.navigate("BlogMain")}
           >
             <View style={styles.connectIconContainer}>
               <Text style={styles.connectIcon}>📚</Text>
@@ -661,13 +661,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   requiredEventContainer: {
-    minHeight: 450,
     paddingBottom: 25,
   },
   emptyContainer: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 100,
+    paddingVertical: 50,
   },
   emptyIcon: {
     fontSize: 56,
