@@ -162,6 +162,16 @@ const SurveyTaking = ({ route, navigation }) => {
     });
   };
 
+  const handleClearAnswer = (questionId) => {
+    setAnswers((prev) => {
+      const newAnswers = { ...prev };
+      delete newAnswers[questionId];
+      console.log("Cleared answer for question:", questionId);
+      return newAnswers;
+    });
+    showToast("Đã xóa câu trả lời", "info");
+  };
+
   const handleNext = () => {
     if (
       survey?.questions &&
@@ -442,8 +452,8 @@ const SurveyTaking = ({ route, navigation }) => {
         categoryId: survey?.questions[0].category.id,
       };
 
-      // console.log("Survey submitted:", surveyResult);
-      const response = await postSurveyResult(surveyResult);
+      console.log("Survey submitted:", surveyResult);
+      // const response = await postSurveyResult(surveyResult);
 
       // Navigate to result screen
       navigation.navigate("SurveyResult", {
@@ -662,6 +672,17 @@ const SurveyTaking = ({ route, navigation }) => {
               </Text>
             )}
           </View>
+
+          {/* Clear Answer Button for Optional Questions */}
+          {!currentQuestion.required && answers[currentQuestion.questionId] && (
+            <TouchableOpacity
+              style={styles.clearAnswerButton}
+              onPress={() => handleClearAnswer(currentQuestion.questionId)}
+            >
+              <Ionicons name="close-circle" size={16} color="#EF4444" />
+              <Text style={styles.clearAnswerText}>Xóa câu trả lời</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Navigation Buttons */}
@@ -960,6 +981,24 @@ const styles = StyleSheet.create({
   },
   answersContainer: {
     gap: 12,
+  },
+  clearAnswerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    gap: 6,
+  },
+  clearAnswerText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#EF4444",
   },
   answerOption: {
     flexDirection: "row",
