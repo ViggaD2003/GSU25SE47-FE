@@ -36,6 +36,7 @@ import {
   selectAppointmentError,
   selectAppointmentById,
 } from '../../../store/slices/appointmentSlice'
+import { appointmentAPI } from '../../../services/appointmentApi'
 import AssessmentForm from '../../../components/Assessment/AssessmentForm'
 
 const { Title, Text } = Typography
@@ -213,16 +214,36 @@ const AppointmentDetails = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [editedAppointment, setEditedAppointment] = useState(appointment)
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
+  const [submittingAssessment, setSubmittingAssessment] = useState(false)
 
   // Handler for assessment form submission
   const handleAssessmentSubmit = useCallback(
-    data => {
-      console.log('Assessment data:', data)
-      // TODO: Send data to API
-      messageApi.success('Đánh giá đã được lưu thành công!')
-      setShowAssessmentForm(false)
+    async data => {
+      try {
+        setSubmittingAssessment(true)
+        console.log('Submitting assessment data:', data)
+
+        const response = await appointmentAPI.createAppointmentRecord(data)
+
+        if (response.success || response.data) {
+          messageApi.success('Đánh giá đã được lưu thành công!')
+          setShowAssessmentForm(false)
+
+          // Refresh appointments to get updated data
+          dispatch(getAppointments())
+        } else {
+          throw new Error(response.message || 'Có lỗi xảy ra khi lưu đánh giá')
+        }
+      } catch (error) {
+        console.error('Error submitting assessment:', error)
+        messageApi.error(
+          error.message || 'Có lỗi xảy ra khi lưu đánh giá. Vui lòng thử lại!'
+        )
+      } finally {
+        setSubmittingAssessment(false)
+      }
     },
-    [messageApi]
+    [messageApi, dispatch]
   )
 
   // Memoized utility functions
@@ -522,6 +543,7 @@ const AppointmentDetails = () => {
           t={t}
           isDarkMode={isDarkMode}
           appointmentId={appointment.id}
+          loading={submittingAssessment}
         />
       )}
     </div>

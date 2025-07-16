@@ -26,7 +26,15 @@ const { Title, Text } = Typography
 const { TextArea } = Input
 
 const AssessmentForm = memo(
-  ({ isVisible, onClose, onSubmit, _t, isDarkMode, appointmentId }) => {
+  ({
+    isVisible,
+    onClose,
+    onSubmit,
+    _t,
+    isDarkMode,
+    appointmentId,
+    loading = false,
+  }) => {
     // State cho form assessment
     const [selectedMentalHealth, setSelectedMentalHealth] = useState([])
     const [selectedEnvironment, setSelectedEnvironment] = useState([])
@@ -115,7 +123,8 @@ const AssessmentForm = memo(
         appointmentId: appointmentId,
         sessionFlow: sessionFlow,
         studentCoopLevel: studentCoopLevel,
-        status: 'DRAFT',
+        status: 'SUBMITTED',
+        appointmentStatus: 'COMPLETED',
         noteSummary: noteSummary,
         noteSuggest: noteSuggest,
         reason: '',
@@ -347,9 +356,11 @@ const AssessmentForm = memo(
                         onClick={handleSubmit}
                         icon={<CheckCircleOutlined />}
                         disabled={
-                          selectedMentalHealth.length === 0 &&
-                          selectedEnvironment.length === 0
+                          loading ||
+                          (selectedMentalHealth.length === 0 &&
+                            selectedEnvironment.length === 0)
                         }
+                        loading={loading}
                       >
                         Xác nhận đánh giá
                       </Button>
@@ -601,6 +612,8 @@ const AssessmentForm = memo(
                   type="primary"
                   onClick={handleFinalSubmit}
                   icon={<CheckCircleOutlined />}
+                  loading={loading}
+                  disabled={loading}
                 >
                   Hoàn thành đánh giá
                 </Button>

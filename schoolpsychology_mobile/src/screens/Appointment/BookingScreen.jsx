@@ -289,7 +289,7 @@ const BookingScreen = ({ navigation }) => {
           try {
             const bookingData = {
               slotId: selectedSlot.id,
-              bookedForId: bookedForId,
+              bookedForId: user?.role === "PARENTS" ? bookedForId : user?.id,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT

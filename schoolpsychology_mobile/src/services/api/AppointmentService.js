@@ -12,10 +12,12 @@ export const createAppointment = async (appointment) => {
   }
 };
 
-//Get Appointment History
-export const getAppointmentHistory = async () => {
+//Get Appointment Record
+export const getAppointmentRecord = async () => {
   try {
-    const response = await api.get("/api/v1/appointment/show-history");
+    const response = await api.get(
+      "/api/v1/appointment-records?field=totalScore&direction=desc"
+    );
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy danh sách lịch sử cuộc hẹn:", err);

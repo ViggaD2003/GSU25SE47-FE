@@ -204,6 +204,7 @@
       "slotNameRequired": "Please enter slot name",
       "startDateTime": "Start Date & Time",
       "startDateTimeRequired": "Please select start date and time",
+      "endDateTime": "End Date & Time",
       "duration": "Duration (hours)",
       "durationPlaceholder": "Enter duration in hours",
       "durationRequired": "Please enter duration",
@@ -614,6 +615,43 @@
       "mentalHealth": "Mental Health",
       "environment": "Environment",
       "impact": "Impact"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "pending": "Pending Review"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "normal": "Normal",
+      "difficult": "Difficult",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    }
+  },
+  "appointmentRecord": {
+    "title": "Assessment Record",
+    "viewRecord": "View Assessment",
+    "noRecord": "No Assessment Available",
+    "sessionInfo": "Session Information",
+    "assessmentResults": "Assessment Results",
+    "noteSummary": "Summary Notes",
+    "noteSuggest": "Intervention Suggestions",
+    "totalScore": "Total Score",
+    "riskLevel": "Risk Level",
+    "sessionFlow": "Session Progress",
+    "cooperationLevel": "Student Cooperation",
+    "status": "Assessment Status",
+    "completedOn": "Completed On",
+    "riskLevels": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
     }
   }
 }

@@ -118,6 +118,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const [editingSlotId, setEditingSlotId] = useState(null)
   const [expandedDates, setExpandedDates] = useState(new Set())
   const [conflictSlots, setConflictSlots] = useState([])
+  const [calculatedEndDateTime, setCalculatedEndDateTime] = useState(null)
   const createLoading = useSelector(selectCreateLoading)
   const createError = useSelector(selectCreateError)
   const users = useSelector(selectUsers)
@@ -135,6 +136,36 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
       dispatch(clearError())
     }
   }, [createError, dispatch])
+
+  // Calculate end date time when start date time or duration changes
+  useEffect(() => {
+    const updateEndDateTime = () => {
+      const startDateTime = form.getFieldValue('startDateTime')
+      const duration = form.getFieldValue('duration')
+
+      if (startDateTime && duration) {
+        const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+        setCalculatedEndDateTime(endDateTime)
+      } else {
+        setCalculatedEndDateTime(null)
+      }
+    }
+
+    updateEndDateTime()
+  }, [form])
+
+  // Function to handle form field changes
+  const handleFieldChange = () => {
+    const startDateTime = form.getFieldValue('startDateTime')
+    const duration = form.getFieldValue('duration')
+
+    if (startDateTime && duration) {
+      const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+      setCalculatedEndDateTime(endDateTime)
+    } else {
+      setCalculatedEndDateTime(null)
+    }
+  }
 
   // Function to check if a slot is in conflict
   const isSlotInConflict = slot => {
@@ -319,6 +350,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
           user?.role.toUpperCase() === 'MANAGER' ? 'PROGRAM' : 'APPOINTMENT',
         hostedBy: hostedBy,
       })
+      setCalculatedEndDateTime(null)
 
       message.success(t('slotManagement.messages.slotAdded'))
     } catch (error) {
@@ -446,6 +478,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
     setPreviewSlots([])
     setEditingSlotId(null)
     setConflictSlots([])
+    setCalculatedEndDateTime(null)
     onCancel()
   }
 
@@ -482,8 +515,19 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
     }
     // Loại trùng
     disabled = Array.from(new Set(disabled)).sort((a, b) => a - b)
+
+    // Disable tất cả các phút trừ 00 và 30
+    const disabledMinutes = []
+    for (let i = 1; i <= 29; i++) {
+      disabledMinutes.push(i)
+    }
+    for (let i = 31; i <= 59; i++) {
+      disabledMinutes.push(i)
+    }
+
     return {
       disabledHours: () => disabled,
+      disabledMinutes: () => disabledMinutes,
     }
   }
 
@@ -534,6 +578,8 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
 
   const InlineEditForm = ({ slot, onSave, onCancel }) => {
     const [editForm] = Form.useForm()
+    const [editCalculatedEndDateTime, setEditCalculatedEndDateTime] =
+      useState(null)
 
     useEffect(() => {
       editForm.setFieldsValue({
@@ -543,7 +589,25 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
         slotType: slot.slotType,
         hostedBy: slot.hostedBy,
       })
+      // Calculate initial end date time
+      if (slot.startDateTime && slot.duration) {
+        const endDateTime = dayjs(slot.startDateTime).add(slot.duration, 'hour')
+        setEditCalculatedEndDateTime(endDateTime)
+      }
     }, [slot, editForm])
+
+    // Function to handle form field changes in edit mode
+    const handleEditFieldChange = () => {
+      const startDateTime = editForm.getFieldValue('startDateTime')
+      const duration = editForm.getFieldValue('duration')
+
+      if (startDateTime && duration) {
+        const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+        setEditCalculatedEndDateTime(endDateTime)
+      } else {
+        setEditCalculatedEndDateTime(null)
+      }
+    }
 
     const handleSave = async () => {
       try {
@@ -558,7 +622,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
       <div style={{ padding: '8px 0' }}>
         <Form form={editForm} layout="vertical" size="small">
           <Row gutter={8}>
-            <Col span={8}>
+            <Col span={24}>
               <Form.Item
                 name="slotName"
                 rules={[{ required: true, message: 'Required' }]}
@@ -566,7 +630,9 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                 <Input placeholder="Slot name" />
               </Form.Item>
             </Col>
-            <Col span={6}>
+          </Row>
+          <Row gutter={8}>
+            <Col span={8}>
               <Form.Item
                 name="startDateTime"
                 rules={[{ required: true, message: 'Required' }]}
@@ -578,10 +644,11 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   disabledDate={disabledDate}
                   disabledTime={disabledTime}
                   style={{ width: '100%' }}
+                  onChange={handleEditFieldChange}
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={8}>
               <Form.Item
                 name="duration"
                 rules={[{ required: true, message: 'Required' }]}
@@ -591,10 +658,24 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   max={8}
                   placeholder="Hours"
                   style={{ width: '100%' }}
+                  onChange={handleEditFieldChange}
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
+              <Form.Item>
+                <DatePicker
+                  showTime={{ format: 'HH:mm' }}
+                  format="MM-DD HH:mm"
+                  placeholder="End time"
+                  value={editCalculatedEndDateTime}
+                  style={{ width: '100%' }}
+                  disabled
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={3}>
               <Form.Item name="slotType">
                 <Select size="small">
                   {user?.role.toUpperCase() === 'MANAGER' ? (
@@ -877,78 +958,107 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                 />
               </Form.Item>
 
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="startDateTime"
+                    label={
+                      <Space>
+                        <CalendarOutlined />
+                        {t('slotManagement.form.startDateTime')}
+                      </Space>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: t('slotManagement.form.startDateTimeRequired'),
+                      },
+                      { validator: customStartDateTimeValidator },
+                    ]}
+                    extra={
+                      <HelpText>
+                        {t('slotManagement.form.startDateTimeHelp')}
+                      </HelpText>
+                    }
+                  >
+                    <DatePicker
+                      showTime={{ format: 'HH:mm' }}
+                      format="YYYY-MM-DD HH:mm"
+                      placeholder={t(
+                        'slotManagement.form.startDateTimeRequired'
+                      )}
+                      disabledDate={disabledDate}
+                      disabledTime={disabledTime}
+                      style={{ width: '100%' }}
+                      size="large"
+                      onChange={handleFieldChange}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="duration"
+                    label={
+                      <Space>
+                        <ClockCircleOutlined />
+                        {t('slotManagement.form.duration')}
+                      </Space>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: t('slotManagement.form.durationRequired'),
+                      },
+                      {
+                        type: 'number',
+                        min: 1,
+                        message: t('slotManagement.form.durationMin'),
+                      },
+                      {
+                        validator: (_, value) => {
+                          if (value && value % 1 !== 0) {
+                            return Promise.reject(
+                              t('slotManagement.form.durationInteger')
+                            )
+                          }
+                          return Promise.resolve()
+                        },
+                      },
+                      { validator: customDurationValidator },
+                    ]}
+                    extra={
+                      <HelpText>
+                        {t('slotManagement.form.durationHelp')}
+                      </HelpText>
+                    }
+                  >
+                    <InputNumber
+                      min={1}
+                      max={8}
+                      style={{ width: '100%' }}
+                      placeholder={t('slotManagement.form.durationPlaceholder')}
+                      size="large"
+                      onChange={handleFieldChange}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
               <Form.Item
-                name="startDateTime"
                 label={
                   <Space>
                     <CalendarOutlined />
-                    {t('slotManagement.form.startDateTime')}
+                    {t('slotManagement.form.endDateTime')}
                   </Space>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: t('slotManagement.form.startDateTimeRequired'),
-                  },
-                  { validator: customStartDateTimeValidator },
-                ]}
-                extra={
-                  <HelpText>
-                    {t('slotManagement.form.startDateTimeHelp')}
-                  </HelpText>
                 }
               >
                 <DatePicker
                   showTime={{ format: 'HH:mm' }}
                   format="YYYY-MM-DD HH:mm"
-                  placeholder={t('slotManagement.form.startDateTimeRequired')}
-                  disabledDate={disabledDate}
-                  disabledTime={disabledTime}
+                  value={calculatedEndDateTime}
                   style={{ width: '100%' }}
                   size="large"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="duration"
-                label={
-                  <Space>
-                    <ClockCircleOutlined />
-                    {t('slotManagement.form.duration')}
-                  </Space>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: t('slotManagement.form.durationRequired'),
-                  },
-                  {
-                    type: 'number',
-                    min: 1,
-                    message: t('slotManagement.form.durationMin'),
-                  },
-                  {
-                    validator: (_, value) => {
-                      if (value && value % 1 !== 0) {
-                        return Promise.reject(
-                          t('slotManagement.form.durationInteger')
-                        )
-                      }
-                      return Promise.resolve()
-                    },
-                  },
-                  { validator: customDurationValidator },
-                ]}
-                extra={
-                  <HelpText>{t('slotManagement.form.durationHelp')}</HelpText>
-                }
-              >
-                <InputNumber
-                  min={1}
-                  max={8}
-                  style={{ width: '100%' }}
-                  placeholder={t('slotManagement.form.durationPlaceholder')}
-                  size="large"
+                  disabled
+                  placeholder="Được tính tự động"
                 />
               </Form.Item>
 

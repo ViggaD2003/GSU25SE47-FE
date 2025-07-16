@@ -205,6 +205,7 @@
       "slotNameRequired": "Vui lòng nhập tên giờ làm",
       "startDateTime": "Ngày và giờ bắt đầu",
       "startDateTimeRequired": "Vui lòng chọn ngày và giờ bắt đầu",
+      "endDateTime": "Ngày và giờ kết thúc",
       "duration": "Thời lượng (giờ)",
       "durationPlaceholder": "Nhập thời lượng",
       "durationRequired": "Vui lòng nhập thời lượng",
@@ -608,6 +609,43 @@
       "mentalHealth": "Tâm Lý",
       "environment": "Môi Trường",
       "impact": "Ảnh Hưởng"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "pending": "Chờ xem xét"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "normal": "Bình thường",
+      "difficult": "Khó khăn",
+      "unknown": "Không xác định"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "unknown": "Không xác định"
+    }
+  },
+  "appointmentRecord": {
+    "title": "Bản Ghi Đánh Giá",
+    "viewRecord": "Xem Đánh Giá",
+    "noRecord": "Chưa Có Đánh Giá",
+    "sessionInfo": "Thông Tin Buổi Tư Vấn",
+    "assessmentResults": "Kết Quả Đánh Giá",
+    "noteSummary": "Ghi Chú Tóm Tắt",
+    "noteSuggest": "Gợi Ý Can Thiệp",
+    "totalScore": "Tổng Điểm",
+    "riskLevel": "Mức Độ Rủi Ro",
+    "sessionFlow": "Diễn Biến Buổi Tư Vấn",
+    "cooperationLevel": "Mức Độ Hợp Tác",
+    "status": "Trạng Thái Đánh Giá",
+    "completedOn": "Hoàn Thành Lúc",
+    "riskLevels": {
+      "low": "Rủi Ro Thấp",
+      "medium": "Rủi Ro Trung Bình",
+      "high": "Rủi Ro Cao"
     }
   }
 }

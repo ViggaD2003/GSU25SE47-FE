@@ -10,7 +10,9 @@ export const appointmentAPI = {
     return response.data
   },
   getAppointmentRecords: async () => {
-    const response = await api.get('/api/v1/appointment-records')
+    const response = await api.get(
+      '/api/v1/appointment-records?field=totalScore&direction=desc'
+    )
     return response.data
   },
   createAppointmentRecord: async appointmentData => {
