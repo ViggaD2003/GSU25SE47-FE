@@ -604,7 +604,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi }) => {
                           if (selectedDate < today) {
                             return Promise.reject(
                               new Error(
-                                'Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại'
+                                t('surveyManagement.form.startDateBeforeToday')
                               )
                             )
                           }

@@ -16,435 +16,546 @@ import {
   Select,
 } from 'antd'
 import { surveyAPI } from '../../../services/surveyApi'
-import { categoriesAPI } from '../../../services/categoryApi'
 import dayjs from 'dayjs'
 
 const SurveyDetailModal = ({
+  t,
   visible,
   survey,
   onClose,
   onUpdated,
   messageApi,
 }) => {
+  const [form] = Form.useForm()
   const [editMode, setEditMode] = useState(false)
   const [formValue, setFormValue] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState([])
-  const [fieldErrors, setFieldErrors] = useState({})
 
   const recurringOptions = [
-    { value: 'daily', label: 'Hàng ngày' },
-    { value: 'monthly', label: 'Hàng tháng' },
-    { value: 'yearly', label: 'Hàng năm' },
+    {
+      value: 'NONE',
+      label: t('surveyManagement.detail.recurringOptions.none'),
+    },
+    {
+      value: 'WEEKLY',
+      label: t('surveyManagement.detail.recurringOptions.weekly'),
+    },
+    {
+      value: 'MONTHLY',
+      label: t('surveyManagement.detail.recurringOptions.monthly'),
+    },
   ]
+
+  // Helper function to normalize recurring cycle values
+  const normalizeRecurringCycle = cycle => {
+    if (!cycle) return 'NONE'
+    return cycle.toUpperCase()
+  }
+
+  // Helper function to get display label for recurring cycle
+  const getRecurringCycleLabel = cycle => {
+    const normalizedCycle = normalizeRecurringCycle(cycle)
+    const option = recurringOptions.find(opt => opt.value === normalizedCycle)
+    return option?.label || cycle
+  }
 
   useEffect(() => {
     if (visible && survey) {
-      setFormValue({
+      const normalizedCycle = normalizeRecurringCycle(survey.recurringCycle)
+      const initialValues = {
         ...survey,
-        startDate: dayjs(survey.startDate),
-        endDate: dayjs(survey.endDate),
-        questions:
-          survey.questions?.map(q => ({
-            ...q,
-            categoryId: q.categoryId ?? q.category?.id ?? null,
-          })) || [],
-      })
-      setEditMode(false)
-      setFieldErrors({})
-    }
-  }, [visible, survey])
-
-  useEffect(() => {
-    // Lấy danh sách categories cho dropdown
-    const fetchCategories = async () => {
-      try {
-        const res = await categoriesAPI.getCategories()
-        setCategories(res.data || [])
-      } catch {
-        setCategories([])
+        startDate: survey.startDate ? dayjs(survey.startDate) : null,
+        endDate: survey.endDate ? dayjs(survey.endDate) : null,
+        questions: survey.questions || [],
+        recurringCycle: normalizedCycle,
+        isRecurring: normalizedCycle !== 'NONE',
       }
+
+      setFormValue(initialValues)
+      form.setFieldsValue(initialValues)
+      setEditMode(false)
     }
-    fetchCategories()
-  }, [])
+  }, [visible, survey, form])
 
   if (!survey || !formValue) return null
 
+  // Check if dates can be edited based on status
+  const canEditDates = ['DRAFT', 'ARCHIVED'].includes(
+    formValue.status?.toUpperCase()
+  )
+
+  // Calculate max end date based on recurring cycle
+  const getMaxEndDate = () => {
+    if (
+      !formValue.startDate ||
+      !formValue.recurringCycle ||
+      formValue.recurringCycle === 'NONE'
+    )
+      return null
+
+    const startDate = dayjs(formValue.startDate)
+    switch (formValue.recurringCycle) {
+      case 'WEEKLY':
+        return startDate.add(7, 'day')
+      case 'MONTHLY':
+        return startDate.add(30, 'day')
+      default:
+        return null // No restriction for 'NONE'
+    }
+  }
+
   const handleEdit = () => {
     setEditMode(true)
-    setFieldErrors({})
+    form.setFieldsValue(formValue)
   }
 
   const handleCancelEdit = () => {
     setEditMode(false)
-    setFormValue({
+    // Reset to original survey values
+    const normalizedCycle = normalizeRecurringCycle(survey.recurringCycle)
+    const resetValues = {
       ...survey,
       startDate: survey.startDate ? dayjs(survey.startDate) : null,
       endDate: survey.endDate ? dayjs(survey.endDate) : null,
-    })
-    setFieldErrors({})
+      questions: survey.questions || [],
+      recurringCycle: normalizedCycle,
+      isRecurring: normalizedCycle !== 'NONE',
+    }
+    setFormValue(resetValues)
+    form.setFieldsValue(resetValues)
   }
 
-  const handleChange = (field, value) => {
-    setFormValue(prev => ({ ...prev, [field]: value }))
-  }
+  const handleFormChange = (changedFields, _allFields) => {
+    // Get current form values
+    const currentFormValues = form.getFieldsValue()
 
-  const handleQuestionChange = (idx, field, value) => {
-    setFormValue(prev => {
-      const questions = [...prev.questions]
-      questions[idx] = { ...questions[idx], [field]: value }
-      return { ...prev, questions }
-    })
-  }
+    // Merge with existing formValue to preserve unchanged fields
+    const newFormValue = { ...formValue, ...currentFormValues }
 
-  const handleAnswerChange = (qIdx, aIdx, field, value) => {
-    setFormValue(prev => {
-      const questions = [...prev.questions]
-      const answers = [...questions[qIdx].answers]
-      answers[aIdx] = { ...answers[aIdx], [field]: value }
-      questions[qIdx] = { ...questions[qIdx], answers }
-      return { ...prev, questions }
-    })
+    // Handle isRecurring logic based on recurringCycle
+    if (changedFields.recurringCycle !== undefined) {
+      const recurringCycle = changedFields.recurringCycle
+      newFormValue.isRecurring =
+        recurringCycle !== 'NONE' &&
+        recurringCycle !== null &&
+        recurringCycle !== undefined
+
+      // Auto-adjust end date if recurring cycle changes and exceeds limit
+      if (newFormValue.startDate && newFormValue.endDate) {
+        const startDate = dayjs(newFormValue.startDate)
+        let maxEndDate = null
+
+        switch (recurringCycle) {
+          case 'WEEKLY':
+            maxEndDate = startDate.add(7, 'day')
+            break
+          case 'MONTHLY':
+            maxEndDate = startDate.add(30, 'day')
+            break
+          default:
+            maxEndDate = null
+        }
+
+        if (maxEndDate && dayjs(newFormValue.endDate).isAfter(maxEndDate)) {
+          newFormValue.endDate = maxEndDate
+          form.setFieldValue('endDate', maxEndDate)
+        }
+      }
+
+      // Update the form field without triggering another change event
+      form.setFieldValue('isRecurring', newFormValue.isRecurring)
+    }
+
+    // Update formValue state to preserve all data
+    setFormValue(newFormValue)
   }
 
   const handleUpdate = async () => {
-    if (!formValue) return
-
-    // Validate các trường bắt buộc
-    const errors = {}
-    if (!formValue.description || !formValue.description.trim()) {
-      errors.description = 'Không được để trống mô tả'
-    }
-    if (!formValue.startDate) {
-      errors.startDate = 'Không được để trống ngày bắt đầu'
-    }
-    if (dayjs(formValue.startDate).isBefore(dayjs())) {
-      errors.startDate = 'Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại'
-    }
-    if (dayjs(formValue.startDate).isAfter(dayjs(formValue.endDate))) {
-      errors.startDate = 'Ngày bắt đầu phải nhỏ hơn ngày kết thúc'
-    }
-    if (!formValue.endDate) {
-      errors.endDate = 'Không được để trống ngày kết thúc'
-    }
-    if (formValue.isRecurring && !formValue.recurringCycle) {
-      errors.recurringCycle = 'Vui lòng chọn chu kỳ lặp lại'
-    }
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors)
-      return
-    }
-
-    setLoading(true)
-
     try {
-      const payload = {
-        ...formValue,
-        startDate: formValue.startDate
-          ? formValue.startDate.format('YYYY-MM-DD')
-          : null,
-        endDate: formValue.endDate
-          ? formValue.endDate.format('YYYY-MM-DD')
-          : null,
+      setLoading(true)
+
+      // Validate form
+      const values = await form.validateFields()
+
+      // Check if any values have actually changed
+      let hasChanges = false
+      Object.keys(values).forEach(key => {
+        if (key === 'startDate' || key === 'endDate') {
+          const formattedValue = values[key]
+            ? values[key].format('YYYY-MM-DD')
+            : null
+          const originalValue = survey[key]
+            ? dayjs(survey[key]).format('YYYY-MM-DD')
+            : null
+          if (formattedValue !== originalValue) {
+            hasChanges = true
+          }
+        } else if (key === 'recurringCycle') {
+          const apiValue = values[key] === 'NONE' ? null : values[key]
+          const originalValue = survey[key] || null
+          if (apiValue !== originalValue) {
+            hasChanges = true
+          }
+        } else if (key !== 'questions' && values[key] !== survey[key]) {
+          hasChanges = true
+        }
+      })
+
+      // If no changes, don't make API call
+      if (!hasChanges) {
+        messageApi.info(t('surveyManagement.detail.messages.noChanges'))
+        setEditMode(false)
+        setLoading(false)
+        return
       }
+
+      // Prepare full payload as required by API
+      const payload = {
+        name: values.name || survey.name,
+        description: values.description || survey.description,
+        isRequired:
+          values.isRequired !== undefined
+            ? values.isRequired
+            : survey.isRequired,
+        isRecurring: values.recurringCycle !== 'NONE',
+        recurringCycle:
+          values.recurringCycle === 'NONE'
+            ? 'NONE'
+            : values.recurringCycle || survey.recurringCycle,
+        surveyCode: values.surveyCode || survey.surveyCode,
+        startDate: values.startDate
+          ? values.startDate.format('YYYY-MM-DD')
+          : survey.startDate,
+        endDate: values.endDate
+          ? values.endDate.format('YYYY-MM-DD')
+          : survey.endDate,
+        questions:
+          survey.questions?.map(q => ({
+            text: q.text,
+            description: q.description,
+            questionType: q.questionType,
+            moduleType: q.moduleType,
+            categoryId: q.category?.id || q.categoryId,
+            answers:
+              q.answers?.map(a => ({
+                score: a.score,
+                text: a.text,
+              })) || [],
+            required: q.required,
+          })) || [],
+      }
+
+      console.log('Update payload:', payload)
 
       await surveyAPI.updateSurvey(survey.id || survey.surveyId, payload)
 
-      // console.log(updatedSurvey);
-
-      messageApi.success('Cập nhật thành công')
-
+      messageApi.success(t('surveyManagement.detail.messages.updateSuccess'))
       setEditMode(false)
-      setFieldErrors({})
       onUpdated()
     } catch (err) {
-      let msg = 'Cập nhật thất bại'
-      let apiErrors = {}
+      if (err.errorFields) {
+        // Form validation errors - already displayed by form
+        return
+      }
+
+      let msg = t('surveyManagement.detail.messages.updateError')
+
       if (err?.response?.data) {
         if (typeof err.response.data === 'string') {
           msg = err.response.data
         } else if (typeof err.response.data === 'object') {
-          apiErrors = err.response.data
-          msg = Object.values(apiErrors).join(', ')
+          msg = Object.values(err.response.data).join(', ')
         }
       } else if (err?.message) {
         msg = err.message
       }
-      setFieldErrors(apiErrors)
+
       messageApi.error(msg)
-      console.error('Lỗi cập nhật:', err)
+      console.error('Update error:', err)
     } finally {
       setLoading(false)
     }
   }
 
+  const disabledEndDate = current => {
+    if (!formValue.startDate) return current && current < dayjs().startOf('day')
+
+    const maxEndDate = getMaxEndDate()
+    if (maxEndDate) {
+      return (
+        current &&
+        (current < dayjs(formValue.startDate) || current > maxEndDate)
+      )
+    }
+
+    return current && current < dayjs(formValue.startDate)
+  }
+
+  // Validation rules
+  const validationRules = {
+    description: [
+      {
+        required: true,
+        message: t('surveyManagement.detail.validation.descriptionRequired'),
+      },
+    ],
+    startDate: [
+      {
+        required: true,
+        message: t('surveyManagement.detail.validation.startDateRequired'),
+      },
+      {
+        validator: (_, value) => {
+          if (value && dayjs(value).isBefore(dayjs(), 'day')) {
+            return Promise.reject(
+              new Error(t('surveyManagement.detail.validation.startDateFuture'))
+            )
+          }
+          return Promise.resolve()
+        },
+      },
+      {
+        validator: (_, value) => {
+          const endDate = form.getFieldValue('endDate')
+          if (value && endDate && dayjs(value).isAfter(dayjs(endDate))) {
+            return Promise.reject(
+              new Error(
+                t('surveyManagement.detail.validation.startDateBeforeEnd')
+              )
+            )
+          }
+          return Promise.resolve()
+        },
+      },
+    ],
+    endDate: [
+      {
+        required: true,
+        message: t('surveyManagement.detail.validation.endDateRequired'),
+      },
+    ],
+    recurringCycle: [
+      {
+        validator: (_, value) => {
+          const isRecurring = form.getFieldValue('isRecurring')
+          if (isRecurring && (!value || value === 'NONE')) {
+            return Promise.reject(
+              new Error(
+                t('surveyManagement.detail.validation.recurringCycleRequired')
+              )
+            )
+          }
+          return Promise.resolve()
+        },
+      },
+    ],
+  }
+
   return (
-    <>
-      <Modal
-        open={visible}
-        title={<span style={{ fontWeight: 600 }}>{formValue.name}</span>}
-        onCancel={onClose}
-        footer={null}
-        width={1000}
-        style={{ top: '5%' }}
-      >
-        <div className="flex flex-col h-[80vh]">
+    <Modal
+      open={visible}
+      title={<span style={{ fontWeight: 600 }}>{formValue.name}</span>}
+      onCancel={onClose}
+      footer={null}
+      width={1000}
+      style={{ top: '5%' }}
+    >
+      <div className="flex flex-col h-[80vh]">
+        <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
           <div>
             <Descriptions column={2} bordered size="small">
-              <Descriptions.Item label="Mô tả" span={2}>
+              <Descriptions.Item
+                label={t('surveyManagement.detail.description')}
+                span={2}
+              >
                 {editMode ? (
-                  <div>
-                    <Input.TextArea
-                      value={formValue.description}
-                      onChange={e =>
-                        handleChange('description', e.target.value)
-                      }
-                      rows={2}
-                    />
-                    {fieldErrors.description && (
-                      <div style={{ color: 'red', fontSize: 12 }}>
-                        {fieldErrors.description}
-                      </div>
-                    )}
-                  </div>
+                  <Form.Item
+                    name="description"
+                    rules={validationRules.description}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Input.TextArea rows={2} />
+                  </Form.Item>
                 ) : (
                   formValue.description
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="Trạng thái">
+
+              <Descriptions.Item
+                label={t('surveyManagement.detail.status')}
+                span={1}
+              >
                 <Tag
                   color={
-                    formValue.status === 'COMPLETED'
+                    formValue.status === 'PUBLISHED'
                       ? 'green'
-                      : formValue.status === 'PENDING'
-                        ? 'orange'
-                        : 'red'
+                      : formValue.status === 'COMPLETED'
+                        ? 'blue'
+                        : formValue.status === 'DRAFT'
+                          ? 'orange'
+                          : 'red'
                   }
                 >
                   {formValue.status}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Bắt đầu">
+
+              <Descriptions.Item
+                label={t('surveyManagement.detail.required')}
+                span={1}
+              >
                 {editMode ? (
-                  <div>
-                    <DatePicker
-                      value={formValue.startDate}
-                      onChange={date => handleChange('startDate', date)}
-                      format="YYYY-MM-DD"
-                      status={fieldErrors.startDate ? 'error' : undefined}
+                  <Form.Item
+                    name="isRequired"
+                    valuePropName="checked"
+                    style={{ marginBottom: 0 }}
+                  >
+                    <Switch
+                      checkedChildren={t('common.yes')}
+                      unCheckedChildren={t('common.no')}
                     />
-                    {fieldErrors.startDate && (
-                      <div style={{ color: 'red', fontSize: 12 }}>
-                        {fieldErrors.startDate}
-                      </div>
-                    )}
-                  </div>
+                  </Form.Item>
+                ) : formValue.isRequired ? (
+                  t('common.yes')
+                ) : (
+                  t('common.no')
+                )}
+              </Descriptions.Item>
+
+              <Descriptions.Item
+                label={t('surveyManagement.detail.startDate')}
+                span={1}
+              >
+                {editMode && canEditDates ? (
+                  <Form.Item
+                    name="startDate"
+                    rules={validationRules.startDate}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <DatePicker
+                      format="YYYY-MM-DD"
+                      disabledDate={current =>
+                        current && current < dayjs().startOf('day')
+                      }
+                      style={{ width: '100%' }}
+                    />
+                  </Form.Item>
                 ) : formValue.startDate ? (
                   dayjs(formValue.startDate).format('YYYY-MM-DD')
                 ) : (
                   ''
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="Kết thúc">
-                {editMode ? (
-                  <div>
+
+              <Descriptions.Item
+                label={t('surveyManagement.detail.endDate')}
+                span={1}
+              >
+                {editMode && canEditDates ? (
+                  <Form.Item
+                    name="endDate"
+                    rules={validationRules.endDate}
+                    style={{ marginBottom: 0 }}
+                  >
                     <DatePicker
-                      value={formValue.endDate}
-                      onChange={date => handleChange('endDate', date)}
                       format="YYYY-MM-DD"
-                      status={fieldErrors.endDate ? 'error' : undefined}
+                      disabledDate={disabledEndDate}
+                      style={{ width: '100%' }}
                     />
-                    {fieldErrors.endDate && (
-                      <div style={{ color: 'red', fontSize: 12 }}>
-                        {fieldErrors.endDate}
-                      </div>
-                    )}
-                  </div>
+                  </Form.Item>
                 ) : formValue.endDate ? (
                   dayjs(formValue.endDate).format('YYYY-MM-DD')
                 ) : (
                   ''
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label="Lặp lại" span={2}>
+
+              <Descriptions.Item
+                label={t('surveyManagement.detail.recurringCycle')}
+                span={2}
+              >
                 {editMode ? (
-                  <div>
+                  <Form.Item
+                    name="recurringCycle"
+                    rules={validationRules.recurringCycle}
+                    style={{ marginBottom: 0 }}
+                  >
                     <Select
-                      value={formValue.recurringCycle}
-                      onChange={value => handleChange('recurringCycle', value)}
                       options={recurringOptions}
-                      placeholder="Chọn chu kỳ lặp lại"
+                      placeholder={t(
+                        'surveyManagement.form.recurringCyclePlaceholder'
+                      )}
                       style={{ width: 200 }}
                       allowClear
-                      status={fieldErrors.recurringCycle ? 'error' : undefined}
                     />
-                    {fieldErrors.recurringCycle && (
-                      <div style={{ color: 'red', fontSize: 12 }}>
-                        {fieldErrors.recurringCycle}
-                      </div>
-                    )}
-                  </div>
-                ) : formValue.isRecurring ? (
-                  recurringOptions.find(
-                    opt => opt.value === formValue.recurringCycle
-                  )?.label || formValue.recurringCycle
+                  </Form.Item>
+                ) : formValue.isRecurring &&
+                  formValue.recurringCycle &&
+                  formValue.recurringCycle !== 'NONE' ? (
+                  getRecurringCycleLabel(formValue.recurringCycle)
                 ) : (
-                  'Không'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="Bắt buộc" span={2}>
-                {editMode ? (
-                  <Switch
-                    checked={formValue.isRequired}
-                    onChange={checked => handleChange('isRequired', checked)}
-                    checkedChildren="Có"
-                    unCheckedChildren="Không"
-                  />
-                ) : formValue.isRequired ? (
-                  'Có'
-                ) : (
-                  'Không'
+                  t('common.no')
                 )}
               </Descriptions.Item>
             </Descriptions>
+
             <Divider orientation="left" style={{ fontWeight: 600 }}>
-              Danh sách câu hỏi
+              {t('surveyManagement.detail.questionsList')}
             </Divider>
           </div>
-          <div
-            className="h-full"
-            style={{ overflowY: 'auto', marginBottom: 16 }}
-          >
-            <List
-              dataSource={formValue.questions}
-              renderItem={(q, qIdx) => (
-                <Card
-                  key={q.questionId || qIdx}
-                  style={{ marginBottom: 16, borderRadius: 8 }}
-                  type="inner"
-                  title={
-                    <Space>
-                      {editMode ? (
-                        <Input
-                          value={q.text}
-                          onChange={e =>
-                            handleQuestionChange(qIdx, 'text', e.target.value)
-                          }
-                          style={{ fontWeight: 600, minWidth: 300 }}
-                        />
-                      ) : (
-                        <Typography.Text>{q.text}</Typography.Text>
-                      )}
-                    </Space>
-                  }
-                  extra={
-                    editMode ? (
-                      <Select
-                        value={q.categoryId}
-                        style={{ width: 180 }}
-                        onChange={value =>
-                          handleQuestionChange(qIdx, 'categoryId', value)
-                        }
-                        options={categories.map(c => ({
-                          value: c.id,
-                          label: c.name,
-                        }))}
-                        placeholder="Chọn danh mục"
-                      />
-                    ) : (
-                      <Tag>
-                        {q.category?.name ||
-                          categories.find(c => c.id === q.categoryId)?.name ||
-                          ''}
-                      </Tag>
-                    )
-                  }
-                >
-                  <Typography.Text type="secondary">
-                    {editMode ? (
-                      <Input
-                        value={q.description}
-                        onChange={e =>
-                          handleQuestionChange(
-                            qIdx,
-                            'description',
-                            e.target.value
-                          )
-                        }
-                        placeholder="Mô tả"
-                      />
-                    ) : (
-                      q.description
+        </Form>
+
+        <div className="h-full" style={{ overflowY: 'auto', marginBottom: 16 }}>
+          <List
+            dataSource={formValue.questions}
+            renderItem={(q, qIdx) => (
+              <Card
+                key={q.questionId || qIdx}
+                style={{ marginBottom: 16, borderRadius: 8 }}
+                type="inner"
+                title={<Typography.Text>{q.text}</Typography.Text>}
+                extra={<Tag>{q.category?.name || ''}</Tag>}
+              >
+                <Typography.Text type="secondary">
+                  {q.description}
+                </Typography.Text>
+                <div style={{ marginTop: 8 }}>
+                  <List
+                    size="small"
+                    dataSource={q.answers}
+                    renderItem={(a, _aIdx) => (
+                      <List.Item style={{ paddingLeft: 16 }}>
+                        <Space>
+                          <Tag color="blue">{a.score}</Tag>
+                          {a.text}
+                        </Space>
+                      </List.Item>
                     )}
-                  </Typography.Text>
-                  <div style={{ marginTop: 8 }}>
-                    <List
-                      size="small"
-                      dataSource={q.answers}
-                      renderItem={(a, aIdx) => (
-                        <List.Item style={{ paddingLeft: 16 }}>
-                          <Space>
-                            {editMode ? (
-                              <Input
-                                value={a.score}
-                                onChange={e =>
-                                  handleAnswerChange(
-                                    qIdx,
-                                    aIdx,
-                                    'score',
-                                    e.target.value
-                                  )
-                                }
-                                style={{ width: 60 }}
-                                placeholder="Score"
-                              />
-                            ) : (
-                              <Tag color="blue">{a.score}</Tag>
-                            )}
-                            {editMode ? (
-                              <Input
-                                value={a.text}
-                                onChange={e =>
-                                  handleAnswerChange(
-                                    qIdx,
-                                    aIdx,
-                                    'text',
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Đáp án"
-                              />
-                            ) : (
-                              a.text
-                            )}
-                          </Space>
-                        </List.Item>
-                      )}
-                    />
-                  </div>
-                </Card>
-              )}
-            />
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            {!editMode ? (
-              <Button type="primary" onClick={handleEdit}>
-                Update
-              </Button>
-            ) : (
-              <>
-                <Button onClick={handleCancelEdit} style={{ marginRight: 8 }}>
-                  Cancel
-                </Button>
-                <Button type="primary" onClick={handleUpdate} loading={loading}>
-                  Update
-                </Button>
-              </>
+                  />
+                </div>
+              </Card>
             )}
-          </div>
+          />
         </div>
-      </Modal>
-    </>
+
+        <div style={{ textAlign: 'right' }}>
+          {!editMode ? (
+            <Button type="primary" onClick={handleEdit}>
+              {t('surveyManagement.detail.edit')}
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handleCancelEdit} style={{ marginRight: 8 }}>
+                {t('surveyManagement.detail.cancel')}
+              </Button>
+              <Button type="primary" onClick={handleUpdate} loading={loading}>
+                {t('surveyManagement.detail.update')}
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </Modal>
   )
 }
 

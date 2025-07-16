@@ -284,6 +284,45 @@
         "viewDetail": "Xem chi tiết"
       }
     },
+    "detail": {
+      "title": "Chi tiết khảo sát",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "surveyCode": "Mã khảo sát",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "recurringCycle": "Chu kỳ lặp lại",
+      "required": "Bắt buộc",
+      "questionsList": "Danh sách câu hỏi",
+      "category": "Danh mục",
+      "score": "Điểm",
+      "answer": "Đáp án",
+      "update": "Cập nhật",
+      "cancel": "Hủy",
+      "edit": "Sửa",
+      "validation": {
+        "descriptionRequired": "Không được để trống mô tả",
+        "startDateRequired": "Không được để trống ngày bắt đầu",
+        "startDateFuture": "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
+        "startDateBeforeEnd": "Ngày bắt đầu phải nhỏ hơn ngày kết thúc",
+        "endDateRequired": "Không được để trống ngày kết thúc",
+        "recurringCycleRequired": "Vui lòng chọn chu kỳ lặp lại"
+      },
+      "messages": {
+        "updateSuccess": "Cập nhật thành công",
+        "updateError": "Cập nhật thất bại",
+        "noChanges": "Không có thay đổi nào để cập nhật"
+      },
+      "recurringOptions": {
+        "none": "Không",
+        "weekly": "Hàng tuần",
+        "monthly": "Hàng tháng"
+      },
+      "recurringHelp": {
+        "none": "Khảo sát không lặp lại (isRecurring: false)",
+        "active": "Khảo sát có lặp lại (isRecurring: true)"
+      }
+    },
     "form": {
       "name": "Tên khảo sát",
       "namePlaceholder": "Nhập tên khảo sát",
