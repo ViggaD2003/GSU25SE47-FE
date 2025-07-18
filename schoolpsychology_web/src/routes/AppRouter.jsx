@@ -113,6 +113,10 @@ const ProgramManagement = createLazyComponent(
   () => import('@/pages/main/ProgramManagement/ProgramManagement'),
   'ProgramManagement'
 )
+const ProgramDetails = createLazyComponent(
+  () => import('@/pages/main/ProgramManagement/ProgramDetails'),
+  'ProgramDetails'
+)
 const SlotManagement = createLazyComponent(
   () => import('@/pages/main/SlotManagement/SlotManagement'),
   'SlotManagement'
