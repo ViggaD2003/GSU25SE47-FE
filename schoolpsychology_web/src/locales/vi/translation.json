@@ -192,6 +192,8 @@
     "table": {
       "slotName": "Tên giờ làm",
       "type": "Loại",
+      "date": "Ngày",
+      "time": "Thời gian",
       "startTime": "Giờ bắt đầu",
       "endTime": "Giờ kết thúc",
       "status": "Trạng thái",
@@ -632,20 +634,43 @@
     "title": "Bản Ghi Đánh Giá",
     "viewRecord": "Xem Đánh Giá",
     "noRecord": "Chưa Có Đánh Giá",
+    "noScore": "Chưa có",
     "sessionInfo": "Thông Tin Buổi Tư Vấn",
     "assessmentResults": "Kết Quả Đánh Giá",
     "noteSummary": "Ghi Chú Tóm Tắt",
     "noteSuggest": "Gợi Ý Can Thiệp",
     "totalScore": "Tổng Điểm",
     "riskLevel": "Mức Độ Rủi Ro",
-    "sessionFlow": "Diễn Biến Buổi Tư Vấn",
-    "cooperationLevel": "Mức Độ Hợp Tác",
-    "status": "Trạng Thái Đánh Giá",
+    "sessionFlowTitle": "Diễn Biến Buổi Tư Vấn",
+    "cooperationLevelTitle": "Mức Độ Hợp Tác",
+    "statusTitle": "Trạng Thái Đánh Giá",
     "completedOn": "Hoàn Thành Lúc",
+    "additionalNotes": "Ghi Chú Thêm",
+    "messages": {
+      "saveSuccess": "Lưu đánh giá thành công!",
+      "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
+    },
     "riskLevels": {
       "low": "Rủi Ro Thấp",
       "medium": "Rủi Ro Trung Bình",
       "high": "Rủi Ro Cao"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "average": "Trung Bình",
+      "poor": "Kém",
+      "unknown": "Chưa rõ"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung Bình",
+      "low": "Thấp",
+      "unknown": "Chưa rõ"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "cancelled": "Đã hủy"
     }
   }
 }

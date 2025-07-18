@@ -19,6 +19,7 @@ import {
   getScoreIcon,
   getScoreLevel,
 } from "../../utils/helpers";
+import { useFocusEffect } from "@react-navigation/native";
 
 const PAGE_SIZE = 3; // Number of records to fetch per page
 
@@ -69,6 +70,13 @@ const SurveyRecord = ({ navigation }) => {
     await fetchSurveyRecords();
     setRefreshing(false);
   }, []);
+
+  // Load data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchSurveyRecords();
+    }, [fetchSurveyRecords])
+  );
 
   const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });

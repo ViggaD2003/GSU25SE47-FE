@@ -191,6 +191,8 @@
     "table": {
       "slotName": "Slot Name",
       "type": "Type",
+      "date": "Date",
+      "time": "Time",
       "startTime": "Start Time",
       "endTime": "End Time",
       "status": "Status",
@@ -638,20 +640,43 @@
     "title": "Assessment Record",
     "viewRecord": "View Assessment",
     "noRecord": "No Assessment Available",
+    "noScore": "N/A",
     "sessionInfo": "Session Information",
     "assessmentResults": "Assessment Results",
     "noteSummary": "Summary Notes",
     "noteSuggest": "Intervention Suggestions",
     "totalScore": "Total Score",
     "riskLevel": "Risk Level",
-    "sessionFlow": "Session Progress",
-    "cooperationLevel": "Student Cooperation",
-    "status": "Assessment Status",
+    "sessionFlowTitle": "Session Progress",
+    "cooperationLevelTitle": "Student Cooperation",
+    "statusTitle": "Assessment Status",
     "completedOn": "Completed On",
+    "additionalNotes": "Additional Notes",
+    "messages": {
+      "saveSuccess": "Assessment saved successfully!",
+      "saveError": "Error saving assessment. Please try again!"
+    },
     "riskLevels": {
       "low": "Low Risk",
       "medium": "Medium Risk",
       "high": "High Risk"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "average": "Average",
+      "poor": "Poor",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "cancelled": "Cancelled"
     }
   }
 }

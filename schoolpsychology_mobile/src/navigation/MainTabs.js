@@ -20,6 +20,7 @@ import {
   UpdateProfileScreen,
   ProgramRecordScreen,
   RecordScreen,
+  AppointmentRecordDetailScreen,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -154,10 +155,7 @@ export default function MainTabs() {
 
   const AppointmentStack = () => {
     return (
-      <Stack.Navigator
-        initialRouteName="Appointment"
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Appointment" component={BookingScreen} />
         <Stack.Screen name="StatusScreen" component={StatusScreen} />
         <Stack.Screen
@@ -167,6 +165,10 @@ export default function MainTabs() {
         <Stack.Screen
           name="AppointmentRecord"
           component={AppointmentRecordScreen}
+        />
+        <Stack.Screen
+          name="AppointmentRecordDetail"
+          component={AppointmentRecordDetailScreen}
         />
       </Stack.Navigator>
     );

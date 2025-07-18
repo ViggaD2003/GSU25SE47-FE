@@ -25,6 +25,17 @@ export const getAppointmentRecord = async () => {
   }
 };
 
+//Get Appointment History
+export const getAppointmentHistory = async () => {
+  try {
+    const response = await api.get("/api/v1/appointment/show-history");
+    return response.data;
+  } catch (err) {
+    console.error("Lỗi khi lấy danh sách lịch sử cuộc hẹn:", err);
+    throw err;
+  }
+};
+
 //Get Appointment by ID
 export const getAppointmentById = async (appointmentId) => {
   try {

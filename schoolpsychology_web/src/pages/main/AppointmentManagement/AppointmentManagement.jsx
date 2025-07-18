@@ -32,9 +32,13 @@ import {
   VideoCameraOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import { getAppointments } from '../../../store/actions/appointmentActions'
+import {
+  getAppointments,
+  getAppointmentRecords,
+} from '../../../store/actions/appointmentActions'
 import {
   selectAppointments,
+  selectAppointmentRecords,
   selectAppointmentLoading,
   selectAppointmentError,
   clearError,
@@ -91,20 +95,20 @@ const HOST_TYPE_CONFIG = {
 
 // Memoized components for better performance
 const MemoizedStatusBadge = memo(({ status, t }) => {
-  const config = STATUS_CONFIG[status]
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING
   return (
     <Badge
       color={config.color}
-      text={t(`appointment.status.${status.toLowerCase()}`)}
+      text={t(`appointment.status.${status?.toLowerCase() || 'pending'}`)}
     />
   )
 })
 
 const MemoizedHostTypeTag = memo(({ hostType, t }) => {
-  const config = HOST_TYPE_CONFIG[hostType]
+  const config = HOST_TYPE_CONFIG[hostType] || HOST_TYPE_CONFIG.TEACHER
   return (
     <Tag color={config.color} icon={config.icon}>
-      {t(`appointment.hostType.${hostType.toLowerCase()}`)}
+      {t(`appointment.hostType.${hostType?.toLowerCase() || 'teacher'}`)}
     </Tag>
   )
 })
@@ -143,6 +147,7 @@ const AppointmentManagement = () => {
 
   // Redux selectors
   const appointments = useSelector(selectAppointments)
+  const appointmentRecords = useSelector(selectAppointmentRecords)
   const loading = useSelector(selectAppointmentLoading)
   const error = useSelector(selectAppointmentError)
 
@@ -175,6 +180,13 @@ const AppointmentManagement = () => {
     dispatch(getAppointments())
   }, [dispatch])
 
+  // Load appointment records when switching to completed tab
+  useEffect(() => {
+    if (activeTab === 'completed') {
+      dispatch(getAppointmentRecords())
+    }
+  }, [dispatch, activeTab])
+
   // Handle error messages
   useEffect(() => {
     if (error) {
@@ -198,16 +210,33 @@ const AppointmentManagement = () => {
     })
   }, [appointments, searchText])
 
+  // Memoized filtered appointment records with debounced search
+  const filteredAppointmentRecords = useMemo(() => {
+    if (!searchText.trim()) return appointmentRecords
+
+    const searchLower = searchText.toLowerCase()
+    return appointmentRecords.filter(record => {
+      const appointment = record.appointment
+      return (
+        appointment?.hostName?.toLowerCase().includes(searchLower) ||
+        appointment?.bookByName?.toLowerCase().includes(searchLower) ||
+        appointment?.bookForName?.toLowerCase().includes(searchLower) ||
+        appointment?.reason?.toLowerCase().includes(searchLower) ||
+        record.noteSummary?.toLowerCase().includes(searchLower) ||
+        record.noteSuggest?.toLowerCase().includes(searchLower)
+      )
+    })
+  }, [appointmentRecords, searchText])
+
   // Separate appointments by tab with memoization
   const { activeAppointments, completedAppointments } = useMemo(() => {
     const active = filteredAppointments.filter(appointment =>
       ['PENDING', 'CONFIRMED'].includes(appointment.status)
     )
-    const completed = filteredAppointments.filter(appointment =>
-      ['COMPLETED', 'CANCELLED'].includes(appointment.status)
-    )
+    // For completed tab, we'll use appointment records instead
+    const completed = filteredAppointmentRecords
     return { activeAppointments: active, completedAppointments: completed }
-  }, [filteredAppointments])
+  }, [filteredAppointments, filteredAppointmentRecords])
 
   // Get current tab data
   const currentTabData = useMemo(() => {
@@ -216,8 +245,12 @@ const AppointmentManagement = () => {
 
   // Memoized handlers
   const handleRefresh = useCallback(() => {
-    dispatch(getAppointments())
-  }, [dispatch])
+    if (activeTab === 'active') {
+      dispatch(getAppointments())
+    } else if (activeTab === 'completed') {
+      dispatch(getAppointmentRecords())
+    }
+  }, [dispatch, activeTab])
 
   const handleSearch = useCallback(value => {
     setSearchText(value)
@@ -225,11 +258,15 @@ const AppointmentManagement = () => {
   }, [])
 
   const handleViewDetails = useCallback(
-    appointment => {
+    item => {
       // Use startTransition for smooth navigation
       React.startTransition(() => {
-        dispatch(setSelectedAppointment(appointment))
-        navigate(`/appointment-management/details/${appointment.id}`)
+        // Handle both appointment and appointment record objects
+        const appointment = item.appointment || item
+        const appointmentId = appointment.id || item.id
+
+        dispatch(setSelectedAppointment(item))
+        navigate(`/appointment-management/details/${appointmentId}`)
       })
     },
     [navigate, dispatch]
@@ -253,8 +290,8 @@ const AppointmentManagement = () => {
     [currentTabData.length]
   )
 
-  // Memoized table columns
-  const columns = useMemo(
+  // Memoized table columns for appointments
+  const appointmentColumns = useMemo(
     () => [
       {
         title: t('appointment.table.hostName'),
@@ -348,17 +385,256 @@ const AppointmentManagement = () => {
         filters: [
           { text: t('appointment.status.pending'), value: 'PENDING' },
           { text: t('appointment.status.confirmed'), value: 'CONFIRMED' },
-          { text: t('appointment.status.completed'), value: 'COMPLETED' },
-          { text: t('appointment.status.cancelled'), value: 'CANCELLED' },
         ],
         onFilter: (value, record) => record.status === value,
       },
       {
         key: 'actions',
         width: 80,
+        fixed: 'right',
         render: (_, record) => (
           <Space size="small">
             <Tooltip title="View Details">
+              <Button
+                type="text"
+                icon={<EyeOutlined />}
+                onClick={() => handleViewDetails(record)}
+                className="text-blue-600 hover:text-blue-800"
+              />
+            </Tooltip>
+          </Space>
+        ),
+      },
+    ],
+    [t, formatDateTime, calculateDuration, handleViewDetails]
+  )
+
+  // Memoized table columns for appointment records
+  const appointmentRecordColumns = useMemo(
+    () => [
+      {
+        title: t('appointment.table.hostName'),
+        key: 'hostName',
+        render: (_, record) => {
+          const appointment = record.appointment
+          return (
+            <div className="flex flex-col">
+              <Text strong>{appointment?.hostName}</Text>
+              <Text type="secondary" className="text-xs">
+                <MemoizedHostTypeTag hostType={appointment?.hostType} t={t} />
+              </Text>
+            </div>
+          )
+        },
+        sorter: (a, b) =>
+          (a.appointment?.hostName || '').localeCompare(
+            b.appointment?.hostName || ''
+          ),
+      },
+      {
+        title: t('appointment.table.bookByName'),
+        key: 'bookByName',
+        render: (_, record) => {
+          const appointment = record.appointment
+          return (
+            <div className="flex flex-col">
+              <Text>{appointment?.bookByName}</Text>
+              {appointment?.bookForName && (
+                <Text type="secondary" className="text-xs">
+                  {t('appointment.table.bookForName')}:{' '}
+                  {appointment?.bookForName}
+                </Text>
+              )}
+            </div>
+          )
+        },
+      },
+      {
+        title: t('appointment.table.time'),
+        key: 'time',
+        render: (_, record) => {
+          const appointment = record.appointment
+          return (
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <CalendarOutlined className="text-gray-400" />
+                <Text>{formatDateTime(appointment?.startDateTime)}</Text>
+              </div>
+              <div className="flex items-center gap-1">
+                <ClockCircleOutlined className="text-gray-400" />
+                <Text className="text-xs text-gray-500">
+                  {calculateDuration(
+                    appointment?.startDateTime,
+                    appointment?.endDateTime
+                  )}
+                </Text>
+              </div>
+            </div>
+          )
+        },
+        sorter: (a, b) =>
+          dayjs(a.appointment?.startDateTime || 0).unix() -
+          dayjs(b.appointment?.startDateTime || 0).unix(),
+      },
+      {
+        title: t('appointmentRecord.sessionFlowTitle'),
+        dataIndex: 'sessionFlow',
+        key: 'sessionFlow',
+        render: sessionFlow => {
+          const config = {
+            GOOD: {
+              color: 'green',
+              text: t('appointmentRecord.sessionFlow.good', 'Good'),
+            },
+            AVERAGE: {
+              color: 'orange',
+              text: t('appointmentRecord.sessionFlow.average', 'Average'),
+            },
+            POOR: {
+              color: 'red',
+              text: t('appointmentRecord.sessionFlow.poor', 'Poor'),
+            },
+            UNKNOWN: {
+              color: 'gray',
+              text: t('appointmentRecord.sessionFlow.unknown', 'Unknown'),
+            },
+          }
+          const flow = config[sessionFlow] || config.UNKNOWN
+          return <Tag color={flow.color}>{flow.text}</Tag>
+        },
+        filters: [
+          {
+            text: t('appointmentRecord.sessionFlow.good', 'Good'),
+            value: 'GOOD',
+          },
+          {
+            text: t('appointmentRecord.sessionFlow.average', 'Average'),
+            value: 'AVERAGE',
+          },
+          {
+            text: t('appointmentRecord.sessionFlow.poor', 'Poor'),
+            value: 'POOR',
+          },
+          {
+            text: t('appointmentRecord.sessionFlow.unknown', 'Unknown'),
+            value: 'UNKNOWN',
+          },
+        ],
+        onFilter: (value, record) => record.sessionFlow === value,
+      },
+      {
+        title: t('appointmentRecord.cooperationLevelTitle'),
+        dataIndex: 'studentCoopLevel',
+        key: 'studentCoopLevel',
+        render: level => {
+          const config = {
+            HIGH: {
+              color: 'green',
+              text: t('appointmentRecord.cooperationLevel.high', 'High'),
+            },
+            MEDIUM: {
+              color: 'orange',
+              text: t('appointmentRecord.cooperationLevel.medium', 'Medium'),
+            },
+            LOW: {
+              color: 'red',
+              text: t('appointmentRecord.cooperationLevel.low', 'Low'),
+            },
+            UNKNOWN: {
+              color: 'gray',
+              text: t('appointmentRecord.cooperationLevel.unknown', 'Unknown'),
+            },
+          }
+          const coop = config[level] || config.UNKNOWN
+          return <Tag color={coop.color}>{coop.text}</Tag>
+        },
+        filters: [
+          {
+            text: t('appointmentRecord.cooperationLevel.high', 'High'),
+            value: 'HIGH',
+          },
+          {
+            text: t('appointmentRecord.cooperationLevel.medium', 'Medium'),
+            value: 'MEDIUM',
+          },
+          {
+            text: t('appointmentRecord.cooperationLevel.low', 'Low'),
+            value: 'LOW',
+          },
+          {
+            text: t('appointmentRecord.cooperationLevel.unknown', 'Unknown'),
+            value: 'UNKNOWN',
+          },
+        ],
+        onFilter: (value, record) => record.studentCoopLevel === value,
+      },
+      {
+        title: t('appointmentRecord.totalScore'),
+        dataIndex: 'totalScore',
+        key: 'totalScore',
+        render: score => (
+          <div className="flex items-center">
+            <Text
+              strong
+              className={
+                score >= 7
+                  ? 'text-red-600'
+                  : score >= 4
+                    ? 'text-orange-600'
+                    : 'text-green-600'
+              }
+            >
+              {score || t('appointmentRecord.noScore', 'N/A')}
+            </Text>
+          </div>
+        ),
+        sorter: (a, b) => (a.totalScore || 0) - (b.totalScore || 0),
+      },
+      {
+        title: t('appointmentRecord.statusTitle'),
+        dataIndex: 'status',
+        key: 'recordStatus',
+        render: status => {
+          const config = {
+            SUBMITTED: {
+              color: 'blue',
+              text: t('appointmentRecord.status.submitted', 'Submitted'),
+            },
+            FINALIZED: {
+              color: 'green',
+              text: t('appointmentRecord.status.finalized', 'Finalized'),
+            },
+            CANCELLED: {
+              color: 'red',
+              text: t('appointmentRecord.status.cancelled', 'Cancelled'),
+            },
+          }
+          const statusInfo = config[status] || config.SUBMITTED
+          return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
+        },
+        filters: [
+          {
+            text: t('appointmentRecord.status.submitted', 'Submitted'),
+            value: 'SUBMITTED',
+          },
+          {
+            text: t('appointmentRecord.status.finalized', 'Finalized'),
+            value: 'FINALIZED',
+          },
+          {
+            text: t('appointmentRecord.status.cancelled', 'Cancelled'),
+            value: 'CANCELLED',
+          },
+        ],
+        onFilter: (value, record) => record.status === value,
+      },
+      {
+        key: 'actions',
+        width: 80,
+        fixed: 'right',
+        render: (_, record) => (
+          <Space size="small">
+            <Tooltip title={t('appointmentRecord.viewRecord')}>
               <Button
                 type="text"
                 icon={<EyeOutlined />}
@@ -389,7 +665,7 @@ const AppointmentManagement = () => {
         ),
         children: (
           <Table
-            columns={columns}
+            columns={appointmentColumns}
             dataSource={currentTabData}
             rowKey="id"
             loading={loading}
@@ -412,7 +688,7 @@ const AppointmentManagement = () => {
         key: 'completed',
         label: (
           <span className="flex items-center gap-2">
-            {t('appointment.tabs.completed')}
+            {t('appointmentRecord.title')}
             <Badge
               count={completedAppointments.length}
               style={{ backgroundColor: '#52c41a' }}
@@ -421,7 +697,7 @@ const AppointmentManagement = () => {
         ),
         children: (
           <Table
-            columns={columns}
+            columns={appointmentRecordColumns}
             dataSource={currentTabData}
             rowKey="id"
             loading={loading}
@@ -445,7 +721,8 @@ const AppointmentManagement = () => {
       t,
       activeAppointments.length,
       completedAppointments.length,
-      columns,
+      appointmentColumns,
+      appointmentRecordColumns,
       currentTabData,
       loading,
       pagination,
