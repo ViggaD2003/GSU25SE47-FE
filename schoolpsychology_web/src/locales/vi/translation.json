@@ -192,6 +192,8 @@
     "table": {
       "slotName": "Tên giờ làm",
       "type": "Loại",
+      "date": "Ngày",
+      "time": "Thời gian",
       "startTime": "Giờ bắt đầu",
       "endTime": "Giờ kết thúc",
       "status": "Trạng thái",
@@ -205,6 +207,7 @@
       "slotNameRequired": "Vui lòng nhập tên giờ làm",
       "startDateTime": "Ngày và giờ bắt đầu",
       "startDateTimeRequired": "Vui lòng chọn ngày và giờ bắt đầu",
+      "endDateTime": "Ngày và giờ kết thúc",
       "duration": "Thời lượng (giờ)",
       "durationPlaceholder": "Nhập thời lượng",
       "durationRequired": "Vui lòng nhập thời lượng",
@@ -284,6 +287,45 @@
         "viewDetail": "Xem chi tiết"
       }
     },
+    "detail": {
+      "title": "Chi tiết khảo sát",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "surveyCode": "Mã khảo sát",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "recurringCycle": "Chu kỳ lặp lại",
+      "required": "Bắt buộc",
+      "questionsList": "Danh sách câu hỏi",
+      "category": "Danh mục",
+      "score": "Điểm",
+      "answer": "Đáp án",
+      "update": "Cập nhật",
+      "cancel": "Hủy",
+      "edit": "Sửa",
+      "validation": {
+        "descriptionRequired": "Không được để trống mô tả",
+        "startDateRequired": "Không được để trống ngày bắt đầu",
+        "startDateFuture": "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
+        "startDateBeforeEnd": "Ngày bắt đầu phải nhỏ hơn ngày kết thúc",
+        "endDateRequired": "Không được để trống ngày kết thúc",
+        "recurringCycleRequired": "Vui lòng chọn chu kỳ lặp lại"
+      },
+      "messages": {
+        "updateSuccess": "Cập nhật thành công",
+        "updateError": "Cập nhật thất bại",
+        "noChanges": "Không có thay đổi nào để cập nhật"
+      },
+      "recurringOptions": {
+        "none": "Không",
+        "weekly": "Hàng tuần",
+        "monthly": "Hàng tháng"
+      },
+      "recurringHelp": {
+        "none": "Khảo sát không lặp lại (isRecurring: false)",
+        "active": "Khảo sát có lặp lại (isRecurring: true)"
+      }
+    },
     "form": {
       "name": "Tên khảo sát",
       "namePlaceholder": "Nhập tên khảo sát",
@@ -310,7 +352,14 @@
       "addQuestion": "Thêm câu hỏi",
       "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
       "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
-      "sampleSurveys": "Khảo sát mẫu cho danh mục"
+      "sampleSurveys": "Khảo sát mẫu cho danh mục",
+      "recurringValidation": {
+        "invalidCycle": "Đối với khảo sát lặp lại, vui lòng chọn chu kỳ hợp lệ: Hàng ngày, Hàng tuần, hoặc Hàng tháng",
+        "endDateTooFar": "Đối với khảo sát lặp lại {{cycle}}, ngày kết thúc phải trong vòng {{maxDays}} ngày từ ngày bắt đầu",
+        "endDateDaily": "Đối với khảo sát lặp lại hàng ngày, ngày kết thúc phải trong vòng 1 ngày từ ngày bắt đầu",
+        "endDateWeekly": "Đối với khảo sát lặp lại hàng tuần, ngày kết thúc phải trong vòng 7 ngày từ ngày bắt đầu",
+        "endDateMonthly": "Đối với khảo sát lặp lại hàng tháng, ngày kết thúc phải trong vòng 30 ngày từ ngày bắt đầu"
+      }
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",
@@ -562,6 +611,66 @@
       "mentalHealth": "Tâm Lý",
       "environment": "Môi Trường",
       "impact": "Ảnh Hưởng"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "pending": "Chờ xem xét"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "normal": "Bình thường",
+      "difficult": "Khó khăn",
+      "unknown": "Không xác định"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "unknown": "Không xác định"
+    }
+  },
+  "appointmentRecord": {
+    "title": "Bản Ghi Đánh Giá",
+    "viewRecord": "Xem Đánh Giá",
+    "noRecord": "Chưa Có Đánh Giá",
+    "noScore": "Chưa có",
+    "sessionInfo": "Thông Tin Buổi Tư Vấn",
+    "assessmentResults": "Kết Quả Đánh Giá",
+    "noteSummary": "Ghi Chú Tóm Tắt",
+    "noteSuggest": "Gợi Ý Can Thiệp",
+    "totalScore": "Tổng Điểm",
+    "riskLevel": "Mức Độ Rủi Ro",
+    "sessionFlowTitle": "Diễn Biến Buổi Tư Vấn",
+    "cooperationLevelTitle": "Mức Độ Hợp Tác",
+    "statusTitle": "Trạng Thái Đánh Giá",
+    "completedOn": "Hoàn Thành Lúc",
+    "additionalNotes": "Ghi Chú Thêm",
+    "messages": {
+      "saveSuccess": "Lưu đánh giá thành công!",
+      "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
+    },
+    "riskLevels": {
+      "low": "Rủi Ro Thấp",
+      "medium": "Rủi Ro Trung Bình",
+      "high": "Rủi Ro Cao"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "average": "Trung Bình",
+      "poor": "Kém",
+      "unknown": "Chưa rõ"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung Bình",
+      "low": "Thấp",
+      "unknown": "Chưa rõ"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "cancelled": "Đã hủy"
     }
   }
 }

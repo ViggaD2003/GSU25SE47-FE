@@ -162,6 +162,16 @@ const SurveyTaking = ({ route, navigation }) => {
     });
   };
 
+  const handleClearAnswer = (questionId) => {
+    setAnswers((prev) => {
+      const newAnswers = { ...prev };
+      delete newAnswers[questionId];
+      console.log("Cleared answer for question:", questionId);
+      return newAnswers;
+    });
+    showToast("Đã xóa câu trả lời", "info");
+  };
+
   const handleNext = () => {
     if (
       survey?.questions &&
@@ -335,48 +345,59 @@ const SurveyTaking = ({ route, navigation }) => {
         await clearSurveyProgress(survey.surveyId);
       }
 
-      // Process submitted answers to create proper survey result
-      const answerRecordRequests = Object.entries(submittedAnswers).map(
-        ([answer, answerId]) => ({
-          answerId: parseInt(answerId),
-          skipped: !answer || answer === "",
-        })
-      );
+      // Process all questions to create proper survey result
+      const answerRecordRequests = survey.questions.map((question) => {
+        const answerId = submittedAnswers[question.questionId];
+
+        if (answerId) {
+          // User selected an answer
+          return {
+            answerId: parseInt(answerId),
+            questionId: question.questionId,
+            skipped: false,
+          };
+        } else {
+          // User did not select an answer
+          return {
+            answerId: null,
+            questionId: question.questionId,
+            skipped: true,
+          };
+        }
+      });
 
       // Calculate total score based on answers (you may need to adjust this logic)
       const surveyConfig = getSurveyConfig();
       let totalScore;
 
-      // Chuyển đổi answerId thành score
+      // Calculate scores only for answered questions (not skipped)
       const answerScores = [];
-      Object.entries(submittedAnswers).forEach(
-        ([questionId, answerId], index) => {
-          // Chuyển đổi sang number để so sánh
-          const questionIdNum = parseInt(questionId);
-          const answerIdNum = parseInt(answerId);
+      survey.questions.forEach((question, index) => {
+        const answerId = submittedAnswers[question.questionId];
 
-          const question = survey.questions.find(
-            (q) => q.questionId === questionIdNum
-          );
-          if (question) {
-            const answer = question.answers.find((a) => a.id === answerIdNum);
-            if (answer && answer.score !== undefined) {
-              answerScores.push(answer.score);
-              console.log(
-                `Question ${index + 1}, Answer ${answerId}, Score: ${
-                  answer.score
-                }`
-              );
-            } else {
-              console.log(
-                `No valid answer found for Question ${questionId}, Answer ${answerId}`
-              );
-            }
+        if (answerId) {
+          // Only calculate score for answered questions
+          const answerIdNum = parseInt(answerId);
+          const answer = question.answers.find((a) => a.id === answerIdNum);
+
+          if (answer && answer.score !== undefined) {
+            answerScores.push(answer.score);
+            console.log(
+              `Question ${index + 1}, Answer ${answerId}, Score: ${
+                answer.score
+              }`
+            );
           } else {
-            console.log(`No question found for QuestionId: ${questionId}`);
+            console.log(
+              `No valid answer found for Question ${question.questionId}, Answer ${answerId}`
+            );
           }
+        } else {
+          console.log(
+            `Question ${index + 1} (ID: ${question.questionId}) was skipped`
+          );
         }
-      );
+      });
 
       if (!surveyConfig) {
         console.log("No survey config found, using default SUM method");
@@ -420,7 +441,6 @@ const SurveyTaking = ({ route, navigation }) => {
       }
 
       const scoreLevel = getLevelConfig(totalScore);
-console.log(survey);
 
       const surveyResult = {
         level: scoreLevel?.level.toUpperCase(),
@@ -432,16 +452,21 @@ console.log(survey);
         categoryId: survey?.questions[0].category.id,
       };
 
-      // console.log("Survey submitted:", surveyResult);
+      console.log("Survey submitted:", surveyResult);
       const response = await postSurveyResult(surveyResult);
 
       // Navigate to result screen
-      navigation.navigate("SurveyResult", {
-        survey,
-        result: response.data,
-        screen: "SurveyTaking",
-        showRecordsButton: true,
-      });
+      if (response.data) {
+        navigation.navigate("Survey", {
+          screen: "SurveyResult",
+          params: {
+            survey,
+            result: response.data,
+            showRecordsButton: true,
+            screen: "SurveyTaking",
+          },
+        });
+      }
     } catch (error) {
       console.error("Error submitting survey:", error);
       showToast("Có lỗi xảy ra khi nộp khảo sát", "error");
@@ -566,9 +591,25 @@ console.log(survey);
             <Text style={styles.questionNumber}>
               Q{currentQuestionIndex + 1}
             </Text>
-            {currentQuestion.required && (
-              <Text style={styles.requiredText}>*</Text>
-            )}
+            <View
+              style={[
+                styles.requiredBadge,
+                currentQuestion.required
+                  ? styles.requiredBadgeTrue
+                  : styles.requiredBadgeFalse,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.requiredText,
+                  currentQuestion.required
+                    ? styles.requiredTextTrue
+                    : styles.requiredTextFalse,
+                ]}
+              >
+                {currentQuestion.required ? "bắt buộc" : "có thể bỏ qua"}
+              </Text>
+            </View>
           </View>
 
           <Text style={styles.questionText}>
@@ -636,6 +677,17 @@ console.log(survey);
               </Text>
             )}
           </View>
+
+          {/* Clear Answer Button for Optional Questions */}
+          {!currentQuestion.required && answers[currentQuestion.questionId] && (
+            <TouchableOpacity
+              style={styles.clearAnswerButton}
+              onPress={() => handleClearAnswer(currentQuestion.questionId)}
+            >
+              <Ionicons name="close-circle" size={16} color="#EF4444" />
+              <Text style={styles.clearAnswerText}>Xóa câu trả lời</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Navigation Buttons */}
@@ -882,10 +934,28 @@ const styles = StyleSheet.create({
     color: GlobalStyles.colors.primary,
     marginRight: 4,
   },
+  requiredBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  requiredBadgeTrue: {
+    backgroundColor: "#FEF2F2",
+  },
+  requiredBadgeFalse: {
+    backgroundColor: "#F0FDF4",
+  },
   requiredText: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 12,
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  requiredTextTrue: {
     color: "#EF4444",
+  },
+  requiredTextFalse: {
+    color: "#059669",
   },
   questionText: {
     fontSize: 18,
@@ -916,6 +986,24 @@ const styles = StyleSheet.create({
   },
   answersContainer: {
     gap: 12,
+  },
+  clearAnswerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    gap: 6,
+  },
+  clearAnswerText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#EF4444",
   },
   answerOption: {
     flexDirection: "row",

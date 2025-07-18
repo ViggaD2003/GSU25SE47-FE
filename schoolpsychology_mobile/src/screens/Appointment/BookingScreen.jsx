@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Alert,
   StyleSheet,
@@ -36,6 +37,7 @@ import {
   countTotalAvailableSlotsWithTimeValidation,
   hasAvailableSlots,
 } from "../../utils/slotUtils";
+import { ActivityIndicator } from "react-native-paper";
 
 // Extend dayjs with plugins
 dayjs.extend(utc);
@@ -73,7 +75,7 @@ const BookingScreen = ({ navigation }) => {
   const [bookingLoading, setBookingLoading] = useState(false);
 
   // New fields for appointment request
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(false);
   const [reason, setReason] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -271,7 +273,9 @@ const BookingScreen = ({ navigation }) => {
       confirmationMessage += `\n\n📅 Đồng bộ lịch: Sẽ được thêm vào calendar`;
 
       if (calendarSettings.reminderEnabled) {
-        confirmationMessage += `\n⏰ Nhắc nhở: ${calendarSettings.reminderTime} phút trước`;
+        confirmationMessage += `\n⏰ Nhắc nhở: ${formatReminderTime(
+          calendarSettings.reminderTime
+        )} trước`;
       }
     }
 
@@ -289,7 +293,7 @@ const BookingScreen = ({ navigation }) => {
           try {
             const bookingData = {
               slotId: selectedSlot.id,
-              bookedForId: bookedForId,
+              bookedForId: user?.role === "PARENTS" ? bookedForId : user?.id,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT
@@ -303,36 +307,42 @@ const BookingScreen = ({ navigation }) => {
             const response = await createAppointment(bookingData);
 
             // Auto sync with calendar if enabled
-            // if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
-            //   try {
-            //     // Sync to calendar
-            //     const syncResult = await CalendarService.syncEvent(
-            //       "appointment",
-            //       response
-            //     );
+            if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
+              try {
+                console.log("Syncing to calendar...");
+                // Sync to calendar
+                const syncResult = await CalendarService.syncEvent(
+                  "appointment",
+                  [response]
+                );
 
-            //     if (syncResult.success) {
-            //       console.log(
-            //         "Appointment synced to calendar:",
-            //         syncResult.message
-            //       );
-            //     } else {
-            //       console.log(
-            //         "Failed to sync to calendar:",
-            //         syncResult.message
-            //       );
-            //     }
-            //   } catch (error) {
-            //     console.error("Error syncing appointment to calendar:", error);
-            //   }
-            // }
-            console.log(response);
+                if (syncResult.success) {
+                  Alert.alert("Đã đồng bộ lịch");
+                  console.log(
+                    "Appointment synced to calendar:",
+                    syncResult.message
+                  );
+                } else {
+                  Alert.alert("Không thể đồng bộ lịch");
+                  console.log(
+                    "Failed to sync to calendar:",
+                    syncResult.message
+                  );
+                }
+              } catch (error) {
+                Alert.alert("Không thể đồng bộ lịch");
+                console.error("Error syncing appointment to calendar:", error);
+              }
+            }
+
             // Navigate back or to appointment history
-            navigation.navigate("StatusScreen", {
-              title: "Đặt lịch hẹn thành công",
-              message: "Bạn đã đặt lịch hẹn thành công",
-              response: bookingData,
-            });
+            setTimeout(() => {
+              navigation.navigate("StatusScreen", {
+                title: "Đặt lịch hẹn thành công",
+                message: "Bạn đã đặt lịch hẹn thành công",
+                response: response,
+              });
+            }, 1000);
           } catch (error) {
             console.error("Lỗi khi đặt lịch hẹn:", error);
             setToastMessage("Không thể đặt lịch hẹn. Vui lòng thử lại");
@@ -386,6 +396,39 @@ const BookingScreen = ({ navigation }) => {
     loadCalendarSettings();
   }, []);
 
+  // Reset form state when screen comes into focus (e.g., when navigating back from StatusScreen)
+  useFocusEffect(
+    useCallback(() => {
+      // Only reset if we're coming back to the screen (not on initial mount)
+      const resetFormState = () => {
+        setHostType(null);
+        setSelectedCounselor(null);
+        setSelectedSlot(null);
+        setSlots([]);
+        setGroupedSlots({});
+        setVisibleDays(VISIBLE_DAYS);
+        setIsOnline(false);
+        setReason("");
+        setShowToast(false);
+        setToastMessage("");
+        setToastType("info");
+
+        // Reset child selection if no child is pre-selected from global variable
+        if (!global.selectedChildForAppointment) {
+          setSelectedChild(null);
+          setBookedForId(user?.id || null);
+        }
+      };
+
+      // Small delay to ensure smooth transition
+      const timeoutId = setTimeout(resetFormState, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }, [user])
+  );
+
   const handleBackPress = () => {
     Alert.alert(
       "Thông báo",
@@ -404,6 +447,31 @@ const BookingScreen = ({ navigation }) => {
   };
 
   const canBook = selectedSlot && !bookingLoading;
+
+  // Helper function to format reminder time
+  const formatReminderTime = (minutes) => {
+    if (minutes < 60) {
+      return `${minutes} phút`;
+    } else if (minutes === 60) {
+      return "1 giờ";
+    } else if (minutes < 1440) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (remainingMinutes === 0) {
+        return `${hours} giờ`;
+      } else {
+        return `${hours} giờ ${remainingMinutes} phút`;
+      }
+    } else {
+      const days = Math.floor(minutes / 1440);
+      const remainingHours = Math.floor((minutes % 1440) / 60);
+      if (remainingHours === 0) {
+        return `${days} ngày`;
+      } else {
+        return `${days} ngày ${remainingHours} giờ`;
+      }
+    }
+  };
 
   return (
     <Container>
@@ -729,7 +797,8 @@ const BookingScreen = ({ navigation }) => {
                 <View style={styles.calendarInfoRow}>
                   <Ionicons name="alarm" size={16} color="#F59E0B" />
                   <Text style={styles.calendarInfoText}>
-                    Nhắc nhở {calendarSettings.reminderTime} phút trước
+                    Nhắc nhở {formatReminderTime(calendarSettings.reminderTime)}{" "}
+                    trước
                   </Text>
                 </View>
               )}
@@ -750,7 +819,10 @@ const BookingScreen = ({ navigation }) => {
             disabled={!canBook}
           >
             {bookingLoading ? (
-              <Loading text="Đang đặt lịch..." />
+              <>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={styles.bookingButtonText}>Đang đặt lịch...</Text>
+              </>
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />

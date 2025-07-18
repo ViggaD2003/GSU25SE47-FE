@@ -191,6 +191,8 @@
     "table": {
       "slotName": "Slot Name",
       "type": "Type",
+      "date": "Date",
+      "time": "Time",
       "startTime": "Start Time",
       "endTime": "End Time",
       "status": "Status",
@@ -204,6 +206,7 @@
       "slotNameRequired": "Please enter slot name",
       "startDateTime": "Start Date & Time",
       "startDateTimeRequired": "Please select start date and time",
+      "endDateTime": "End Date & Time",
       "duration": "Duration (hours)",
       "durationPlaceholder": "Enter duration in hours",
       "durationRequired": "Please enter duration",
@@ -283,6 +286,45 @@
         "viewDetail": "View Detail"
       }
     },
+    "detail": {
+      "title": "Survey Details",
+      "description": "Description",
+      "status": "Status",
+      "surveyCode": "Survey Code",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "recurringCycle": "Recurring Cycle",
+      "required": "Required",
+      "questionsList": "Questions List",
+      "category": "Category",
+      "score": "Score",
+      "answer": "Answer",
+      "update": "Update",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "validation": {
+        "descriptionRequired": "Description cannot be empty",
+        "startDateRequired": "Start date cannot be empty",
+        "startDateFuture": "Start date must be greater than or equal to current date",
+        "startDateBeforeEnd": "Start date must be before end date",
+        "endDateRequired": "End date cannot be empty",
+        "recurringCycleRequired": "Please select a recurring cycle"
+      },
+      "messages": {
+        "updateSuccess": "Updated successfully",
+        "updateError": "Update failed",
+        "noChanges": "No changes to update"
+      },
+      "recurringOptions": {
+        "none": "None",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "recurringHelp": {
+        "none": "Survey is not recurring (isRecurring: false)",
+        "active": "Survey is recurring (isRecurring: true)"
+      }
+    },
     "form": {
       "name": "Survey Name",
       "namePlaceholder": "Enter survey name",
@@ -309,7 +351,14 @@
       "addQuestion": "Add Question",
       "startDateBeforeToday": "Start date must be today or after today",
       "endDateBeforeStartDate": "End date must be after start date",
-      "sampleSurveys": "Sample surveys for category"
+      "sampleSurveys": "Sample surveys for category",
+      "recurringValidation": {
+        "invalidCycle": "For recurring surveys, please select a valid cycle: Daily, Weekly, or Monthly",
+        "endDateTooFar": "For {{cycle}} recurring surveys, end date must be within {{maxDays}} days from start date",
+        "endDateDaily": "For daily recurring surveys, end date must be within 1 day from start date",
+        "endDateWeekly": "For weekly recurring surveys, end date must be within 7 days from start date",
+        "endDateMonthly": "For monthly recurring surveys, end date must be within 30 days from start date"
+      }
     },
     "messages": {
       "addSuccess": "Survey created successfully",
@@ -568,6 +617,66 @@
       "mentalHealth": "Mental Health",
       "environment": "Environment",
       "impact": "Impact"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "pending": "Pending Review"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "normal": "Normal",
+      "difficult": "Difficult",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    }
+  },
+  "appointmentRecord": {
+    "title": "Assessment Record",
+    "viewRecord": "View Assessment",
+    "noRecord": "No Assessment Available",
+    "noScore": "N/A",
+    "sessionInfo": "Session Information",
+    "assessmentResults": "Assessment Results",
+    "noteSummary": "Summary Notes",
+    "noteSuggest": "Intervention Suggestions",
+    "totalScore": "Total Score",
+    "riskLevel": "Risk Level",
+    "sessionFlowTitle": "Session Progress",
+    "cooperationLevelTitle": "Student Cooperation",
+    "statusTitle": "Assessment Status",
+    "completedOn": "Completed On",
+    "additionalNotes": "Additional Notes",
+    "messages": {
+      "saveSuccess": "Assessment saved successfully!",
+      "saveError": "Error saving assessment. Please try again!"
+    },
+    "riskLevels": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "average": "Average",
+      "poor": "Poor",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "cancelled": "Cancelled"
     }
   }
 }

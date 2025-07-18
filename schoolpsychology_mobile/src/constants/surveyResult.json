@@ -1,0 +1,20 @@
+{
+  "answerRecordRequests": [
+    { "answerId": 83, "questionId": null, "skipped": false },
+    { "answerId": null, "questionId": 22, "skipped": true },
+    { "answerId": 92, "questionId": null, "skipped": false },
+    { "answerId": null, "questionId": 24, "skipped": true },
+    { "answerId": null, "questionId": 25, "skipped": true },
+    { "answerId": 108, "questionId": null, "skipped": false },
+    { "answerId": 113, "questionId": null, "skipped": false },
+    { "answerId": 118, "questionId": null, "skipped": false },
+    { "answerId": 123, "questionId": null, "skipped": false },
+    { "answerId": 128, "questionId": null, "skipped": false }
+  ],
+  "categoryId": 2,
+  "level": "LOW",
+  "noteSuggest": "Học sinh hài lòng và cảm thấy an toàn trong môi trường học đường. Không cần can thiệp, chỉ cần tiếp tục duy trì và phát huy các yếu tố tích cực.",
+  "status": "COMPLETED",
+  "surveyId": 10,
+  "totalScore": 4.9
+}

@@ -35,7 +35,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
         {/* Right side - Actions */}
-        <View style={styles.actionsSection}>
+        {/* <View style={styles.actionsSection}>
           <TouchableOpacity
             style={styles.iconButton}
             onPress={() => navigation.navigate("Profile")}
@@ -44,11 +44,11 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="settings-outline" size={24} color="#374151" />
             </View>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
 
       {/* Content */}
-      <View>
+      <View style={{ paddingBottom: 50 }}>
         {user.role === "STUDENT" ? (
           <StudentHome
             user={user}
@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
   userSection: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-end",
     flex: 1,
   },
   avatarContainer: {

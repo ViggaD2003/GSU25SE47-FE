@@ -343,8 +343,9 @@ const removeEventMapping = async (appointmentId) => {
 };
 
 // Sync appointments with calendar
-const syncAppointments = async (calendarId, appointments) => {
+const syncAppointments = async (calendarId, appointments = []) => {
   try {
+    console.log("Syncing appointments:", appointments);
     // Format appointment for calendar
     const appointmentForCalendar = appointments.map((item) => {
       return {
@@ -535,13 +536,23 @@ const syncEvent = async (eventType, eventData) => {
     }
 
     if (eventType === "appointment") {
-      await syncAppointments(calendarId, eventData);
+      const result = await syncAppointments(calendarId, eventData);
+      if (result.success) {
+        return { success: true, message: "Appointments synced successfully" };
+      } else {
+        return { success: false, message: "Failed to sync appointments" };
+      }
     } else if (eventType === "survey") {
-      await syncSurveys(calendarId, eventData);
+      const result = await syncSurveys(calendarId, eventData);
+      if (result.success) {
+        return { success: true, message: "Surveys synced successfully" };
+      } else {
+        return { success: false, message: "Failed to sync surveys" };
+      }
     } else {
       // TODO: Sync other event types
+      return { success: false, message: "Invalid event type" };
     }
-    return { success: false, message: "Invalid event type" };
   } catch (error) {
     console.error("Error syncing event to calendar:", error);
     return { success: false, message: "Failed to sync event to calendar" };

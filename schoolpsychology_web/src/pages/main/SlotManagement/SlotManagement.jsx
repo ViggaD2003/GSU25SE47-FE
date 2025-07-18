@@ -27,11 +27,7 @@ import {
   selectPublishLoading,
   clearError,
 } from '../../../store/slices/slotSlice'
-import {
-  getStatusBadgeConfig,
-  getSlotTypeText,
-  formatDateTime,
-} from '../../../utils/slotUtils'
+import { getStatusBadgeConfig, getSlotTypeText } from '../../../utils/slotUtils'
 import SlotModal from './SlotModal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
@@ -60,10 +56,8 @@ const SlotManagement = () => {
 
   // Fetch slots on component mount
   useEffect(() => {
-    if (!slots.length) {
-      dispatch(fetchSlots())
-    }
-  }, [dispatch, slots.length])
+    dispatch(fetchSlots())
+  }, [dispatch])
 
   // Handle error messages
   useEffect(() => {
@@ -224,29 +218,29 @@ const SlotManagement = () => {
       onFilter: (value, record) => record.slotType === value,
     },
     {
-      title: t('slotManagement.table.startTime'),
+      title: t('slotManagement.table.date'),
       dataIndex: 'startDateTime',
-      key: 'startDateTime',
-      render: dateTime => formatDateTime(dateTime),
-      width: 200,
+      key: 'date',
+      render: dateTime => dayjs(dateTime).format('DD/MM/YYYY'),
       sorter: (a, b) =>
         dayjs(a.startDateTime || 0).unix() - dayjs(b.startDateTime || 0).unix(),
     },
     {
-      title: t('slotManagement.table.endTime'),
-      dataIndex: 'endDateTime',
-      key: 'endDateTime',
-      render: dateTime => formatDateTime(dateTime),
-      width: 200,
+      title: t('slotManagement.table.time'),
+      key: 'time',
+      render: (_, record) => {
+        const startTime = dayjs(record.startDateTime).format('HH:mm')
+        const endTime = dayjs(record.endDateTime).format('HH:mm')
+        return `${startTime} - ${endTime}`
+      },
       sorter: (a, b) =>
-        dayjs(a.endDateTime || 0).unix() - dayjs(b.endDateTime || 0).unix(),
+        dayjs(a.startDateTime || 0).unix() - dayjs(b.startDateTime || 0).unix(),
     },
     {
       title: t('slotManagement.table.status'),
       dataIndex: 'status',
       key: 'status',
       render: status => getStatusBadge(status),
-      width: 150,
       filters: [
         {
           text: t('slotManagement.statusOptions.published'),
@@ -341,7 +335,7 @@ const SlotManagement = () => {
               `${range[0]}-${range[1]} of ${total} items`,
           }}
           onChange={handleTableChange}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1000 }}
         />
       </Card>
 

@@ -32,7 +32,6 @@ export default function StudentHome({
   setToastMessage,
   setToastType,
 }) {
-  const scrollViewRef = React.useRef(null);
   const [allData, setAllData] = useState([]); // Store all data
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
@@ -77,7 +76,9 @@ export default function StudentHome({
       const surveyData = Array.isArray(response)
         ? response
         : response.data || [];
+      console.log("surveyData", surveyData);
       setAllData(surveyData);
+      console.log("allData", allData);
 
       // Load first page
       const firstPageData = surveyData.slice(0, PAGE_SIZE);
@@ -152,9 +153,6 @@ export default function StudentHome({
 
   // Function to handle tab change with immediate scroll
   const handleTabChange = async (type) => {
-    // Immediately scroll to bottom for better UX
-    scrollViewRef.current?.scrollToEnd({ animated: true });
-
     // Update state and fetch data
     await loadTabData(type);
   };
@@ -206,7 +204,6 @@ export default function StudentHome({
 
   return (
     <ScrollView
-      ref={scrollViewRef}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContainer}
       refreshControl={
@@ -271,7 +268,7 @@ export default function StudentHome({
         <View style={styles.connectRow}>
           <TouchableOpacity
             style={styles.connectBox}
-            onPress={() => navigation.navigate("Blog")}
+            onPress={() => navigation.navigate("BlogMain")}
           >
             <View style={styles.connectIconContainer}>
               <Text style={styles.connectIcon}>📚</Text>
@@ -659,13 +656,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   requiredEventContainer: {
-    minHeight: 450,
-    paddingBottom: 25,
+    paddingBottom: 30,
   },
   emptyContainer: {
     flex: 1,
+    minHeight: 300,
+    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 100,
   },
   emptyIcon: {
     fontSize: 56,

@@ -118,6 +118,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const [editingSlotId, setEditingSlotId] = useState(null)
   const [expandedDates, setExpandedDates] = useState(new Set())
   const [conflictSlots, setConflictSlots] = useState([])
+  const [calculatedEndDateTime, setCalculatedEndDateTime] = useState(null)
   const createLoading = useSelector(selectCreateLoading)
   const createError = useSelector(selectCreateError)
   const users = useSelector(selectUsers)
@@ -135,6 +136,36 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
       dispatch(clearError())
     }
   }, [createError, dispatch])
+
+  // Calculate end date time when start date time or duration changes
+  useEffect(() => {
+    const updateEndDateTime = () => {
+      const startDateTime = form.getFieldValue('startDateTime')
+      const duration = form.getFieldValue('duration')
+
+      if (startDateTime && duration) {
+        const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+        setCalculatedEndDateTime(endDateTime)
+      } else {
+        setCalculatedEndDateTime(null)
+      }
+    }
+
+    updateEndDateTime()
+  }, [form])
+
+  // Function to handle form field changes
+  const handleFieldChange = () => {
+    const startDateTime = form.getFieldValue('startDateTime')
+    const duration = form.getFieldValue('duration')
+
+    if (startDateTime && duration) {
+      const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+      setCalculatedEndDateTime(endDateTime)
+    } else {
+      setCalculatedEndDateTime(null)
+    }
+  }
 
   // Function to check if a slot is in conflict
   const isSlotInConflict = slot => {
@@ -181,6 +212,19 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
       ),
       totalSlots: dateSlots.length,
     }))
+  }
+
+  // Function to generate slot name from slot type and date/time
+  const generateSlotName = (slotType, startDateTime) => {
+    const typeMap = {
+      APPOINTMENT: t('slotManagement.typeOptions.appointment'),
+      PROGRAM: t('slotManagement.typeOptions.program'),
+    }
+
+    const typeName = typeMap[slotType] || slotType
+    const dateTimeStr = dayjs(startDateTime).format('DD/MM/YYYY HH:mm')
+
+    return `${typeName} - ${dateTimeStr}`
   }
 
   // Function to check time conflicts within the same day
@@ -252,11 +296,27 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const handleAddSlot = async () => {
     try {
       const values = await form.validateFields()
-      const { slotName, startDateTime, duration, slotType, hostedBy } = values
+      const { startDateTime, duration, slotType, hostedBy } = values
 
       // Calculate end date time
-      const start = dayjs(startDateTime)
+      const start = dayjs(startDateTime).tz(VN_TZ)
       const end = start.add(duration, 'hour')
+      const now = dayjs().tz(VN_TZ)
+
+      // Kiểm tra thời gian bắt đầu phải sau thời gian hiện tại
+      if (start.isBefore(now) || start.isSame(now)) {
+        message.error('Thời gian bắt đầu phải sau thời gian hiện tại')
+        return
+      }
+
+      // Kiểm tra thời gian kết thúc phải sau thời gian hiện tại
+      if (end.isBefore(now) || end.isSame(now)) {
+        message.error('Thời gian kết thúc phải sau thời gian hiện tại')
+        return
+      }
+
+      // Generate slot name automatically
+      const slotName = generateSlotName(slotType, start)
 
       // Validate business rules
       const validationError = validateSlot(
@@ -313,12 +373,13 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
       setPreviewSlots(updatedSlots)
 
       // Reset form
-      form.resetFields(['slotName', 'startDateTime', 'duration'])
+      form.resetFields(['startDateTime', 'duration'])
       form.setFieldsValue({
         slotType:
           user?.role.toUpperCase() === 'MANAGER' ? 'PROGRAM' : 'APPOINTMENT',
         hostedBy: hostedBy,
       })
+      setCalculatedEndDateTime(null)
 
       message.success(t('slotManagement.messages.slotAdded'))
     } catch (error) {
@@ -342,12 +403,27 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
 
   const handleSaveEdit = (slot, formValues) => {
     try {
-      const { slotName, startDateTime, duration, slotType, hostedBy } =
-        formValues
+      const { startDateTime, duration, slotType, hostedBy } = formValues
 
       // Calculate end date time
-      const start = dayjs(startDateTime)
+      const start = dayjs(startDateTime).tz(VN_TZ)
       const end = start.add(duration, 'hour')
+      const now = dayjs().tz(VN_TZ)
+
+      // Kiểm tra thời gian bắt đầu phải sau thời gian hiện tại
+      if (start.isBefore(now) || start.isSame(now)) {
+        message.error('Thời gian bắt đầu phải sau thời gian hiện tại')
+        return
+      }
+
+      // Kiểm tra thời gian kết thúc phải sau thời gian hiện tại
+      if (end.isBefore(now) || end.isSame(now)) {
+        message.error('Thời gian kết thúc phải sau thời gian hiện tại')
+        return
+      }
+
+      // Generate slot name automatically
+      const slotName = generateSlotName(slotType, start)
 
       // Validate business rules
       const validationError = validateSlot(
@@ -421,7 +497,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
 
     try {
       const slotsToCreate = previewSlots.map(slot => ({
-        slotName: slot.slotName,
+        slotName: slot.slotName, // Already generated automatically
         startDateTime: dayjs(slot.startDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
         endDateTime: dayjs(slot.endDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
         slotType: slot.slotType,
@@ -446,6 +522,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
     setPreviewSlots([])
     setEditingSlotId(null)
     setConflictSlots([])
+    setCalculatedEndDateTime(null)
     onCancel()
   }
 
@@ -460,58 +537,127 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   }
 
   const disabledDate = current => {
-    return current && current < dayjs().tz(VN_TZ).startOf('day')
+    const today = dayjs().tz(VN_TZ).startOf('day')
+    return current && current < today
   }
 
   const disabledTime = date => {
     if (!date) return {}
-    const now = dayjs()
-    let disabled = []
+    const now = dayjs().tz(VN_TZ)
+    let disabledHours = []
+
     // Disable ngoài 8-17h
-    disabled = disabled.concat(Array.from({ length: 8 }, (_, i) => i))
-    disabled = disabled.concat(Array.from({ length: 6 }, (_, i) => i + 18))
+    disabledHours = disabledHours.concat(Array.from({ length: 8 }, (_, i) => i))
+    disabledHours = disabledHours.concat(
+      Array.from({ length: 6 }, (_, i) => i + 18)
+    )
+
     // Nếu là Counselor thì disable thêm 12h
     if (user?.role.toUpperCase() === 'COUNSELOR') {
-      disabled.push(12)
+      disabledHours.push(12)
     }
-    // Nếu là hôm nay thì disable giờ trước giờ hiện tại
+
+    // Nếu là hôm nay thì disable giờ trước giờ hiện tại và giờ hiện tại nếu đã quá 30 phút
     if (date.isSame(now, 'day')) {
-      disabled = disabled.concat(
+      // Disable tất cả giờ trước giờ hiện tại
+      disabledHours = disabledHours.concat(
         Array.from({ length: now.hour() }, (_, i) => i)
       )
+
+      // Nếu giờ hiện tại đã quá 30 phút thì disable luôn giờ hiện tại
+      if (now.minute() >= 30) {
+        disabledHours.push(now.hour())
+      }
     }
+
     // Loại trùng
-    disabled = Array.from(new Set(disabled)).sort((a, b) => a - b)
+    disabledHours = Array.from(new Set(disabledHours)).sort((a, b) => a - b)
+
+    // Function để disable phút
+    const getDisabledMinutes = selectedHour => {
+      const disabledMinutes = []
+
+      // Disable tất cả các phút trừ 00 và 30
+      for (let i = 1; i <= 29; i++) {
+        disabledMinutes.push(i)
+      }
+      for (let i = 31; i <= 59; i++) {
+        disabledMinutes.push(i)
+      }
+
+      // Nếu là hôm nay và đang chọn giờ hiện tại
+      if (date.isSame(now, 'day') && selectedHour === now.hour()) {
+        // Nếu hiện tại chưa đến 30 phút, chỉ cho phép chọn 30 phút
+        if (now.minute() < 30) {
+          disabledMinutes.push(0) // Disable phút 00
+        } else {
+          // Nếu đã quá 30 phút, disable cả 00 và 30
+          disabledMinutes.push(0, 30)
+        }
+      }
+
+      return disabledMinutes
+    }
+
     return {
-      disabledHours: () => disabled,
+      disabledHours: () => disabledHours,
+      disabledMinutes: getDisabledMinutes,
     }
   }
 
   const customStartDateTimeValidator = (_, value) => {
     if (!value) return Promise.resolve()
-    const now = dayjs()
-    if (value.isBefore(now)) {
+    const now = dayjs().tz(VN_TZ)
+
+    // Kiểm tra chính xác đến từng phút
+    if (value.isBefore(now) || value.isSame(now)) {
       return Promise.reject(t('slotManagement.validation.startTimeAfterNow'))
     }
+
+    // Chỉ cho phép chọn giờ từ 8-17h
+    const hour = value.hour()
+    if (hour < 8 || hour >= 17) {
+      return Promise.reject('Thời gian phải trong khoảng 08:00 - 17:00')
+    }
+
+    // Nếu là Counselor, không được chọn 12h
+    if (user?.role.toUpperCase() === 'COUNSELOR' && hour === 12) {
+      return Promise.reject(
+        'Counselor không thể tạo slot vào giờ nghỉ trưa (12:00)'
+      )
+    }
+
+    // Chỉ cho phép chọn phút 00 hoặc 30
+    const minute = value.minute()
+    if (minute !== 0 && minute !== 30) {
+      return Promise.reject('Chỉ có thể chọn phút 00 hoặc 30')
+    }
+
     return Promise.resolve()
   }
 
   const customDurationValidator = (_, value) => {
     const start = form.getFieldValue('startDateTime')
     if (start && value) {
+      const now = dayjs().tz(VN_TZ)
       const end = dayjs(start).add(value, 'hour')
+
       if (end.isSameOrBefore(start)) {
         return Promise.reject(
           t('slotManagement.validation.startTimeBeforeEndTime')
         )
       }
-      if (end.isBefore(dayjs())) {
+
+      // Kiểm tra thời gian kết thúc phải sau thời gian hiện tại
+      if (end.isBefore(now) || end.isSame(now)) {
         return Promise.reject(t('slotManagement.validation.endTimeAfterNow'))
       }
+
       // Không được quá 17h00
       if (end.hour() > 17 || (end.hour() === 17 && end.minute() > 0)) {
         return Promise.reject(t('slotManagement.validation.endTimeBefore17'))
       }
+
       // Nếu là Counselor và start < 12h thì end không được quá 12h00
       if (
         user?.role?.toUpperCase() === 'COUNSELOR' &&
@@ -534,16 +680,35 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
 
   const InlineEditForm = ({ slot, onSave, onCancel }) => {
     const [editForm] = Form.useForm()
+    const [editCalculatedEndDateTime, setEditCalculatedEndDateTime] =
+      useState(null)
 
     useEffect(() => {
       editForm.setFieldsValue({
-        slotName: slot.slotName,
         startDateTime: slot.startDateTime,
         duration: slot.duration,
         slotType: slot.slotType,
         hostedBy: slot.hostedBy,
       })
+      // Calculate initial end date time
+      if (slot.startDateTime && slot.duration) {
+        const endDateTime = dayjs(slot.startDateTime).add(slot.duration, 'hour')
+        setEditCalculatedEndDateTime(endDateTime)
+      }
     }, [slot, editForm])
+
+    // Function to handle form field changes in edit mode
+    const handleEditFieldChange = () => {
+      const startDateTime = editForm.getFieldValue('startDateTime')
+      const duration = editForm.getFieldValue('duration')
+
+      if (startDateTime && duration) {
+        const endDateTime = dayjs(startDateTime).add(duration, 'hour')
+        setEditCalculatedEndDateTime(endDateTime)
+      } else {
+        setEditCalculatedEndDateTime(null)
+      }
+    }
 
     const handleSave = async () => {
       try {
@@ -560,14 +725,6 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
           <Row gutter={8}>
             <Col span={8}>
               <Form.Item
-                name="slotName"
-                rules={[{ required: true, message: 'Required' }]}
-              >
-                <Input placeholder="Slot name" />
-              </Form.Item>
-            </Col>
-            <Col span={6}>
-              <Form.Item
                 name="startDateTime"
                 rules={[{ required: true, message: 'Required' }]}
               >
@@ -578,10 +735,11 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   disabledDate={disabledDate}
                   disabledTime={disabledTime}
                   style={{ width: '100%' }}
+                  onChange={handleEditFieldChange}
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={8}>
               <Form.Item
                 name="duration"
                 rules={[{ required: true, message: 'Required' }]}
@@ -591,10 +749,24 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   max={8}
                   placeholder="Hours"
                   style={{ width: '100%' }}
+                  onChange={handleEditFieldChange}
                 />
               </Form.Item>
             </Col>
-            <Col span={4}>
+            <Col span={3}>
+              <Form.Item>
+                <DatePicker
+                  showTime={{ format: 'HH:mm' }}
+                  format="MM-DD HH:mm"
+                  placeholder="End time"
+                  value={editCalculatedEndDateTime}
+                  style={{ width: '100%' }}
+                  disabled
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={3}>
               <Form.Item name="slotType">
                 <Select size="small">
                   {user?.role.toUpperCase() === 'MANAGER' ? (
@@ -856,99 +1028,107 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                     : 'APPOINTMENT',
               }}
             >
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="startDateTime"
+                    label={
+                      <Space>
+                        <CalendarOutlined />
+                        {t('slotManagement.form.startDateTime')}
+                      </Space>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: t('slotManagement.form.startDateTimeRequired'),
+                      },
+                      { validator: customStartDateTimeValidator },
+                    ]}
+                    extra={
+                      <HelpText>
+                        {t('slotManagement.form.startDateTimeHelp')}
+                      </HelpText>
+                    }
+                  >
+                    <DatePicker
+                      showTime={{ format: 'HH:mm' }}
+                      format="YYYY-MM-DD HH:mm"
+                      placeholder={t(
+                        'slotManagement.form.startDateTimeRequired'
+                      )}
+                      disabledDate={disabledDate}
+                      disabledTime={disabledTime}
+                      style={{ width: '100%' }}
+                      size="large"
+                      onChange={handleFieldChange}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="duration"
+                    label={
+                      <Space>
+                        <ClockCircleOutlined />
+                        {t('slotManagement.form.duration')}
+                      </Space>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: t('slotManagement.form.durationRequired'),
+                      },
+                      {
+                        type: 'number',
+                        min: 1,
+                        message: t('slotManagement.form.durationMin'),
+                      },
+                      {
+                        validator: (_, value) => {
+                          if (value && value % 1 !== 0) {
+                            return Promise.reject(
+                              t('slotManagement.form.durationInteger')
+                            )
+                          }
+                          return Promise.resolve()
+                        },
+                      },
+                      { validator: customDurationValidator },
+                    ]}
+                    extra={
+                      <HelpText>
+                        {t('slotManagement.form.durationHelp')}
+                      </HelpText>
+                    }
+                  >
+                    <InputNumber
+                      min={1}
+                      max={8}
+                      style={{ width: '100%' }}
+                      placeholder={t('slotManagement.form.durationPlaceholder')}
+                      size="large"
+                      onChange={handleFieldChange}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
               <Form.Item
-                name="slotName"
-                label={
-                  <Space>
-                    <InfoCircleOutlined />
-                    {t('slotManagement.form.slotName')}
-                  </Space>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: t('slotManagement.form.slotNameRequired'),
-                  },
-                ]}
-              >
-                <Input
-                  placeholder={t('slotManagement.form.slotNamePlaceholder')}
-                  size="large"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="startDateTime"
                 label={
                   <Space>
                     <CalendarOutlined />
-                    {t('slotManagement.form.startDateTime')}
+                    {t('slotManagement.form.endDateTime')}
                   </Space>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: t('slotManagement.form.startDateTimeRequired'),
-                  },
-                  { validator: customStartDateTimeValidator },
-                ]}
-                extra={
-                  <HelpText>
-                    {t('slotManagement.form.startDateTimeHelp')}
-                  </HelpText>
                 }
               >
                 <DatePicker
                   showTime={{ format: 'HH:mm' }}
                   format="YYYY-MM-DD HH:mm"
-                  placeholder={t('slotManagement.form.startDateTimeRequired')}
-                  disabledDate={disabledDate}
-                  disabledTime={disabledTime}
+                  value={calculatedEndDateTime}
                   style={{ width: '100%' }}
                   size="large"
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="duration"
-                label={
-                  <Space>
-                    <ClockCircleOutlined />
-                    {t('slotManagement.form.duration')}
-                  </Space>
-                }
-                rules={[
-                  {
-                    required: true,
-                    message: t('slotManagement.form.durationRequired'),
-                  },
-                  {
-                    type: 'number',
-                    min: 1,
-                    message: t('slotManagement.form.durationMin'),
-                  },
-                  {
-                    validator: (_, value) => {
-                      if (value && value % 1 !== 0) {
-                        return Promise.reject(
-                          t('slotManagement.form.durationInteger')
-                        )
-                      }
-                      return Promise.resolve()
-                    },
-                  },
-                  { validator: customDurationValidator },
-                ]}
-                extra={
-                  <HelpText>{t('slotManagement.form.durationHelp')}</HelpText>
-                }
-              >
-                <InputNumber
-                  min={1}
-                  max={8}
-                  style={{ width: '100%' }}
-                  placeholder={t('slotManagement.form.durationPlaceholder')}
-                  size="large"
+                  disabled
+                  placeholder="Được tính tự động"
                 />
               </Form.Item>
 

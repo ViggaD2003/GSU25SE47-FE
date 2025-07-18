@@ -147,6 +147,8 @@ export const {
 
 // Selectors
 export const selectAppointments = state => state.appointment.appointments
+export const selectAppointmentRecords = state =>
+  state.appointment.appointmentRecords
 export const selectAppointmentLoading = state => state.appointment.loading
 export const selectAppointmentError = state => state.appointment.error
 export const selectAppointmentPagination = state => state.appointment.pagination
@@ -162,6 +164,16 @@ export const selectAppointmentById = (state, appointmentId) => {
 export const selectAppointmentRecordById = (state, recordId) => {
   return state.appointment.appointmentRecords.find(
     record => String(record.id) === String(recordId)
+  )
+}
+
+// Selector to get appointment record by appointment id
+export const selectAppointmentRecordByAppointmentId = (
+  state,
+  appointmentId
+) => {
+  return state.appointment.appointmentRecords.find(
+    record => String(record.appointment?.id) === String(appointmentId)
   )
 }
 

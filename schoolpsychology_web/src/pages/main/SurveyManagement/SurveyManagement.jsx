@@ -201,6 +201,7 @@ const SurveyManagement = () => {
         visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
+        messageApi={messageApi}
       />
       <SurveyDetailModal
         t={t}
@@ -208,6 +209,7 @@ const SurveyManagement = () => {
         survey={selectedSurvey}
         onClose={handleDetailClose}
         onUpdated={handleEdit}
+        messageApi={messageApi}
       />
     </div>
   )
