@@ -1,182 +1,483 @@
-import React, { useState } from 'react'
-import { useTheme } from '../../../contexts/ThemeContext'
-import { EyeOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  Suspense,
+  lazy,
+} from 'react'
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  message,
+  Row,
+  Col,
+  Typography,
+  Space,
+  DatePicker,
+  Spin,
+} from 'antd'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  FilterOutlined,
+  ClearOutlined,
+} from '@ant-design/icons'
+import { useTranslation } from 'react-i18next'
+import { useDispatch, useSelector } from 'react-redux'
 
-const mockPrograms = [
-  {
-    id: 1,
-    name: 'Stress Management Workshop',
-    tags: ['Stress', 'Coping'],
-    instructors: Array(8).fill('/src/assets/icons/react.svg'),
-    schedule: '2023/09/17 - 13:00 - 15:30',
-    participants: '32/50',
-    status: 'COMPLETED',
-  },
-  {
-    id: 2,
-    name: 'Stress Management Workshop',
-    tags: ['Stress', 'Coping'],
-    instructors: Array(8).fill('/src/assets/icons/react.svg'),
-    schedule: '2023/09/17 - 13:00 - 15:30',
-    participants: '32/50',
-    status: 'UPCOMING',
-  },
-  ...Array(8).fill(0).map((_, i) => ({
-    id: i + 3,
-    name: 'Stress Management Workshop',
-    tags: ['Stress', 'Coping'],
-    instructors: Array(8).fill('/src/assets/icons/react.svg'),
-    schedule: '2023/09/17 - 13:00 - 15:30',
-    participants: '32/50',
-    status: 'LABEL',
-  })),
-]
+import {
+  getAllPrograms,
+  createProgram,
+  updateProgram,
+  deleteProgram,
+} from '@/store/actions/programActions'
+import {
+  updateFilters,
+  updatePagination,
+  updateSortConfig,
+  resetFilters,
+  clearError,
+} from '@/store/slices/programSlice'
+import { categoriesAPI } from '@/services/categoryApi'
+import dayjs from 'dayjs'
 
-const statusColor = {
-  COMPLETED: 'bg-green-100 text-green-700',
-  UPCOMING: 'bg-purple-100 text-purple-700',
-  LABEL: 'bg-green-100 text-green-700',
-}
+const { Title, Text } = Typography
+const { Search } = Input
+const { Option } = Select
+const { RangePicker } = DatePicker
+
+// Lazy load components
+const ProgramTable = lazy(() => import('./ProgramTable'))
+const ProgramModal = lazy(() => import('./ProgramModal'))
 
 const ProgramManagement = () => {
-  const { isDarkMode } = useTheme()
-  const [search, setSearch] = useState('')
-  const [selectedTags, setSelectedTags] = useState(['Stress', 'Coping'])
-  const [dateRange, setDateRange] = useState('2025-08-17 - 2025-08-19')
-  const [page, setPage] = useState(1)
-  const navigate = useNavigate()
+  const { t } = useTranslation()
+  const dispatch = useDispatch()
+  const { programs, loading, error, pagination, filters, sortConfig } =
+    useSelector(state => state.program)
 
-  // Pagination
-  const pageSize = 10
-  // Search filter
-  const filtered = mockPrograms.filter(program => {
-    const keyword = search.trim().toLowerCase();
-    return (
-      program.name.toLowerCase().includes(keyword) ||
-      program.tags.some(tag => tag.toLowerCase().includes(keyword))
-    );
-  });
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / pageSize);
-  const pagedData = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const [messageApi, contextHolder] = message.useMessage()
+
+  // Local state
+  const [searchText, setSearchText] = useState('')
+  const [selectedProgram, setSelectedProgram] = useState(null)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
+  const [isView, setIsView] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
+
+  // Fetch programs on component mount
+  useEffect(() => {
+    dispatch(getAllPrograms())
+    fetchCategories()
+  }, [dispatch])
+
+  // Handle error messages
+  useEffect(() => {
+    if (error) {
+      messageApi.error(t('programManagement.messages.fetchError'))
+      dispatch(clearError())
+    }
+  }, [error, t, messageApi, dispatch])
+
+  // Fetch categories for filter
+  const fetchCategories = useCallback(async () => {
+    try {
+      setLoadingCategories(true)
+      const response = await categoriesAPI.getCategories()
+      setCategories(response || [])
+    } catch (error) {
+      console.error('Failed to fetch categories:', error)
+    } finally {
+      setLoadingCategories(false)
+    }
+  }, [])
+
+  // Filter and search programs
+  const filteredPrograms = useMemo(() => {
+    if (!programs || !Array.isArray(programs)) return []
+
+    return programs.filter(program => {
+      // Search text filter
+      const matchesSearch =
+        !searchText ||
+        program?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
+        program?.description
+          ?.toLowerCase()
+          ?.includes(searchText.toLowerCase()) ||
+        program?.category?.name
+          ?.toLowerCase()
+          ?.includes(searchText.toLowerCase())
+
+      // Status filter
+      const matchesStatus = filters.status
+        ? program.status === filters.status
+        : ['UPCOMING', 'ONGOING', 'COMPLETED'].includes(program.status)
+
+      // Category filter
+      const matchesCategory =
+        !filters.category || program.category?.id === filters.category
+
+      // Type filter (online/offline)
+      const matchesType =
+        filters.isOnline === undefined || program.isOnline === filters.isOnline
+
+      // Date range filter
+      const matchesDateRange =
+        !filters.dateRange ||
+        (dayjs(program.startDate).isAfter(dayjs(filters.dateRange[0])) &&
+          dayjs(program.endDate).isBefore(dayjs(filters.dateRange[1])))
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesCategory &&
+        matchesType &&
+        matchesDateRange
+      )
+    })
+  }, [programs, searchText, filters])
+
+  // Sort programs
+  const sortedPrograms = useMemo(() => {
+    if (!filteredPrograms.length) return []
+
+    const sorted = [...filteredPrograms].sort((a, b) => {
+      const { field, direction } = sortConfig
+      let aValue = a[field]
+      let bValue = b[field]
+
+      // Handle nested fields
+      if (field.includes('.')) {
+        const fields = field.split('.')
+        aValue = fields.reduce((obj, key) => obj?.[key], a)
+        bValue = fields.reduce((obj, key) => obj?.[key], b)
+      }
+
+      // Handle date fields
+      if (['startDate', 'endDate', 'createdDate'].includes(field)) {
+        aValue = dayjs(aValue)
+        bValue = dayjs(bValue)
+      }
+
+      if (aValue < bValue) return direction === 'asc' ? -1 : 1
+      if (aValue > bValue) return direction === 'asc' ? 1 : -1
+      return 0
+    })
+
+    return sorted
+  }, [filteredPrograms, sortConfig])
+
+  // Paginated programs
+  const paginatedPrograms = useMemo(() => {
+    const { current, pageSize } = pagination
+    const startIndex = (current - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return sortedPrograms.slice(startIndex, endIndex)
+  }, [sortedPrograms, pagination])
+
+  // Handle search
+  const handleSearch = useCallback(
+    value => {
+      setSearchText(value)
+      dispatch(updatePagination({ current: 1 }))
+    },
+    [dispatch]
+  )
+
+  // Handle filter changes
+  const handleFilterChange = useCallback(
+    (filterType, value) => {
+      dispatch(updateFilters({ [filterType]: value }))
+    },
+    [dispatch]
+  )
+
+  // Handle sort
+  const handleSort = useCallback(
+    sortConfig => {
+      dispatch(updateSortConfig(sortConfig))
+    },
+    [dispatch]
+  )
+
+  // Handle pagination
+  const handlePageChange = useCallback(
+    paginationConfig => {
+      dispatch(updatePagination(paginationConfig))
+    },
+    [dispatch]
+  )
+
+  // Handle refresh
+  const handleRefresh = useCallback(() => {
+    dispatch(getAllPrograms())
+    messageApi.success(t('common.refreshSuccess'))
+  }, [dispatch, t, messageApi])
+
+  // Handle reset filters
+  const handleResetFilters = useCallback(() => {
+    setSearchText('')
+    dispatch(resetFilters())
+    messageApi.success(t('common.filtersReset'))
+  }, [dispatch, messageApi, t])
+
+  // Handle create program
+  const handleCreate = useCallback(() => {
+    setSelectedProgram(null)
+    setIsEdit(false)
+    setIsView(false)
+    setIsModalVisible(true)
+  }, [])
+
+  // Handle view program
+  const handleView = useCallback(program => {
+    setSelectedProgram(program)
+    setIsEdit(false)
+    setIsView(true)
+    setIsModalVisible(true)
+  }, [])
+
+  // Handle edit program
+  const handleEdit = useCallback(program => {
+    setSelectedProgram(program)
+    setIsEdit(true)
+    setIsView(false)
+    setIsModalVisible(true)
+  }, [])
+
+  // Handle delete program
+  const handleDelete = useCallback(
+    async programId => {
+      try {
+        await dispatch(deleteProgram(programId)).unwrap()
+        messageApi.success(t('programManagement.messages.deleteSuccess'))
+        dispatch(getAllPrograms()) // Refresh list
+      } catch {
+        messageApi.error(t('programManagement.messages.deleteError'))
+      }
+    },
+    [dispatch, t, messageApi]
+  )
+
+  // Handle save program (create/update)
+  const handleSave = useCallback(
+    async programData => {
+      try {
+        if (isEdit) {
+          await dispatch(
+            updateProgram({
+              programId: selectedProgram.id,
+              programData,
+            })
+          ).unwrap()
+          messageApi.success(t('programManagement.messages.updateSuccess'))
+        } else {
+          await dispatch(createProgram(programData)).unwrap()
+          messageApi.success(t('programManagement.messages.createSuccess'))
+        }
+        setIsModalVisible(false)
+        dispatch(getAllPrograms()) // Refresh list
+      } catch {
+        const errorMessage = isEdit
+          ? t('programManagement.messages.updateError')
+          : t('programManagement.messages.createError')
+        messageApi.error(errorMessage)
+      }
+    },
+    [dispatch, isEdit, selectedProgram, t, messageApi]
+  )
+
+  // Calculate statistics
+  const statistics = useMemo(() => {
+    if (!programs?.length)
+      return { total: 0, upcoming: 0, ongoing: 0, completed: 0 }
+
+    return {
+      total: programs.length,
+      upcoming: programs.filter(p => p.status === 'UPCOMING').length,
+      ongoing: programs.filter(p => p.status === 'ONGOING').length,
+      completed: programs.filter(p => p.status === 'COMPLETED').length,
+    }
+  }, [programs])
+
+  // Update pagination total when filtered data changes
+  useEffect(() => {
+    if (pagination.total !== sortedPrograms.length) {
+      dispatch(updatePagination({ total: sortedPrograms.length }))
+    }
+  }, [sortedPrograms.length, pagination.total, dispatch])
 
   return (
-    <div className={`p-8 min-h-screen ${isDarkMode ? 'text-white bg-gray-900' : 'text-gray-900 bg-gray-50'}`}>
-      <h1 className="text-2xl font-semibold mb-1">Program Management</h1>
-      <p className="mb-6 text-gray-500">Manage and monitor all support programs</p>
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-4 items-end">
-        <div className="flex-1 min-w-[200px]">
-          <input
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            placeholder="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          {selectedTags.map(tag => (
-            <span key={tag} className="bg-blue-50 text-blue-700 px-2 py-1 rounded-lg flex items-center text-sm border border-blue-100">
-              {tag} <button className="ml-1 hover:text-red-500" onClick={() => setSelectedTags(selectedTags.filter(t => t !== tag))}>×</button>
-            </span>
-          ))}
-          <select
-            className="border border-gray-200 rounded-lg px-2 py-1 text-sm bg-white"
-            onChange={e => setSelectedTags([...selectedTags, e.target.value])}
-            value=""
-          >
-            <option value="">Add tag</option>
-            {['Stress', 'Coping', 'Other'].filter(tag => !selectedTags.includes(tag)).map(tag => (
-              <option key={tag} value={tag}>{tag}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <input
-            type="text"
-            className="border border-gray-200 rounded-lg px-3 py-2 w-[220px] bg-white focus:ring-2 focus:ring-blue-100 focus:outline-none transition"
-            value={dateRange}
-            onChange={e => setDateRange(e.target.value)}
-            placeholder="MM/DD/YYYY"
-          />
-        </div>
+    <div className="program-management">
+      {contextHolder}
+
+      {/* Header */}
+      <div className="mb-6">
+        <Title level={2} className="mb-2">
+          {t('programManagement.title')}
+        </Title>
+        <Text type="secondary" className="text-base">
+          {t('programManagement.description')}
+        </Text>
       </div>
+
+      {/* Statistics Cards */}
+      <Row gutter={[16, 16]} className="mb-6">
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small" className="text-center">
+            <div className="text-2xl font-bold text-blue-600">
+              {statistics.total}
+            </div>
+            <div className="text-gray-500">{t('common.total')}</div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small" className="text-center">
+            <div className="text-2xl font-bold text-cyan-600">
+              {statistics.upcoming}
+            </div>
+            <div className="text-gray-500">
+              {t('programManagement.status.UPCOMING')}
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small" className="text-center">
+            <div className="text-2xl font-bold text-green-600">
+              {statistics.ongoing}
+            </div>
+            <div className="text-gray-500">
+              {t('programManagement.status.ONGOING')}
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} md={6}>
+          <Card size="small" className="text-center">
+            <div className="text-2xl font-bold text-gray-600">
+              {statistics.completed}
+            </div>
+            <div className="text-gray-500">
+              {t('programManagement.status.COMPLETED')}
+            </div>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Controls */}
+      <Card className="mb-6">
+        <Row gutter={[16, 16]} align="middle">
+          {/* Search */}
+          <Col xs={24} sm={12} md={7}>
+            <Search
+              placeholder={t('programManagement.search')}
+              allowClear
+              size="middle"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              onSearch={handleSearch}
+            />
+          </Col>
+
+          <Col xs={24} sm={12} md={4}>
+            <Select
+              placeholder={t('programManagement.filters.category')}
+              allowClear
+              value={filters.category}
+              onChange={value => handleFilterChange('category', value)}
+              loading={loadingCategories}
+              className="w-full"
+            >
+              {categories.map(category => (
+                <Option key={category.id} value={category.id}>
+                  {category.name}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
+          <Col xs={24} sm={12} md={6}>
+            <Space size="small" className="w-full">
+              <RangePicker
+                value={filters.dateRange}
+                onChange={dates => handleFilterChange('dateRange', dates)}
+                format="DD/MM/YYYY"
+                placeholder={[t('common.startDate'), t('common.endDate')]}
+                className="flex-1"
+              />
+              <Button
+                icon={<ClearOutlined />}
+                onClick={handleResetFilters}
+                title={t('programManagement.filters.reset')}
+              />
+            </Space>
+          </Col>
+
+          {/* Action Buttons */}
+          <Col xs={24} sm={12} md={7}>
+            <div className="flex justify-end">
+              <Space size="middle">
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleCreate}
+                  size="middle"
+                >
+                  {t('programManagement.create')}
+                </Button>
+                <Button
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefresh}
+                  loading={loading}
+                  size="middle"
+                >
+                  {t('programManagement.refresh')}
+                </Button>
+              </Space>
+            </div>
+          </Col>
+        </Row>
+      </Card>
+
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl shadow bg-white border border-gray-100">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-2 py-3 font-medium text-gray-500 text-left">Program name</th>
-              <th className="px-2 py-3 font-medium text-gray-500 text-left">Instructors</th>
-              <th className="px-2 py-3 font-medium text-gray-500 text-left">Schedule</th>
-              <th className="px-2 py-3 font-medium text-gray-500 text-left">Participants</th>
-              <th className="px-2 py-3 font-medium text-gray-500 text-left">Status</th>
-              <th className="px-2 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {pagedData.map((program, idx) => (
-              <tr key={program.id} className={`transition hover:bg-blue-50/40 ${idx % 2 === 1 ? 'bg-gray-50' : ''}`}>
-                <td className="px-2 py-2">
-                  <div className="font-medium">{program.name}</div>
-                  <div className="text-xs text-gray-400">#{program.tags.join(' #')}</div>
-                </td>
-                <td className="px-2 py-2">
-                  <div className="flex -space-x-2">
-                    {program.instructors.map((src, i) => (
-                      <img
-                        key={i}
-                        src={src}
-                        alt="avatar"
-                        className="w-7 h-7 rounded-full border-2 border-white shadow"
-                        style={{ zIndex: 10 - i }}
-                      />
-                    ))}
-                  </div>
-                </td>
-                <td className="px-2 py-2">{program.schedule}</td>
-                <td className="px-2 py-2">{program.participants}</td>
-                <td className="px-2 py-2">
-                  <span className={`px-2 py-1 rounded-lg text-xs font-medium ${statusColor[program.status]}`} style={{ textTransform: 'capitalize' }}>{program.status.toLowerCase()}</span>
-                </td>
-                <td className="px-2 py-2 text-right">
-                  <button
-                    className="p-2 rounded-lg hover:bg-blue-50 transition text-gray-500 hover:text-blue-600"
-                    title="View details"
-                    onClick={() => navigate(`/program-management/details`)}
-                  >
-                    <EyeOutlined style={{ fontSize: 20 }} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-gray-500">Page</div>
-        <div className="flex gap-1">
-          <button
-            className="px-2 py-1 border border-gray-200 rounded-lg bg-white hover:bg-blue-50 transition disabled:opacity-50"
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-          >Prev</button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              className={`px-2 py-1 border border-gray-200 rounded-lg bg-white hover:bg-blue-50 transition ${page === i + 1 ? 'bg-blue-500 text-white hover:bg-blue-500' : ''}`}
-              onClick={() => setPage(i + 1)}
-            >{i + 1}</button>
-          ))}
-          <button
-            className="px-2 py-1 border border-gray-200 rounded-lg bg-white hover:bg-blue-50 transition disabled:opacity-50"
-            onClick={() => setPage(page + 1)}
-            disabled={page === totalPages}
-          >Next</button>
-        </div>
-      </div>
+      <Card>
+        <Suspense
+          fallback={<Spin size="large" className="w-full text-center py-8" />}
+        >
+          <ProgramTable
+            programs={paginatedPrograms}
+            loading={loading}
+            pagination={{
+              ...pagination,
+              total: sortedPrograms.length,
+            }}
+            onPageChange={handlePageChange}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            sortConfig={sortConfig}
+            onSort={handleSort}
+          />
+        </Suspense>
+      </Card>
+
+      {/* Program Modal */}
+      <Suspense fallback={<Spin size="large" />}>
+        <ProgramModal
+          visible={isModalVisible}
+          onCancel={() => setIsModalVisible(false)}
+          onOk={handleSave}
+          selectedProgram={selectedProgram}
+          isEdit={isEdit}
+          isView={isView}
+          categories={categories}
+        />
+      </Suspense>
     </div>
   )
 }

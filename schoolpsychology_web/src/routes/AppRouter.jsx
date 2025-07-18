@@ -143,6 +143,7 @@ const AppRouter = () => {
     SurveyManagement,
     CaseManagement,
     ProgramManagement,
+    ProgramDetails,
     SlotManagement,
     AppointmentDetails,
     ClassManagement,

@@ -12,3 +12,6 @@ export * from './appointmentSlice'
 
 // Class slice
 export * from './classSlice'
+
+// Program slice
+export * from './programSlice'

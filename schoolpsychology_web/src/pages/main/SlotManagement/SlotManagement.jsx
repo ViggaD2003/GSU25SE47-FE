@@ -56,8 +56,10 @@ const SlotManagement = () => {
 
   // Fetch slots on component mount
   useEffect(() => {
-    dispatch(fetchSlots())
-  }, [dispatch])
+    if (user) {
+      dispatch(fetchSlots(user?.id))
+    }
+  }, [dispatch, user])
 
   // Handle error messages
   useEffect(() => {
@@ -136,7 +138,9 @@ const SlotManagement = () => {
 
   // Handle refresh
   const handleRefresh = () => {
-    dispatch(fetchSlots())
+    if (user) {
+      dispatch(fetchSlots(user?.id))
+    }
   }
 
   // Get status badge color

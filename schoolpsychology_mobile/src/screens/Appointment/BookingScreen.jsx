@@ -38,6 +38,7 @@ import {
   hasAvailableSlots,
 } from "../../utils/slotUtils";
 import { ActivityIndicator } from "react-native-paper";
+import { log } from "console";
 
 // Extend dayjs with plugins
 dayjs.extend(utc);
@@ -293,7 +294,8 @@ const BookingScreen = ({ navigation }) => {
           try {
             const bookingData = {
               slotId: selectedSlot.id,
-              bookedForId: user?.role === "PARENTS" ? bookedForId : user?.id,
+              bookedForId:
+                user?.role === "PARENTS" ? bookedForId : user?.userId,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT
@@ -303,6 +305,8 @@ const BookingScreen = ({ navigation }) => {
               ),
               reason: reason || "Không có lý do",
             };
+
+            console.log("Booking data:", bookingData);
 
             const response = await createAppointment(bookingData);
 

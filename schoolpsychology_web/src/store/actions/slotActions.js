@@ -4,15 +4,8 @@ import { slotAPI } from '../../services/slotApi'
 // Async thunks
 export const fetchSlots = createAsyncThunk(
   'slot/fetchSlots',
-  async (_, { rejectWithValue, getState }) => {
+  async (userId, { rejectWithValue }) => {
     try {
-      const state = getState()
-      const userId = state.auth.user?.id
-
-      if (!userId) {
-        return rejectWithValue('User not authenticated')
-      }
-
       const response = await slotAPI.getSlots(userId)
       if (response.success) {
         return response.data
