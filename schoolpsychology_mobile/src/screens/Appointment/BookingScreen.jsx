@@ -16,10 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts";
 import Dropdown from "../../components/common/Dropdown";
 import SlotDayCard from "../../components/common/SlotDayCard";
-import {
-  getSlotsForStudent,
-  getSlotsWithHostById,
-} from "../../services/api/SlotService";
+import { getSlotsWithHostById } from "../../services/api/SlotService";
 import {
   getAllCounselors,
   createAppointment,
@@ -171,7 +168,7 @@ const BookingScreen = ({ navigation }) => {
       const slotsData = Array.isArray(response)
         ? response
         : response.data || [];
-      setSlots(slotsData);
+      setSlots(slotsData.filter((slot) => slot.slotType === "APPOINTMENT"));
 
       // Process and filter slots by date with time validation
       const processedGrouped = processAndFilterSlots(slotsData);

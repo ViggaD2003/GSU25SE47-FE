@@ -9,7 +9,6 @@ import {
   Card,
   Row,
   Col,
-  message,
   DatePicker,
   InputNumber,
   Switch,
@@ -20,6 +19,8 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import dayjs from 'dayjs'
 import { ProgramCreationHelper } from '@/components'
+import { programAPI } from '@/services/programApi'
+import accountApi from '@/services/accountApi'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -30,10 +31,12 @@ const ProgramModal = ({
   visible,
   onCancel,
   onOk,
+  onRefresh,
   selectedProgram,
   isEdit,
   isView,
   categories = [],
+  message,
 }) => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
@@ -42,6 +45,12 @@ const ProgramModal = ({
   const [isOnline, setIsOnline] = useState(true)
   const [startDate, setStartDate] = useState(null)
   const [showHelper, setShowHelper] = useState(false)
+  const [sessionForm] = Form.useForm()
+  const [sessionLoading, setSessionLoading] = useState(false)
+  const [counselors, setCounselors] = useState([])
+  const [sessionDate, setSessionDate] = useState(null)
+  const [programSessions, setProgramSessions] = useState([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
 
   useEffect(() => {
     if (visible && selectedProgram) {
@@ -73,6 +82,34 @@ const ProgramModal = ({
     }
   }, [visible, selectedProgram, form])
 
+  // Fetch counselors and sessions when modal opens in edit mode
+  useEffect(() => {
+    if (visible && isEdit && selectedProgram) {
+      const fetchData = async () => {
+        // Fetch counselors
+        const counselorData = await accountApi.getCounselors()
+        if (counselorData) {
+          setCounselors(counselorData)
+        }
+
+        // Fetch program sessions
+        setSessionsLoading(true)
+        try {
+          const sessionsData = await programAPI.getProgramSessions(
+            selectedProgram.id
+          )
+          setProgramSessions(sessionsData.data || [])
+        } catch (error) {
+          console.error('Error fetching program sessions:', error)
+          setProgramSessions([])
+        } finally {
+          setSessionsLoading(false)
+        }
+      }
+      fetchData()
+    }
+  }, [visible, isEdit, selectedProgram])
+
   const handleOk = async () => {
     if (isView) {
       onCancel()
@@ -91,7 +128,7 @@ const ProgramModal = ({
         startDate: values.dateRange[0].format('YYYY-MM-DD'),
         endDate: values.dateRange[1].format('YYYY-MM-DD'),
         isOnline: values.isOnline,
-        status: values.status,
+        status: 'UPCOMING',
         location: values.location || '',
         categoryId: values.categoryId,
       }
@@ -108,7 +145,58 @@ const ProgramModal = ({
 
   const handleCancel = () => {
     form.resetFields()
+    sessionForm.resetFields()
+    setSessionDate(null)
+    setProgramSessions([])
+    setCounselors([])
+    setSessionsLoading(false)
     onCancel()
+  }
+
+  const handleCreateSession = async () => {
+    try {
+      setSessionLoading(true)
+      const values = await sessionForm.validateFields()
+
+      const sessionData = {
+        supportProgramId: selectedProgram?.id,
+        topic: values.topic,
+        description: values.sessionDescription,
+        status: 'UPCOMING',
+        date: values.sessionDate.format('YYYY-MM-DD'),
+        createSlotRequest: {
+          slotName: values.slotName,
+          startDateTime: dayjs(values.startDateTime).format(
+            'YYYY-MM-DDTHH:mm:ss'
+          ),
+          endDateTime: dayjs(values.endDateTime).format('YYYY-MM-DDTHH:mm:ss'),
+          status: 'PUBLISHED',
+          hostById: values.hostBy,
+          type: 'PROGRAM',
+        },
+      }
+
+      await programAPI.postProgramSession(sessionData)
+      message.success(t('programManagement.form.sessionCreatedSuccess'))
+      sessionForm.resetFields()
+      setSessionDate(null)
+
+      // Refresh sessions list
+      try {
+        const sessionsData = await programAPI.getProgramSessions(
+          selectedProgram.id
+        )
+        setProgramSessions(sessionsData.data || [])
+        onRefresh()
+      } catch (error) {
+        console.error('Error refreshing sessions:', error)
+      }
+    } catch (error) {
+      console.error('Error creating session:', error)
+      message.error(t('programManagement.form.sessionCreatedError'))
+    } finally {
+      setSessionLoading(false)
+    }
   }
 
   const getModalTitle = () => {
@@ -185,6 +273,97 @@ const ProgramModal = ({
   const disabledDate = current => {
     const minDate = dayjs().add(5, 'day')
     return current && current < minDate.startOf('day')
+  }
+
+  // Disable dates outside program duration for session date
+  const disabledSessionDate = current => {
+    if (
+      !selectedProgram ||
+      !selectedProgram.startDate ||
+      !selectedProgram.endDate
+    ) {
+      return false
+    }
+
+    const programStartDate = dayjs(selectedProgram.startDate).startOf('day')
+    const programEndDate = dayjs(selectedProgram.endDate).endOf('day')
+
+    // Check if date is outside program duration
+    const outsideProgramDuration =
+      current && (current < programStartDate || current > programEndDate)
+
+    // Check if date already has a session
+    const hasExistingSession = programSessions.some(session => {
+      if (!session.date) return false
+      const sessionDate = dayjs(session.date).startOf('day')
+      return current && current.isSame(sessionDate, 'day')
+    })
+
+    return outsideProgramDuration || hasExistingSession
+  }
+
+  // Validate session date within program duration
+  const validateSessionDate = (_, value) => {
+    if (!value) {
+      return Promise.resolve()
+    }
+
+    if (
+      !selectedProgram ||
+      !selectedProgram.startDate ||
+      !selectedProgram.endDate
+    ) {
+      return Promise.resolve()
+    }
+
+    const sessionDate = dayjs(value)
+    const programStartDate = dayjs(selectedProgram.startDate)
+    const programEndDate = dayjs(selectedProgram.endDate)
+
+    // Check if date is within program duration
+    if (
+      sessionDate.isBefore(programStartDate, 'day') ||
+      sessionDate.isAfter(programEndDate, 'day')
+    ) {
+      return Promise.reject(
+        new Error(t('programManagement.form.sessionDateInvalid'))
+      )
+    }
+
+    // Check if date already has a session
+    const hasExistingSession = programSessions.some(session => {
+      if (!session.date) return false
+      const existingSessionDate = dayjs(session.date).startOf('day')
+      return sessionDate.isSame(existingSessionDate, 'day')
+    })
+
+    if (hasExistingSession) {
+      return Promise.reject(
+        new Error(t('programManagement.form.sessionDateExists'))
+      )
+    }
+
+    return Promise.resolve()
+  }
+
+  // Handle session date change and auto-generate slot times
+  const handleSessionDateChange = date => {
+    setSessionDate(date)
+    if (date) {
+      // Set fixed time: 6:00 PM to 8:00 PM
+      const startDateTime = dayjs(date).hour(18).minute(0).second(0)
+      const endDateTime = dayjs(date).hour(20).minute(0).second(0)
+
+      sessionForm.setFieldsValue({
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
+      })
+    } else {
+      sessionForm.setFieldsValue({
+        startDateTime: null,
+        endDateTime: null,
+      })
+    }
   }
 
   return (
@@ -436,6 +615,329 @@ const ProgramModal = ({
             )}
           </Row>
         </Card>
+
+        {/* Session Creation - Only show in edit mode */}
+        {isEdit && selectedProgram && (
+          <Card
+            title={t('programManagement.form.sessionCreation')}
+            size="small"
+            className={`mb-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+          >
+            <Row gutter={24}>
+              {/* Session Form - Left Side */}
+              <Col span={14}>
+                <Form
+                  form={sessionForm}
+                  layout="vertical"
+                  onFinish={handleCreateSession}
+                >
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.topic')}
+                        name="topic"
+                        rules={[
+                          {
+                            required: true,
+                            message: t('programManagement.form.topicRequired'),
+                          },
+                        ]}
+                      >
+                        <Input
+                          placeholder={t(
+                            'programManagement.form.topicPlaceholder'
+                          )}
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.sessionDate')}
+                        name="sessionDate"
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'programManagement.form.sessionDateRequired'
+                            ),
+                          },
+                          {
+                            validator: validateSessionDate,
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          size="large"
+                          style={{ width: '100%' }}
+                          format="DD/MM/YYYY"
+                          disabledDate={disabledSessionDate}
+                          onChange={handleSessionDateChange}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item
+                    label={t('programManagement.form.sessionDescription')}
+                    name="sessionDescription"
+                    rules={[
+                      {
+                        required: true,
+                        message: t(
+                          'programManagement.form.sessionDescriptionRequired'
+                        ),
+                      },
+                    ]}
+                  >
+                    <TextArea
+                      placeholder={t(
+                        'programManagement.form.sessionDescriptionPlaceholder'
+                      )}
+                      rows={3}
+                      size="large"
+                    />
+                  </Form.Item>
+
+                  <Text strong className="block mb-3">
+                    {t('programManagement.form.slotDetails')}
+                  </Text>
+
+                  {sessionDate && (
+                    <div className="mb-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <Text className="text-yellow-700">
+                        ⏰ {t('programManagement.form.fixedTimeInfo')}
+                      </Text>
+                    </div>
+                  )}
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.slotName')}
+                        name="slotName"
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'programManagement.form.slotNameRequired'
+                            ),
+                          },
+                        ]}
+                      >
+                        <Input
+                          placeholder={t(
+                            'programManagement.form.slotNamePlaceholder'
+                          )}
+                          size="large"
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.hostBy')}
+                        name="hostBy"
+                        rules={[
+                          {
+                            required: true,
+                            message: t('programManagement.form.hostByRequired'),
+                          },
+                        ]}
+                      >
+                        <Select
+                          placeholder={t(
+                            'programManagement.form.hostByPlaceholder'
+                          )}
+                          size="large"
+                          showSearch
+                          loading={!counselors || counselors.length === 0}
+                          notFoundContent={
+                            !counselors || counselors.length === 0
+                              ? 'Loading counselors...'
+                              : 'No counselors found'
+                          }
+                          filterOption={(input, option) =>
+                            option.children
+                              .toLowerCase()
+                              .indexOf(input.toLowerCase()) >= 0
+                          }
+                        >
+                          {counselors.map(counselor => (
+                            <Option key={counselor.id} value={counselor.id}>
+                              {counselor.fullName} ({counselor.email})
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.startDateTime')}
+                        name="startDateTime"
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'programManagement.form.startDateTimeRequired'
+                            ),
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          showTime
+                          size="large"
+                          style={{ width: '100%' }}
+                          format="DD/MM/YYYY HH:mm"
+                          disabled={true}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label={t('programManagement.form.endDateTime')}
+                        name="endDateTime"
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'programManagement.form.endDateTimeRequired'
+                            ),
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          showTime
+                          size="large"
+                          style={{ width: '100%' }}
+                          format="DD/MM/YYYY HH:mm"
+                          disabled={true}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      loading={sessionLoading}
+                      size="large"
+                      className="w-full"
+                      onClick={handleCreateSession}
+                    >
+                      {t('programManagement.form.createSession')}
+                    </Button>
+                  </Form.Item>
+                </Form>
+              </Col>
+
+              {/* Session Info - Right Side */}
+              <Col span={10}>
+                <div className="space-y-4">
+                  {/* Program Info */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <Text strong className="block mb-3 text-blue-700">
+                      {t('programManagement.form.sessionInfo')}
+                    </Text>
+                    <div className="space-y-3">
+                      <div className="text-sm text-gray-600">
+                        <Text strong>Program:</Text> {selectedProgram?.name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <Text strong>Category:</Text>{' '}
+                        {selectedProgram?.category?.name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <Text strong>Duration:</Text>{' '}
+                        {selectedProgram?.startDate && selectedProgram?.endDate
+                          ? `${dayjs(selectedProgram.startDate).format('DD/MM/YYYY')} - ${dayjs(selectedProgram.endDate).format('DD/MM/YYYY')}`
+                          : 'N/A'}
+                      </div>
+                      <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded border border-blue-200">
+                        <Text strong>⚠️ Important:</Text> Session date must be
+                        within program duration
+                      </div>
+                      <div className="text-sm text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                        <Text strong>👥 Available Counselors:</Text>{' '}
+                        {counselors?.length || 0} counselors available
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <Text strong>Max Participants:</Text>{' '}
+                        {selectedProgram?.maxParticipants}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <Text strong>Type:</Text>{' '}
+                        {selectedProgram?.isOnline ? 'Online' : 'Offline'}
+                      </div>
+                      {!selectedProgram?.isOnline &&
+                        selectedProgram?.location && (
+                          <div className="text-sm text-gray-600">
+                            <Text strong>Location:</Text>{' '}
+                            {selectedProgram.location}
+                          </div>
+                        )}
+                    </div>
+                  </div>
+
+                  {/* Existing Sessions */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <Text strong className="block mb-3 text-gray-700">
+                      📅 {t('programManagement.form.existingSessions')} (
+                      {programSessions.length})
+                    </Text>
+                    {programSessions.length > 0 && (
+                      <div className="mb-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+                        <Text className="text-xs text-yellow-700">
+                          ⚠️ {t('programManagement.form.disabledDatesWarning')}
+                        </Text>
+                      </div>
+                    )}
+                    {sessionsLoading ? (
+                      <div className="text-center text-gray-500">
+                        {t('programManagement.form.loadingSessions')}
+                      </div>
+                    ) : programSessions.length > 0 ? (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {programSessions.map((session, index) => (
+                          <div
+                            key={session.id || index}
+                            className="p-2 bg-white rounded border border-gray-200 border-l-4 border-l-red-400"
+                          >
+                            <div className="text-sm font-medium text-gray-800">
+                              {session.topic ||
+                                `${t('programManagement.form.sessionItem')} ${index + 1}`}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              📅{' '}
+                              <span className="font-medium text-red-600">
+                                {session.date
+                                  ? dayjs(session.date).format('DD/MM/YYYY')
+                                  : 'No date'}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              ⏰ 6:00 PM - 8:00 PM
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              👤{' '}
+                              {session.createSlotRequest?.hostById || 'No host'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-500 text-sm">
+                        {t('programManagement.form.noSessionsYet')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end pt-4 border-t border-gray-200">

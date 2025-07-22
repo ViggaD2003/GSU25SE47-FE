@@ -28,4 +28,19 @@ export const programAPI = {
     const response = await api.delete(`/api/v1/support-programs/${programId}`)
     return response.data
   },
+
+  postProgramSession: async programSessionData => {
+    const response = await api.post(
+      '/api/v1/program-sessions',
+      programSessionData
+    )
+    return response.data
+  },
+
+  getProgramSessions: async programId => {
+    const response = await api.get(
+      `/api/v1/program-sessions/programs/${programId}`
+    )
+    return response.data
+  },
 }

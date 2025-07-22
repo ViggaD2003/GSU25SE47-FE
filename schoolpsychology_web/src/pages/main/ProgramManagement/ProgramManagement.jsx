@@ -265,6 +265,14 @@ const ProgramManagement = () => {
     [dispatch, t, messageApi]
   )
 
+  //Handle close modal
+  const handleCloseModal = useCallback(() => {
+    setIsModalVisible(false)
+    setSelectedProgram(null)
+    setIsEdit(false)
+    setIsView(false)
+  }, [])
+
   // Handle save program (create/update)
   const handleSave = useCallback(
     async programData => {
@@ -281,7 +289,7 @@ const ProgramManagement = () => {
           await dispatch(createProgram(programData)).unwrap()
           messageApi.success(t('programManagement.messages.createSuccess'))
         }
-        setIsModalVisible(false)
+        handleCloseModal()
         dispatch(getAllPrograms()) // Refresh list
       } catch {
         const errorMessage = isEdit
@@ -470,12 +478,14 @@ const ProgramManagement = () => {
       <Suspense fallback={<Spin size="large" />}>
         <ProgramModal
           visible={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={handleCloseModal}
+          onRefresh={handleRefresh}
           onOk={handleSave}
           selectedProgram={selectedProgram}
           isEdit={isEdit}
           isView={isView}
           categories={categories}
+          message={messageApi}
         />
       </Suspense>
     </div>
