@@ -7,6 +7,7 @@ import {
   AppstoreOutlined,
   ClockCircleOutlined,
   TeamOutlined,
+  ExperimentOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -97,6 +98,13 @@ export const ROUTE_CONFIG = [
     allowedRoles: ['manager'],
     element: 'CategoryManagement',
   },
+  // {
+  //   key: '/assessment-demo',
+  //   icon: ExperimentOutlined,
+  //   labelKey: 'navigation.assessmentDemo',
+  //   allowedRoles: ['manager', 'teacher', 'counselor'],
+  //   element: 'AssessmentDemo',
+  // },
 ]
 
 // Helper: Tạo object role -> [route] cho permission

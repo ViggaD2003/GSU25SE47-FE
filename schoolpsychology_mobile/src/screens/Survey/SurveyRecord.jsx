@@ -27,49 +27,47 @@ const SurveyRecord = ({ navigation }) => {
   const [allSurveyRecords, setAllSurveyRecords] = useState([]);
   const [surveyRecords, setSurveyRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
     type: "info",
   });
-  const [page, setPage] = useState(1); // Current page number
-  useEffect(() => {
-    fetchSurveyRecords();
-  }, []);
+  const [page, setPage] = useState(1);
+  const [hasMoreData, setHasMoreData] = useState(true);
 
-  const fetchSurveyRecords = async () => {
+  const fetchSurveyRecords = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getSurveyRecords();
-      if (response.data) {
-        // console.log("get success");
-
-        const allSurveyRecords = response.data.filter(
-          (record) => record.status === "COMPLETED"
-        );
-
-        setAllSurveyRecords(allSurveyRecords || []);
-        const surveyRecords = allSurveyRecords.slice(0, PAGE_SIZE);
-
-        // Wait for all promises to resolve
-        setSurveyRecords(surveyRecords || []);
-      } else {
-        showToast("Không thể tải dữ liệu khảo sát", "error");
-      }
+      const recordData = Array.isArray(response)
+        ? response
+        : response.data || [];
+      setAllSurveyRecords(recordData || []);
+      const initialRecords = recordData.slice(0, PAGE_SIZE);
+      setSurveyRecords(initialRecords || []);
+      setPage(1);
+      setHasMoreData(recordData.length > PAGE_SIZE);
     } catch (error) {
       console.error("Error fetching survey records:", error);
       showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchSurveyRecords();
+  }, [fetchSurveyRecords]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    setPage(1);
+    setHasMoreData(true);
     await fetchSurveyRecords();
     setRefreshing(false);
-  }, []);
+  }, [fetchSurveyRecords]);
 
   // Load data when screen comes into focus
   useFocusEffect(
@@ -111,70 +109,96 @@ const SurveyRecord = ({ navigation }) => {
     [navigation]
   );
 
-  const renderSurveyRecord = (record) => (
-    <TouchableOpacity
-      key={record.id}
-      style={styles.recordCard}
-      onPress={() => handleViewResult(record)}
-    >
-      <View style={styles.recordHeader}>
-        <View style={styles.recordIcon}>
-          <Ionicons name="document-text" size={24} color="#3B82F6" />
-        </View>
-        <View style={styles.recordInfo}>
-          <Text style={styles.recordTitle}>{record.survey.name}</Text>
-          <Text style={styles.recordDate}>
-            Hoàn thành: {formatDate(record.completedAt)}
-          </Text>
-        </View>
-        <View style={styles.scoreContainer}>
-          <View
-            style={[styles.scoreCircle, { borderColor: getScoreColor(record) }]}
-          >
-            <Text style={[styles.scoreText, { color: getScoreColor(record) }]}>
-              {record.totalScore}
+  const renderSurveyRecord = useCallback(
+    ({ item: record }) => (
+      <TouchableOpacity
+        style={styles.recordCard}
+        onPress={() => handleViewResult(record)}
+      >
+        <View style={styles.recordHeader}>
+          <View style={styles.recordIcon}>
+            <Ionicons name="document-text" size={24} color="#3B82F6" />
+          </View>
+          <View style={styles.recordInfo}>
+            <Text style={styles.recordTitle}>{record.survey.name}</Text>
+            <Text style={styles.recordDate}>
+              Hoàn thành: {formatDate(record.completedAt)}
             </Text>
           </View>
+          <View style={styles.scoreContainer}>
+            <View
+              style={[
+                styles.scoreCircle,
+                { borderColor: getScoreColor(record) },
+              ]}
+            >
+              <Text
+                style={[styles.scoreText, { color: getScoreColor(record) }]}
+              >
+                {record.totalScore}
+              </Text>
+            </View>
+          </View>
         </View>
-      </View>
 
-      <View style={styles.recordDetails}>
-        <View style={styles.scoreInfo}>
-          <Ionicons
-            name={getScoreIcon(record)}
-            size={20}
-            color={getScoreColor(record)}
-          />
-          <Text style={[styles.scoreLevel, { color: getScoreColor(record) }]}>
-            {getScoreLevel(record)}
-          </Text>
-        </View>
-
-        {record.noteSuggest && (
-          <View style={styles.suggestionContainer}>
-            <Text style={styles.suggestionText} numberOfLines={2}>
-              {record.noteSuggest}
+        <View style={styles.recordDetails}>
+          <View style={styles.scoreInfo}>
+            <Ionicons
+              name={getScoreIcon(record)}
+              size={20}
+              color={getScoreColor(record)}
+            />
+            <Text style={[styles.scoreLevel, { color: getScoreColor(record) }]}>
+              {getScoreLevel(record)}
             </Text>
           </View>
-        )}
-      </View>
 
-      <View style={styles.recordFooter}>
-        <Text style={styles.viewResultText}>Xem chi tiết</Text>
-        <Ionicons name="chevron-forward" size={16} color="#6B7280" />
-      </View>
-    </TouchableOpacity>
+          {record.noteSuggest && (
+            <View style={styles.suggestionContainer}>
+              <Text style={styles.suggestionText} numberOfLines={2}>
+                {record.noteSuggest}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.recordFooter}>
+          <Text style={styles.viewResultText}>Xem chi tiết</Text>
+          <Ionicons name="chevron-forward" size={16} color="#6B7280" />
+        </View>
+      </TouchableOpacity>
+    ),
+    [handleViewResult]
   );
 
-  const loadMore = () => {
-    if (loading) return;
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasMoreData || loading) return;
+
+    setLoadingMore(true);
     const nextPage = page + 1;
-    const nextRecords = allSurveyRecords.slice(0, nextPage * PAGE_SIZE);
-    if (nextRecords.length > surveyRecords.length) {
-      setSurveyRecords(nextRecords);
-      setPage(nextPage);
-    }
-  };
+    const startIndex = 0;
+    const endIndex = nextPage * PAGE_SIZE;
+    const nextRecords = allSurveyRecords.slice(startIndex, endIndex);
+
+    // Simulate network delay for smooth UX
+    setTimeout(() => {
+      if (nextRecords.length > surveyRecords.length) {
+        setSurveyRecords(nextRecords);
+        setPage(nextPage);
+        setHasMoreData(nextRecords.length < allSurveyRecords.length);
+      } else {
+        setHasMoreData(false);
+      }
+      setLoadingMore(false);
+    }, 500);
+  }, [
+    loadingMore,
+    hasMoreData,
+    loading,
+    page,
+    allSurveyRecords,
+    surveyRecords.length,
+  ]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -190,8 +214,9 @@ const SurveyRecord = ({ navigation }) => {
       <FlatList
         data={surveyRecords}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => renderSurveyRecord(item)}
+        renderItem={renderSurveyRecord}
         contentContainerStyle={{ padding: 20 }}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           !loading && (
             <View style={styles.emptyContainer}>
@@ -237,19 +262,49 @@ const SurveyRecord = ({ navigation }) => {
           )
         }
         onEndReached={loadMore}
-        onEndReachedThreshold={0.2}
+        onEndReachedThreshold={0.3}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-        ListFooterComponent={
-          loading && (
-            <ActivityIndicator
-              style={{ marginVertical: 16 }}
-              size={30}
-              color={GlobalStyles.colors.primary}
-            />
-          )
-        }
+        ListFooterComponent={() => {
+          if (loading && surveyRecords.length === 0) {
+            return (
+              <ActivityIndicator
+                style={{ marginVertical: 32 }}
+                size="large"
+                color={GlobalStyles.colors.primary}
+              />
+            );
+          }
+
+          if (loadingMore && hasMoreData) {
+            return (
+              <View style={styles.loadingMoreContainer}>
+                <ActivityIndicator
+                  size="small"
+                  color={GlobalStyles.colors.primary}
+                />
+                <Text style={styles.loadingMoreText}>Đang tải thêm...</Text>
+              </View>
+            );
+          }
+
+          if (
+            !hasMoreData &&
+            surveyRecords.length > 0 &&
+            allSurveyRecords.length > PAGE_SIZE
+          ) {
+            return (
+              <View style={styles.endOfListContainer}>
+                <Text style={styles.endOfListText}>
+                  Đã hiển thị tất cả {allSurveyRecords.length} kết quả
+                </Text>
+              </View>
+            );
+          }
+
+          return null;
+        }}
       />
 
       {/* Toast */}
@@ -467,6 +522,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: GlobalStyles.colors.primary,
     fontWeight: "500",
+  },
+  loadingMoreContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+  },
+  loadingMoreText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: "#6B7280",
+  },
+  endOfListContainer: {
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  endOfListText: {
+    fontSize: 14,
+    color: "#6B7280",
   },
 });
 

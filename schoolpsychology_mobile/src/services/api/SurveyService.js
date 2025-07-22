@@ -1,26 +1,51 @@
 import api from "./axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentUser } from "../auth/AuthService";
+import { surveyRecords, surveys } from "@/constants";
 
 export const getPublishedSurveys = async () => {
   try {
-    const response = await api.get("/api/v1/survey/published");
-    return response.data;
+    // const response = await api.get("/api/v1/survey/published");
+    const data = surveys.filter((survey) => survey.status === "PUBLISHED");
+    return data;
   } catch (err) {
     console.error("Lỗi khi lấy survey đã publish:", err);
     throw err;
   }
 };
 
+//Get survey by surveyId
+export const getSurveyById = async (surveyId) => {
+  try {
+    const data = surveys.find((survey) => survey.id === surveyId);
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
+    throw error;
+  }
+};
+
 //Get survey records
 export const getSurveyRecords = async () => {
   try {
-    const response = await api.get(
-      "/api/v1/survey-records?field=completedAt&direction=desc"
-    );
-    return response.data;
+    // const response = await api.get(
+    //   "/api/v1/survey-records?field=completedAt&direction=desc"
+    // );
+    const data = surveyRecords;
+    return data;
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu khảo sát:", error);
+    throw error;
+  }
+};
+
+//Get survey record by surveyRecordId
+export const getSurveyRecordById = async (surveyRecordId) => {
+  try {
+    const data = surveyRecords.find((record) => record.id === surveyRecordId);
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
     throw error;
   }
 };
@@ -32,28 +57,6 @@ export const postSurveyResult = async (result) => {
     return response.data;
   } catch (error) {
     console.error("Lỗi khi gửi kết quả khảo sát:", error);
-    throw error;
-  }
-};
-
-// Get survey result by surveyRecordId
-export const getSurveyResult = async (surveyRecordId) => {
-  try {
-    const response = await api.get(`/api/v1/survey-records/${surveyRecordId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi lấy kết quả khảo sát:", error);
-    throw error;
-  }
-};
-
-//Get survey by surveyId
-export const getSurveyDetail = async (surveyId) => {
-  try {
-    const response = await api.get(`/api/v1/survey/${surveyId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
     throw error;
   }
 };

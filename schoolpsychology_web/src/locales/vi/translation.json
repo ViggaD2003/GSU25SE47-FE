@@ -17,6 +17,7 @@
     "classManagement": "Quản lý lớp học",
     "caseManagement": "Ca tư vấn",
     "categoryManagement": "Quản lý danh mục",
+    "assessmentDemo": "Phòng thí nghiệm đánh giá",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
   },
@@ -284,8 +285,11 @@
     "description": "Quản lý giờ làm và thông tin của họ",
     "refresh": "Làm mới",
     "publish": "Xuất bản",
+    "publishSlot": "Quản lý xuất bản giờ làm",
     "addSlot": "Tạo giờ làm mới",
     "search": "Tìm kiếm giờ làm...",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
     "table": {
       "slotName": "Tên giờ làm",
       "type": "Loại",
@@ -320,7 +324,21 @@
       "startDateTimeHelp": "Vui lòng chọn ngày và giờ bắt đầu từ hiện tại trở đi. Thời gian hiển thị theo giờ Việt Nam (GMT+7).",
       "durationHelp": "Thời lượng phải là số nguyên (tối thiểu 1 giờ). Giờ kết thúc phải sau giờ bắt đầu và ở tương lai.",
       "lunchBreakHelp": "Giờ nghỉ trưa từ 12:00 đến 13:00. Tư vấn viên chỉ được đặt giờ làm từ 08:00 đến 12:00.",
-      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)"
+      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
+      "counselorInfo": "Tạo giờ làm cho tư vấn viên",
+      "counselorDescription": "Chọn ngày để tự động tạo giờ làm buổi sáng (8:00-12:00) và buổi chiều (14:00-17:00).",
+      "selectDate": "Chọn ngày",
+      "dateRequired": "Vui lòng chọn ngày",
+      "counselorDateHelp": "Buổi sáng: 8:00-12:00, Buổi chiều: 14:00-17:00",
+      "datePlaceholder": "Chọn ngày",
+      "endDateTimeRequired": "Vui lòng chọn ngày và giờ kết thúc",
+      "endDateTimeHelp": "Chọn giờ kết thúc. Phải cùng ngày với giờ bắt đầu và ít nhất sau 1 tiếng. Chỉ được chọn 00 hoặc 30 phút.",
+      "editTimeOnlyNote": "Lưu ý: Bạn chỉ có thể chỉnh sửa thời gian trong ngày gốc",
+      "startDateTimeHelp": "Chọn giờ bắt đầu ít nhất 1 ngày từ bây giờ. Không được chọn Chủ Nhật. Khung giờ: 8:00-17:00. Chỉ được chọn 00 hoặc 30 phút."
+    },
+    "period": {
+      "morning": "Buổi sáng",
+      "afternoon": "Buổi chiều"
     },
     "preview": {
       "title": "Xem trước giờ làm",
@@ -330,7 +348,11 @@
       "duration": "Thời lượng",
       "hours": "giờ",
       "host": "Người phụ trách",
-      "deleteConfirm": "Bạn có chắc chắn muốn xóa giờ làm này?"
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa giờ làm này?",
+      "deleteDay": "Xóa cả ngày",
+      "deleteDayConfirm": "Bạn có chắc chắn muốn xóa tất cả các giờ làm trong ngày này?",
+      "expand": "Mở rộng",
+      "collapse": "Thu gọn"
     },
     "typeOptions": {
       "appointment": "Cuộc hẹn",
@@ -341,6 +363,10 @@
       "draft": "Nháp",
       "closed": "Đã đóng"
     },
+    "status": {
+      "conflict": "Trùng lịch",
+      "hasConflicts": "Có trùng lịch"
+    },
     "messages": {
       "createSuccess": "Tạo giờ làm thành công",
       "createError": "Tạo giờ làm thất bại",
@@ -348,24 +374,59 @@
       "validationError": "Vui lòng kiểm tra thông tin nhập",
       "slotAdded": "Thêm giờ làm vào xem trước thành công",
       "slotRemoved": "Xóa giờ làm khỏi xem trước thành công",
+      "dayRemoved": "Đã xóa tất cả giờ làm của ngày đã chọn",
       "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
       "slotUpdated": "Cập nhật giờ làm thành công",
-      "publishSuccess": "Xuất bản giờ làm thành công"
+      "updateError": "Không thể cập nhật slot. Vui lòng thử lại",
+      "publishSuccess": "Xuất bản giờ làm thành công",
+      "publishError": "Xuất bản giờ làm thất bại",
+      "slotsGenerated": "Tạo giờ làm buổi sáng và chiều thành công",
+      "generateError": "Lỗi khi tạo giờ làm"
     },
     "validation": {
-      "startTimeBeforeEndTime": "Giờ bắt đầu phải trước giờ kết thúc",
-      "startTimeAfterNow": "Giờ bắt đầu phải là hiện tại hoặc tương lai",
-      "endTimeAfterNow": "Giờ kết thúc phải ở tương lai",
+      "startTimeBeforeEndTime": "Thời gian bắt đầu phải trước thời gian kết thúc",
+      "startTimeAfterNow": "Thời gian bắt đầu phải là hiện tại hoặc tương lai",
+      "endTimeAfterNow": "Thời gian kết thúc phải ở tương lai",
       "durationMin": "Thời lượng phải ít nhất 1 giờ",
       "durationInteger": "Thời lượng phải là số nguyên",
-      "endTimeBefore17": "Giờ kết thúc không được sau 17:00",
-      "startTimeAfter8": "Giờ bắt đầu không được trước 08:00",
+      "endTimeBefore17": "Thời gian kết thúc không được sau 17:00",
+      "startTimeAfter8": "Thời gian bắt đầu không được trước 08:00",
       "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
-      "managerProgramOnly": "Quản lý chỉ được tạo giờ làm loại CHƯƠNG TRÌNH cho người khác",
+      "managerProgramOnly": "Quản lý chỉ có thể xuất bản slot, không thể tạo mới",
       "staffAppointmentOnly": "Nhân viên chỉ được tạo giờ làm loại CUỘC HẸN cho chính họ",
-      "conflictDetails": "Giờ làm trùng với giờ làm đã có"
+      "conflictDetails": "Giờ làm trùng với giờ làm đã có",
+      "counselorTimeSlots": "Tư vấn viên phải tạo slot vào buổi sáng (8:00-12:00) hoặc buổi chiều (14:00-17:00)",
+      "counselorMorningExists": "Đã tồn tại slot buổi sáng (8:00-12:00) cho ngày này",
+      "counselorAfternoonExists": "Đã tồn tại slot buổi chiều (14:00-17:00) cho ngày này",
+      "counselorMaxSlots": "Tư vấn viên chỉ được tạo 2 slot mỗi ngày",
+      "startTimeOneDayAfter": "Thời gian bắt đầu phải ít nhất 1 ngày từ bây giờ",
+      "noSunday": "Không được tạo slot vào Chủ Nhật",
+      "sameDay": "Thời gian bắt đầu và kết thúc phải trong cùng một ngày",
+      "endAfterStart": "Thời gian kết thúc phải sau thời gian bắt đầu",
+      "minimumOneHour": "Thời lượng tối thiểu là 1 tiếng",
+      "timeRange": "Thời gian phải trong khoảng 8:00-17:00",
+      "minuteRestriction": "Chỉ được chọn 00 hoặc 30 phút",
+      "counselorTimeRestriction": "Tư vấn viên không được tạo slot trong khung 12:00-14:00",
+      "counselorDateExists": "Ngày này đã có slot. Vui lòng chọn ngày khác hoặc xóa các slot hiện có trước.",
+      "endTimeExceedsLimit": "Không thể đặt giờ kết thúc sau 17:00. Vui lòng chọn giờ bắt đầu sớm hơn."
+    },
+    "rules": {
+      "title": "Quy Tắc Tạo Slot",
+      "timeRestrictions": "Ràng Buộc Thời Gian",
+      "minimumAdvance": "Phải tạo trước ít nhất 1 ngày",
+      "noSundays": "Không được tạo slot vào Chủ Nhật",
+      "timeRange": "Khung giờ cho phép: 8:00 - 17:00",
+      "minuteOptions": "Chỉ được chọn 00 hoặc 30 phút",
+      "minimumDuration": "Thời lượng tối thiểu: 1 tiếng",
+      "sameDay": "Thời gian bắt đầu và kết thúc phải cùng ngày",
+      "counselorSpecific": "Quy Tắc Tư Vấn Viên",
+      "counselorLunchBreak": "Không được tạo slot trong khung 12:00-14:00 (giờ nghỉ trưa)",
+      "counselorAutoSlots": "Chọn ngày sẽ tự động tạo slot buổi sáng (8:00-12:00) và buổi chiều (14:00-17:00)",
+      "smartSelection": "Chọn Thông Minh",
+      "smartDateLock": "Chọn một thời gian sẽ khóa thời gian kia về cùng ngày",
+      "smartTimeRestriction": "Thời gian có sẵn tự động điều chỉnh theo yêu cầu tối thiểu 1 tiếng"
     }
   },
   "surveyManagement": {
@@ -487,7 +548,16 @@
     "loading": "Đang tải...",
     "view": "Xem",
     "delete": "Xóa",
-    "total": "Tổng"
+    "total": "Tổng",
+    "weekdays": {
+      "monday": "Thứ Hai",
+      "tuesday": "Thứ Ba",
+      "wednesday": "Thứ Tư",
+      "thursday": "Thứ Năm",
+      "friday": "Thứ Sáu",
+      "saturday": "Thứ Bảy",
+      "sunday": "Chủ Nhật"
+    }
   },
   "classManagement": {
     "title": "Quản lý lớp học",

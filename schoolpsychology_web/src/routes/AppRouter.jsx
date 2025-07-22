@@ -133,6 +133,10 @@ const CategoryManagement = createLazyComponent(
   () => import('@/pages/main/CategoryManagement/CategoryManagement'),
   'CategoryManagement'
 )
+const AssessmentDemo = createLazyComponent(
+  () => import('@/pages/demo/AssessmentDemo'),
+  'AssessmentDemo'
+)
 
 const AppRouter = () => {
   const elementMap = {
@@ -148,6 +152,7 @@ const AppRouter = () => {
     AppointmentDetails,
     ClassManagement,
     CategoryManagement,
+    AssessmentDemo,
   }
 
   return (

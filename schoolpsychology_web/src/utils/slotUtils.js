@@ -7,9 +7,10 @@ import dayjs from 'dayjs'
  * @param {string} slotType - Type of slot (APPOINTMENT/PROGRAM)
  * @param {string} userRole - User role (MANAGER/COUNSELOR/TEACHER)
  * @param {Function} t - Translation function
+ * @param {Array} existingSlots - Array of existing slots for the same day
  * @returns {string|null} Error message or null if valid
  */
-export const validateSlot = (start, end, slotType, userRole, t) => {
+export const validateSlot = (start, end, userRole, t, existingSlots = []) => {
   // Check if start time is before end time
   if (start.isAfter(end) || start.isSame(end)) {
     return t('slotManagement.validation.startTimeBeforeEndTime')
@@ -38,28 +39,59 @@ export const validateSlot = (start, end, slotType, userRole, t) => {
     return t('slotManagement.validation.startTimeAfter8')
   }
 
-  // Check lunch break conflict for counselors
-  if (userRole === 'COUNSELOR') {
-    const startTime = start.format('HH:mm')
-    const endTime = end.format('HH:mm')
-    if (
-      (startTime <= '12:00' && endTime > '12:00') ||
-      (startTime < '13:00' && endTime >= '13:00')
-    ) {
-      return t('slotManagement.validation.lunchBreakConflict')
-    }
-  }
-
-  // Check role-based restrictions
-  if (userRole === 'MANAGER' && slotType !== 'PROGRAM') {
+  // Manager cannot create slots
+  if (userRole === 'MANAGER') {
     return t('slotManagement.validation.managerProgramOnly')
   }
 
-  if (
-    (userRole === 'COUNSELOR' || userRole === 'TEACHER') &&
-    slotType !== 'APPOINTMENT'
-  ) {
-    return t('slotManagement.validation.staffAppointmentOnly')
+  // Get existing slots for the same day
+  const sameDay = existingSlots.filter(slot => {
+    const slotDate = dayjs(slot.startDateTime).format('YYYY-MM-DD')
+    const newSlotDate = start.format('YYYY-MM-DD')
+    return slotDate === newSlotDate
+  })
+
+  // Counselor specific validations
+  if (userRole === 'COUNSELOR') {
+    // Check if slot is either morning (8-12) or afternoon (14-17)
+    const isMorningSlot = startHour >= 8 && endHour <= 12
+    const isAfternoonSlot = startHour >= 14 && endHour <= 17
+
+    if (!isMorningSlot && !isAfternoonSlot) {
+      return t('slotManagement.validation.counselorTimeSlots')
+    }
+
+    // Check existing slots for the day
+    const existingMorningSlot = sameDay.some(slot => {
+      const slotStart = dayjs(slot.startDateTime)
+      return slotStart.hour() >= 8 && slotStart.hour() < 12
+    })
+
+    const existingAfternoonSlot = sameDay.some(slot => {
+      const slotStart = dayjs(slot.startDateTime)
+      return slotStart.hour() >= 14 && slotStart.hour() < 17
+    })
+
+    // If creating morning slot but already exists
+    if (isMorningSlot && existingMorningSlot) {
+      return t('slotManagement.validation.counselorMorningExists')
+    }
+
+    // If creating afternoon slot but already exists
+    if (isAfternoonSlot && existingAfternoonSlot) {
+      return t('slotManagement.validation.counselorAfternoonExists')
+    }
+
+    // Must create both slots
+    if (sameDay.length >= 2) {
+      return t('slotManagement.validation.counselorMaxSlots')
+    }
+  }
+
+  // Teacher specific validations
+  if (userRole === 'TEACHER') {
+    // Teachers can create multiple slots, no additional validation needed
+    return null
   }
 
   return null
@@ -69,24 +101,19 @@ export const validateSlot = (start, end, slotType, userRole, t) => {
  * Check if slot conflicts with existing slots
  * @param {dayjs.Dayjs} start - Start date time
  * @param {dayjs.Dayjs} end - End date time
- * @param {number} hostedById - Host user ID
+ * @param {number} staffId - Staff user ID
  * @param {Array} existingSlots - Array of existing slots
  * @returns {boolean} True if conflict exists
  */
-export const checkSlotConflict = (
-  start,
-  end,
-  hostedById,
-  existingSlots = []
-) => {
+export const checkSlotConflict = (start, end, staffId, existingSlots = []) => {
   if (!existingSlots || !Array.isArray(existingSlots) || !existingSlots.length)
     return false
 
   return existingSlots.some(slot => {
-    if (!slot || slot.hosted_by !== hostedById) return false
+    if (!slot || slot.staffId !== staffId) return false
 
-    const slotStart = dayjs(slot.start_date_time)
-    const slotEnd = dayjs(slot.end_date_time)
+    const slotStart = dayjs(slot.startDateTime)
+    const slotEnd = dayjs(slot.endDateTime)
 
     // Check if the new slot overlaps with existing slot
     return (

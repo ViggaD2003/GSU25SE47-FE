@@ -10,7 +10,6 @@ import {
   RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import { surveyData } from "../../constants/survey";
 import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
 import AppointmentCard from "../../components/common/AppointmentCard";
@@ -87,16 +86,9 @@ export default function StudentHome({
       setHasMoreData(surveyData.length > PAGE_SIZE);
     } catch (error) {
       console.error("Lỗi khi tải surveys:", error);
-      const publishedSurveys = surveyData.filter(
-        (survey) => survey.status === "PUBLISHED"
-      );
-
-      setAllData(publishedSurveys);
-      const firstPageData = publishedSurveys.slice(0, PAGE_SIZE);
-      setDisplayedData(firstPageData);
-      setCurrentPage(2);
-      setHasMoreData(publishedSurveys.length > PAGE_SIZE);
+      setAllData([]);
     } finally {
+      resetPagination();
       setLoading(false);
       setRefreshing(false);
     }
@@ -124,10 +116,8 @@ export default function StudentHome({
     } catch (error) {
       console.error("Lỗi khi tải appointments:", error);
       setAllData([]);
-      setDisplayedData([]);
-      setCurrentPage(1);
-      setHasMoreData(false);
     } finally {
+      resetPagination();
       setRefreshing(false);
       setLoading(false);
     }
@@ -140,7 +130,9 @@ export default function StudentHome({
       setHasMoreData(false);
     } catch (error) {
       console.error("Lỗi khi tải programs:", error);
+      setAllData([]);
     } finally {
+      resetPagination();
       setRefreshing(false);
       setLoading(false);
     }
