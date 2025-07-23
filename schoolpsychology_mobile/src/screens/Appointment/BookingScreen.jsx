@@ -24,10 +24,6 @@ import {
 import { Toast } from "../../components";
 import CalendarService from "../../services/CalendarService";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import localeData from "dayjs/plugin/localeData";
-import "dayjs/locale/vi";
 import {
   processAndFilterSlots,
   getAvailableDaysWithTimeValidation,
@@ -35,18 +31,10 @@ import {
   hasAvailableSlots,
 } from "../../utils/slotUtils";
 import { ActivityIndicator } from "react-native-paper";
-import { log } from "console";
-
-// Extend dayjs with plugins
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localeData);
-dayjs.locale("vi");
 
 const { width } = Dimensions.get("window");
 const VISIBLE_DAYS = 2;
 const VN_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSS[Z]";
-const LOCALES = "vi-VN";
 
 const BookingScreen = ({ navigation }) => {
   const { user } = useAuth();

@@ -7,6 +7,7 @@ export { default as ConfirmModal } from "./common/ConfirmModal";
 export { default as Alert } from "./common/Alert";
 export { default as Dropdown } from "./common/Dropdown";
 export { default as SlotDayCard } from "./common/SlotDayCard";
+export { default as StatisticsCard } from "./common/StatisticsCard";
 
 // UI components
 export { default as Container } from "./ui/Container";
