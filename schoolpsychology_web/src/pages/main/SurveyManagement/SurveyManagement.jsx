@@ -2,8 +2,23 @@ import React, { useCallback, useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTheme } from '../../../contexts/ThemeContext'
-import { Input, Typography, Button, Card, Row, Col } from 'antd'
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
+import {
+  Input,
+  Typography,
+  Button,
+  Card,
+  Row,
+  Col,
+  DatePicker,
+  Space,
+  Tag,
+} from 'antd'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  FilterOutlined,
+  ClearOutlined,
+} from '@ant-design/icons'
 import SurveyTable from './SurveyTable'
 import SurveyModal from './SurveyModal'
 import SurveyDetailModal from './SurveyDetailModal'
@@ -18,12 +33,16 @@ import {
   clearError,
 } from '../../../store/slices/surveySlice'
 import useMessage from 'antd/es/message/useMessage'
-// import AutoTranslatedText from '../../../components/common/AutoTranslatedText'
+import dayjs from 'dayjs'
+import { useAuth } from '@/contexts/AuthContext'
+import { getSurveyTypePermissions } from '@/constants/enums'
 
 const { Title, Text } = Typography
 const { Search } = Input
+const { RangePicker } = DatePicker
 
 const SurveyManagement = () => {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const dispatch = useDispatch()
@@ -34,90 +53,115 @@ const SurveyManagement = () => {
   const loading = useSelector(selectSurveyLoading)
   const error = useSelector(selectSurveyError)
 
-  // Local state for FE paging/search
+  // Local state for FE paging/search/filtering
   const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [selectedSurvey, setSelectedSurvey] = useState(null)
+  const [selectedSurveyId, setSelectedSurveyId] = useState(null)
   const [detailVisible, setDetailVisible] = useState(false)
+
+  // Filter states with clear descriptions
+  const [dateRange, setDateRange] = useState(null) // Filter by creation date range
 
   // Load all surveys once
   useEffect(() => {
     dispatch(getAllSurveys())
   }, [dispatch])
 
-  // FE search
+  // Enhanced filtering logic with comprehensive search and filter capabilities
   const filteredSurveys = useMemo(() => {
-    if (!searchText) return surveys
-    return surveys.filter(
-      survey =>
-        survey.name?.toLowerCase().includes(searchText.toLowerCase()) ||
-        survey.description?.toLowerCase().includes(searchText.toLowerCase())
-    )
-  }, [surveys, searchText])
+    if (!surveys) return []
 
-  // FE paging
+    // Filter surveys by user role
+    const filteredSurveysByRole = surveys.filter(survey => {
+      const surveyType = survey.surveyType
+      const userRole = user?.role
+      const permissions = getSurveyTypePermissions(userRole)
+      return permissions.includes(surveyType)
+    })
+
+    // If no filters are applied, return all surveys
+    const hasActiveFilters = searchText.trim() || dateRange
+
+    if (!hasActiveFilters) return filteredSurveysByRole
+
+    return filteredSurveysByRole.filter(survey => {
+      // 1. Text Search: Search in title, description, and category name/code
+      const searchLower = searchText.toLowerCase()
+      const matchesSearch =
+        !searchText.trim() || survey.title?.toLowerCase().includes(searchLower)
+
+      // 2. Date Range Filter: Filter by survey creation date
+      const matchesDateRange =
+        !dateRange ||
+        !dateRange.length ||
+        (dayjs(survey.createdAt).isAfter(dateRange[0].startOf('day')) &&
+          dayjs(survey.createdAt).isBefore(dateRange[1].endOf('day')))
+
+      // All filters must match for the survey to be included
+      return matchesSearch && matchesDateRange
+    })
+  }, [surveys, searchText, dateRange, user?.role])
+
+  // Pagination for filtered surveys
   const paginatedSurveys = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return filteredSurveys.slice(start, start + pageSize)
+    const startIndex = (currentPage - 1) * pageSize
+    const endIndex = startIndex + pageSize
+    return filteredSurveys.slice(startIndex, endIndex)
   }, [filteredSurveys, currentPage, pageSize])
 
-  // Table pagination config
-  const pagination = {
-    current: currentPage,
-    pageSize,
-    total: filteredSurveys.length,
-    showSizeChanger: true,
-    onChange: (page, size) => {
-      setCurrentPage(page)
-      setPageSize(size)
-    },
-  }
+  // Pagination config
+  const pagination = useMemo(
+    () => ({
+      current: currentPage,
+      pageSize: pageSize,
+      total: filteredSurveys.length,
+      showSizeChanger: true,
+      showQuickJumper: true,
+      showTotal: (total, range) =>
+        `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+      onChange: (page, size) => {
+        setCurrentPage(page)
+        setPageSize(size)
+      },
+      onShowSizeChange: (current, size) => {
+        setCurrentPage(1)
+        setPageSize(size)
+      },
+    }),
+    [currentPage, pageSize, filteredSurveys.length, t]
+  )
 
-  // Handle search
+  // Handler functions
   const handleSearch = useCallback(value => {
     setSearchText(value)
     setCurrentPage(1) // Reset to first page when searching
   }, [])
 
-  // Handle refresh
   const handleRefresh = useCallback(() => {
     dispatch(getAllSurveys())
+    setCurrentPage(1)
   }, [dispatch])
 
-  const handleView = useCallback(survey => {
-    setSelectedSurvey(survey)
+  const handleAddSurvey = useCallback(() => {
+    setIsModalVisible(true)
+  }, [])
+
+  const handleViewSurvey = useCallback(survey => {
+    setSelectedSurveyId(survey.surveyId)
     setDetailVisible(true)
   }, [])
 
-  const handleEdit = () => {
-    handleRefresh()
-    setDetailVisible(false)
-  }
-
-  const handleDelete = useCallback(() => {}, [])
-  const showModal = () => {
-    setIsModalVisible(true)
-  }
-
-  const handleModalOk = async (values, resetFields, handleCategoryChange) => {
+  const handleModalOk = async (values, resetFields) => {
     try {
-      // Format dates to YYYY-MM-DD and handle categoryId
-      const payload = {
-        ...values,
-        startDate: values.startDate.format('YYYY-MM-DD'),
-        endDate: values.endDate.format('YYYY-MM-DD'),
-      }
-      await dispatch(createSurvey(payload)).unwrap()
+      await dispatch(createSurvey(values)).unwrap()
       messageApi.success(t('surveyManagement.messages.addSuccess'))
       setIsModalVisible(false)
-      dispatch(getAllSurveys()) // Refresh the list
       resetFields()
-      handleCategoryChange(null)
+      dispatch(getAllSurveys()) // Refresh the list
     } catch (error) {
-      console.warn('Failed to create survey:', error)
-      messageApi.error(t('surveyManagement.messages.addError'))
+      messageApi.error(error || t('surveyManagement.messages.addError'))
     }
   }
 
@@ -127,8 +171,32 @@ const SurveyManagement = () => {
 
   const handleDetailClose = () => {
     setDetailVisible(false)
-    setSelectedSurvey(null)
+    setSelectedSurveyId(null)
   }
+
+  const handleDetailUpdated = () => {
+    dispatch(getAllSurveys()) // Refresh the list
+  }
+
+  // Enhanced date range change handler
+  const handleDateRangeChange = dates => {
+    if (dates && dates.length === 2) {
+      setDateRange(dates)
+      setCurrentPage(1) // Reset to first page when filtering
+    } else {
+      setDateRange(null)
+    }
+  }
+
+  // Clear all filters handler
+  const handleClearFilters = () => {
+    setSearchText('')
+    setDateRange(null)
+    setCurrentPage(1)
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = searchText.trim() || dateRange !== null
 
   // Show error message if there's an error
   useEffect(() => {
@@ -139,22 +207,26 @@ const SurveyManagement = () => {
   }, [error, messageApi, dispatch])
 
   return (
-    <div className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+    <div className="p-6">
       {contextHolder}
+
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex justify-between items-end mb-6">
         <div>
           <Title
             level={2}
-            className={isDarkMode ? 'text-white' : 'text-gray-900'}
+            className={isDarkMode ? 'text-white' : 'text-gray-800'}
           >
             {t('surveyManagement.title')}
           </Title>
-          <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+          <Text
+            type="secondary"
+            className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}
+          >
             {t('surveyManagement.description')}
           </Text>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex gap-2">
           <Button
             icon={<ReloadOutlined />}
             onClick={handleRefresh}
@@ -162,53 +234,119 @@ const SurveyManagement = () => {
           >
             {t('surveyManagement.refresh')}
           </Button>
-          <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAddSurvey}
+          >
             {t('surveyManagement.addSurvey')}
           </Button>
         </div>
       </div>
 
-      {/* Search */}
-      <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} lg={8}>
+      {/* Enhanced Filter Card */}
+      <Card
+        className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
+        style={{ marginBottom: 16 }}
+        title={
+          <Space>
+            <FilterOutlined />
+            <span>Filters & Search</span>
+            {hasActiveFilters && (
+              <Tag color="blue">
+                {filteredSurveys.length} of {surveys?.length || 0} surveys
+              </Tag>
+            )}
+          </Space>
+        }
+        extra={
+          hasActiveFilters && (
+            <Button
+              type="text"
+              icon={<ClearOutlined />}
+              onClick={handleClearFilters}
+              size="small"
+            >
+              Clear All
+            </Button>
+          )
+        }
+      >
+        <Row gutter={[16, 16]} className="mb-4">
+          {/* Text Search - Search in title*/}
+          <Col xs={24} sm={12} md={8} lg={8}>
+            <div>
+              <Text strong>Search Surveys</Text>
+              <Text
+                type="secondary"
+                style={{ display: 'block', fontSize: '12px' }}
+              >
+                Search in title
+              </Text>
+            </div>
             <Search
-              placeholder={t('surveyManagement.search')}
+              placeholder="Search surveys..."
               allowClear
+              size="middle"
               onSearch={handleSearch}
               onChange={e => handleSearch(e.target.value)}
-              style={{ width: '100%' }}
+              value={searchText}
+              style={{ marginTop: 4 }}
+            />
+          </Col>
+
+          {/* Date Range Filter - Filter by creation date */}
+          <Col xs={24} sm={12} md={8} lg={8}>
+            <div>
+              <Text strong>Creation Date</Text>
+              <Text
+                type="secondary"
+                style={{ display: 'block', fontSize: '12px' }}
+              >
+                Filter by survey creation date range
+              </Text>
+            </div>
+            <RangePicker
+              className="w-full"
+              size="middle"
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              placeholder={[
+                t('surveyManagement.startDate'),
+                t('surveyManagement.endDate'),
+              ]}
+              allowClear
+              style={{ marginTop: 4 }}
             />
           </Col>
         </Row>
       </Card>
 
       {/* Table */}
-      <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <SurveyTable
-          t={t}
-          data={paginatedSurveys}
-          loading={loading}
-          pagination={pagination}
-          onChange={pagination.onChange}
-          onView={handleView}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
-      </Card>
-      <SurveyModal
+      <SurveyTable
         t={t}
-        visible={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-        messageApi={messageApi}
+        data={paginatedSurveys}
+        loading={loading}
+        pagination={pagination}
+        onView={handleViewSurvey}
+        userRole={user?.role}
       />
+
+      {/* Modals */}
+      <SurveyModal
+        visible={isModalVisible}
+        onCancel={handleModalCancel}
+        onOk={handleModalOk}
+        messageApi={messageApi}
+        userRole={user?.role}
+      />
+
       <SurveyDetailModal
         t={t}
         visible={detailVisible}
-        survey={selectedSurvey}
+        surveyId={selectedSurveyId}
         onClose={handleDetailClose}
-        onUpdated={handleEdit}
+        onUpdated={handleDetailUpdated}
         messageApi={messageApi}
       />
     </div>
@@ -216,13 +354,3 @@ const SurveyManagement = () => {
 }
 
 export default SurveyManagement
-
-{
-  /* <h2>
-    <AutoTranslatedText
-      text="Dynamic Survey Management"
-      translationKey="dynamic.survey.management"
-      // loadingComponent={<span>Loading...</span>}
-    />
-  </h2> */
-}

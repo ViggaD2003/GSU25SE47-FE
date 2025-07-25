@@ -9,10 +9,13 @@ import {
   Card,
   Row,
   Col,
+  message,
   Switch,
   InputNumber,
   Select,
+  Divider,
   Spin,
+  List,
   Tag,
   Badge,
   Descriptions,
@@ -173,23 +176,20 @@ const CategoryModal = ({
   selectedCategory,
   isEdit,
   isView,
-  message,
 }) => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
 
-  // Separate forms for main category and level editing
+  // Single form instance for all form management
   const [form] = Form.useForm()
-  const [levelForm] = Form.useForm()
 
-  // Unified state management - BỎ levels ra khỏi state, dùng form values thay thế
+  // Unified state management
   const [state, setState] = useState({
     loading: false,
     detailLoading: false,
     detailedCategory: null,
     levelModalVisible: false,
     editingLevelIndex: null,
-    levels: [], // State riêng cho levels để đảm bảo reactivity
   })
 
   // Memoized values
@@ -202,25 +202,17 @@ const CategoryModal = ({
     [t]
   )
 
-  // Watch form values for reactive updates - CẢI THIỆN CÁCH WATCH
+  // Unified form values using Form.useWatch
+  const formValues = Form.useWatch([], form)
   const isLimited = Form.useWatch('isLimited', form)
+  const levels = Form.useWatch('levels', form) || []
+  const minScore = Form.useWatch('minScore', form)
+  const maxScore = Form.useWatch('maxScore', form)
 
   // Optimized state updates
   const updateState = useCallback(updates => {
     setState(prev => ({ ...prev, ...updates }))
   }, [])
-
-  // Reset all forms
-  const resetAllForms = useCallback(() => {
-    form.resetFields()
-    levelForm.resetFields()
-    updateState({
-      detailedCategory: null,
-      levelModalVisible: false,
-      editingLevelIndex: null,
-      levels: [],
-    })
-  }, [form, levelForm, updateState])
 
   // Fetch category details for view mode
   useEffect(() => {
@@ -234,24 +226,21 @@ const CategoryModal = ({
             selectedCategory.id
           )
           if (isMounted) {
-            const categoryWithLevels = { ...selectedCategory, levels: response }
             updateState({
-              detailedCategory: categoryWithLevels,
+              detailedCategory: { ...selectedCategory, levels: response },
               detailLoading: false,
-              levels: response || [],
             })
           }
         } catch (error) {
           console.error('Failed to fetch category details:', error)
           if (isMounted) {
-            message?.error(t('categoryManagement.messages.fetchDetailError'))
+            message.error(t('categoryManagement.messages.fetchDetailError'))
             updateState({ detailLoading: false })
           }
         }
-      } else if (!visible) {
-        // Reset when modal is closed
+      } else if (visible && !isView) {
         if (isMounted) {
-          resetAllForms()
+          updateState({ detailedCategory: null })
         }
       }
     }
@@ -261,9 +250,9 @@ const CategoryModal = ({
     return () => {
       isMounted = false
     }
-  }, [visible, isView, selectedCategory?.id, t, updateState, resetAllForms])
+  }, [visible, isView, selectedCategory?.id, t, updateState])
 
-  // Form initialization - CẢI THIỆN CÁCH SET FORM VALUES
+  // Form initialization
   useEffect(() => {
     if (!visible) return
 
@@ -272,7 +261,7 @@ const CategoryModal = ({
         ? state.detailedCategory || selectedCategory
         : selectedCategory
 
-      const formData = {
+      form.setFieldsValue({
         name: categoryData.name || '',
         code: categoryData.code || '',
         description: categoryData.description || '',
@@ -285,95 +274,53 @@ const CategoryModal = ({
         maxScore: categoryData.maxScore || null,
         minScore: categoryData.minScore || null,
         levels: categoryData.levels || [],
-      }
-
-      form.setFieldsValue(formData)
-      // Đồng bộ levels với state
-      updateState({ levels: categoryData.levels || [] })
+      })
     } else {
-      // Reset form with default values for new category
+      // Reset form with default values
       form.resetFields()
-      const defaultValues = {
+      form.setFieldsValue({
         isSum: true,
         isLimited: true,
         isActive: true,
         levels: [],
-      }
-      form.setFieldsValue(defaultValues)
-      updateState({ levels: [] })
+      })
     }
-  }, [
-    visible,
-    selectedCategory,
-    state.detailedCategory,
-    form,
-    isView,
-    updateState,
-  ])
+  }, [visible, selectedCategory, state.detailedCategory, form, isView])
 
-  // Comprehensive validation functions
-  const validateLevelScoreRanges = useCallback(
+  // Validation functions
+  const validateScoreRange = useCallback(
     levels => {
-      if (!levels || levels.length === 0) return { isValid: true }
+      if (!levels || levels.length === 0) return true
 
-      // Sort levels by minScore for validation
       const sortedLevels = [...levels].sort((a, b) => a.minScore - b.minScore)
 
       for (let i = 0; i < sortedLevels.length; i++) {
         const level = sortedLevels[i]
 
-        // Check if level minScore >= maxScore
         if (level.minScore >= level.maxScore) {
-          return {
-            isValid: false,
-            message: t('categoryManagement.messages.invalidLevelScoreRange', {
+          message.error(
+            t('categoryManagement.messages.invalidScoreRange', {
               level: level.label || level.code,
-            }),
-          }
+            })
+          )
+          return false
         }
 
-        // Check for overlapping ranges
         if (i > 0) {
           const prevLevel = sortedLevels[i - 1]
-          if (level.minScore <= prevLevel.maxScore) {
-            return {
-              isValid: false,
-              message: t('categoryManagement.messages.overlappingScores', {
+          if (level.minScore < prevLevel.maxScore) {
+            message.error(
+              t('categoryManagement.messages.overlappingScores', {
                 level1: prevLevel.label || prevLevel.code,
                 level2: level.label || level.code,
-              }),
-            }
+              })
+            )
+            return false
           }
         }
       }
 
-      return { isValid: true }
-    },
-    [t]
-  )
-
-  const validateLevelCodes = useCallback(
-    levels => {
-      if (!levels || levels.length === 0) return { isValid: true }
-
-      const codes = levels
-        .map(level => level.code?.toUpperCase())
-        .filter(Boolean)
-      const uniqueCodes = new Set(codes)
-
-      if (codes.length !== uniqueCodes.size) {
-        const duplicates = codes.filter(
-          (code, index) => codes.indexOf(code) !== index
-        )
-        return {
-          isValid: false,
-          message: t('categoryManagement.messages.duplicateLevelCodes', {
-            codes: duplicates.join(', '),
-          }),
-        }
-      }
-
-      return { isValid: true }
+      return true
     },
     [t]
   )
@@ -389,48 +336,29 @@ const CategoryModal = ({
       updateState({ loading: true })
       const values = await form.validateFields()
 
-      // Sử dụng levels từ state thay vì form values
-      const levelsToValidate = state.levels
-
-      // Additional comprehensive validation
-      const scoreRangeValidation = validateLevelScoreRanges(levelsToValidate)
-      if (!scoreRangeValidation.isValid) {
-        message?.error(scoreRangeValidation.message)
+      // Additional validation
+      if (!validateScoreRange(values.levels)) {
         updateState({ loading: false })
         return
       }
 
-      const codeValidation = validateLevelCodes(levelsToValidate)
-      if (!codeValidation.isValid) {
-        message?.error(codeValidation.message)
-        updateState({ loading: false })
-        return
-      }
-
-      // Validate category score range (if both values are provided)
-      if (
-        values.minScore !== null &&
-        values.maxScore !== null &&
-        values.minScore >= values.maxScore
-      ) {
-        message?.error(
+      if (values.minScore >= values.maxScore) {
+        message.error(
           t('categoryManagement.messages.categoryScoreRangeInvalid')
         )
         updateState({ loading: false })
         return
       }
 
-      // Validate question count when limited
       if (
         values.isLimited &&
         (!values.questionCount || values.questionCount <= 0)
       ) {
-        message?.error(t('categoryManagement.messages.questionCountRequired'))
+        message.error(t('categoryManagement.messages.questionCountRequired'))
         updateState({ loading: false })
         return
       }
 
-      // Prepare clean data
       const categoryData = {
         name: values.name?.trim(),
         code: values.code?.trim().toUpperCase(),
@@ -441,57 +369,35 @@ const CategoryModal = ({
         questionCount: values.isLimited ? values.questionCount : null,
         severityWeight: values.severityWeight,
         isActive: values.isActive,
-        maxScore: values.maxScore || null,
-        minScore: values.minScore || null,
-        levels: levelsToValidate.map(level => ({
-          ...level,
-          label: level.label?.trim(),
-          code: level.code?.trim().toUpperCase(),
-          description: level.description?.trim() || null,
-          symptomsDescription: level.symptomsDescription?.trim() || null,
-          interventionRequired: level.interventionRequired?.trim() || null,
-        })),
+        maxScore: values.maxScore,
+        minScore: values.minScore,
+        levels: values.levels || [],
       }
 
       await onOk(categoryData)
-      resetAllForms()
-      message?.success(
-        isEdit
-          ? t('categoryManagement.messages.editSuccess')
-          : t('categoryManagement.messages.addSuccess')
-      )
+      form.resetFields()
+      updateState({ detailedCategory: null })
     } catch (error) {
-      console.error('Form submission failed:', error)
+      console.error('Validation failed:', error)
       if (error.errorFields) {
-        message?.error(t('categoryManagement.messages.validationError'))
+        message.error(t('categoryManagement.messages.validationError'))
       } else {
-        message?.error(
-          isEdit
-            ? t('categoryManagement.messages.editError')
-            : t('categoryManagement.messages.addError')
-        )
+        message.error(t('categoryManagement.messages.addError'))
       }
     } finally {
       updateState({ loading: false })
     }
-  }, [
-    isView,
-    onCancel,
-    form,
-    onOk,
-    t,
-    updateState,
-    validateLevelScoreRanges,
-    validateLevelCodes,
-    resetAllForms,
-    isEdit,
-    state.levels,
-  ])
+  }, [isView, onCancel, form, onOk, t, updateState, validateScoreRange])
 
   const handleCancel = useCallback(() => {
-    resetAllForms()
+    form.resetFields()
+    updateState({
+      detailedCategory: null,
+      levelModalVisible: false,
+      editingLevelIndex: null,
+    })
     onCancel()
-  }, [resetAllForms, onCancel])
+  }, [form, onCancel, updateState])
 
   const getModalTitle = useCallback(() => {
     if (isView) return t('categoryManagement.modal.viewTitle')
@@ -499,117 +405,190 @@ const CategoryModal = ({
     return t('categoryManagement.modal.addTitle')
   }, [isView, isEdit, t])
 
-  // Level management functions - SỬA LẠI CÁC HÀM NÀY
+  // Level management functions
   const addLevel = useCallback(() => {
     updateState({
       editingLevelIndex: null,
       levelModalVisible: true,
     })
-    levelForm.resetFields()
-    // Set default values for new level
-    levelForm.setFieldsValue({
-      levelType: 'MID',
-      minScore: 0,
-      maxScore: 100,
-    })
-  }, [updateState, levelForm])
+  }, [updateState])
 
   const editLevel = useCallback(
     index => {
-      const level = state.levels[index]
+      const currentLevels = form.getFieldValue('levels') || []
+      const level = currentLevels[index]
       if (level) {
         updateState({
           editingLevelIndex: index,
           levelModalVisible: true,
         })
-        levelForm.setFieldsValue({
-          label: level.label,
-          code: level.code,
-          description: level.description,
-          symptomsDescription: level.symptomsDescription,
-          interventionRequired: level.interventionRequired,
-          minScore: level.minScore,
-          maxScore: level.maxScore,
-          levelType: level.levelType,
-        })
       }
     },
-    [state.levels, updateState, levelForm]
+    [form, updateState]
   )
 
-  const handleLevelSubmit = useCallback(async () => {
-    try {
-      const levelValues = await levelForm.validateFields()
-
-      // Additional level validation
-      if (levelValues.minScore >= levelValues.maxScore) {
-        message?.error(t('categoryManagement.form.levelMinScoreLessThanMax'))
-        return
-      }
-
-      // Check duplicate code (excluding current editing level)
-      const isDuplicateCode = state.levels.some(
-        (level, index) =>
-          level.code?.toUpperCase() === levelValues.code?.toUpperCase() &&
-          index !== state.editingLevelIndex
-      )
-
-      if (isDuplicateCode) {
-        message?.error(t('categoryManagement.messages.duplicateLevelCode'))
-        return
-      }
-
-      // Clean and prepare level data
-      const levelData = {
-        label: levelValues.label?.trim(),
-        code: levelValues.code?.trim().toUpperCase(),
-        description: levelValues.description?.trim() || null,
-        symptomsDescription: levelValues.symptomsDescription?.trim() || null,
-        interventionRequired: levelValues.interventionRequired?.trim() || null,
-        minScore: levelValues.minScore,
-        maxScore: levelValues.maxScore,
-        levelType: levelValues.levelType,
-      }
-
-      let newLevels
-      if (state.editingLevelIndex !== null) {
-        newLevels = [...state.levels]
-        newLevels[state.editingLevelIndex] = levelData
-        message?.success(t('categoryManagement.messages.levelEditSuccess'))
-      } else {
-        newLevels = [...state.levels, levelData]
-        message?.success(t('categoryManagement.messages.levelAddSuccess'))
-      }
-
-      // Update cả state và form
-      updateState({ levels: newLevels })
-      form.setFieldsValue({ levels: newLevels })
-
-      // Close level modal and reset
-      levelForm.resetFields()
-      updateState({
-        levelModalVisible: false,
-        editingLevelIndex: null,
-      })
-    } catch (error) {
-      console.error('Level form validation failed:', error)
-      message?.error(t('categoryManagement.messages.levelValidationError'))
+  const handleLevelSubmit = useCallback(() => {
+    // Get level form values from the main form
+    const levelFormValues = {
+      label: form.getFieldValue('levelLabel'),
+      code: form.getFieldValue('levelCode'),
+      description: form.getFieldValue('levelDescription'),
+      symptomsDescription: form.getFieldValue('levelSymptomsDescription'),
+      interventionRequired: form.getFieldValue('levelInterventionRequired'),
+      minScore: form.getFieldValue('levelMinScore'),
+      maxScore: form.getFieldValue('levelMaxScore'),
+      levelType: form.getFieldValue('levelType'),
     }
-  }, [levelForm, state.levels, state.editingLevelIndex, t, form, updateState])
 
-  const handleLevelCancel = useCallback(() => {
-    levelForm.resetFields()
+    // Validate level form
+    const levelValidationRules = {
+      label: [
+        {
+          required: true,
+          message: t('categoryManagement.form.levelLabelRequired'),
+        },
+        { min: 2, message: t('categoryManagement.form.levelLabelMinLength') },
+        { max: 50, message: t('categoryManagement.form.levelLabelMaxLength') },
+      ],
+      code: [
+        {
+          required: true,
+          message: t('categoryManagement.form.levelCodeRequired'),
+        },
+        {
+          pattern: /^[A-Z0-9_]+$/,
+          message: t('categoryManagement.form.levelCodePattern'),
+        },
+        { min: 2, message: t('categoryManagement.form.levelCodeMinLength') },
+        { max: 20, message: t('categoryManagement.form.levelCodeMaxLength') },
+      ],
+      minScore: [
+        {
+          required: true,
+          message: t('categoryManagement.form.levelMinScoreRequired'),
+        },
+      ],
+      maxScore: [
+        {
+          required: true,
+          message: t('categoryManagement.form.levelMaxScoreRequired'),
+        },
+      ],
+      levelType: [
+        {
+          required: true,
+          message: t('categoryManagement.form.levelTypeRequired'),
+        },
+      ],
+    }
+
+    // Validate each field
+    for (const [field, rules] of Object.entries(levelValidationRules)) {
+      const value = levelFormValues[field]
+      for (const rule of rules) {
+        if (rule.required && !value) {
+          message.error(rule.message)
+          return
+        }
+        if (rule.min && value && value.length < rule.min) {
+          message.error(rule.message)
+          return
+        }
+        if (rule.max && value && value.length > rule.max) {
+          message.error(rule.message)
+          return
+        }
+        if (rule.pattern && value && !rule.pattern.test(value)) {
+          message.error(rule.message)
+          return
+        }
+      }
+    }
+
+    // Additional validations
+    if (levelFormValues.minScore >= levelFormValues.maxScore) {
+      message.error(t('categoryManagement.form.levelMinScoreLessThanMax'))
+      return
+    }
+
+    const currentLevels = form.getFieldValue('levels') || []
+
+    // Check duplicate code
+    const isDuplicateCode = currentLevels.some(
+      (level, index) =>
+        level.code === levelFormValues.code && index !== state.editingLevelIndex
+    )
+
+    if (isDuplicateCode) {
+      message.error(t('categoryManagement.messages.duplicateLevelCode'))
+      return
+    }
+
+    // Trim and prepare level data
+    const levelData = {
+      ...levelFormValues,
+      label: levelFormValues.label?.trim(),
+      code: levelFormValues.code?.trim().toUpperCase(),
+      description: levelFormValues.description?.trim() || null,
+      symptomsDescription: levelFormValues.symptomsDescription?.trim() || null,
+      interventionRequired:
+        levelFormValues.interventionRequired?.trim() || null,
+    }
+
+    let newLevels
+    if (state.editingLevelIndex !== null) {
+      newLevels = [...currentLevels]
+      newLevels[state.editingLevelIndex] = levelData
+      message.success(t('categoryManagement.messages.levelEditSuccess'))
+    } else {
+      newLevels = [...currentLevels, levelData]
+      message.success(t('categoryManagement.messages.levelAddSuccess'))
+    }
+
+    form.setFieldsValue({ levels: newLevels })
+
+    // Clear level form fields
+    form.setFieldsValue({
+      levelLabel: '',
+      levelCode: '',
+      levelDescription: '',
+      levelSymptomsDescription: '',
+      levelInterventionRequired: '',
+      levelMinScore: null,
+      levelMaxScore: null,
+      levelType: 'MID',
+    })
+
     updateState({
       levelModalVisible: false,
       editingLevelIndex: null,
     })
-  }, [levelForm, updateState])
+  }, [form, state.editingLevelIndex, t, updateState])
+
+  const handleLevelCancel = useCallback(() => {
+    // Clear level form fields
+    form.setFieldsValue({
+      levelLabel: '',
+      levelCode: '',
+      levelDescription: '',
+      levelSymptomsDescription: '',
+      levelInterventionRequired: '',
+      levelMinScore: null,
+      levelMaxScore: null,
+      levelType: 'MID',
+    })
+
+    updateState({
+      levelModalVisible: false,
+      editingLevelIndex: null,
+    })
+  }, [form, updateState])
 
   const addQuickLevels = useCallback(() => {
-    // Create default score ranges for quick levels (independent of category scores)
-    const defaultMinScore = 0
-    const defaultMaxScore = 100
-    const stepSize = Math.floor((defaultMaxScore - defaultMinScore) / 4) // Divide into 4 ranges
+    const categoryMinScore = minScore || 0
+    const categoryMaxScore = maxScore || 100
+    const scoreRange = categoryMaxScore - categoryMinScore
+    const stepSize = Math.floor(scoreRange / 4)
 
     const quickLevels = [
       {
@@ -622,8 +601,8 @@ const CategoryModal = ({
         interventionRequired: t(
           'categoryManagement.form.quickLevels.lowIntervention'
         ),
-        minScore: defaultMinScore,
-        maxScore: defaultMinScore + stepSize,
+        minScore: categoryMinScore,
+        maxScore: categoryMinScore + stepSize,
         levelType: 'LOW',
       },
       {
@@ -636,8 +615,8 @@ const CategoryModal = ({
         interventionRequired: t(
           'categoryManagement.form.quickLevels.mediumIntervention'
         ),
-        minScore: defaultMinScore + stepSize + 1,
-        maxScore: defaultMinScore + stepSize * 2,
+        minScore: categoryMinScore + stepSize + 1,
+        maxScore: categoryMinScore + stepSize * 2,
         levelType: 'MID',
       },
       {
@@ -650,8 +629,8 @@ const CategoryModal = ({
         interventionRequired: t(
           'categoryManagement.form.quickLevels.highIntervention'
         ),
-        minScore: defaultMinScore + stepSize * 2 + 1,
-        maxScore: defaultMinScore + stepSize * 3,
+        minScore: categoryMinScore + stepSize * 2 + 1,
+        maxScore: categoryMinScore + stepSize * 3,
         levelType: 'HIGH',
       },
       {
@@ -666,27 +645,24 @@ const CategoryModal = ({
         interventionRequired: t(
           'categoryManagement.form.quickLevels.criticalIntervention'
         ),
-        minScore: defaultMinScore + stepSize * 3 + 1,
-        maxScore: defaultMaxScore,
+        minScore: categoryMinScore + stepSize * 3 + 1,
+        maxScore: categoryMaxScore,
         levelType: 'CRITICAL',
       },
     ]
 
-    // Update cả state và form
-    updateState({ levels: quickLevels })
     form.setFieldsValue({ levels: quickLevels })
-    message?.success(t('categoryManagement.messages.quickLevelsAdded'))
-  }, [form, t, updateState])
+    message.success(t('categoryManagement.messages.quickLevelsAdded'))
+  }, [form, t, minScore, maxScore])
 
   const removeLevel = useCallback(
     index => {
-      const newLevels = state.levels.filter((_, i) => i !== index)
-      // Update cả state và form
-      updateState({ levels: newLevels })
+      const currentLevels = form.getFieldValue('levels') || []
+      const newLevels = currentLevels.filter((_, i) => i !== index)
       form.setFieldsValue({ levels: newLevels })
-      message?.success(t('categoryManagement.messages.levelRemoved'))
+      message.success(t('categoryManagement.messages.levelRemoved'))
     },
-    [state.levels, form, t, updateState]
+    [form, t]
   )
 
   // Memoized helper functions
@@ -700,11 +676,11 @@ const CategoryModal = ({
     return <IconComponent />
   }, [])
 
-  // Memoized level summary - SỬ DỤNG state.levels thay vì levels từ form
+  // Memoized level summary
   const levelSummary = useMemo(() => {
     const summary = {}
     levelTypeOptions.forEach(option => {
-      const count = state.levels?.filter(
+      const count = levels?.filter(
         level => level.levelType === option.value
       ).length
       if (count > 0) {
@@ -712,9 +688,40 @@ const CategoryModal = ({
       }
     })
     return summary
-  }, [state.levels, levelTypeOptions])
+  }, [levels, levelTypeOptions])
 
-  // Loading modal for detail fetching
+  // Initialize level form when editing
+  useEffect(() => {
+    if (state.levelModalVisible && state.editingLevelIndex !== null) {
+      const currentLevels = form.getFieldValue('levels') || []
+      const level = currentLevels[state.editingLevelIndex]
+      if (level) {
+        form.setFieldsValue({
+          levelLabel: level.label,
+          levelCode: level.code,
+          levelDescription: level.description,
+          levelSymptomsDescription: level.symptomsDescription,
+          levelInterventionRequired: level.interventionRequired,
+          levelMinScore: level.minScore,
+          levelMaxScore: level.maxScore,
+          levelType: level.levelType,
+        })
+      }
+    } else if (state.levelModalVisible && state.editingLevelIndex === null) {
+      // Set default values for new level
+      form.setFieldsValue({
+        levelLabel: '',
+        levelCode: '',
+        levelDescription: '',
+        levelSymptomsDescription: '',
+        levelInterventionRequired: '',
+        levelMinScore: 0,
+        levelMaxScore: 100,
+        levelType: 'MID',
+      })
+    }
+  }, [state.levelModalVisible, state.editingLevelIndex, form])
+
   if (state.detailLoading) {
     return (
       <Modal open={visible} footer={null} closable={false} centered width={400}>
@@ -759,7 +766,7 @@ const CategoryModal = ({
           },
         }}
         className={isDarkMode ? 'dark-modal' : ''}
-        destroyOnHidden
+        destroyOnClose
       >
         <Row gutter={24} style={{ height: '100%' }}>
           {/* Left Column - Category Information */}
@@ -801,12 +808,6 @@ const CategoryModal = ({
                           max: 100,
                           message: t('categoryManagement.form.nameMaxLength'),
                         },
-                        {
-                          whitespace: true,
-                          message: t(
-                            'categoryManagement.form.nameNoWhitespace'
-                          ),
-                        },
                       ]}
                     >
                       <Input
@@ -844,9 +845,6 @@ const CategoryModal = ({
                           'categoryManagement.form.codePlaceholder'
                         )}
                         style={{ textTransform: 'uppercase' }}
-                        onChange={e => {
-                          e.target.value = e.target.value.toUpperCase()
-                        }}
                       />
                     </Form.Item>
                   </Col>
@@ -902,25 +900,11 @@ const CategoryModal = ({
                             'categoryManagement.form.questionLengthRequired'
                           ),
                         },
-                        {
-                          type: 'number',
-                          min: 1,
-                          message: t(
-                            'categoryManagement.form.questionLengthMin'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          max: 1000,
-                          message: t(
-                            'categoryManagement.form.questionLengthMax'
-                          ),
-                        },
                       ]}
                     >
                       <InputNumber
                         min={1}
-                        max={1000}
+                        max={100}
                         placeholder={t(
                           'categoryManagement.form.questionLengthPlaceholder'
                         )}
@@ -937,20 +921,6 @@ const CategoryModal = ({
                           required: true,
                           message: t(
                             'categoryManagement.form.severityWeightRequired'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          min: 0.1,
-                          message: t(
-                            'categoryManagement.form.severityWeightMin'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          max: 10,
-                          message: t(
-                            'categoryManagement.form.severityWeightMax'
                           ),
                         },
                       ]}
@@ -994,25 +964,11 @@ const CategoryModal = ({
                               'categoryManagement.form.questionCountRequired'
                             ),
                           },
-                          {
-                            type: 'number',
-                            min: 0,
-                            message: t(
-                              'categoryManagement.form.questionCountMin'
-                            ),
-                          },
-                          {
-                            type: 'number',
-                            max: 10,
-                            message: t(
-                              'categoryManagement.form.questionCountMax'
-                            ),
-                          },
                         ]}
                       >
                         <InputNumber
-                          min={0}
-                          max={10}
+                          min={1}
+                          max={100}
                           placeholder={t(
                             'categoryManagement.form.questionCountPlaceholder'
                           )}
@@ -1039,7 +995,7 @@ const CategoryModal = ({
                 <Row gutter={16}>
                   <Col span={8}>
                     <Form.Item
-                      label={t('categoryManagement.form.scoreRangeStart')}
+                      label={t('categoryManagement.form.minScore')}
                       name="minScore"
                       rules={[
                         {
@@ -1047,11 +1003,6 @@ const CategoryModal = ({
                           message: t(
                             'categoryManagement.form.minScoreRequired'
                           ),
-                        },
-                        {
-                          type: 'number',
-                          min: 0,
-                          message: t('categoryManagement.form.minScoreMin'),
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
@@ -1070,7 +1021,7 @@ const CategoryModal = ({
                     >
                       <InputNumber
                         min={0}
-                        max={10}
+                        max={1073741824}
                         placeholder={t(
                           'categoryManagement.form.minScorePlaceholder'
                         )}
@@ -1080,7 +1031,7 @@ const CategoryModal = ({
                   </Col>
                   <Col span={8}>
                     <Form.Item
-                      label={t('categoryManagement.form.scoreRangeEnd')}
+                      label={t('categoryManagement.form.maxScore')}
                       name="maxScore"
                       rules={[
                         {
@@ -1088,11 +1039,6 @@ const CategoryModal = ({
                           message: t(
                             'categoryManagement.form.maxScoreRequired'
                           ),
-                        },
-                        {
-                          type: 'number',
-                          min: 1,
-                          message: t('categoryManagement.form.maxScoreMin'),
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
@@ -1112,8 +1058,8 @@ const CategoryModal = ({
                       ]}
                     >
                       <InputNumber
-                        min={0}
-                        max={10}
+                        min={1}
+                        max={1073741824}
                         placeholder={t(
                           'categoryManagement.form.maxScorePlaceholder'
                         )}
@@ -1160,7 +1106,7 @@ const CategoryModal = ({
                   <Space>
                     <TrophyOutlined className="text-purple-500" />
                     <Text strong>{t('categoryManagement.form.levels')}</Text>
-                    <Badge count={state.levels?.length} showZero />
+                    <Badge count={levels?.length} showZero />
                   </Space>
                 }
                 size="small"
@@ -1181,9 +1127,14 @@ const CategoryModal = ({
                         icon={<PlusOutlined />}
                         onClick={addQuickLevels}
                         size="small"
-                        title={t(
-                          'categoryManagement.form.addQuickLevelsTooltip'
-                        )}
+                        disabled={!minScore || !maxScore}
+                        title={
+                          !minScore || !maxScore
+                            ? t(
+                                'categoryManagement.form.quickLevelsRequireScores'
+                              )
+                            : ''
+                        }
                       >
                         {t('categoryManagement.form.addQuickLevels')}
                       </Button>
@@ -1191,7 +1142,7 @@ const CategoryModal = ({
                   )
                 }
               >
-                {state.levels?.length === 0 ? (
+                {levels?.length === 0 ? (
                   <Empty
                     description={t('categoryManagement.form.noLevels')}
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -1204,8 +1155,7 @@ const CategoryModal = ({
                     >
                       <Text strong className="mb-2 block">
                         {t('categoryManagement.form.levelSummary')}:{' '}
-                        {state.levels?.length}{' '}
-                        {t('categoryManagement.form.levels')}
+                        {levels?.length} {t('categoryManagement.form.levels')}
                       </Text>
                       <div className="flex flex-wrap gap-2">
                         {Object.values(levelSummary).map(
@@ -1224,7 +1174,7 @@ const CategoryModal = ({
 
                     {/* Level Cards */}
                     <div>
-                      {!isView && state.levels?.length > 0 && (
+                      {!isView && levels?.length > 0 && (
                         <div
                           className={`mb-3 p-2 text-center ${isDarkMode ? 'bg-gray-600 text-gray-300' : 'bg-blue-50 text-blue-600'} rounded text-xs`}
                         >
@@ -1233,7 +1183,7 @@ const CategoryModal = ({
                           </Text>
                         </div>
                       )}
-                      {state.levels?.map((level, index) => (
+                      {levels?.map((level, index) => (
                         <LevelCard
                           key={`${level.code}-${index}`}
                           level={level}
@@ -1291,42 +1241,14 @@ const CategoryModal = ({
         }
         width={800}
         className={isDarkMode ? 'dark-modal' : ''}
-        destroyOnHidden
+        destroyOnClose
       >
-        <Form
-          form={levelForm}
-          layout="vertical"
-          initialValues={{
-            levelType: 'MID',
-            minScore: 0,
-            maxScore: 100,
-          }}
-        >
+        <Form form={form} layout="vertical">
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="label"
+                name="levelLabel"
                 label={t('categoryManagement.form.levelLabel')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('categoryManagement.form.levelLabelRequired'),
-                  },
-                  {
-                    min: 2,
-                    message: t('categoryManagement.form.levelLabelMinLength'),
-                  },
-                  {
-                    max: 50,
-                    message: t('categoryManagement.form.levelLabelMaxLength'),
-                  },
-                  {
-                    whitespace: true,
-                    message: t(
-                      'categoryManagement.form.levelLabelNoWhitespace'
-                    ),
-                  },
-                ]}
               >
                 <Input
                   placeholder={t(
@@ -1337,35 +1259,14 @@ const CategoryModal = ({
             </Col>
             <Col span={12}>
               <Form.Item
-                name="code"
+                name="levelCode"
                 label={t('categoryManagement.form.levelCode')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('categoryManagement.form.levelCodeRequired'),
-                  },
-                  {
-                    pattern: /^[A-Z0-9_]+$/,
-                    message: t('categoryManagement.form.levelCodePattern'),
-                  },
-                  {
-                    min: 2,
-                    message: t('categoryManagement.form.levelCodeMinLength'),
-                  },
-                  {
-                    max: 20,
-                    message: t('categoryManagement.form.levelCodeMaxLength'),
-                  },
-                ]}
               >
                 <Input
                   placeholder={t(
                     'categoryManagement.form.levelCodePlaceholder'
                   )}
                   style={{ textTransform: 'uppercase' }}
-                  onChange={e => {
-                    e.target.value = e.target.value.toUpperCase()
-                  }}
                 />
               </Form.Item>
             </Col>
@@ -1373,16 +1274,8 @@ const CategoryModal = ({
           <Row gutter={16}>
             <Col span={24}>
               <Form.Item
-                name="description"
+                name="levelDescription"
                 label={t('categoryManagement.form.levelDescription')}
-                rules={[
-                  {
-                    max: 300,
-                    message: t(
-                      'categoryManagement.form.levelDescriptionMaxLength'
-                    ),
-                  },
-                ]}
               >
                 <TextArea
                   placeholder={t(
@@ -1398,16 +1291,8 @@ const CategoryModal = ({
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                name="symptomsDescription"
+                name="levelSymptomsDescription"
                 label={t('categoryManagement.form.symptomsDescription')}
-                rules={[
-                  {
-                    max: 300,
-                    message: t(
-                      'categoryManagement.form.symptomsDescriptionMaxLength'
-                    ),
-                  },
-                ]}
               >
                 <TextArea
                   placeholder={t(
@@ -1421,16 +1306,8 @@ const CategoryModal = ({
             </Col>
             <Col span={12}>
               <Form.Item
-                name="interventionRequired"
+                name="levelInterventionRequired"
                 label={t('categoryManagement.form.interventionRequired')}
-                rules={[
-                  {
-                    max: 300,
-                    message: t(
-                      'categoryManagement.form.interventionRequiredMaxLength'
-                    ),
-                  },
-                ]}
               >
                 <TextArea
                   placeholder={t(
@@ -1446,41 +1323,12 @@ const CategoryModal = ({
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
-                name="minScore"
+                name="levelMinScore"
                 label={t('categoryManagement.form.levelMinScore')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('categoryManagement.form.levelMinScoreRequired'),
-                  },
-                  {
-                    type: 'number',
-                    min: 0,
-                    message: t('categoryManagement.form.levelMinScoreMin'),
-                  },
-                  {
-                    type: 'number',
-                    max: 1000,
-                    message: t('categoryManagement.form.levelMinScoreMax'),
-                  },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      const levelMaxScore = getFieldValue('maxScore')
-                      if (!value || !levelMaxScore || value < levelMaxScore) {
-                        return Promise.resolve()
-                      }
-                      return Promise.reject(
-                        new Error(
-                          t('categoryManagement.form.levelMinScoreLessThanMax')
-                        )
-                      )
-                    },
-                  }),
-                ]}
               >
                 <InputNumber
                   min={0}
-                  max={1000}
+                  max={10000}
                   placeholder={t(
                     'categoryManagement.form.levelMinScorePlaceholder'
                   )}
@@ -1490,43 +1338,12 @@ const CategoryModal = ({
             </Col>
             <Col span={8}>
               <Form.Item
-                name="maxScore"
+                name="levelMaxScore"
                 label={t('categoryManagement.form.levelMaxScore')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('categoryManagement.form.levelMaxScoreRequired'),
-                  },
-                  {
-                    type: 'number',
-                    min: 0,
-                    message: t('categoryManagement.form.levelMaxScoreMin'),
-                  },
-                  {
-                    type: 'number',
-                    max: 1000,
-                    message: t('categoryManagement.form.levelMaxScoreMax'),
-                  },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      const levelMinScore = getFieldValue('minScore')
-                      if (!value || !levelMinScore || value > levelMinScore) {
-                        return Promise.resolve()
-                      }
-                      return Promise.reject(
-                        new Error(
-                          t(
-                            'categoryManagement.form.levelMaxScoreGreaterThanMin'
-                          )
-                        )
-                      )
-                    },
-                  }),
-                ]}
               >
                 <InputNumber
                   min={0}
-                  max={1000}
+                  max={10000}
                   placeholder={t(
                     'categoryManagement.form.levelMaxScorePlaceholder'
                   )}
@@ -1538,12 +1355,6 @@ const CategoryModal = ({
               <Form.Item
                 name="levelType"
                 label={t('categoryManagement.form.levelType')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('categoryManagement.form.levelTypeRequired'),
-                  },
-                ]}
               >
                 <Select
                   placeholder={t(

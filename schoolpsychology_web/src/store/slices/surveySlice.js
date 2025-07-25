@@ -33,7 +33,11 @@ const surveySlice = createSlice({
       })
       .addCase('survey/getAllSurveys/fulfilled', (state, action) => {
         state.loading = false
-        state.surveys = action.payload.data || action.payload
+        // Handle both array and object with data property
+        const surveys = Array.isArray(action.payload)
+          ? action.payload
+          : action.payload.data || action.payload
+        state.surveys = surveys
         if (action.payload.pagination) {
           state.pagination = {
             ...state.pagination,
@@ -62,6 +66,47 @@ const surveySlice = createSlice({
       .addCase('survey/createSurvey/rejected', (state, action) => {
         state.loading = false
         state.error = action.payload || 'Failed to create survey'
+      })
+      // updateSurvey
+      .addCase('survey/updateSurvey/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('survey/updateSurvey/fulfilled', (state, action) => {
+        state.loading = false
+        // Update the survey in the list
+        if (action.payload) {
+          const index = state.surveys.findIndex(
+            s => s.surveyId === action.payload.surveyId
+          )
+          if (index !== -1) {
+            state.surveys[index] = action.payload
+          }
+        }
+        state.error = null
+      })
+      .addCase('survey/updateSurvey/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to update survey'
+      })
+      // deleteSurvey
+      .addCase('survey/deleteSurvey/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('survey/deleteSurvey/fulfilled', (state, action) => {
+        state.loading = false
+        // Remove the survey from the list
+        if (action.payload) {
+          state.surveys = state.surveys.filter(
+            s => s.surveyId !== action.payload
+          )
+        }
+        state.error = null
+      })
+      .addCase('survey/deleteSurvey/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to delete survey'
       })
   },
 })

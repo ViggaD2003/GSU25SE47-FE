@@ -6,16 +6,31 @@ import React, {
   Suspense,
   lazy,
 } from 'react'
-import { Card, Button, Input, message, Row, Col, Typography, Modal } from 'antd'
+import {
+  Card,
+  Button,
+  Input,
+  message,
+  Row,
+  Col,
+  Typography,
+  Modal,
+  Select,
+  Space,
+  Tag,
+} from 'antd'
 import {
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
   ExclamationCircleOutlined,
+  ClearOutlined,
+  FilterOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import { categoriesAPI } from '@/services/categoryApi'
+import { CATEGORY_STATUS } from '@/constants/enums'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -33,6 +48,7 @@ const CategoryManagement = () => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [searchText, setSearchText] = useState('')
+  const [statusFilter, setStatusFilter] = useState(undefined)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
@@ -60,7 +76,7 @@ const CategoryManagement = () => {
     } finally {
       setLoading(false)
     }
-  }, [messageApi, t])
+  }, [])
 
   // Filter and search categories
   const filteredCategories = useMemo(() => {
@@ -71,9 +87,12 @@ const CategoryManagement = () => {
         category?.name?.toLowerCase()?.includes(searchText.toLowerCase()) ||
         category?.code?.toLowerCase()?.includes(searchText.toLowerCase())
 
-      return matchesSearch
+      const matchesStatus =
+        statusFilter === undefined || category?.isActive === statusFilter
+
+      return matchesSearch && matchesStatus
     })
-  }, [categories, searchText])
+  }, [categories, searchText, statusFilter])
 
   // Update pagination when filtered data changes
   useEffect(() => {
@@ -105,10 +124,31 @@ const CategoryManagement = () => {
     setPagination(prev => ({ ...prev, current: 1 }))
   }, [])
 
+  // Handle status filter change
+  const handleStatusFilterChange = useCallback(value => {
+    setStatusFilter(value)
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }, [])
+
+  // Clear all filters handler
+  const handleClearFilters = () => {
+    setSearchText('')
+    setStatusFilter(undefined)
+
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }
+
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(
+    () => searchText.trim() || statusFilter !== undefined,
+    [searchText, statusFilter]
+  )
+
   // Handle refresh
   const handleRefresh = useCallback(() => {
     fetchCategories()
     setSearchText('')
+    setStatusFilter(null)
     setPagination(prev => ({ ...prev, current: 1 }))
   }, [fetchCategories])
 
@@ -190,11 +230,11 @@ const CategoryManagement = () => {
   }, [])
 
   return (
-    <div className={isDarkMode ? 'text-white' : 'text-gray-900'}>
+    <div className="p-6">
       {contextHolder}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-end justify-between mb-6">
         <div>
           <Title
             level={2}
@@ -202,7 +242,10 @@ const CategoryManagement = () => {
           >
             {t('categoryManagement.title')}
           </Title>
-          <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+          <Text
+            type="secondary"
+            className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}
+          >
             {t('categoryManagement.description')}
           </Text>
         </div>
@@ -220,18 +263,86 @@ const CategoryManagement = () => {
         </div>
       </div>
 
-      {/* Search */}
+      {/* Enhanced Filter Card */}
       <Card
-        className={`mb-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+        className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
+        style={{ marginBottom: 16 }}
+        title={
+          <Space>
+            <FilterOutlined />
+            <span>Filters & Search</span>
+            {hasActiveFilters && (
+              <Tag color="blue">
+                {filteredCategories.length} of {categories?.length || 0}{' '}
+                categories
+              </Tag>
+            )}
+          </Space>
+        }
+        extra={
+          hasActiveFilters && (
+            <Button
+              type="text"
+              icon={<ClearOutlined />}
+              onClick={handleClearFilters}
+              size="small"
+            >
+              Clear All
+            </Button>
+          )
+        }
       >
         <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12} lg={8}>
+          {/* Text Search - Search in name, code */}
+          <Col xs={24} sm={12} md={8} lg={8}>
+            <div>
+              <Text strong>{t('categoryManagement.search')}</Text>
+              <Text
+                type="secondary"
+                style={{ display: 'block', fontSize: '12px' }}
+              >
+                {t('categoryManagement.searchDescription')}
+              </Text>
+            </div>
             <Search
               placeholder={t('categoryManagement.search')}
               allowClear
+              size="middle"
               onSearch={handleSearch}
               onChange={e => handleSearch(e.target.value)}
-              style={{ width: '100%' }}
+              value={searchText}
+              style={{ marginTop: 4 }}
+            />
+          </Col>
+
+          {/* Status Filter - Filter by status */}
+          <Col xs={24} sm={12} md={8} lg={8}>
+            <div>
+              <Text strong>{t('categoryManagement.status')}</Text>
+              <Text
+                type="secondary"
+                style={{ display: 'block', fontSize: '12px' }}
+              >
+                {t('categoryManagement.statusDescription')}
+              </Text>
+            </div>
+            <Select
+              placeholder={t('categoryManagement.selectStatus')}
+              size="middle"
+              allowClear
+              value={statusFilter}
+              onChange={handleStatusFilterChange}
+              options={[
+                {
+                  label: t('categoryManagement.table.active'),
+                  value: CATEGORY_STATUS.ACTIVE,
+                },
+                {
+                  label: t('categoryManagement.table.inactive'),
+                  value: CATEGORY_STATUS.INACTIVE,
+                },
+              ]}
+              style={{ marginTop: 4, width: '100%' }}
             />
           </Col>
         </Row>
@@ -261,6 +372,7 @@ const CategoryManagement = () => {
           selectedCategory={selectedCategory}
           isEdit={isEdit}
           isView={isView}
+          message={messageApi}
         />
       </Suspense>
     </div>
