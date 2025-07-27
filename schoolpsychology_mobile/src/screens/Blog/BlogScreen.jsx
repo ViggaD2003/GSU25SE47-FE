@@ -53,12 +53,11 @@ export default function BlogScreen() {
     <Container>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Blog</Text>
-          <Text style={styles.headerSubtitle}>
-            Explore insights for mental wellness and growth
-          </Text>
-        </View>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Blog</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <FlatList

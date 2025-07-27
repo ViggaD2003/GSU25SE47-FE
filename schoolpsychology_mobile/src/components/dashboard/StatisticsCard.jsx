@@ -1,164 +1,281 @@
-import React from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-
-const { width } = Dimensions.get("window");
 
 const StatisticsCard = ({
   title,
   value,
-  change,
-  changeType,
-  icon,
-  color,
   subtitle,
+  icon,
+  iconColor = GlobalStyles.colors.primary,
+  valueColor = GlobalStyles.colors.primary,
+  backgroundColor = "#fff",
+  percentage,
+  trend, // 'up', 'down', or 'neutral'
+  size = "medium", // 'small', 'medium', 'large'
 }) => {
-  const isPositive = changeType === "positive";
-  const isNegative = changeType === "negative";
+  const getTrendIcon = () => {
+    switch (trend) {
+      case "up":
+        return "arrow-up";
+      case "down":
+        return "arrow-down";
+      default:
+        return null;
+    }
+  };
+
+  const getTrendColor = () => {
+    switch (trend) {
+      case "up":
+        return "#22C55E";
+      case "down":
+        return "#EF4444";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const getSizeStyles = () => {
+    switch (size) {
+      case "small":
+        return {
+          container: styles.smallContainer,
+          value: styles.smallValue,
+          title: styles.smallTitle,
+          subtitle: styles.smallSubtitle,
+          iconSize: 18,
+        };
+      case "large":
+        return {
+          container: styles.largeContainer,
+          value: styles.largeValue,
+          title: styles.largeTitle,
+          subtitle: styles.largeSubtitle,
+          iconSize: 24,
+        };
+      default:
+        return {
+          container: styles.mediumContainer,
+          value: styles.mediumValue,
+          title: styles.mediumTitle,
+          subtitle: styles.mediumSubtitle,
+          iconSize: 20,
+        };
+    }
+  };
+
+  const sizeStyles = getSizeStyles();
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={[styles.iconContainer, { backgroundColor: color + "20" }]}>
-          <Ionicons name={icon} size={24} color={color} />
-        </View>
-        <View style={styles.changeContainer}>
-          {change ? (
+    <View style={[styles.container, sizeStyles.container, { backgroundColor }]}>
+      {/* Top section - Icon & Title */}
+      <View style={styles.topSection}>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, sizeStyles.title]}>{title}</Text>
+          {icon && (
             <View
               style={[
-                styles.changeBadge,
-                {
-                  backgroundColor: isPositive
-                    ? "#10B981" + "20"
-                    : isNegative
-                    ? "#EF4444" + "20"
-                    : "#6B7280" + "20",
-                },
+                styles.iconContainer,
+                { backgroundColor: `${iconColor}10` },
               ]}
             >
               <Ionicons
-                name={
-                  isPositive
-                    ? "trending-up"
-                    : isNegative
-                    ? "trending-down"
-                    : "remove"
-                }
-                size={12}
-                color={
-                  isPositive ? "#10B981" : isNegative ? "#EF4444" : "#6B7280"
-                }
+                name={icon}
+                size={sizeStyles.iconSize}
+                color={iconColor}
               />
-              <Text
-                style={[
-                  styles.changeText,
-                  {
-                    color: isPositive
-                      ? "#10B981"
-                      : isNegative
-                      ? "#EF4444"
-                      : "#6B7280",
-                  },
-                ]}
-              >
-                {change}
-              </Text>
             </View>
-          ) : (
-            <View style={styles.changePlaceholder} />
           )}
         </View>
       </View>
 
-      <View style={styles.content}>
-        <Text style={styles.value} numberOfLines={1}>
-          {value}
-        </Text>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        <Text style={styles.subtitle} numberOfLines={1}>
-          {subtitle || " "}
-        </Text>
+      {/* Value section */}
+      <View style={styles.valueSection}>
+        <View style={styles.valueRow}>
+          <Text style={[styles.value, sizeStyles.value, { color: valueColor }]}>
+            {value}
+          </Text>
+          {trend && (
+            <View style={styles.trendBadge}>
+              <Ionicons
+                name={getTrendIcon()}
+                size={14}
+                color={getTrendColor()}
+              />
+              {percentage !== undefined && (
+                <Text style={[styles.trendText, { color: getTrendColor() }]}>
+                  {Math.abs(percentage)}%
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
+
+        {/* Progress indicator */}
+        {/* <View style={styles.progressContainer}>
+          <View
+            style={[styles.progressBar, { backgroundColor: `${valueColor}20` }]}
+          >
+            <View
+              style={[
+                styles.progressFill,
+                {
+                  backgroundColor: valueColor,
+                  width: `${Math.min(Math.max(parseInt(value) || 0, 0), 100)}%`,
+                },
+              ]}
+            />
+          </View>
+        </View> */}
       </View>
+
+      {/* Subtitle */}
+      {subtitle && (
+        <View style={styles.subtitleSection}>
+          <Text style={[styles.subtitle, sizeStyles.subtitle]}>{subtitle}</Text>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
-    padding: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
-    marginBottom: 12,
-    // Fixed dimensions for uniform cards
-    minHeight: 160,
-    width: (width - 75) / 2, // 2 cards per row with margins
+    borderWidth: 1,
+    borderColor: "#F8FAFC",
   },
-  header: {
+  topSection: {
+    marginBottom: 16,
+  },
+  titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 16,
-    height: 48, // Fixed height for header
+    alignItems: "center",
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: "center",
     alignItems: "center",
-    justifyContent: "center",
   },
-  changeContainer: {
-    alignItems: "flex-end",
-    height: 24, // Fixed height for change container
-    justifyContent: "center",
+  valueSection: {
+    marginBottom: 12,
   },
-  changeBadge: {
+  valueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  trendBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
     gap: 4,
-    minHeight: 24,
   },
-  changeText: {
+  trendText: {
     fontSize: 12,
     fontWeight: "600",
-    lineHeight: 16,
   },
-  changePlaceholder: {
-    width: 40,
-    height: 24,
+  progressContainer: {
+    marginTop: 4,
   },
-  content: {
+  progressBar: {
+    height: 4,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
+  subtitleSection: {
+    marginTop: 4,
+  },
+
+  // Small size styles
+  smallContainer: {
+    padding: 16,
     flex: 1,
-    justifyContent: "flex-start",
-    gap: 6,
   },
-  value: {
+  smallValue: {
     fontSize: 28,
     fontWeight: "700",
-    color: "#1F2937",
-    lineHeight: 32,
-    marginBottom: 2,
+    letterSpacing: -0.5,
   },
-  title: {
-    fontSize: 14,
+  smallTitle: {
+    fontSize: 13,
+    color: "#64748B",
     fontWeight: "500",
-    color: "#6B7280",
+    lineHeight: 16,
+  },
+  smallSubtitle: {
+    fontSize: 11,
+    color: "#94A3B8",
+    fontWeight: "400",
+    lineHeight: 14,
+  },
+
+  // Medium size styles
+  mediumContainer: {
+    padding: 20,
+    flex: 1,
+  },
+  mediumValue: {
+    fontSize: 32,
+    fontWeight: "700",
+    letterSpacing: -0.75,
+  },
+  mediumTitle: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
     lineHeight: 18,
   },
-  subtitle: {
+  mediumSubtitle: {
     fontSize: 12,
-    color: "#9CA3AF",
+    color: "#94A3B8",
+    fontWeight: "400",
+    lineHeight: 16,
+  },
+
+  // Large size styles
+  largeContainer: {
+    padding: 24,
+  },
+  largeValue: {
+    fontSize: 40,
+    fontWeight: "700",
+    letterSpacing: -1,
+  },
+  largeTitle: {
+    fontSize: 15,
+    color: "#64748B",
+    fontWeight: "500",
+    lineHeight: 20,
+  },
+  largeSubtitle: {
+    fontSize: 13,
+    color: "#94A3B8",
+    fontWeight: "400",
+    lineHeight: 18,
+  },
+
+  title: {
+    flex: 1,
+    marginRight: 8,
+  },
+  value: {
+    flex: 1,
+  },
+  subtitle: {
     lineHeight: 16,
   },
 });

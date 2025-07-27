@@ -21,6 +21,7 @@ import {
   ProgramRecordScreen,
   RecordScreen,
   AppointmentRecordDetailScreen,
+  DashboardScreen,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,8 +50,8 @@ export default function MainTabs() {
 
             if (route.name === "Home") {
               iconName = focused ? "home" : "home-outline";
-            } else if (route.name === "BlogMain") {
-              iconName = focused ? "library" : "library-outline";
+            } else if (route.name === "Dashboard") {
+              iconName = focused ? "stats-chart" : "stats-chart-outline";
             } else if (route.name === "RecordMain") {
               iconName = focused ? "folder" : "folder-outline";
             } else if (route.name === "ProfileMain") {
@@ -74,10 +75,10 @@ export default function MainTabs() {
           }}
         />
         <Tab.Screen
-          name="BlogMain"
-          component={BlogScreen}
+          name="Dashboard"
+          component={DashboardScreen}
           options={{
-            title: "Blog",
+            title: "Dashboard",
           }}
         />
         <Tab.Screen
@@ -177,6 +178,7 @@ export default function MainTabs() {
   const BlogStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Blog" component={BlogScreen} />
         <Stack.Screen name="BlogDetails" component={BlogDetails} />
       </Stack.Navigator>
     );
@@ -200,6 +202,7 @@ export default function MainTabs() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainBottomTabs" component={BottomTabs} />
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Record" component={RecordScreen} />
       <Stack.Screen name="Survey" component={SurveyStack} />
       <Stack.Screen name="Appointment" component={AppointmentStack} />

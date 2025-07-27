@@ -15,6 +15,9 @@ export { default as ProtectedRoute } from "./ui/ProtectedRoute";
 // Dashboard components
 export * from "./dashboard";
 
+// Chart components
+export * from "./charts";
+
 // Forms components (future)
 // export { default as LoginForm } from './forms/LoginForm';
 // export { default as SurveyForm } from './forms/SurveyForm';

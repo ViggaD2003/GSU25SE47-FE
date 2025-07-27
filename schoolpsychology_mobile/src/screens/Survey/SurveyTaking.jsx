@@ -13,8 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { Toast } from "../../components";
-import { surveyResult } from "../../constants/survey";
+import { Container, Toast } from "../../components";
 import {
   clearSurveyProgress,
   loadSurveyProgress,
@@ -83,7 +82,7 @@ const SurveyTaking = ({ route, navigation }) => {
 
         // Check if question exists in current survey
         if (validQuestionIds.includes(questionIdNum)) {
-          const currentQuestion = survey.questions.find(
+          const currentQuestion = survey?.questions?.find(
             (q) => q.questionId === questionIdNum
           );
 
@@ -136,7 +135,7 @@ const SurveyTaking = ({ route, navigation }) => {
     }
 
     // Validate answerId exists for the given question
-    const currentQuestion = survey.questions.find(
+    const currentQuestion = survey?.questions?.find(
       (question) => question.questionId === questionId
     );
 
@@ -247,7 +246,7 @@ const SurveyTaking = ({ route, navigation }) => {
       }
 
       // Check if answer exists for this question
-      const currentQuestion = survey.questions.find(
+      const currentQuestion = survey?.questions?.find(
         (q) => q.questionId === questionIdNum
       );
       const validAnswerIds = currentQuestion.answers.map((a) => a.id);
@@ -315,23 +314,6 @@ const SurveyTaking = ({ route, navigation }) => {
     setShowExitModal(false);
   };
 
-  // Get survey configuration based on survey code
-  const getSurveyConfig = useCallback(() => {
-    return surveyResult.find(
-      (config) => config.surveyCode === survey?.surveyCode
-    );
-  }, [survey?.surveyCode]);
-
-  // Get level configuration based on score
-  const getLevelConfig = useCallback((score) => {
-    const config = getSurveyConfig();
-    if (!config) return null;
-
-    return config.levels.find(
-      (level) => score >= level.min && score <= level.max
-    );
-  }, []);
-
   const handleSubmitSurvey = async (submittedAnswers) => {
     try {
       // Check if survey and questions exist
@@ -366,10 +348,6 @@ const SurveyTaking = ({ route, navigation }) => {
         }
       });
 
-      // Calculate total score based on answers (you may need to adjust this logic)
-      const surveyConfig = getSurveyConfig();
-      let totalScore;
-
       // Calculate scores only for answered questions (not skipped)
       const answerScores = [];
       survey.questions.forEach((question, index) => {
@@ -378,7 +356,7 @@ const SurveyTaking = ({ route, navigation }) => {
         if (answerId) {
           // Only calculate score for answered questions
           const answerIdNum = parseInt(answerId);
-          const answer = question.answers.find((a) => a.id === answerIdNum);
+          const answer = question?.answers?.find((a) => a.id === answerIdNum);
 
           if (answer && answer.score !== undefined) {
             answerScores.push(answer.score);
@@ -399,11 +377,7 @@ const SurveyTaking = ({ route, navigation }) => {
         }
       });
 
-      if (!surveyConfig) {
-        console.log("No survey config found, using default SUM method");
-        // Mặc định sử dụng SUM nếu không tìm thấy config
-        totalScore = answerScores.reduce((sum, score) => sum + score, 0);
-      } else if (surveyConfig.method === "sum") {
+      if (survey?.category?.isSum) {
         // Cộng tất cả điểm
         totalScore = answerScores.reduce((sum, score) => sum + score, 0);
         console.log("Using SUM method, Total Score:", totalScore);
@@ -440,30 +414,25 @@ const SurveyTaking = ({ route, navigation }) => {
         }
       }
 
-      const scoreLevel = getLevelConfig(totalScore);
-
       const surveyResult = {
-        level: scoreLevel?.level.toUpperCase(),
-        noteSuggest: scoreLevel?.noteSuggest,
-        status: "COMPLETED",
         surveyId: survey?.surveyId,
-        totalScore: totalScore,
+        isSkipped: false,
+        totalScore: 10,
         answerRecordRequests: answerRecordRequests,
-        categoryId: survey?.questions[0].category.id,
       };
 
-      console.log("Survey submitted:", surveyResult);
+      // console.log("Survey submitted:", surveyResult);
       const response = await postSurveyResult(surveyResult);
+      // console.log("response", response);
 
       // Navigate to result screen
-      if (response.data) {
+      if (response) {
         navigation.navigate("Survey", {
           screen: "SurveyResult",
           params: {
-            survey,
-            result: response.data,
+            result: response,
             showRecordsButton: true,
-            screen: "SurveyTaking",
+            type: "submit",
           },
         });
       }
@@ -540,7 +509,7 @@ const SurveyTaking = ({ route, navigation }) => {
   const progress = ((currentQuestionIndex + 1) / survey.questions.length) * 100;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Container>
       {isSubmitting && (
         <ActivityIndicator
           style={styles.loadingIndicator}
@@ -833,7 +802,7 @@ const SurveyTaking = ({ route, navigation }) => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </SafeAreaView>
+    </Container>
   );
 };
 

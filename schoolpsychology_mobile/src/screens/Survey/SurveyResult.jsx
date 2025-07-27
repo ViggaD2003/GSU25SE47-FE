@@ -1,25 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { Toast } from "../../components";
+import { Container, Toast } from "../../components";
 import {
   formatDate,
   getScoreColor,
   getScoreIcon,
   getScoreLevel,
 } from "../../utils/helpers";
+import { getSurveyRecordById } from "@/services/api/SurveyService";
 
 const SurveyResult = ({ route, navigation }) => {
-  const { survey, result, showRecordsButton } = route.params || {};
+  const { result, showRecordsButton, type } = route.params || {};
+  const [surveyRecord, setSurveyRecord] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -35,6 +37,28 @@ const SurveyResult = ({ route, navigation }) => {
   const hideToast = useCallback(() => {
     setToast({ visible: false, message: "", type: "info" });
   }, []);
+
+  const fetchSurveyRecord = async () => {
+    try {
+      setLoading(true);
+      const response = await getSurveyRecordById(result.id);
+      setSurveyRecord(response);
+    } catch (error) {
+      console.log("Lỗi khi lấy kết quả khảo sát:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("type", type);
+    if (type === "submit") {
+      setSurveyRecord(result);
+      showToast("Đã lưu kết quả vào hồ sơ", "success");
+    } else {
+      fetchSurveyRecord();
+    }
+  }, [type, result]);
 
   const handleBackPress = useCallback(() => {
     if (route.params?.screen === "SurveyTaking") {
@@ -54,8 +78,8 @@ const SurveyResult = ({ route, navigation }) => {
     setShowAllAnswers(!showAllAnswers);
   }, [showAllAnswers, animation]);
 
-  const currentScore = result?.totalScore || 0;
-  const answerRecords = result?.answerRecords || [];
+  const currentScore = surveyRecord?.totalScore || 0;
+  const answerRecords = surveyRecord?.answerRecords || [];
   const hasAnswers = answerRecords.length > 0;
 
   // Calculate summary stats
@@ -64,8 +88,25 @@ const SurveyResult = ({ route, navigation }) => {
   ).length;
   const skippedCount = answerRecords.filter((record) => record.skipped).length;
 
+  const levelConfig = String(surveyRecord?.level?.label)?.toLowerCase();
+
+  if (loading) {
+    return (
+      <Container>
+        <View style={styles.loadingContainer}>
+          <Ionicons
+            name="refresh"
+            size={32}
+            color={GlobalStyles.colors.primary}
+          />
+          <Text style={styles.loadingText}>Đang tải thông tin khảo sát...</Text>
+        </View>
+      </Container>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <Container>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -83,12 +124,16 @@ const SurveyResult = ({ route, navigation }) => {
         <View style={styles.resultCard}>
           <View style={styles.resultHeader}>
             <View style={styles.resultIcon}>
-              <Ionicons name="trophy" size={24} color={getScoreColor(result)} />
+              <Ionicons
+                name="trophy"
+                size={24}
+                color={getScoreColor(levelConfig)}
+              />
             </View>
             <View style={styles.resultInfo}>
               <Text style={styles.resultTitle}>Kết quả khảo sát</Text>
               <Text style={styles.resultSubtitle}>
-                {survey?.name || "Khảo sát tâm lý"}
+                {surveyRecord?.survey?.name || "Khảo sát tâm lý"}
               </Text>
             </View>
           </View>
@@ -98,11 +143,14 @@ const SurveyResult = ({ route, navigation }) => {
             <View
               style={[
                 styles.scoreCircle,
-                { borderColor: getScoreColor(result) },
+                { borderColor: getScoreColor(levelConfig) },
               ]}
             >
               <Text
-                style={[styles.scoreText, { color: getScoreColor(result) }]}
+                style={[
+                  styles.scoreText,
+                  { color: getScoreColor(levelConfig) },
+                ]}
               >
                 {currentScore}
               </Text>
@@ -111,15 +159,18 @@ const SurveyResult = ({ route, navigation }) => {
             <View style={styles.scoreInfo}>
               <View style={styles.scoreIconContainer}>
                 <Ionicons
-                  name={getScoreIcon(result)}
+                  name={getScoreIcon(levelConfig)}
                   size={24}
-                  color={getScoreColor(result)}
+                  color={getScoreColor(levelConfig)}
                 />
               </View>
               <Text
-                style={[styles.scoreLevel, { color: getScoreColor(result) }]}
+                style={[
+                  styles.scoreLevel,
+                  { color: getScoreColor(levelConfig) },
+                ]}
               >
-                {getScoreLevel(result)}
+                {getScoreLevel(levelConfig)}
               </Text>
             </View>
           </View>
@@ -129,7 +180,7 @@ const SurveyResult = ({ route, navigation }) => {
             <View style={styles.completionItem}>
               <Ionicons name="checkmark-circle" size={20} color="#10B981" />
               <Text style={styles.completionText}>
-                Hoàn thành: {formatDate(result?.completedAt || new Date())}
+                Hoàn thành: {formatDate(surveyRecord?.createdAt || new Date())}
               </Text>
             </View>
             {/* <View style={styles.completionItem}>
@@ -142,13 +193,15 @@ const SurveyResult = ({ route, navigation }) => {
         </View>
 
         {/* Suggestions */}
-        {result?.noteSuggest && (
+        {surveyRecord?.level?.interventionRequired && (
           <View style={styles.suggestionsCard}>
             <View style={styles.suggestionsHeader}>
               <Ionicons name="bulb" size={24} color="#F59E0B" />
               <Text style={styles.suggestionsTitle}>Gợi ý</Text>
             </View>
-            <Text style={styles.suggestionsText}>{result?.noteSuggest}</Text>
+            <Text style={styles.suggestionsText}>
+              {surveyRecord?.level?.interventionRequired || "Không có gợi ý"}
+            </Text>
           </View>
         )}
 
@@ -273,15 +326,11 @@ const SurveyResult = ({ route, navigation }) => {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",

@@ -6,25 +6,51 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { Toast } from "../../components";
-import { loadSurveyProgress } from "../../services/api/SurveyService";
+import { Container, Toast } from "../../components";
+import {
+  loadSurveyProgress,
+  getSurveyById,
+} from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
+import dayjs from "dayjs";
+
+const { width } = Dimensions.get("window");
 
 const SurveyInfo = ({ route, navigation }) => {
-  const { survey, progressSaved } = route.params || {};
+  const { surveyId, progressSaved } = route.params || {};
+  const [survey, setSurvey] = useState(null);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
     type: "info",
   });
 
+  const fetchSurvey = async () => {
+    try {
+      console.log("surveyId", surveyId);
+      setLoading(true);
+      const response = await getSurveyById(surveyId);
+      if (response) {
+        setSurvey(response);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy thông tin khảo sát:", error);
+      showToast("Không thể tải thông tin khảo sát", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Kiểm tra tiến độ mỗi khi màn hình được focus
   useFocusEffect(
     useCallback(() => {
+      fetchSurvey();
       checkSavedProgress();
 
       // Hiển thị thông báo nếu vừa lưu tiến độ
@@ -33,13 +59,7 @@ const SurveyInfo = ({ route, navigation }) => {
         // Xóa thông tin progressSaved để tránh hiển thị lại
         navigation.setParams({ progressSaved: undefined });
       }
-    }, [
-      survey?.surveyId,
-      progressSaved,
-      navigation,
-      checkSavedProgress,
-      showToast,
-    ])
+    }, [surveyId, progressSaved, navigation])
   );
 
   const checkSavedProgress = useCallback(async () => {
@@ -60,7 +80,6 @@ const SurveyInfo = ({ route, navigation }) => {
   const handleStartSurvey = useCallback(() => {
     if (hasSavedProgress) {
       showToast("Tiếp tục khảo sát với tiến độ đã lưu của bạn", "info");
-
       setTimeout(() => {
         navigation.navigate("SurveyTaking", { survey });
       }, 1000);
@@ -74,16 +93,105 @@ const SurveyInfo = ({ route, navigation }) => {
   }, [navigation]);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+    return dayjs(dateString).format("DD/MM/YYYY");
   };
 
+  const getSurveyTypeIcon = (type) => {
+    switch (type) {
+      case "SCREENING":
+        return "clipboard-outline";
+      case "ASSESSMENT":
+        return "analytics-outline";
+      case "EVALUATION":
+        return "star-outline";
+      default:
+        return "document-text-outline";
+    }
+  };
+
+  const getSurveyTypeColor = (type) => {
+    switch (type) {
+      case "SCREENING":
+        return "#3B82F6";
+      case "ASSESSMENT":
+        return "#10B981";
+      case "EVALUATION":
+        return "#F59E0B";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "PUBLISHED":
+        return "#10B981";
+      case "DRAFT":
+        return "#6B7280";
+      case "ARCHIVED":
+        return "#EF4444";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case "PUBLISHED":
+        return "Đã xuất bản";
+      case "DRAFT":
+        return "Bản nháp";
+      case "ARCHIVED":
+        return "Đã lưu trữ";
+      default:
+        return status;
+    }
+  };
+
+  const getTargetScopeText = (scope) => {
+    switch (scope) {
+      case "GRADE":
+        return "Theo khối lớp";
+      case "CLASS":
+        return "Theo lớp";
+      case "SCHOOL":
+        return "Toàn trường";
+      default:
+        return scope;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Container>
+        <View style={styles.loadingContainer}>
+          <Ionicons
+            name="refresh"
+            size={32}
+            color={GlobalStyles.colors.primary}
+          />
+          <Text style={styles.loadingText}>Đang tải thông tin khảo sát...</Text>
+        </View>
+      </Container>
+    );
+  }
+
+  if (!survey) {
+    return (
+      <Container>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={32} color="#EF4444" />
+          <Text style={styles.errorText}>Không thể tải thông tin khảo sát</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchSurvey}>
+            <Text style={styles.retryButtonText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
+      </Container>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
+    <Container>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -96,88 +204,187 @@ const SurveyInfo = ({ route, navigation }) => {
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* Survey Card */}
-        <View style={styles.surveyCard}>
-          <View style={styles.surveyHeader}>
+        {/* Survey Header Card */}
+        <View style={styles.surveyHeaderCard}>
+          <View style={styles.surveyHeaderTop}>
             <View style={styles.surveyIcon}>
-              <Ionicons name="document-text" size={24} color="#3B82F6" />
+              <Ionicons
+                name={getSurveyTypeIcon(survey.surveyType)}
+                size={28}
+                color={getSurveyTypeColor(survey.surveyType)}
+              />
             </View>
             <View style={styles.surveyInfo}>
-              <Text style={styles.surveyTitle}>{survey?.name}</Text>
+              <View style={styles.surveyTitleContainer}>
+                <Text style={styles.surveyTitle}>{survey.title}</Text>
+
+                {/* Status Badge */}
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: getStatusColor(survey.status) + "20" },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.statusDot,
+                      { backgroundColor: getStatusColor(survey.status) },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: getStatusColor(survey.status) },
+                    ]}
+                  >
+                    {getStatusText(survey.status)}
+                  </Text>
+                </View>
+              </View>
               <Text style={styles.surveySubtitle}>
-                {survey?.description || "Khảo sát tâm lý học sinh"}
+                {survey.description || "Khảo sát tâm lý học sinh"}
               </Text>
             </View>
           </View>
+        </View>
 
-          {/* Survey Details */}
-          <View style={styles.detailsContainer}>
+        {/* Category Info */}
+        {survey.category && (
+          <View style={styles.categoryCard}>
+            <View style={styles.categoryHeader}>
+              <Ionicons name="folder-outline" size={20} color="#6B7280" />
+              <Text style={styles.categoryTitle}>Danh mục</Text>
+            </View>
+            <View style={styles.categoryContent}>
+              <Text style={styles.categoryName}>{survey.category.name}</Text>
+              <Text style={styles.categoryDescription}>
+                {survey.category.description}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* Survey Details */}
+        <View style={styles.detailsCard}>
+          <Text style={styles.sectionTitle}>Thông tin chi tiết</Text>
+
+          <View style={styles.detailsGrid}>
             <View style={styles.detailItem}>
-              <Ionicons name="time-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailText}>
-                Thời gian: {survey?.estimatedTime || "15-20 phút"}
+              <Ionicons name="help-circle-outline" size={20} color="#6B7280" />
+              <Text style={styles.detailLabel}>Số câu hỏi</Text>
+              <Text style={styles.detailValue}>
+                {survey.questions?.length || 0} câu
               </Text>
             </View>
 
             <View style={styles.detailItem}>
-              <Ionicons name="help-circle-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailText}>
-                Số câu hỏi: {survey?.questions?.length || 0} câu
+              <Ionicons name="time-outline" size={20} color="#6B7280" />
+              <Text style={styles.detailLabel}>Thời gian ước tính</Text>
+              <Text style={styles.detailValue}>15-20 phút</Text>
+            </View>
+
+            <View style={styles.detailItem}>
+              <Ionicons name="people-outline" size={20} color="#6B7280" />
+              <Text style={styles.detailLabel}>Đối tượng</Text>
+              <Text style={styles.detailValue}>
+                {getTargetScopeText(survey.targetScope)}
               </Text>
             </View>
 
             <View style={styles.detailItem}>
               <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailText}>
-                Ngày tạo: {formatDate(survey?.createdAt || new Date())}
+              <Text style={styles.detailLabel}>Ngày tạo</Text>
+              <Text style={styles.detailValue}>
+                {formatDate(survey.createdAt)}
               </Text>
             </View>
-
-            {survey?.deadline && (
-              <View style={styles.detailItem}>
-                <Ionicons name="warning-outline" size={20} color="#F59E0B" />
-                <Text style={styles.detailText}>
-                  Hạn nộp: {formatDate(survey.deadline)}
-                </Text>
-              </View>
-            )}
           </View>
+        </View>
 
-          {/* Progress Info */}
-          {hasSavedProgress && (
-            <View style={styles.progressInfo}>
-              <Ionicons name="information-circle" size={20} color="#3B82F6" />
+        {/* Date Range */}
+        <View style={styles.dateRangeCard}>
+          <Text style={styles.sectionTitle}>Thời gian thực hiện</Text>
+          <View style={styles.dateRangeContent}>
+            <View style={styles.dateItem}>
+              <Ionicons name="play-circle-outline" size={20} color="#10B981" />
+              <Text style={styles.dateLabel}>Bắt đầu</Text>
+              <Text style={styles.dateValue}>
+                {formatDate(survey.startDate)}
+              </Text>
+            </View>
+            <View style={styles.dateDivider} />
+            <View style={styles.dateItem}>
+              <Ionicons name="stop-circle-outline" size={20} color="#EF4444" />
+              <Text style={styles.dateLabel}>Kết thúc</Text>
+              <Text style={styles.dateValue}>{formatDate(survey.endDate)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Target Grades */}
+        {survey.targetGrade && survey.targetGrade.length > 0 && (
+          <View style={styles.targetGradesCard}>
+            <Text style={styles.sectionTitle}>Khối lớp áp dụng</Text>
+            <View style={styles.gradesContainer}>
+              {survey.targetGrade.map((grade, index) => (
+                <View key={index} style={styles.gradeBadge}>
+                  <Text style={styles.gradeText}>
+                    {grade.targetLevel.replace("GRADE_", "Khối ")}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Progress Info */}
+        {hasSavedProgress && (
+          <View style={styles.progressInfo}>
+            <Ionicons name="information-circle" size={24} color="#3B82F6" />
+            <View style={styles.progressContent}>
+              <Text style={styles.progressTitle}>Tiến độ đã lưu</Text>
               <Text style={styles.progressText}>
                 Bạn có tiến độ đã lưu trước đó. Nhấn "Tiếp tục" để làm tiếp bài
                 khảo sát của bạn.
               </Text>
             </View>
-          )}
+          </View>
+        )}
 
-          {/* Instructions */}
-          <View style={styles.instructionsContainer}>
-            <Text style={styles.instructionsTitle}>Hướng dẫn:</Text>
+        {/* Instructions */}
+        <View style={styles.instructionsCard}>
+          <Text style={styles.sectionTitle}>Hướng dẫn thực hiện</Text>
+          <View style={styles.instructionsList}>
             <View style={styles.instructionItem}>
-              <Text style={styles.instructionNumber}>1.</Text>
+              <View style={styles.instructionNumber}>
+                <Text style={styles.instructionNumberText}>1</Text>
+              </View>
               <Text style={styles.instructionText}>
                 Đọc kỹ từng câu hỏi trước khi trả lời
               </Text>
             </View>
             <View style={styles.instructionItem}>
-              <Text style={styles.instructionNumber}>2.</Text>
+              <View style={styles.instructionNumber}>
+                <Text style={styles.instructionNumberText}>2</Text>
+              </View>
               <Text style={styles.instructionText}>
                 Chọn câu trả lời phù hợp nhất với tình huống của bạn
               </Text>
             </View>
             <View style={styles.instructionItem}>
-              <Text style={styles.instructionNumber}>3.</Text>
+              <View style={styles.instructionNumber}>
+                <Text style={styles.instructionNumberText}>3</Text>
+              </View>
               <Text style={styles.instructionText}>
                 Bạn có thể lưu tiến độ và tiếp tục sau
               </Text>
             </View>
             <View style={styles.instructionItem}>
-              <Text style={styles.instructionNumber}>4.</Text>
+              <View style={styles.instructionNumber}>
+                <Text style={styles.instructionNumberText}>4</Text>
+              </View>
               <Text style={styles.instructionText}>
                 Trả lời thành thật để có kết quả chính xác nhất
               </Text>
@@ -190,6 +397,7 @@ const SurveyInfo = ({ route, navigation }) => {
           <TouchableOpacity
             style={styles.startButton}
             onPress={handleStartSurvey}
+            activeOpacity={0.8}
           >
             <Ionicons
               name={hasSavedProgress ? "play" : "play-circle"}
@@ -200,18 +408,6 @@ const SurveyInfo = ({ route, navigation }) => {
               {hasSavedProgress ? "Tiếp tục khảo sát" : "Bắt đầu khảo sát"}
             </Text>
           </TouchableOpacity>
-
-          {/* Test Toast Button */}
-          {/* <TouchableOpacity
-            style={[
-              styles.startButton,
-              { backgroundColor: "#10B981", marginTop: 12 },
-            ]}
-            onPress={() => showToast("Test toast message", "success")}
-          >
-            <Ionicons name="checkmark-circle" size={24} color="#fff" />
-            <Text style={styles.startButtonText}>Test Toast</Text>
-          </TouchableOpacity> */}
         </View>
       </ScrollView>
 
@@ -222,15 +418,11 @@ const SurveyInfo = ({ route, navigation }) => {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -256,29 +448,66 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#6B7280",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
-  surveyCard: {
+  errorText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  retryButton: {
+    marginTop: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: GlobalStyles.colors.primary,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  surveyHeaderCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 24,
-    marginBottom: 20,
+    marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
-  surveyHeader: {
+  surveyHeaderTop: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 16,
   },
   surveyIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: "#EFF6FF",
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -286,93 +515,267 @@ const styles = StyleSheet.create({
   surveyInfo: {
     flex: 1,
   },
+  surveyTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   surveyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
+    fontSize: 22,
+    fontWeight: "700",
     color: "#1A1A1A",
     marginBottom: 4,
   },
   surveySubtitle: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#6B7280",
-    lineHeight: 20,
+    lineHeight: 22,
   },
-  detailsContainer: {
-    marginBottom: 20,
+  statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
   },
-  detailItem: {
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  categoryCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  categoryHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
   },
-  detailText: {
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginLeft: 8,
+  },
+  categoryContent: {
+    paddingLeft: 28,
+  },
+  categoryName: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  categoryDescription: {
     fontSize: 14,
-    color: "#374151",
-    marginLeft: 12,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  detailsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginBottom: 16,
+  },
+  detailsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+  },
+  detailItem: {
+    width: (width - width * 0.22) / 2,
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  detailLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 8,
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  detailValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    textAlign: "center",
+  },
+  dateRangeCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  dateRangeContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dateItem: {
     flex: 1,
+    alignItems: "center",
+  },
+  dateLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  dateValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+  dateDivider: {
+    width: 40,
+    height: 1,
+    backgroundColor: "#E2E8F0",
+    marginHorizontal: 16,
+  },
+  targetGradesCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  gradesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  gradeBadge: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  gradeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1E40AF",
   },
   progressInfo: {
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: "#EFF6FF",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 20,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#3B82F6",
+  },
+  progressContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  progressTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1E40AF",
+    marginBottom: 4,
   },
   progressText: {
     fontSize: 14,
     color: "#1E40AF",
-    marginLeft: 12,
-    flex: 1,
     lineHeight: 20,
   },
-  instructionsContainer: {
-    marginBottom: 20,
-  },
-  instructionsTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1A1A1A",
+  instructionsCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
     marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  instructionsList: {
+    gap: 16,
   },
   instructionItem: {
     flexDirection: "row",
-    marginBottom: 12,
+    alignItems: "flex-start",
   },
   instructionNumber: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: GlobalStyles.colors.primary,
-    marginRight: 8,
-    minWidth: 20,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: GlobalStyles.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    marginTop: 2,
+  },
+  instructionNumberText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#fff",
   },
   instructionText: {
-    fontSize: 14,
+    fontSize: 15,
     color: "#374151",
     flex: 1,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   buttonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingTop: 10,
   },
   startButton: {
     backgroundColor: GlobalStyles.colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 16,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     shadowColor: GlobalStyles.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   startButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
     color: "#fff",
     marginLeft: 8,
   },

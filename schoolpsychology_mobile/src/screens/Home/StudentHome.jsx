@@ -16,6 +16,7 @@ import AppointmentCard from "../../components/common/AppointmentCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
 import { getAppointmentHistory } from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
+import { log } from "console";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -50,7 +51,7 @@ export default function StudentHome({
     const startIndex = (currentPage - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
     const newData = allData.slice(startIndex, endIndex);
-
+    console.log("newData", newData);
     if (newData.length > 0) {
       setDisplayedData((prev) => [...prev, ...newData]);
       setCurrentPage((prev) => prev + 1);
@@ -72,23 +73,24 @@ export default function StudentHome({
   const fetchSurveys = async () => {
     try {
       const response = await getPublishedSurveys();
-      const surveyData = Array.isArray(response)
-        ? response
-        : response.data || [];
-      console.log("surveyData", surveyData);
-      setAllData(surveyData);
-      console.log("allData", allData);
+      const surveyData = Array.isArray(response) ? response : [];
+      // Filter only published surveys and sort by creation date (newest first)
+      const filteredSurveys = surveyData.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setAllData(filteredSurveys);
 
       // Load first page
-      const firstPageData = surveyData.slice(0, PAGE_SIZE);
+      const firstPageData = filteredSurveys.slice(0, PAGE_SIZE);
       setDisplayedData(firstPageData);
       setCurrentPage(2); // Next page will be 2
-      setHasMoreData(surveyData.length > PAGE_SIZE);
+      setHasMoreData(filteredSurveys.length > PAGE_SIZE);
     } catch (error) {
       console.error("Lỗi khi tải surveys:", error);
       setAllData([]);
-    } finally {
       resetPagination();
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
@@ -96,10 +98,12 @@ export default function StudentHome({
 
   const fetchAppointments = async () => {
     try {
-      const response = await getAppointmentHistory();
-      const appointmentData = Array.isArray(response)
-        ? response
-        : response.data || [];
+      // const response = await getAppointmentHistory();
+      // const appointmentData = Array.isArray()
+      //   ? response
+      //   : response.data || [];
+
+      const appointmentData = [];
 
       // Sort appointments by date (newest first)
       const sortedAppointments = appointmentData.sort(
@@ -116,8 +120,8 @@ export default function StudentHome({
     } catch (error) {
       console.error("Lỗi khi tải appointments:", error);
       setAllData([]);
-    } finally {
       resetPagination();
+    } finally {
       setRefreshing(false);
       setLoading(false);
     }
@@ -131,8 +135,8 @@ export default function StudentHome({
     } catch (error) {
       console.error("Lỗi khi tải programs:", error);
       setAllData([]);
-    } finally {
       resetPagination();
+    } finally {
       setRefreshing(false);
       setLoading(false);
     }
@@ -153,7 +157,10 @@ export default function StudentHome({
   const loadTabData = async (type) => {
     setActiveTab(type);
     setLoading(true);
-    resetPagination();
+    // Reset pagination at the start of loading new tab data
+    setCurrentPage(1);
+    setHasMoreData(true);
+    setDisplayedData([]);
 
     try {
       switch (type) {
@@ -215,12 +222,12 @@ export default function StudentHome({
           showCloseButton={false}
         />
       )}
-      <Alert
+      {/* <Alert
         type="error"
         title="Cảnh báo mức độ căng thẳng cao"
         description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
         showCloseButton={false}
-      />
+      /> */}
 
       {/* Featured Programs */}
       <View style={styles.sectionContainer}>
@@ -260,7 +267,7 @@ export default function StudentHome({
         <View style={styles.connectRow}>
           <TouchableOpacity
             style={styles.connectBox}
-            onPress={() => navigation.navigate("BlogMain")}
+            onPress={() => navigation.navigate("Blog")}
           >
             <View style={styles.connectIconContainer}>
               <Text style={styles.connectIcon}>📚</Text>
@@ -289,6 +296,13 @@ export default function StudentHome({
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>My Events</Text>
+          {activeTab === "survey" && allData.length > 0 && (
+            <View style={styles.surveyCountContainer}>
+              <Text style={styles.surveyCountText}>
+                {allData.length} {allData.length === 1 ? "survey" : "surveys"}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.eventTabsContainer}>
           <ScrollView
@@ -367,6 +381,7 @@ export default function StudentHome({
                   ? "Đang tải lịch hẹn..."
                   : "Đang tải chương trình..."
               }
+              style={{ height: "100%" }}
             />
           ) : displayedData.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -379,18 +394,33 @@ export default function StudentHome({
               </Text>
               <Text style={styles.emptyText}>
                 {activeTab === "survey"
-                  ? "Không có khảo sát nào"
+                  ? "Không có khảo sát nào hiện tại"
                   : activeTab === "appointment"
                   ? "Chưa có lịch hẹn nào"
                   : "Không có chương trình nào"}
               </Text>
+              {activeTab === "survey" && (
+                <Text style={styles.emptySubText}>
+                  Các khảo sát mới sẽ xuất hiện ở đây khi có sẵn
+                </Text>
+              )}
+              {activeTab === "appointment" && (
+                <Text style={styles.emptySubText}>
+                  Các lịch hẹn mới sẽ xuất hiện ở đây khi có sẵn
+                </Text>
+              )}
+              {activeTab === "program" && (
+                <Text style={styles.emptySubText}>
+                  Các chương trình hỗ trợ mới sẽ xuất hiện ở đây khi có sẵn
+                </Text>
+              )}
             </View>
           ) : isEnableSurvey && activeTab === "survey" ? (
             <>
-              {displayedData.map((data, index) => (
+              {displayedData.map((survey, index) => (
                 <SurveyCard
-                  survey={data}
-                  key={index}
+                  survey={survey}
+                  key={survey.surveyId || index}
                   navigation={navigation}
                   onRefresh={onRefresh}
                   setShowToast={setShowToast}
@@ -507,6 +537,17 @@ const styles = StyleSheet.create({
     color: "#3B82F6",
     fontWeight: "600",
     fontSize: 14,
+  },
+  surveyCountContainer: {
+    backgroundColor: "#E0F2FE",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  surveyCountText: {
+    color: "#0EA5E9",
+    fontWeight: "600",
+    fontSize: 13,
   },
   featuredCard: {
     borderRadius: 24,
@@ -649,10 +690,10 @@ const styles = StyleSheet.create({
   },
   requiredEventContainer: {
     paddingBottom: 30,
+    minHeight: 300,
   },
   emptyContainer: {
     flex: 1,
-    minHeight: 300,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -664,6 +705,14 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 17,
     fontWeight: "500",
+  },
+  emptySubText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    fontWeight: "400",
+    textAlign: "center",
+    marginTop: 8,
+    paddingHorizontal: 20,
   },
   loadMoreButton: {
     backgroundColor: "#F3F4F6",

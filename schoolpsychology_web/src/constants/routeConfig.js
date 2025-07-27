@@ -178,7 +178,6 @@ export const ROUTE_CONFIG = [
 
   // {
   //   key: '/assessment-demo',
-  //   icon: ExperimentOutlined,
   //   labelKey: 'navigation.assessmentDemo',
   //   allowedRoles: ['manager', 'teacher', 'counselor'],
   //   element: 'AssessmentDemo',

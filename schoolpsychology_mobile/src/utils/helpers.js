@@ -10,7 +10,7 @@ export const formatDate = (dateString) => {
 export const getScoreColor = (levelConfig) => {
   if (!levelConfig) return "#6B7280";
 
-  switch (levelConfig.level.toLowerCase()) {
+  switch (levelConfig) {
     case "low":
       return "#10B981"; // Green
     case "medium":
@@ -26,13 +26,13 @@ export const getScoreColor = (levelConfig) => {
 
 export const getScoreLevel = (levelConfig) => {
   if (!levelConfig) return "Không xác định";
-  return levelConfig.level;
+  return levelConfig;
 };
 
 export const getScoreIcon = (levelConfig) => {
   if (!levelConfig) return "help-circle";
 
-  switch (levelConfig.level.toLowerCase()) {
+  switch (levelConfig) {
     case "low":
       return "happy";
     case "medium":

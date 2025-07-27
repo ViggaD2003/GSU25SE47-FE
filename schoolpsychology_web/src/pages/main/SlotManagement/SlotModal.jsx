@@ -4,9 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   Modal,
   Form,
-  Select,
   DatePicker,
-  InputNumber,
   Space,
   Button,
   Card,
@@ -41,17 +39,13 @@ import timezone from 'dayjs/plugin/timezone'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import { useAuth } from '../../../contexts/AuthContext'
 import {
-  // createSlots,
-  fetchUsersByRole,
-} from '../../../store/actions/slotActions'
-import {
   selectCreateLoading,
   selectCreateError,
   clearError,
 } from '../../../store/slices/slotSlice'
 import { validateSlot, checkSlotConflict } from '../../../utils/slotUtils'
+import { createSlots } from '@/store/actions/slotActions'
 
-const { Option } = Select
 const { Title, Text } = Typography
 
 dayjs.extend(utc)
@@ -77,7 +71,7 @@ const HelpText = ({ children }) => (
   </div>
 )
 
-const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
+const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { user } = useAuth()
@@ -89,14 +83,6 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
   const [conflictSlots, setConflictSlots] = useState([])
   const createLoading = useSelector(selectCreateLoading)
   const createError = useSelector(selectCreateError)
-
-  useEffect(() => {
-    if (visible && user?.role.toUpperCase() === 'MANAGER') {
-      // Fetch teachers and counselors for manager to select
-      dispatch(fetchUsersByRole('TEACHER'))
-      dispatch(fetchUsersByRole('COUNSELOR'))
-    }
-  }, [visible, user?.role, dispatch])
 
   useEffect(() => {
     if (createError) {
@@ -315,24 +301,9 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
   }
 
   const handleRemoveSlot = slotId => {
-    if (user?.role.toUpperCase() === 'COUNSELOR') {
-      // For counselors, find all slots for the same day and remove them
-      const slotToRemove = previewSlots.find(slot => slot.id === slotId)
-      const sameDate = dayjs(slotToRemove.startDateTime).format('YYYY-MM-DD')
-
-      const updatedSlots = previewSlots.filter(slot => {
-        const slotDate = dayjs(slot.startDateTime).format('YYYY-MM-DD')
-        return slotDate !== sameDate
-      })
-
-      setPreviewSlots(updatedSlots)
-      message.success(t('slotManagement.messages.dayRemoved'))
-    } else {
-      // For teachers, remove individual slot
-      const updatedSlots = previewSlots.filter(slot => slot.id !== slotId)
-      setPreviewSlots(updatedSlots)
-      message.success(t('slotManagement.messages.slotRemoved'))
-    }
+    const updatedSlots = previewSlots.filter(slot => slot.id !== slotId)
+    setPreviewSlots(updatedSlots)
+    message.success(t('slotManagement.messages.slotRemoved'))
   }
 
   const handleStartEdit = slot => {
@@ -431,20 +402,20 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
 
     try {
       const slotsToCreate = previewSlots.map(slot => ({
-        staffId: user?.id,
+        hostById: user?.id,
         startDateTime: dayjs(slot.startDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
         endDateTime: dayjs(slot.endDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
       }))
 
       console.log(slotsToCreate)
 
-      // const result = await dispatch(createSlots(slotsToCreate)).unwrap()
-      // if (result) {
-      //   setPreviewSlots([])
-      //   form.resetFields()
-      //   setConflictSlots([])
-      //   onSuccess(t('slotManagement.messages.createSuccess'))
-      // }
+      const result = await dispatch(createSlots(slotsToCreate)).unwrap()
+      if (result) {
+        setPreviewSlots([])
+        form.resetFields()
+        setConflictSlots([])
+        onSuccess(t('slotManagement.messages.createSuccess'))
+      }
     } catch (error) {
       console.log(error.conflicts)
       setConflictSlots(error.conflicts || [])
@@ -959,21 +930,20 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
                 onClick={() => handleStartEdit(slot)}
               />
             )}
-            {!isCounselor && (
-              <Popconfirm
-                title={t('slotManagement.preview.deleteConfirm')}
-                onConfirm={() => handleRemoveSlot(slot.id)}
-                okText={t('common.yes')}
-                cancelText={t('common.no')}
-              >
-                <Button
-                  type="text"
-                  danger
-                  icon={<DeleteOutlined />}
-                  size="small"
-                />
-              </Popconfirm>
-            )}
+
+            <Popconfirm
+              title={t('slotManagement.preview.deleteConfirm')}
+              onConfirm={() => handleRemoveSlot(slot.id)}
+              okText={t('common.yes')}
+              cancelText={t('common.no')}
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              />
+            </Popconfirm>
           </Space>
         }
       >
@@ -1144,7 +1114,7 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
   const generateCounselorSlots = selectedDate => {
     const morningStart = dayjs(selectedDate).hour(8).minute(0).second(0)
     const morningEnd = dayjs(selectedDate).hour(12).minute(0).second(0)
-    const afternoonStart = dayjs(selectedDate).hour(14).minute(0).second(0)
+    const afternoonStart = dayjs(selectedDate).hour(13).minute(30).second(0)
     const afternoonEnd = dayjs(selectedDate).hour(17).minute(0).second(0)
 
     const morningSlot = {
@@ -1281,9 +1251,7 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
       title={
         <div>
           <Title level={3} style={{ margin: 0, color: '#1890ff' }}>
-            {user?.role.toUpperCase() === 'MANAGER'
-              ? t('slotManagement.publishSlot')
-              : t('slotManagement.addSlot')}
+            {t('slotManagement.addSlot')}
           </Title>
         </div>
       }
@@ -1293,243 +1261,234 @@ const SlotModal = ({ visible, message, onCancel, _onSuccess }) => {
       width={1400}
       centered
     >
-      {user?.role.toUpperCase() === 'MANAGER' ? (
-        <Alert
-          message={t('slotManagement.validation.managerProgramOnly')}
-          type="info"
-          showIcon
-          style={{ marginBottom: 16 }}
-        />
-      ) : (
-        <Row gutter={24}>
-          <Col span={10}>
-            <Card
-              title={
-                <Space>
-                  <BookOutlined style={{ color: '#1890ff' }} />
-                  <Text strong>{t('slotManagement.form.details')}</Text>
-                </Space>
-              }
-              style={{ height: '100%' }}
-            >
-              <Form form={form} layout="vertical">
-                {user?.role.toUpperCase() === 'COUNSELOR' ? (
-                  // Counselor Form - Only Date Selection
-                  <>
-                    <SlotCreationRules />
-                    <Form.Item
-                      name="selectedDate"
-                      label={
-                        <Space>
-                          <CalendarOutlined />
-                          {t('slotManagement.form.selectDate')}
-                        </Space>
-                      }
-                      rules={[
-                        {
-                          required: true,
-                          message: t('slotManagement.form.dateRequired'),
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        style={{ width: '100%' }}
-                        size="large"
-                        disabledDate={getCounselorDisabledDate}
-                        onChange={handleCounselorDateSelect}
-                        placeholder={t('slotManagement.form.datePlaceholder')}
-                      />
-                    </Form.Item>
-                  </>
-                ) : (
-                  // Teacher Form - Start and End DateTime Selection
-                  <>
-                    <SlotCreationRules />
-                    <Row gutter={16}>
-                      <Col span={12}>
-                        <Form.Item
-                          name="startDateTime"
-                          label={
-                            <Space>
-                              <CalendarOutlined />
-                              {t('slotManagement.form.startDateTime')}
-                            </Space>
-                          }
-                          rules={[
-                            {
-                              required: true,
-                              message: t(
-                                'slotManagement.form.startDateTimeRequired'
-                              ),
-                            },
-                            { validator: customStartDateTimeValidator },
-                          ]}
-                        >
-                          <DatePicker
-                            showTime={{ format: 'HH:mm' }}
-                            format="YYYY-MM-DD HH:mm"
-                            placeholder={t(
-                              'slotManagement.form.startDateTimeRequired'
-                            )}
-                            disabledDate={getSmartDisabledDate(false)}
-                            disabledTime={getSmartDisabledTime(false)}
-                            style={{ width: '100%' }}
-                            size="large"
-                            onChange={handleFieldChange}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={12}>
-                        <Form.Item
-                          name="endDateTime"
-                          label={
-                            <Space>
-                              <CalendarOutlined />
-                              {t('slotManagement.form.endDateTime')}
-                            </Space>
-                          }
-                          rules={[
-                            {
-                              required: true,
-                              message: t(
-                                'slotManagement.form.endDateTimeRequired'
-                              ),
-                            },
-                            { validator: customEndDateTimeValidator },
-                          ]}
-                        >
-                          <DatePicker
-                            showTime={{ format: 'HH:mm' }}
-                            format="YYYY-MM-DD HH:mm"
-                            placeholder={t(
-                              'slotManagement.form.endDateTimeRequired'
-                            )}
-                            disabledDate={getSmartDisabledDate(true)}
-                            disabledTime={getSmartDisabledTime(true)}
-                            style={{ width: '100%' }}
-                            size="large"
-                            onChange={handleFieldChange}
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-
-                    <Divider />
-
-                    <Form.Item>
-                      <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={handleAddSlot}
-                        size="large"
-                        style={{ width: '100%' }}
-                      >
-                        {t('slotManagement.form.addSlot')}
-                      </Button>
-                    </Form.Item>
-                  </>
-                )}
-              </Form>
-            </Card>
-          </Col>
-
-          {/* Preview Section - Right Side */}
-          <Col span={14}>
-            <Card
-              title={
-                <Space>
-                  <InfoCircleOutlined
-                    style={{ color: hasConflicts ? '#ff4d4f' : '#52c41a' }}
-                  />
-                  <Text
-                    strong
-                    style={{ color: hasConflicts ? '#ff4d4f' : undefined }}
+      <Row gutter={24}>
+        <Col span={10}>
+          <Card
+            title={
+              <Space>
+                <BookOutlined style={{ color: '#1890ff' }} />
+                <Text strong>{t('slotManagement.form.details')}</Text>
+              </Space>
+            }
+            style={{ height: '100%' }}
+          >
+            <Form form={form} layout="vertical">
+              {user?.role.toUpperCase() === 'COUNSELOR' ? (
+                // Counselor Form - Only Date Selection
+                <>
+                  <SlotCreationRules />
+                  <Form.Item
+                    name="selectedDate"
+                    label={
+                      <Space>
+                        <CalendarOutlined />
+                        {t('slotManagement.form.selectDate')}
+                      </Space>
+                    }
+                    rules={[
+                      {
+                        required: true,
+                        message: t('slotManagement.form.dateRequired'),
+                      },
+                    ]}
                   >
-                    {t('slotManagement.preview.title')}
-                  </Text>
-                  <Badge
-                    count={previewSlots.length}
-                    showZero
-                    style={{
-                      backgroundColor: hasConflicts ? '#ff4d4f' : undefined,
-                    }}
-                  />
-                </Space>
-              }
-              style={{ height: '100%' }}
-              extra={
-                <Space>
-                  <Button
-                    type="primary"
-                    icon={<CheckOutlined />}
-                    onClick={handleSubmit}
-                    loading={createLoading}
-                    disabled={previewSlots.length === 0}
-                    danger={hasConflicts}
-                  >
-                    {t('slotManagement.form.createAll')}
-                  </Button>
-                  <Button onClick={handleCancel}>
-                    {t('slotManagement.form.cancel')}
-                  </Button>
-                </Space>
-              }
-            >
-              {hasConflicts && (
-                <Alert
-                  message="Time Conflicts Detected"
-                  description={
-                    <div>
-                      <Text strong>
-                        The following slots have conflicts with existing slots
-                        in the database:
-                      </Text>
-                      <ul style={{ marginTop: 8, marginBottom: 0 }}>
-                        {conflictSlots.map((conflict, index) => (
-                          <li key={index} style={{ marginBottom: 4 }}>
-                            <Text strong>{conflict.slotName}</Text> (
-                            {dayjs(conflict.startDateTime).format('HH:mm')} -{' '}
-                            {dayjs(conflict.endDateTime).format('HH:mm')})
-                            <br />
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {conflict.reason}
-                            </Text>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  }
-                  type="error"
-                  showIcon
-                  icon={<ExclamationCircleOutlined />}
-                  style={{ marginBottom: 16 }}
-                  action={
-                    <Button
-                      size="small"
-                      danger
-                      onClick={() => setConflictSlots([])}
-                    >
-                      Clear Conflicts
-                    </Button>
-                  }
-                />
-              )}
-
-              {groupedSlots.length > 0 ? (
-                <div style={{ maxHeight: 500, overflowY: 'auto' }}>
-                  {groupedSlots.map(dateGroup => renderDateGroup(dateGroup))}
-                </div>
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      size="large"
+                      disabledDate={getCounselorDisabledDate}
+                      onChange={handleCounselorDateSelect}
+                      placeholder={t('slotManagement.form.datePlaceholder')}
+                    />
+                  </Form.Item>
+                </>
               ) : (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={t('slotManagement.preview.noSlots')}
-                  style={{ margin: '40px 0' }}
-                />
+                // Teacher Form - Start and End DateTime Selection
+                <>
+                  <SlotCreationRules />
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        name="startDateTime"
+                        label={
+                          <Space>
+                            <CalendarOutlined />
+                            {t('slotManagement.form.startDateTime')}
+                          </Space>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'slotManagement.form.startDateTimeRequired'
+                            ),
+                          },
+                          { validator: customStartDateTimeValidator },
+                        ]}
+                      >
+                        <DatePicker
+                          showTime={{ format: 'HH:mm' }}
+                          format="YYYY-MM-DD HH:mm"
+                          placeholder={t(
+                            'slotManagement.form.startDateTimeRequired'
+                          )}
+                          disabledDate={getSmartDisabledDate(false)}
+                          disabledTime={getSmartDisabledTime(false)}
+                          style={{ width: '100%' }}
+                          size="large"
+                          onChange={handleFieldChange}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        name="endDateTime"
+                        label={
+                          <Space>
+                            <CalendarOutlined />
+                            {t('slotManagement.form.endDateTime')}
+                          </Space>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'slotManagement.form.endDateTimeRequired'
+                            ),
+                          },
+                          { validator: customEndDateTimeValidator },
+                        ]}
+                      >
+                        <DatePicker
+                          showTime={{ format: 'HH:mm' }}
+                          format="YYYY-MM-DD HH:mm"
+                          placeholder={t(
+                            'slotManagement.form.endDateTimeRequired'
+                          )}
+                          disabledDate={getSmartDisabledDate(true)}
+                          disabledTime={getSmartDisabledTime(true)}
+                          style={{ width: '100%' }}
+                          size="large"
+                          onChange={handleFieldChange}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
+
+                  <Divider />
+
+                  <Form.Item>
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={handleAddSlot}
+                      size="large"
+                      style={{ width: '100%' }}
+                    >
+                      {t('slotManagement.form.addSlot')}
+                    </Button>
+                  </Form.Item>
+                </>
               )}
-            </Card>
-          </Col>
-        </Row>
-      )}
+            </Form>
+          </Card>
+        </Col>
+
+        {/* Preview Section - Right Side */}
+        <Col span={14}>
+          <Card
+            title={
+              <Space>
+                <InfoCircleOutlined
+                  style={{ color: hasConflicts ? '#ff4d4f' : '#52c41a' }}
+                />
+                <Text
+                  strong
+                  style={{ color: hasConflicts ? '#ff4d4f' : undefined }}
+                >
+                  {t('slotManagement.preview.title')}
+                </Text>
+                <Badge
+                  count={previewSlots.length}
+                  showZero
+                  style={{
+                    backgroundColor: hasConflicts ? '#ff4d4f' : undefined,
+                  }}
+                />
+              </Space>
+            }
+            style={{ height: '100%' }}
+            extra={
+              <Space>
+                <Button
+                  type="primary"
+                  icon={<CheckOutlined />}
+                  onClick={handleSubmit}
+                  loading={createLoading}
+                  disabled={previewSlots.length === 0}
+                  danger={hasConflicts}
+                >
+                  {t('slotManagement.form.createAll')}
+                </Button>
+                <Button onClick={handleCancel}>
+                  {t('slotManagement.form.cancel')}
+                </Button>
+              </Space>
+            }
+          >
+            {hasConflicts && (
+              <Alert
+                message="Time Conflicts Detected"
+                description={
+                  <div>
+                    <Text strong>
+                      The following slots have conflicts with existing slots in
+                      the database:
+                    </Text>
+                    <ul style={{ marginTop: 8, marginBottom: 0 }}>
+                      {conflictSlots.map((conflict, index) => (
+                        <li key={index} style={{ marginBottom: 4 }}>
+                          <Text strong>{conflict.slotName}</Text> (
+                          {dayjs(conflict.startDateTime).format('HH:mm')} -{' '}
+                          {dayjs(conflict.endDateTime).format('HH:mm')})
+                          <br />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {conflict.reason}
+                          </Text>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                }
+                type="error"
+                showIcon
+                icon={<ExclamationCircleOutlined />}
+                style={{ marginBottom: 16 }}
+                action={
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => setConflictSlots([])}
+                  >
+                    Clear Conflicts
+                  </Button>
+                }
+              />
+            )}
+
+            {groupedSlots.length > 0 ? (
+              <div style={{ maxHeight: 500, overflowY: 'auto' }}>
+                {groupedSlots.map(dateGroup => renderDateGroup(dateGroup))}
+              </div>
+            ) : (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t('slotManagement.preview.noSlots')}
+                style={{ margin: '40px 0' }}
+              />
+            )}
+          </Card>
+        </Col>
+      </Row>
     </Modal>
   )
 }

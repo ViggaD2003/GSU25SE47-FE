@@ -5,9 +5,8 @@ import { surveyRecords, surveys } from "@/constants";
 
 export const getPublishedSurveys = async () => {
   try {
-    // const response = await api.get("/api/v1/survey/published");
-    const data = surveys.filter((survey) => survey.status === "PUBLISHED");
-    return data;
+    const response = await api.get("/api/v1/survey/published");
+    return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy survey đã publish:", err);
     throw err;
@@ -17,7 +16,8 @@ export const getPublishedSurveys = async () => {
 //Get survey by surveyId
 export const getSurveyById = async (surveyId) => {
   try {
-    const data = surveys.find((survey) => survey.id === surveyId);
+    const response = await api.get(`/api/v1/survey/${surveyId}`);
+    const data = response.data;
     return data;
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết khảo sát:", error);
@@ -28,11 +28,10 @@ export const getSurveyById = async (surveyId) => {
 //Get survey records
 export const getSurveyRecords = async () => {
   try {
-    // const response = await api.get(
-    //   "/api/v1/survey-records?field=completedAt&direction=desc"
-    // );
-    const data = surveyRecords;
-    return data;
+    const response = await api.get(
+      "/api/v1/survey-records?field=completedAt&direction=desc"
+    );
+    return response.data;
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu khảo sát:", error);
     throw error;
@@ -42,7 +41,8 @@ export const getSurveyRecords = async () => {
 //Get survey record by surveyRecordId
 export const getSurveyRecordById = async (surveyRecordId) => {
   try {
-    const data = surveyRecords.find((record) => record.id === surveyRecordId);
+    const response = await api.get(`/api/v1/survey-records/${surveyRecordId}`);
+    const data = response.data;
     return data;
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết khảo sát:", error);
@@ -59,6 +59,18 @@ export const postSurveyResult = async (result) => {
     console.error("Lỗi khi gửi kết quả khảo sát:", error);
     throw error;
   }
+};
+
+// Skip survey
+export const skipSurvey = async (surveyId) => {
+  const requestBody = {
+    surveyId,
+    isSkipped: true,
+    totalScore: 0,
+    answerRecordRequests: [],
+  };
+  const response = await api.post(`/api/v1/survey-records`, requestBody);
+  return response.data;
 };
 
 // Save survey progress with user info
