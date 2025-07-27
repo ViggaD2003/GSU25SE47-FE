@@ -1437,12 +1437,13 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
           >
             {hasConflicts && (
               <Alert
-                message="Time Conflicts Detected"
+                message={t('slotManagement.preview.timeConflictsDetected')}
                 description={
                   <div>
                     <Text strong>
-                      The following slots have conflicts with existing slots in
-                      the database:
+                      {t(
+                        'slotManagement.preview.timeConflictsDetectedDescription'
+                      )}
                     </Text>
                     <ul style={{ marginTop: 8, marginBottom: 0 }}>
                       {conflictSlots.map((conflict, index) => (
@@ -1469,7 +1470,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                     danger
                     onClick={() => setConflictSlots([])}
                   >
-                    Clear Conflicts
+                    {t('slotManagement.preview.clearConflicts')}
                   </Button>
                 }
               />

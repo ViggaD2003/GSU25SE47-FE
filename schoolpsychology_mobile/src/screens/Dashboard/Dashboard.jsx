@@ -10,8 +10,7 @@ const DashboardScreen = () => {
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Dashboard</Text>
           <Text style={styles.headerSubtitle}>
-            Access an overview of your essential data, key indicators, and
-            recent activities in one place.
+            Access key metrics and recent updates in one view
           </Text>
         </View>
       </View>

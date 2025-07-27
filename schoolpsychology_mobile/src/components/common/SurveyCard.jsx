@@ -84,7 +84,7 @@ export default function SurveyCard({
     } else {
       return (
         <View style={[styles.statusBadge, styles.optionalBadge]}>
-          <Ionicons name="heart-outline" size={12} color="#276FFFFF" />
+          <Ionicons name="heart-outline" size={12} color="#276FFF" />
           <Text style={styles.optionalBadgeText}>Tùy chọn</Text>
         </View>
       );

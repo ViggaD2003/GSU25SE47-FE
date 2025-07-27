@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { Text } from "react-native-paper";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -39,9 +40,10 @@ export default function MainTabs() {
   const BottomTabs = () => {
     return (
       <Tab.Navigator
+        initialRouteName="Home"
         screenOptions={({ route }) => ({
           headerShown: true,
-          header: () => <CustomHeader />,
+          header: (props) => <CustomHeader {...props} />,
           headerStyle: styles.headerStyle,
           headerStatusBarHeight: 0,
           tabBarIcon: ({ focused, color, size }) => {
@@ -192,14 +194,16 @@ export default function MainTabs() {
     );
   };
 
-  const CustomHeader = () => (
+  const CustomHeader = (props) => (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
     </View>
   );
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={{ headerShown: false, gestureEnabled: false }}
+    >
       <Stack.Screen name="MainBottomTabs" component={BottomTabs} />
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
@@ -227,7 +231,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E5E7EB",
-    // height: 70,
+    height: 90,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -236,6 +240,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
+    alignItems: "center",
   },
   tabBarLabelStyle: {
     fontSize: 11,

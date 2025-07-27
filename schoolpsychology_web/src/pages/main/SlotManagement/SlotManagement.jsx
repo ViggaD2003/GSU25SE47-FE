@@ -12,8 +12,15 @@ import {
   Col,
   Typography,
   DatePicker,
+  Space,
+  Tag,
 } from 'antd'
-import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  TagOutlined,
+} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { fetchSlots, publishSlot } from '../../../store/actions/slotActions'
 import {
@@ -43,13 +50,13 @@ const SlotManagement = () => {
   const error = useSelector(selectSlotError)
   const publishLoading = useSelector(selectPublishLoading)
 
-  const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
+  const [searchText, setSearchText] = useState('')
   const [dateRange, setDateRange] = useState(null)
 
   // Fetch slots on component mount
@@ -81,10 +88,9 @@ const SlotManagement = () => {
     return slots
       .filter(slot => {
         const matchesSearch =
-          slot?.slotName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
+          slot?.fullName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
           false
 
-        // Add date range filtering
         const matchesDateRange =
           !dateRange || !dateRange.length
             ? true
@@ -118,6 +124,12 @@ const SlotManagement = () => {
     }))
   }, [filteredSlots.length])
 
+  // Handle search
+  const handleSearch = value => {
+    setSearchText(value)
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }
+
   // Get paginated data
   const paginatedSlots = useMemo(() => {
     return filteredSlots.slice(
@@ -133,12 +145,6 @@ const SlotManagement = () => {
       current: paginationInfo.current,
       pageSize: paginationInfo.pageSize,
     }))
-  }
-
-  // Handle search
-  const handleSearch = value => {
-    setSearchText(value)
-    setPagination(prev => ({ ...prev, current: 1 }))
   }
 
   // Handle refresh
@@ -182,16 +188,28 @@ const SlotManagement = () => {
         // This would need to be enhanced with actual user data
         return `${fullName}`
       },
-      sorter: (a, b) => (a.fullName || '').localeCompare(b.fullName || ''),
       hidden: user?.role !== 'manager',
     },
     {
       title: t('slotManagement.table.hostedBy'),
       dataIndex: 'roleName',
       key: 'roleName',
-      render: roleName => {
-        // This would need to be enhanced with actual user data
-        return `${roleName}`
+      render: (roleName, record) => {
+        return (
+          <Space direction="vertical" size={2}>
+            <Text strong>{record.fullName}</Text>
+
+            {record.roleName === 'TEACHER' ? (
+              <Tag color="blue" className="text-xs">
+                {roleName}
+              </Tag>
+            ) : (
+              <Tag color="purple" className="text-xs">
+                {roleName}
+              </Tag>
+            )}
+          </Space>
+        )
       },
       filters: [
         {
@@ -301,15 +319,17 @@ const SlotManagement = () => {
       </div>
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
         <Row gutter={[16, 16]} className="mb-4">
-          <Col xs={24} sm={12} md={8} lg={6}>
-            <Search
-              placeholder={t('slotManagement.search')}
-              allowClear
-              onSearch={handleSearch}
-              onChange={e => setSearchText(e.target.value)}
-              prefix={<SearchOutlined />}
-            />
-          </Col>
+          {user?.role === 'manager' && (
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Search
+                placeholder={t('slotManagement.search')}
+                allowClear
+                onSearch={handleSearch}
+                onChange={e => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+              />
+            </Col>
+          )}
           <Col xs={24} sm={12} md={8} lg={6}>
             <RangePicker
               className="w-full"
@@ -337,7 +357,7 @@ const SlotManagement = () => {
               `${range[0]}-${range[1]} of ${total} items`,
           }}
           onChange={handleTableChange}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 900 }}
         />
       </Card>
 

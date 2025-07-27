@@ -3,7 +3,7 @@ import api from "./axios";
 //Get Slots for Student
 export const getSlotsForStudent = async () => {
   try {
-    const response = await api.get("/api/v1/slot");
+    const response = await api.get("/api/v1/slots");
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy slot của giáo viên:", err);
@@ -12,9 +12,9 @@ export const getSlotsForStudent = async () => {
 };
 
 //Get Slots with hostById
-export const getSlotsWithHostById = async (counselorId) => {
+export const getSlotsWithHostById = async (hostById) => {
   try {
-    const response = await api.get(`/api/v1/slot?hostById=${counselorId}`);
+    const response = await api.get(`/api/v1/slots?hostById=${hostById}`);
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy slot của cán bộ tư vấn:", err);

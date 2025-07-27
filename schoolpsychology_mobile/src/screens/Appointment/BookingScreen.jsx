@@ -137,6 +137,7 @@ const BookingScreen = ({ navigation }) => {
 
       // Xác định API call dựa trên role và host type
       if (hostType.value === "teacher") {
+        console.log("user?.teacherId", user);
         response = await getSlotsWithHostById(
           selectedChild?.teacherId || user?.teacherId
         );

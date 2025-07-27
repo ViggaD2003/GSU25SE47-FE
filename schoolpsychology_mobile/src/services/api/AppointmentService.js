@@ -3,7 +3,7 @@ import api from "./axios";
 //Create Appointment
 export const createAppointment = async (appointment) => {
   try {
-    const response = await api.post("/api/v1/appointment", appointment);
+    const response = await api.post("/api/v1/appointments", appointment);
 
     return response.data;
   } catch (err) {
@@ -28,7 +28,7 @@ export const getAppointmentRecord = async () => {
 //Get Appointment History
 export const getAppointmentHistory = async () => {
   try {
-    const response = await api.get("/api/v1/appointment/show-history");
+    const response = await api.get("/api/v1/appointments/show-history");
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy danh sách lịch sử cuộc hẹn:", err);

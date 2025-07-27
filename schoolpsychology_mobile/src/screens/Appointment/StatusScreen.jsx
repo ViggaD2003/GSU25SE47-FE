@@ -75,11 +75,14 @@ const StatusScreen = ({ route }) => {
   }, []);
 
   const handleGoHome = () => {
-    navigation.popTo("MainBottomTabs", "Home");
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainBottomTabs" }],
+    });
   };
 
   const handleBooking = () => {
-    navigation.popTo("Appointment");
+    navigation.goBack();
   };
 
   const formatTime = (dateTimeString) => {
