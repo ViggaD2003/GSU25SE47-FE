@@ -25,15 +25,37 @@ export const getSurveyById = async (surveyId) => {
   }
 };
 
-//Get survey records
-export const getSurveyRecords = async () => {
+//Get survey records by account ID with pagination and filters
+export const getSurveyRecordsByAccount = async (accountId, params = {}) => {
   try {
+    const {
+      page = 1,
+      size = 2,
+      surveyType = "",
+      field = "completedAt",
+      direction = "desc",
+    } = params;
+
+    console.log("Params:", params);
+
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", page);
+    queryParams.append("size", size);
+    queryParams.append("field", field);
+    queryParams.append("direction", direction);
+
+    if (surveyType) {
+      queryParams.append("surveyType", surveyType);
+    }
+
+    console.log("queryParams:", queryParams.toString());
+
     const response = await api.get(
-      "/api/v1/survey-records?field=completedAt&direction=desc"
+      `/api/v1/survey-records/accounts/${accountId}?${queryParams.toString()}`
     );
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu khảo sát:", error);
+    console.error("Lỗi khi lấy dữ liệu khảo sát theo account:", error);
     throw error;
   }
 };

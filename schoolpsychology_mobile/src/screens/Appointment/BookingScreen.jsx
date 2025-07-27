@@ -280,7 +280,7 @@ const BookingScreen = ({ navigation }) => {
               endDateTime: dayjs(selectedSlot.selectedEndTime).format(
                 VN_FORMAT
               ),
-              reason: reason || "Không có lý do",
+              reasonBooking: reason || "Không có lý do",
             };
 
             console.log("Booking data:", bookingData);
