@@ -142,6 +142,7 @@ const StatisticsCard = ({
 
 const styles = StyleSheet.create({
   container: {
+    minWidth: 150,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -12,7 +12,9 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Container } from "../../components";
+import { Container, Loading } from "../../components";
+import { AssessmentScoreChart } from "../../components/charts";
+import { getAppointmentById } from "@/services/api/AppointmentService";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 
@@ -23,12 +25,35 @@ const { width } = Dimensions.get("window");
 const AppointmentRecordDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { record } = route.params;
+  const { recordId } = route.params;
+
+  const [record, setRecord] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch appointment details
+  useEffect(() => {
+    const fetchRecordDetails = async () => {
+      try {
+        setLoading(true);
+        const data = await getAppointmentById(recordId);
+        setRecord(data);
+      } catch (error) {
+        console.error("Lỗi khi tải chi tiết hồ sơ:", error);
+        Alert.alert("Lỗi", "Không thể tải chi tiết hồ sơ");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (recordId) {
+      fetchRecordDetails();
+    }
+  }, [recordId]);
 
   // Get status configuration
   const getStatusConfig = (status) => {
     switch (status?.toUpperCase()) {
-      case "FINALIZED":
+      case "COMPLETED":
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
@@ -37,32 +62,41 @@ const AppointmentRecordDetail = () => {
           text: "Hoàn thành",
           gradient: ["#059669", "#047857"],
         };
-      case "SUBMITTED":
-        return {
-          color: "#DC2626",
-          backgroundColor: "#FEE2E2",
-          borderColor: "#DC2626",
-          icon: "paper-plane",
-          text: "Đã nộp",
-          gradient: ["#DC2626", "#B91C1C"],
-        };
-      case "CANCELLED":
-        return {
-          color: "#6B7280",
-          backgroundColor: "#F3F4F6",
-          borderColor: "#6B7280",
-          icon: "close-circle",
-          text: "Đã hủy",
-          gradient: ["#6B7280", "#4B5563"],
-        };
-      default:
+      case "ABSENT":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           borderColor: "#F59E0B",
-          icon: "time",
-          text: "Chưa xác định",
+          icon: "close-circle",
+          text: "Vắng",
           gradient: ["#F59E0B", "#D97706"],
+        };
+      case "CANCELED":
+        return {
+          color: "#DC2626",
+          backgroundColor: "#FEE2E2",
+          borderColor: "#DC2626",
+          icon: "close-circle",
+          text: "Đã hủy",
+          gradient: ["#DC2626", "#B91C1C"],
+        };
+      case "EXPIRED":
+        return {
+          color: "#6B7280",
+          backgroundColor: "#F3F4F6",
+          borderColor: "#6B7280",
+          icon: "time",
+          text: "Hết hạn",
+          gradient: ["#6B7280", "#4B5563"],
+        };
+      default:
+        return {
+          color: "#6B7280",
+          backgroundColor: "#F3F4F6",
+          borderColor: "#6B7280",
+          icon: "help",
+          text: "Chưa xác định",
+          gradient: ["#6B7280", "#4B5563"],
         };
     }
   };
@@ -78,7 +112,7 @@ const AppointmentRecordDetail = () => {
           text: "Tốt",
           description: "Buổi tư vấn diễn ra thuận lợi",
         };
-      case "AVERAGE":
+      case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
@@ -86,7 +120,7 @@ const AppointmentRecordDetail = () => {
           text: "Trung bình",
           description: "Buổi tư vấn có một số khó khăn",
         };
-      case "POOR":
+      case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
@@ -108,14 +142,14 @@ const AppointmentRecordDetail = () => {
   // Get cooperation level configuration
   const getCoopLevelConfig = (level) => {
     switch (level?.toUpperCase()) {
-      case "HIGH":
+      case "GOOD":
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
-          text: "Cao",
+          text: "Tốt",
           description: "Học sinh tích cực hợp tác",
         };
-      case "MEDIUM":
+      case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
@@ -139,14 +173,6 @@ const AppointmentRecordDetail = () => {
     }
   };
 
-  // Get score color based on value
-  const getScoreColor = (score) => {
-    if (score >= 80) return "#059669";
-    if (score >= 60) return "#F59E0B";
-    if (score >= 40) return "#EF4444";
-    return "#DC2626";
-  };
-
   // Share record
   const handleShare = async () => {
     try {
@@ -156,16 +182,26 @@ const AppointmentRecordDetail = () => {
 
       const shareContent = `📋 Hồ sơ tư vấn #${record.id}
 
-📅 Ngày tạo: ${dayjs(record.createdDate).format("DD/MM/YYYY HH:mm")}
+📅 Ngày tạo: ${dayjs(record.startDateTime).format("DD/MM/YYYY HH:mm")}
 🏥 Trạng thái: ${statusConfig.text}
-⭐ Điểm tổng: ${record.totalScore || "Chưa có"}
+👤 Loại tư vấn: ${record.hostType === "COUNSELOR" ? "Tư vấn viên" : "Giáo viên"}
+📍 Hình thức: ${record.isOnline ? "Trực tuyến" : "Tại chỗ"}
+📍 Địa điểm: ${record.location || "Không có"}
+
+${
+  record.status === "COMPLETED"
+    ? `
 📈 Tiến trình: ${sessionFlowConfig.text}
 🤝 Mức độ hợp tác: ${coopLevelConfig.text}
+`
+    : ""
+}
 
-💡 Lý do: ${record.reason || "Không có"}
+💡 Lý do đặt lịch: ${record.reasonBooking || "Không có"}
 
-📝 Tóm tắt: ${record.noteSummary || "Chưa có tóm tắt"}
-💭 Gợi ý: ${record.noteSuggest || "Chưa có gợi ý"}`;
+📝 Ghi chú buổi tư vấn: ${record.sessionNotes || "Chưa có"}
+📋 Tóm tắt: ${record.noteSummary || "Chưa có tóm tắt"}
+💭 Gợi ý: ${record.noteSuggestion || "Chưa có gợi ý"}`;
 
       await Share.share({
         message: shareContent,
@@ -176,6 +212,28 @@ const AppointmentRecordDetail = () => {
       Alert.alert("Lỗi", "Không thể chia sẻ hồ sơ");
     }
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Loading text="Đang tải chi tiết hồ sơ..." />
+      </Container>
+    );
+  }
+
+  if (!record) {
+    return (
+      <Container>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle" size={64} color="#DC2626" />
+          <Text style={styles.errorTitle}>Không tìm thấy hồ sơ</Text>
+          <Text style={styles.errorSubtitle}>
+            Hồ sơ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa
+          </Text>
+        </View>
+      </Container>
+    );
+  }
 
   const statusConfig = getStatusConfig(record.status);
   const sessionFlowConfig = getSessionFlowConfig(record.sessionFlow);
@@ -224,200 +282,248 @@ const AppointmentRecordDetail = () => {
                   <Text style={styles.statusText}>{statusConfig.text}</Text>
                 </View>
               </View>
-              {record.total_score !== null && (
-                <View style={styles.scoreContainer}>
-                  <Text style={styles.scoreLabel}>Điểm tổng</Text>
-                  <Text style={styles.scoreValue}>{record.totalScore}</Text>
-                </View>
-              )}
             </View>
           </LinearGradient>
         </View>
 
-        {/* Date Information */}
+        {/* Appointment Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Thông tin thời gian</Text>
+          <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
           <View style={styles.sectionContent}>
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Ionicons name="calendar" size={20} color="#3B82F6" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Ngày tạo</Text>
+                <Text style={styles.infoLabel}>Thời gian bắt đầu</Text>
                 <Text style={styles.infoValue}>
-                  {dayjs(record.createdDate).format("dddd, DD/MM/YYYY HH:mm")}
+                  {dayjs(record.startDateTime).format("dddd, DD/MM/YYYY HH:mm")}
                 </Text>
               </View>
             </View>
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
-                <Ionicons name="refresh" size={20} color="#6B7280" />
+                <Ionicons name="time" size={20} color="#6B7280" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Cập nhật lần cuối</Text>
+                <Text style={styles.infoLabel}>Thời gian kết thúc</Text>
                 <Text style={styles.infoValue}>
-                  {dayjs(record.updatedDate).format("dddd, DD/MM/YYYY HH:mm")}
+                  {dayjs(record.endDateTime).format("dddd, DD/MM/YYYY HH:mm")}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons name="person" size={20} color="#8B5CF6" />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Loại tư vấn</Text>
+                <Text style={styles.infoValue}>
+                  {record.hostType === "COUNSELOR"
+                    ? "Tư vấn viên"
+                    : "Giáo viên"}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Ionicons
+                  name={record.isOnline ? "wifi" : "location"}
+                  size={20}
+                  color="#10B981"
+                />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Hình thức</Text>
+                <Text style={styles.infoValue}>
+                  {record.isOnline ? "Trực tuyến" : "Tại chỗ"}
+                </Text>
+              </View>
+            </View>
+            {record.location && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons name="location" size={20} color="#F59E0B" />
+                </View>
+                <View style={styles.infoContent}>
+                  <Text style={styles.infoLabel}>Địa điểm</Text>
+                  <Text style={styles.infoValue}>{record.location}</Text>
+                </View>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* User Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Thông tin người dùng</Text>
+          <View style={styles.sectionContent}>
+            <View style={styles.userCard}>
+              <View style={styles.userHeader}>
+                <Ionicons name="person-circle" size={24} color="#3B82F6" />
+                <Text style={styles.userTitle}>Người được tư vấn</Text>
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{record.bookedFor.fullName}</Text>
+                <Text style={styles.userDetail}>{record.bookedFor.email}</Text>
+                <Text style={styles.userDetail}>
+                  {record.bookedFor.phoneNumber}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.userCard}>
+              <View style={styles.userHeader}>
+                <Ionicons name="person" size={24} color="#10B981" />
+                <Text style={styles.userTitle}>Người đặt lịch</Text>
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={styles.userName}>{record.bookedBy.fullName}</Text>
+                <Text style={styles.userDetail}>{record.bookedBy.email}</Text>
+                <Text style={styles.userDetail}>
+                  {record.bookedBy.phoneNumber}
                 </Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Evaluation Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Đánh giá buổi tư vấn</Text>
-          <View style={styles.sectionContent}>
-            {/* Session Flow */}
-            <View style={styles.evaluationCard}>
-              <View style={styles.evaluationHeader}>
-                <View
-                  style={[
-                    styles.evaluationIconContainer,
-                    { backgroundColor: sessionFlowConfig.backgroundColor },
-                  ]}
-                >
-                  <Ionicons
-                    name={sessionFlowConfig.icon}
-                    size={20}
-                    color={sessionFlowConfig.color}
-                  />
-                </View>
-                <View style={styles.evaluationInfo}>
-                  <Text style={styles.evaluationTitle}>
-                    Tiến trình buổi tư vấn
-                  </Text>
-                  <View
-                    style={[
-                      styles.evaluationBadge,
-                      { backgroundColor: sessionFlowConfig.backgroundColor },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.evaluationBadgeText,
-                        { color: sessionFlowConfig.color },
-                      ]}
-                    >
-                      {sessionFlowConfig.text}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <Text style={styles.evaluationDescription}>
-                {sessionFlowConfig.description}
-              </Text>
-            </View>
-
-            {/* Cooperation Level */}
-            <View
-              style={[
-                styles.evaluationCard,
-                { marginBottom: 0, borderBottomWidth: 0, paddingBottom: 0 },
-              ]}
-            >
-              <View style={styles.evaluationHeader}>
-                <View
-                  style={[
-                    styles.evaluationIconContainer,
-                    { backgroundColor: coopLevelConfig.backgroundColor },
-                  ]}
-                >
-                  <Ionicons
-                    name="people"
-                    size={20}
-                    color={coopLevelConfig.color}
-                  />
-                </View>
-                <View style={styles.evaluationInfo}>
-                  <Text style={styles.evaluationTitle}>Mức độ hợp tác</Text>
-                  <View
-                    style={[
-                      styles.evaluationBadge,
-                      { backgroundColor: coopLevelConfig.backgroundColor },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.evaluationBadgeText,
-                        { color: coopLevelConfig.color },
-                      ]}
-                    >
-                      {coopLevelConfig.text}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <Text style={styles.evaluationDescription}>
-                {coopLevelConfig.description}
-              </Text>
-            </View>
-
-            {/* Score Detail */}
-            {/* {record.total_score !== null && (
-              <View style={styles.evaluationCard}>
-                <View style={styles.evaluationHeader}>
-                  <View
-                    style={[
-                      styles.evaluationIconContainer,
-                      {
-                        backgroundColor: `${getScoreColor(
-                          record.totalScore
-                        )}20`,
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name="star"
-                      size={20}
-                      color={getScoreColor(record.totalScore)}
-                    />
-                  </View>
-                  <View style={styles.evaluationInfo}>
-                    <Text style={styles.evaluationTitle}>Điểm đánh giá</Text>
-                    <Text
-                      style={[
-                        styles.scoreDetailValue,
-                        { color: getScoreColor(record.totalScore) },
-                      ]}
-                    >
-                      {record.totalScore}/100
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.scoreProgressContainer}>
-                  <View style={styles.scoreProgressTrack}>
+        {/* Evaluation Section - Only for COMPLETED */}
+        {record.status === "COMPLETED" && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Đánh giá buổi tư vấn</Text>
+            <View style={styles.sectionContent}>
+              {/* Session Flow */}
+              {record.sessionFlow && (
+                <View style={styles.evaluationCard}>
+                  <View style={styles.evaluationHeader}>
                     <View
                       style={[
-                        styles.scoreProgressFill,
-                        {
-                          width: `${record.total_score}%`,
-                          backgroundColor: getScoreColor(record.total_score),
-                        },
+                        styles.evaluationIconContainer,
+                        { backgroundColor: sessionFlowConfig.backgroundColor },
                       ]}
-                    />
+                    >
+                      <Ionicons
+                        name={sessionFlowConfig.icon}
+                        size={20}
+                        color={sessionFlowConfig.color}
+                      />
+                    </View>
+                    <View style={styles.evaluationInfo}>
+                      <Text style={styles.evaluationTitle}>
+                        Tiến trình buổi tư vấn
+                      </Text>
+                      <View
+                        style={[
+                          styles.evaluationBadge,
+                          {
+                            backgroundColor: sessionFlowConfig.backgroundColor,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.evaluationBadgeText,
+                            { color: sessionFlowConfig.color },
+                          ]}
+                        >
+                          {sessionFlowConfig.text}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
+                  <Text style={styles.evaluationDescription}>
+                    {sessionFlowConfig.description}
+                  </Text>
                 </View>
-              </View>
-            )} */}
+              )}
+
+              {/* Cooperation Level */}
+              {record.studentCoopLevel && (
+                <View
+                  style={[
+                    styles.evaluationCard,
+                    { marginBottom: 0, borderBottomWidth: 0, paddingBottom: 0 },
+                  ]}
+                >
+                  <View style={styles.evaluationHeader}>
+                    <View
+                      style={[
+                        styles.evaluationIconContainer,
+                        { backgroundColor: coopLevelConfig.backgroundColor },
+                      ]}
+                    >
+                      <Ionicons
+                        name="people"
+                        size={20}
+                        color={coopLevelConfig.color}
+                      />
+                    </View>
+                    <View style={styles.evaluationInfo}>
+                      <Text style={styles.evaluationTitle}>Mức độ hợp tác</Text>
+                      <View
+                        style={[
+                          styles.evaluationBadge,
+                          { backgroundColor: coopLevelConfig.backgroundColor },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.evaluationBadgeText,
+                            { color: coopLevelConfig.color },
+                          ]}
+                        >
+                          {coopLevelConfig.text}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.evaluationDescription}>
+                    {coopLevelConfig.description}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
-        </View>
+        )}
+
+        {/* Assessment Scores */}
+        {record.assessmentScores && record.assessmentScores.length > 0 && (
+          <View style={styles.section}>
+            <AssessmentScoreChart
+              scores={record.assessmentScores}
+              title="Kết quả đánh giá chi tiết"
+            />
+          </View>
+        )}
 
         {/* Notes Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ghi chú & Đề xuất</Text>
           <View style={styles.sectionContent}>
-            {/* Reason */}
-            {record.status === "CANCELLED" && record.reason && (
+            {/* Cancel Reason - Only for CANCELED */}
+            {record.status === "CANCELED" && record.cancelReason && (
               <View style={styles.noteCard}>
                 <View style={styles.noteHeader}>
                   <Ionicons
                     name="information-circle"
                     size={20}
-                    color="#3B82F6"
+                    color="#DC2626"
                   />
                   <Text style={styles.noteTitle}>Lý do hủy buổi tư vấn</Text>
                 </View>
-                <Text style={styles.noteContent}>{record.reason}</Text>
+                <Text style={styles.noteContent}>{record.cancelReason}</Text>
+              </View>
+            )}
+
+            {/* Session Notes */}
+            {record.sessionNotes && (
+              <View style={styles.noteCard}>
+                <View style={styles.noteHeader}>
+                  <Ionicons name="document-text" size={20} color="#3B82F6" />
+                  <Text style={styles.noteTitle}>Ghi chú buổi tư vấn</Text>
+                </View>
+                <Text style={styles.noteContent}>{record.sessionNotes}</Text>
               </View>
             )}
 
@@ -433,7 +539,7 @@ const AppointmentRecordDetail = () => {
             )}
 
             {/* Suggestions */}
-            {record.noteSuggest && (
+            {record.noteSuggestion && (
               <View
                 style={[
                   styles.noteCard,
@@ -444,41 +550,23 @@ const AppointmentRecordDetail = () => {
                   <Ionicons name="bulb" size={20} color="#F59E0B" />
                   <Text style={styles.noteTitle}>Gợi ý & Khuyến nghị</Text>
                 </View>
-                <Text style={styles.noteContent}>{record.noteSuggest}</Text>
+                <Text style={styles.noteContent}>{record.noteSuggestion}</Text>
               </View>
             )}
 
-            {!record.reason && !record.noteSummary && !record.noteSuggest && (
-              <View style={styles.emptyNotesContainer}>
-                <Ionicons name="document-outline" size={48} color="#9CA3AF" />
-                <Text style={styles.emptyNotesText}>
-                  Chưa có ghi chú cho hồ sơ này
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Appointment Reference */}
-        {record.appointmentId && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Liên kết</Text>
-            <View style={styles.sectionContent}>
-              <TouchableOpacity style={styles.linkCard}>
-                <View style={styles.linkIconContainer}>
-                  <Ionicons name="calendar" size={20} color="#3B82F6" />
-                </View>
-                <View style={styles.linkContent}>
-                  <Text style={styles.linkTitle}>Lịch hẹn liên quan</Text>
-                  <Text style={styles.linkSubtitle}>
-                    ID: {record.appointmentId}
+            {!record.cancelReason &&
+              !record.sessionNotes &&
+              !record.noteSummary &&
+              !record.noteSuggestion && (
+                <View style={styles.emptyNotesContainer}>
+                  <Ionicons name="document-outline" size={48} color="#9CA3AF" />
+                  <Text style={styles.emptyNotesText}>
+                    Chưa có ghi chú cho hồ sơ này
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            </View>
+              )}
           </View>
-        )}
+        </View>
       </ScrollView>
     </Container>
   );
@@ -563,19 +651,6 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.9)",
     fontWeight: "500",
   },
-  scoreContainer: {
-    alignItems: "center",
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: "rgba(255, 255, 255, 0.8)",
-    marginBottom: 4,
-  },
-  scoreValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
   section: {
     marginBottom: 24,
   },
@@ -623,6 +698,37 @@ const styles = StyleSheet.create({
     color: "#1A1A1A",
     fontWeight: "500",
   },
+  userCard: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  userHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  userTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginLeft: 8,
+  },
+  userInfo: {
+    marginLeft: 32,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginBottom: 4,
+  },
+  userDetail: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 2,
+  },
   evaluationCard: {
     marginBottom: 16,
     paddingBottom: 16,
@@ -667,24 +773,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginLeft: 52,
   },
-  scoreDetailValue: {
-    fontSize: 18,
-    fontWeight: "700",
-  },
-  scoreProgressContainer: {
-    marginLeft: 52,
-    marginTop: 8,
-  },
-  scoreProgressTrack: {
-    height: 6,
-    backgroundColor: "#F3F4F6",
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  scoreProgressFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
   noteCard: {
     marginBottom: 16,
     paddingBottom: 16,
@@ -717,32 +805,25 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     marginTop: 8,
   },
-  linkCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-  },
-  linkIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EFF6FF",
+  errorContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    paddingHorizontal: 40,
   },
-  linkContent: {
-    flex: 1,
-  },
-  linkTitle: {
-    fontSize: 14,
+  errorTitle: {
+    fontSize: 20,
     fontWeight: "600",
     color: "#1A1A1A",
-    marginBottom: 2,
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: "center",
   },
-  linkSubtitle: {
-    fontSize: 12,
+  errorSubtitle: {
+    fontSize: 14,
     color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });
 

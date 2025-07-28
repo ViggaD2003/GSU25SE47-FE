@@ -342,6 +342,12 @@ const AppointmentDetails = () => {
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [submittingAssessment, setSubmittingAssessment] = useState(false)
 
+  // Check if bookFor and bookBy are the same person
+  const isSamePerson = useMemo(() => {
+    if (!appointment?.bookedFor || !appointment?.bookedBy) return false
+    return appointment.bookedFor.id === appointment.bookedBy.id
+  }, [appointment])
+
   // Memoized utility functions
   const formatDateTime = useCallback(dateTime => {
     return dayjs(dateTime).format('dddd, DD/MM/YYYY HH:mm')
@@ -597,21 +603,31 @@ const AppointmentDetails = () => {
                 <Descriptions column={1} size="middle">
                   <Descriptions.Item label={t('appointment.table.hostName')}>
                     <div className="flex items-center gap-2">
-                      <Text strong>{appointment.hostName}</Text>
+                      <Text strong>{appointment.slot?.fullName}</Text>
                       <MemoizedHostTypeTag
-                        hostType={appointment.hostType}
+                        hostType={appointment.slot?.roleName}
                         t={t}
                       />
                     </div>
                   </Descriptions.Item>
 
-                  <Descriptions.Item label={t('appointment.table.bookByName')}>
+                  <Descriptions.Item
+                    label={
+                      isSamePerson
+                        ? t('appointment.table.bookByName')
+                        : t('appointment.table.bookForName')
+                    }
+                  >
                     <div>
-                      <Text strong>{appointment.bookByName}</Text>
-                      {appointment.bookForName && (
+                      <Text strong>
+                        {isSamePerson
+                          ? appointment.bookedBy?.fullName
+                          : appointment.bookedFor?.fullName}
+                      </Text>
+                      {!isSamePerson && (
                         <Text type="secondary" className="block text-xs">
-                          {t('appointment.table.bookForName')}:{' '}
-                          {appointment.bookForName}
+                          {t('appointment.table.bookByName')}:{' '}
+                          {appointment.bookedBy?.fullName}
                         </Text>
                       )}
                     </div>
@@ -662,9 +678,9 @@ const AppointmentDetails = () => {
                     </Text>
                   </Descriptions.Item>
 
-                  {appointment.reason && (
+                  {appointment.reasonBooking && (
                     <Descriptions.Item label={t('appointment.table.reason')}>
-                      <Text>{appointment.reason}</Text>
+                      <Text>{appointment.reasonBooking}</Text>
                     </Descriptions.Item>
                   )}
                 </Descriptions>
@@ -781,18 +797,31 @@ const AppointmentDetails = () => {
           >
             <Descriptions.Item label={t('appointment.table.hostName')}>
               <div className="flex items-center gap-2">
-                <Text strong>{appointment.hostName}</Text>
-                <MemoizedHostTypeTag hostType={appointment.hostType} t={t} />
+                <Text strong>{appointment.slot?.fullName}</Text>
+                <MemoizedHostTypeTag
+                  hostType={appointment.slot?.roleName}
+                  t={t}
+                />
               </div>
             </Descriptions.Item>
 
-            <Descriptions.Item label={t('appointment.table.bookByName')}>
+            <Descriptions.Item
+              label={
+                isSamePerson
+                  ? t('appointment.table.bookByName')
+                  : t('appointment.table.bookForName')
+              }
+            >
               <div>
-                <Text strong>{appointment.bookByName}</Text>
-                {appointment.bookForName && (
+                <Text strong>
+                  {isSamePerson
+                    ? appointment.bookedBy?.fullName
+                    : appointment.bookedFor?.fullName}
+                </Text>
+                {!isSamePerson && (
                   <Text type="secondary" className="block text-xs">
-                    {t('appointment.table.bookForName')}:{' '}
-                    {appointment.bookForName}
+                    {t('appointment.table.bookByName')}:{' '}
+                    {appointment.bookedBy?.fullName}
                   </Text>
                 )}
               </div>
@@ -848,9 +877,9 @@ const AppointmentDetails = () => {
               )}
             </Descriptions.Item>
 
-            {appointment.reason && (
+            {appointment.reasonBooking && (
               <Descriptions.Item label={t('appointment.table.reason')} span={2}>
-                <Text>{appointment.reason}</Text>
+                <Text>{appointment.reasonBooking}</Text>
               </Descriptions.Item>
             )}
           </Descriptions>

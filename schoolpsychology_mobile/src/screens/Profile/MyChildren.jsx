@@ -25,12 +25,36 @@ export default function MyChildren({ route }) {
 
   useEffect(() => {
     console.log("data", data);
-    const students = Array.isArray(data.student)
-      ? data.student.map((student, idx) => ({
-          ...student,
-          id: student.studentCode || idx.toString(),
-        }))
-      : [];
+
+    // Add null checks for data
+    if (!data) {
+      setChildren([]);
+      setLoading(false);
+      return;
+    }
+
+    // Handle different data structures
+    let students = [];
+
+    if (data.student && Array.isArray(data.student)) {
+      students = data.student.map((student, idx) => ({
+        ...student,
+        id: student.studentCode || student.userId || idx.toString(),
+      }));
+    } else if (Array.isArray(data)) {
+      // If data is directly an array
+      students = data.map((student, idx) => ({
+        ...student,
+        id: student.studentCode || student.userId || idx.toString(),
+      }));
+    } else if (data.children && Array.isArray(data.children)) {
+      // If data has children property
+      students = data.children.map((child, idx) => ({
+        ...child,
+        id: child.studentCode || child.userId || idx.toString(),
+      }));
+    }
+
     setChildren(students);
     setLoading(false);
   }, [data]);
@@ -41,7 +65,9 @@ export default function MyChildren({ route }) {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await onRefreshParent();
+    if (onRefreshParent) {
+      await onRefreshParent();
+    }
     setRefreshing(false);
   }, [onRefreshParent]);
 
@@ -138,6 +164,11 @@ function ChildCard({
 }) {
   const [expanded, setExpanded] = useState(false);
 
+  // Safety check for child data
+  if (!child) {
+    return null;
+  }
+
   return (
     <View style={[styles.card, { marginTop: index === 0 ? 0 : 16 }]}>
       {/* Header */}
@@ -146,8 +177,10 @@ function ChildCard({
           <Icon name="account-child-circle" size={40} color="#10B981" />
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.childName}>{child.fullName}</Text>
-          <Text style={styles.childCode}>{child.studentCode}</Text>
+          <Text style={styles.childName}>{child.fullName || "Unknown"}</Text>
+          <Text style={styles.childCode}>
+            {child.studentCode || child.userId || "N/A"}
+          </Text>
         </View>
         <View style={styles.headerActions}>
           <View
@@ -183,7 +216,7 @@ function ChildCard({
         <View style={styles.infoRow}>
           <Ionicons name="mail-outline" size={16} color="#6B7280" />
           <Text style={styles.infoText} numberOfLines={1}>
-            {child.email}
+            {child.email || "N/A"}
           </Text>
         </View>
         <View style={styles.infoRow}>

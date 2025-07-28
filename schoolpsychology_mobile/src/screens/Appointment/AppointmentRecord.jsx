@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -10,26 +10,28 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { Container, Loading } from "../../components";
-import { getAppointmentRecord } from "../../services/api/AppointmentService";
+import { Container, Loading, LazyLoader } from "../../components";
+import { StatisticsCard } from "../../components/dashboard";
+import { ReusableBarChart } from "../../components/charts";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { getPastAppointments } from "@/services/api/AppointmentService";
+import { useAuth } from "@/contexts";
 
 dayjs.locale("vi");
-
-const { width } = Dimensions.get("window");
 
 const AppointmentRecord = () => {
   const navigation = useNavigation();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
 
   // Fetch appointment records
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getAppointmentRecord();
+      const response = await getPastAppointments(user?.userId || user?.id);
       const recordsData = Array.isArray(response)
         ? response
         : response.data || [];
@@ -39,7 +41,7 @@ const AppointmentRecord = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.userId, user?.id]);
 
   // Refresh data
   const onRefresh = useCallback(async () => {
@@ -55,29 +57,56 @@ const AppointmentRecord = () => {
     }, [fetchRecords])
   );
 
+  // Calculate statistics - memoized for performance
+  const stats = useMemo(() => {
+    const total = records.length;
+    const completed = records.filter((r) => r.status === "COMPLETED").length;
+    const canceled = records.filter((r) => r.status === "CANCELED").length;
+    const absent = records.filter((r) => r.status === "ABSENT").length;
+
+    return { total, completed, canceled, absent };
+  }, [records]);
+
+  // Prepare chart data - memoized for performance
+  const chartData = useMemo(() => {
+    return [
+      { label: "Hoàn thành", value: stats.completed, color: "#059669" },
+      { label: "Đã hủy", value: stats.canceled, color: "#DC2626" },
+      { label: "Vắng", value: stats.absent, color: "#F59E0B" },
+      // { label: "Hết hạn", value: stats.expired, color: "#6B7280" },
+    ].filter((item) => item.value > 0);
+  }, [stats]);
+
   // Get status color and icon
   const getStatusConfig = (status) => {
     switch (status?.toUpperCase()) {
-      case "FINALIZED":
+      case "COMPLETED":
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
           icon: "checkmark-circle",
           text: "Hoàn thành",
         };
-      case "SUBMITTED":
+      case "ABSENT":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
-          icon: "paper-plane",
-          text: "Đã nộp",
+          icon: "close-circle",
+          text: "Vắng",
         };
-      case "CANCELLED":
+      case "CANCELED":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
           icon: "close-circle",
           text: "Đã hủy",
+        };
+      case "EXPIRED":
+        return {
+          color: "#6B7280",
+          backgroundColor: "#F3F4F6",
+          icon: "time",
+          text: "Hết hạn",
         };
       default:
         return {
@@ -99,14 +128,14 @@ const AppointmentRecord = () => {
           icon: "happy",
           text: "Tốt",
         };
-      case "AVERAGE":
+      case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "remove",
           text: "Trung bình",
         };
-      case "POOR":
+      case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
@@ -126,13 +155,13 @@ const AppointmentRecord = () => {
   // Get cooperation level config
   const getCoopLevelConfig = (level) => {
     switch (level?.toUpperCase()) {
-      case "HIGH":
+      case "GOOD":
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
-          text: "Cao",
+          text: "Tốt",
         };
-      case "MEDIUM":
+      case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
@@ -153,130 +182,182 @@ const AppointmentRecord = () => {
     }
   };
 
-  // Render record card
-  const renderRecordCard = (record) => {
-    const statusConfig = getStatusConfig(record.status);
-    const sessionFlowConfig = getSessionFlowConfig(record.sessionFlow);
-    const coopLevelConfig = getCoopLevelConfig(record.studentCoopLevel);
+  // Render record card - memoized for performance
+  const renderRecordCard = useCallback(
+    (record) => {
+      const statusConfig = getStatusConfig(record.status);
+      const sessionFlowConfig = getSessionFlowConfig(record.sessionFlow);
+      const coopLevelConfig = getCoopLevelConfig(record.studentCoopLevel);
 
-    return (
-      <TouchableOpacity
-        key={record.id}
-        style={styles.recordCard}
-        onPress={() =>
-          navigation.navigate("AppointmentRecordDetail", { record })
-        }
-        activeOpacity={0.7}
-      >
-        {/* Header */}
-        <View style={styles.cardHeader}>
-          <View style={styles.headerLeft}>
-            <View style={styles.recordIdContainer}>
-              <Ionicons name="document-text" size={16} color="#3B82F6" />
-              <Text style={styles.recordIdText}>#{record.id}</Text>
+      return (
+        <TouchableOpacity
+          key={record.id}
+          style={styles.recordCard}
+          onPress={() =>
+            navigation.navigate("AppointmentRecordDetail", {
+              recordId: record.id,
+            })
+          }
+          activeOpacity={0.7}
+        >
+          {/* Header */}
+          <View style={styles.cardHeader}>
+            <View style={styles.headerLeft}>
+              <View style={styles.recordIdContainer}>
+                <Ionicons name="document-text" size={16} color="#3B82F6" />
+                <Text style={styles.recordIdText}>#{record.id}</Text>
+              </View>
+              <Text style={styles.dateText}>
+                {dayjs(record.startDateTime).format("DD/MM/YYYY HH:mm")}
+              </Text>
             </View>
-            <Text style={styles.dateText}>
-              {dayjs(record.createdDate).format("DD/MM/YYYY HH:mm")}
-            </Text>
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: statusConfig.backgroundColor },
+              ]}
+            >
+              <Ionicons
+                name={statusConfig.icon}
+                size={12}
+                color={statusConfig.color}
+              />
+              <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                {statusConfig.text}
+              </Text>
+            </View>
           </View>
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: statusConfig.backgroundColor },
-            ]}
-          >
-            <Ionicons
-              name={statusConfig.icon}
-              size={12}
-              color={statusConfig.color}
-            />
-            <Text style={[styles.statusText, { color: statusConfig.color }]}>
-              {statusConfig.text}
-            </Text>
-          </View>
-        </View>
 
-        {/* Content */}
-        <View style={styles.cardContent}>
-          {/* Score */}
-          {record.totalScore !== null && (
+          {/* Content */}
+          <View style={styles.cardContent}>
+            {/* Host Type */}
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
-                <Ionicons name="star" size={16} color="#F59E0B" />
+                <Ionicons name="person" size={16} color="#6B7280" />
               </View>
-              <Text style={styles.infoLabel}>Điểm tổng:</Text>
-              <Text style={styles.scoreValue}>{record.totalScore}</Text>
-            </View>
-          )}
-
-          {/* Session Flow */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons
-                name={sessionFlowConfig.icon}
-                size={16}
-                color={sessionFlowConfig.color}
-              />
-            </View>
-            <Text style={styles.infoLabel}>Tiến trình:</Text>
-            <View
-              style={[
-                styles.flowBadge,
-                { backgroundColor: sessionFlowConfig.backgroundColor },
-              ]}
-            >
-              <Text
-                style={[styles.flowText, { color: sessionFlowConfig.color }]}
-              >
-                {sessionFlowConfig.text}
+              <Text style={styles.infoLabel}>Loại tư vấn:</Text>
+              <Text style={styles.infoValue}>
+                {record.hostType === "COUNSELOR" ? "Tư vấn viên" : "Giáo viên"}
               </Text>
             </View>
-          </View>
 
-          {/* Cooperation Level */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="people" size={16} color="#6B7280" />
-            </View>
-            <Text style={styles.infoLabel}>Mức độ hợp tác:</Text>
-            <View
-              style={[
-                styles.coopBadge,
-                { backgroundColor: coopLevelConfig.backgroundColor },
-              ]}
-            >
-              <Text style={[styles.coopText, { color: coopLevelConfig.color }]}>
-                {coopLevelConfig.text}
-              </Text>
-            </View>
-          </View>
-
-          {/* Reason */}
-          {record.reason && (
-            <View style={styles.reasonContainer}>
+            {/* Location/Online */}
+            <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
-                <Ionicons name="information-circle" size={16} color="#6B7280" />
+                <Ionicons
+                  name={record.isOnline ? "wifi" : "location"}
+                  size={16}
+                  color="#6B7280"
+                />
               </View>
-              <Text style={styles.reasonText} numberOfLines={2}>
-                {record.reason}
+              <Text style={styles.infoLabel}>Hình thức:</Text>
+              <Text style={styles.infoValue}>
+                {record.isOnline ? "Trực tuyến" : "Tại chỗ"}
               </Text>
             </View>
-          )}
-        </View>
 
-        {/* Footer */}
-        <View style={styles.cardFooter}>
-          <View style={styles.footerLeft}>
-            <Ionicons name="calendar" size={14} color="#9CA3AF" />
-            <Text style={styles.footerText}>
-              Cập nhật: {dayjs(record.updatedDate).format("DD/MM/YYYY")}
-            </Text>
+            {/* Session Flow - Only show for COMPLETED */}
+            {record.status === "COMPLETED" && record.sessionFlow && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons
+                    name={sessionFlowConfig.icon}
+                    size={16}
+                    color={sessionFlowConfig.color}
+                  />
+                </View>
+                <Text style={styles.infoLabel}>Tiến trình:</Text>
+                <View
+                  style={[
+                    styles.flowBadge,
+                    { backgroundColor: sessionFlowConfig.backgroundColor },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.flowText,
+                      { color: sessionFlowConfig.color },
+                    ]}
+                  >
+                    {sessionFlowConfig.text}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Cooperation Level - Only show for COMPLETED */}
+            {record.status === "COMPLETED" && record.studentCoopLevel && (
+              <View style={styles.infoRow}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons name="people" size={16} color="#6B7280" />
+                </View>
+                <Text style={styles.infoLabel}>Mức độ hợp tác:</Text>
+                <View
+                  style={[
+                    styles.coopBadge,
+                    { backgroundColor: coopLevelConfig.backgroundColor },
+                  ]}
+                >
+                  <Text
+                    style={[styles.coopText, { color: coopLevelConfig.color }]}
+                  >
+                    {coopLevelConfig.text}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Cancel Reason - Only show for CANCELED */}
+            {record.status === "CANCELED" && record.cancelReason && (
+              <View style={styles.reasonContainer}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons
+                    name="information-circle"
+                    size={16}
+                    color="#DC2626"
+                  />
+                </View>
+                <Text style={styles.reasonText} numberOfLines={2}>
+                  {record.cancelReason}
+                </Text>
+              </View>
+            )}
+
+            {/* Booking Reason */}
+            {record.reasonBooking && (
+              <View style={styles.reasonContainer}>
+                <View style={styles.infoIconContainer}>
+                  <Ionicons
+                    name="information-circle"
+                    size={16}
+                    color="#6B7280"
+                  />
+                </View>
+                <Text style={styles.reasonText} numberOfLines={2}>
+                  {record.reasonBooking}
+                </Text>
+              </View>
+            )}
           </View>
-          <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
-        </View>
-      </TouchableOpacity>
-    );
-  };
+
+          {/* Footer */}
+          <View style={styles.cardFooter}>
+            <View style={styles.footerLeft}>
+              <Ionicons name="calendar" size={14} color="#9CA3AF" />
+              <Text style={styles.footerText}>
+                Cập nhật:{" "}
+                {dayjs(record.endDateTime || record.startDateTime).format(
+                  "DD/MM/YYYY"
+                )}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color="#9CA3AF" />
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [navigation]
+  );
 
   return (
     <Container>
@@ -304,25 +385,57 @@ const AppointmentRecord = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>{records.length}</Text>
-              <Text style={styles.statLabel}>Tổng hồ sơ</Text>
+          {/* Statistics Cards */}
+          <LazyLoader delay={200}>
+            <View style={styles.statsContainer}>
+              <StatisticsCard
+                title="Tổng hồ sơ"
+                value={stats.total}
+                icon="document-text"
+                iconColor="#3B82F6"
+                valueColor="#3B82F6"
+                size="small"
+              />
+              <StatisticsCard
+                title="Hoàn thành"
+                value={stats.completed}
+                icon="checkmark-circle"
+                iconColor="#059669"
+                valueColor="#059669"
+                size="small"
+              />
+              <StatisticsCard
+                title="Đã hủy"
+                value={stats.canceled}
+                icon="close-circle"
+                iconColor="#DC2626"
+                valueColor="#DC2626"
+                size="small"
+              />
+              <StatisticsCard
+                title="Vắng"
+                value={stats.absent}
+                icon="time"
+                iconColor="#F59E0B"
+                valueColor="#F59E0B"
+                size="small"
+              />
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>
-                {records.filter((r) => r.status === "FINALIZED").length}
-              </Text>
-              <Text style={styles.statLabel}>Hoàn thành</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNumber}>
-                {records.filter((r) => r.sessionFlow === "GOOD").length}
-              </Text>
-              <Text style={styles.statLabel}>Tiến trình tốt</Text>
-            </View>
-          </View>
+          </LazyLoader>
+
+          {/* Chart */}
+          {chartData.length > 0 && (
+            <LazyLoader delay={400}>
+              <View style={styles.chartContainer}>
+                <ReusableBarChart
+                  data={chartData}
+                  title="Thống kê trạng thái hồ sơ"
+                  type="bar"
+                  color="#3B82F6"
+                />
+              </View>
+            </LazyLoader>
+          )}
 
           {/* Records List */}
           {records.length === 0 ? (
@@ -334,12 +447,14 @@ const AppointmentRecord = () => {
               </Text>
             </View>
           ) : (
-            <View style={styles.recordsList}>
-              <Text style={styles.sectionTitle}>
-                Danh sách hồ sơ ({records.length})
-              </Text>
-              {records.map(renderRecordCard)}
-            </View>
+            <LazyLoader delay={600}>
+              <View style={styles.recordsList}>
+                <Text style={styles.sectionTitle}>
+                  Danh sách hồ sơ ({records.length})
+                </Text>
+                {records.map(renderRecordCard)}
+              </View>
+            </LazyLoader>
           )}
         </ScrollView>
       )}
@@ -380,32 +495,13 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 24,
     gap: 12,
   },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-    textAlign: "center",
+  chartContainer: {
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
@@ -482,10 +578,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
     minWidth: 100,
   },
-  scoreValue: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#F59E0B",
+  infoValue: {
+    fontSize: 14,
+    color: "#1A1A1A",
+    fontWeight: "500",
+    flex: 1,
   },
   flowBadge: {
     paddingHorizontal: 8,

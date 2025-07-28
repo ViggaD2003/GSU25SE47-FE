@@ -234,6 +234,7 @@ const BookingScreen = ({ navigation }) => {
         ? "Giáo viên chủ nhiệm"
         : selectedCounselor?.name || "Tư vấn viên"
     }
+${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
 • Ngày: ${dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
 • Thời gian: ${
       dayjs(
@@ -273,7 +274,7 @@ const BookingScreen = ({ navigation }) => {
             const bookingData = {
               slotId: selectedSlot.id,
               bookedForId:
-                user?.role === "PARENTS" ? bookedForId : user?.userId,
+                user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT
@@ -396,7 +397,6 @@ const BookingScreen = ({ navigation }) => {
 
         // Reset child selection if no child is pre-selected from global variable
         if (!global.selectedChildForAppointment) {
-          setSelectedChild(null);
           setBookedForId(user?.id || null);
         }
       };

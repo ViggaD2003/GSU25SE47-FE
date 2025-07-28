@@ -202,10 +202,10 @@ const AppointmentManagement = () => {
     const searchLower = searchText.toLowerCase()
     return appointments.filter(appointment => {
       return (
-        appointment.hostName?.toLowerCase().includes(searchLower) ||
-        appointment.bookByName?.toLowerCase().includes(searchLower) ||
-        appointment.bookForName?.toLowerCase().includes(searchLower) ||
-        appointment.reason?.toLowerCase().includes(searchLower)
+        appointment.slot?.fullName?.toLowerCase().includes(searchLower) ||
+        appointment.bookedBy?.fullName?.toLowerCase().includes(searchLower) ||
+        appointment.bookedFor?.fullName?.toLowerCase().includes(searchLower) ||
+        appointment.reasonBooking?.toLowerCase().includes(searchLower)
       )
     })
   }, [appointments, searchText])
@@ -218,10 +218,12 @@ const AppointmentManagement = () => {
     return appointmentRecords.filter(record => {
       const appointment = record.appointment
       return (
-        appointment?.hostName?.toLowerCase().includes(searchLower) ||
-        appointment?.bookByName?.toLowerCase().includes(searchLower) ||
-        appointment?.bookForName?.toLowerCase().includes(searchLower) ||
-        appointment?.reason?.toLowerCase().includes(searchLower) ||
+        appointment?.slot?.fullName?.toLowerCase().includes(searchLower) ||
+        appointment?.bookedBy?.fullName?.toLowerCase().includes(searchLower) ||
+        appointment?.bookForName?.fullName
+          ?.toLowerCase()
+          .includes(searchLower) ||
+        appointment?.reasonBooking?.toLowerCase().includes(searchLower) ||
         record.noteSummary?.toLowerCase().includes(searchLower) ||
         record.noteSuggest?.toLowerCase().includes(searchLower)
       )
@@ -295,32 +297,38 @@ const AppointmentManagement = () => {
     () => [
       {
         title: t('appointment.table.hostName'),
-        dataIndex: 'hostName',
+        dataIndex: 'slot',
         key: 'hostName',
-        render: (text, record) => (
+        render: (slot, record) => (
           <div className="flex flex-col">
-            <Text strong>{text}</Text>
+            <Text strong>{slot?.fullName}</Text>
             <Text type="secondary" className="text-xs">
-              <MemoizedHostTypeTag hostType={record.hostType} t={t} />
+              <MemoizedHostTypeTag hostType={slot?.roleName} t={t} />
             </Text>
           </div>
         ),
-        sorter: (a, b) => a.hostName.localeCompare(b.hostName),
+        sorter: (a, b) =>
+          (a.slot?.fullName || '').localeCompare(b.slot?.fullName || ''),
       },
       {
         title: t('appointment.table.bookByName'),
-        dataIndex: 'bookByName',
+        dataIndex: 'bookedBy',
         key: 'bookByName',
-        render: (text, record) => (
-          <div className="flex flex-col">
-            <Text>{text}</Text>
-            {record.bookForName && (
-              <Text type="secondary" className="text-xs">
-                {t('appointment.table.bookForName')}: {record.bookForName}
+        render: (bookedBy, record) => {
+          const isSamePerson = record.bookedFor?.id === record.bookedBy?.id
+          return (
+            <div className="flex flex-col">
+              <Text>
+                {isSamePerson ? bookedBy?.fullName : record.bookedFor?.fullName}
               </Text>
-            )}
-          </div>
-        ),
+              {!isSamePerson && (
+                <Text type="secondary" className="text-xs">
+                  {t('appointment.table.bookByName')}: {bookedBy?.fullName}
+                </Text>
+              )}
+            </div>
+          )
+        },
       },
       {
         title: t('appointment.table.time'),
@@ -419,16 +427,19 @@ const AppointmentManagement = () => {
           const appointment = record.appointment
           return (
             <div className="flex flex-col">
-              <Text strong>{appointment?.hostName}</Text>
+              <Text strong>{appointment?.slot?.fullName}</Text>
               <Text type="secondary" className="text-xs">
-                <MemoizedHostTypeTag hostType={appointment?.hostType} t={t} />
+                <MemoizedHostTypeTag
+                  hostType={appointment?.slot?.roleName}
+                  t={t}
+                />
               </Text>
             </div>
           )
         },
         sorter: (a, b) =>
-          (a.appointment?.hostName || '').localeCompare(
-            b.appointment?.hostName || ''
+          (a.appointment?.slot?.fullName || '').localeCompare(
+            b.appointment?.slot?.fullName || ''
           ),
       },
       {
@@ -436,13 +447,19 @@ const AppointmentManagement = () => {
         key: 'bookByName',
         render: (_, record) => {
           const appointment = record.appointment
+          const isSamePerson =
+            appointment?.bookedFor?.id === appointment?.bookedBy?.id
           return (
             <div className="flex flex-col">
-              <Text>{appointment?.bookByName}</Text>
-              {appointment?.bookForName && (
+              <Text>
+                {isSamePerson
+                  ? appointment?.bookedBy?.fullName
+                  : appointment?.bookedFor?.fullName}
+              </Text>
+              {!isSamePerson && (
                 <Text type="secondary" className="text-xs">
-                  {t('appointment.table.bookForName')}:{' '}
-                  {appointment?.bookForName}
+                  {t('appointment.table.bookByName')}:{' '}
+                  {appointment?.bookedBy?.fullName}
                 </Text>
               )}
             </div>

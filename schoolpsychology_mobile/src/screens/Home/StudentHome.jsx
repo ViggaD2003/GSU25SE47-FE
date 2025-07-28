@@ -14,7 +14,10 @@ import Loading from "../../components/common/Loading";
 import SurveyCard from "../../components/common/SurveyCard";
 import AppointmentCard from "../../components/common/AppointmentCard";
 import { getPublishedSurveys } from "../../services/api/SurveyService";
-import { getAppointmentHistory } from "../../services/api/AppointmentService";
+import {
+  getActiveAppointments,
+  getAppointmentHistory,
+} from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
 import { log } from "console";
 
@@ -96,15 +99,12 @@ export default function StudentHome({
     }
   };
 
+  console.log("allData", allData);
+
   const fetchAppointments = async () => {
     try {
-      // const response = await getAppointmentHistory();
-      // const appointmentData = Array.isArray()
-      //   ? response
-      //   : response.data || [];
-
-      const appointmentData = [];
-
+      const response = await getActiveAppointments(user?.userId || user?.id);
+      const appointmentData = Array.isArray(response) ? response : [];
       // Sort appointments by date (newest first)
       const sortedAppointments = appointmentData.sort(
         (a, b) => new Date(a.startDateTime) - new Date(b.startDateTime)
