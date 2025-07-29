@@ -28,7 +28,6 @@ export const getSurveyRecords = async () => {
 // Post survey result
 export const postSurveyResult = async (result) => {
   try {
-    console.log(result);
     const response = await api.post("/api/v1/survey-records", result);
     return response.data;
   } catch (error) {

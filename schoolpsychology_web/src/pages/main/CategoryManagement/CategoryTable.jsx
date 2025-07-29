@@ -10,15 +10,7 @@ import { useTranslation } from 'react-i18next'
 
 const { Text } = Typography
 
-const CategoryTable = ({
-  data,
-  loading,
-  pagination,
-  onChange,
-  onView,
-  onEdit,
-  onDelete,
-}) => {
+const CategoryTable = ({ data, loading, pagination, onChange }) => {
   const { t } = useTranslation()
 
   const columns = [
@@ -47,41 +39,6 @@ const CategoryTable = ({
       width: 200,
       sorter: (a, b) => (a.code || '').localeCompare(b.code || ''),
     },
-    // {
-    //   title: t('categoryManagement.table.actions'),
-    //   key: 'action',
-    //   fixed: 'right',
-    //   width: 150,
-    //   render: (_, record) => (
-    //     <Space size="small">
-    //       <Button
-    //         icon={<EyeOutlined />}
-    //         onClick={() => onView(record)}
-    //         type="text"
-    //         size="small"
-    //         className="text-blue-500 hover:text-blue-700"
-    //         title={t('common.view')}
-    //       />
-    //       <Button
-    //         icon={<EditOutlined />}
-    //         onClick={() => onEdit(record)}
-    //         type="text"
-    //         size="small"
-    //         className="text-green-500 hover:text-green-700"
-    //         title={t('common.edit')}
-    //       />
-    //       <Button
-    //         icon={<DeleteOutlined />}
-    //         onClick={() => onDelete(record)}
-    //         type="text"
-    //         size="small"
-    //         danger
-    //         className="text-red-500 hover:text-red-700"
-    //         title={t('common.delete')}
-    //       />
-    //     </Space>
-    //   ),
-    // },
   ]
 
   return (

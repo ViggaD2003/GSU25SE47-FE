@@ -164,12 +164,109 @@
     "lastLogin": "Last Login"
   },
   "programManagement": {
-    "title": "Program Management",
-    "description": "Manage your program and their information",
+    "title": "Support Program Management",
+    "description": "Manage support programs and their information",
+    "refresh": "Refresh",
+    "create": "Create New Program",
+    "search": "Search programs...",
+    "filters": {
+      "status": "Status",
+      "category": "Category",
+      "type": "Type",
+      "dateRange": "Date Range",
+      "all": "All",
+      "online": "Online",
+      "offline": "Offline",
+      "reset": "Reset Filters"
+    },
     "table": {
       "name": "Program Name",
       "description": "Description",
-      "status": "Status"
+      "participants": "Participants",
+      "sessions": "Sessions",
+      "type": "Type",
+      "category": "Category",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "UPCOMING": "Upcoming",
+      "ONGOING": "Ongoing",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "type": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewDetails": "View Details"
+    },
+    "messages": {
+      "fetchError": "Failed to fetch programs",
+      "createSuccess": "Program created successfully",
+      "createError": "Failed to create program",
+      "updateSuccess": "Program updated successfully",
+      "updateError": "Failed to update program",
+      "deleteSuccess": "Program deleted successfully",
+      "deleteError": "Failed to delete program",
+      "confirmDelete": "Are you sure you want to delete this program?"
+    },
+    "empty": {
+      "title": "No programs found",
+      "description": "There are no support programs matching your criteria."
+    },
+    "modal": {
+      "addTitle": "Create New Support Program",
+      "editTitle": "Edit Support Program",
+      "viewTitle": "View Support Program"
+    },
+    "form": {
+      "basicInfo": "Basic Information",
+      "settings": "Program Settings",
+      "schedule": "Schedule & Location",
+      "name": "Program Name",
+      "nameRequired": "Program name is required",
+      "nameMinLength": "Program name must be at least 3 characters",
+      "nameMaxLength": "Program name cannot exceed 100 characters",
+      "namePlaceholder": "Enter program name",
+      "description": "Description",
+      "descriptionRequired": "Description is required",
+      "descriptionMinLength": "Description must be at least 10 characters",
+      "descriptionMaxLength": "Description cannot exceed 500 characters",
+      "descriptionPlaceholder": "Enter detailed program description",
+      "category": "Category",
+      "categoryRequired": "Category is required",
+      "categoryPlaceholder": "Select program category",
+      "maxParticipants": "Max Participants",
+      "maxParticipantsRequired": "Max participants is required",
+      "maxParticipantsMin": "Must have at least 1 participant",
+      "maxParticipantsMax": "Cannot exceed 1000 participants",
+      "maxParticipantsPlaceholder": "Enter maximum participants",
+      "status": "Status",
+      "statusRequired": "Status is required",
+      "statusPlaceholder": "Select program status",
+      "type": "Program Type",
+      "typeOnline": "Online Program",
+      "typeOffline": "Offline Program",
+      "dateRange": "Duration",
+      "dateRangeRequired": "Program duration is required",
+      "startDateMinDays": "Start date must be at least 5 days from today",
+      "endDateMinDays": "End date must be at least 1 day after start date",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "location": "Location",
+      "locationRequired": "Location is required for offline programs",
+      "locationPlaceholder": "Enter program location (required for offline)",
+      "locationMaxLength": "Location cannot exceed 200 characters",
+      "programInfo": "Program Information",
+      "onlineInfo": "This is an online program. Meeting links will be provided to participants.",
+      "formError": "Please check the form for errors"
     }
   },
   "caseManagement": {
@@ -191,6 +288,8 @@
     "table": {
       "slotName": "Slot Name",
       "type": "Type",
+      "date": "Date",
+      "time": "Time",
       "startTime": "Start Time",
       "endTime": "End Time",
       "status": "Status",
@@ -204,6 +303,7 @@
       "slotNameRequired": "Please enter slot name",
       "startDateTime": "Start Date & Time",
       "startDateTimeRequired": "Please select start date and time",
+      "endDateTime": "End Date & Time",
       "duration": "Duration (hours)",
       "durationPlaceholder": "Enter duration in hours",
       "durationRequired": "Please enter duration",
@@ -283,6 +383,45 @@
         "viewDetail": "View Detail"
       }
     },
+    "detail": {
+      "title": "Survey Details",
+      "description": "Description",
+      "status": "Status",
+      "surveyCode": "Survey Code",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "recurringCycle": "Recurring Cycle",
+      "required": "Required",
+      "questionsList": "Questions List",
+      "category": "Category",
+      "score": "Score",
+      "answer": "Answer",
+      "update": "Update",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "validation": {
+        "descriptionRequired": "Description cannot be empty",
+        "startDateRequired": "Start date cannot be empty",
+        "startDateFuture": "Start date must be greater than or equal to current date",
+        "startDateBeforeEnd": "Start date must be before end date",
+        "endDateRequired": "End date cannot be empty",
+        "recurringCycleRequired": "Please select a recurring cycle"
+      },
+      "messages": {
+        "updateSuccess": "Updated successfully",
+        "updateError": "Update failed",
+        "noChanges": "No changes to update"
+      },
+      "recurringOptions": {
+        "none": "None",
+        "weekly": "Weekly",
+        "monthly": "Monthly"
+      },
+      "recurringHelp": {
+        "none": "Survey is not recurring (isRecurring: false)",
+        "active": "Survey is recurring (isRecurring: true)"
+      }
+    },
     "form": {
       "name": "Survey Name",
       "namePlaceholder": "Enter survey name",
@@ -309,7 +448,14 @@
       "addQuestion": "Add Question",
       "startDateBeforeToday": "Start date must be today or after today",
       "endDateBeforeStartDate": "End date must be after start date",
-      "sampleSurveys": "Sample surveys for category"
+      "sampleSurveys": "Sample surveys for category",
+      "recurringValidation": {
+        "invalidCycle": "For recurring surveys, please select a valid cycle: Daily, Weekly, or Monthly",
+        "endDateTooFar": "For {{cycle}} recurring surveys, end date must be within {{maxDays}} days from start date",
+        "endDateDaily": "For daily recurring surveys, end date must be within 1 day from start date",
+        "endDateWeekly": "For weekly recurring surveys, end date must be within 7 days from start date",
+        "endDateMonthly": "For monthly recurring surveys, end date must be within 30 days from start date"
+      }
     },
     "messages": {
       "addSuccess": "Survey created successfully",
@@ -392,7 +538,8 @@
     "save": "Save",
     "loading": "Loading...",
     "view": "View",
-    "delete": "Delete"
+    "delete": "Delete",
+    "total": "Total"
   },
   "classManagement": {
     "title": "Class Management",
@@ -568,6 +715,166 @@
       "mentalHealth": "Mental Health",
       "environment": "Environment",
       "impact": "Impact"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "pending": "Pending Review"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "normal": "Normal",
+      "difficult": "Difficult",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
     }
+  },
+  "appointmentRecord": {
+    "title": "Assessment Record",
+    "viewRecord": "View Assessment",
+    "noRecord": "No Assessment Available",
+    "noScore": "N/A",
+    "sessionInfo": "Session Information",
+    "assessmentResults": "Assessment Results",
+    "noteSummary": "Summary Notes",
+    "noteSuggest": "Intervention Suggestions",
+    "totalScore": "Total Score",
+    "riskLevel": "Risk Level",
+    "sessionFlowTitle": "Session Progress",
+    "cooperationLevelTitle": "Student Cooperation",
+    "statusTitle": "Assessment Status",
+    "completedOn": "Completed On",
+    "additionalNotes": "Additional Notes",
+    "messages": {
+      "saveSuccess": "Assessment saved successfully!",
+      "saveError": "Error saving assessment. Please try again!"
+    },
+    "riskLevels": {
+      "low": "Low Risk",
+      "medium": "Medium Risk",
+      "high": "High Risk"
+    },
+    "sessionFlow": {
+      "good": "Good",
+      "average": "Average",
+      "poor": "Poor",
+      "unknown": "Unknown"
+    },
+    "cooperationLevel": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    },
+    "status": {
+      "submitted": "Submitted",
+      "finalized": "Finalized",
+      "cancelled": "Cancelled"
+    }
+  },
+  "programHelper": {
+    "title": "Program Creation Guidelines",
+    "toggle": "Show Guidelines",
+    "welcome": {
+      "title": "Welcome to Program Creation Assistant",
+      "description": "Use this guide to create effective and professional support programs. Follow these guidelines to ensure your program meets quality standards and achieves the best outcomes."
+    },
+    "types": {
+      "title": "Recommended Program Types",
+      "participants": "Participants",
+      "duration": "Duration",
+      "format": "Format",
+      "formats": {
+        "online": "Online",
+        "offline": "Offline",
+        "hybrid": "Hybrid"
+      },
+      "counseling": {
+        "name": "Individual Counseling",
+        "category": "Therapy",
+        "description": "One-on-one sessions for personalized psychological support and guidance."
+      },
+      "skillsDevelopment": {
+        "name": "Skills Development",
+        "category": "Training",
+        "description": "Group programs focusing on developing specific psychological and social skills."
+      },
+      "groupTherapy": {
+        "name": "Group Therapy",
+        "category": "Therapy",
+        "description": "Therapeutic sessions conducted in small groups with shared experiences."
+      },
+      "workshop": {
+        "name": "Educational Workshop",
+        "category": "Education",
+        "description": "Short-term intensive programs for learning specific topics or techniques."
+      },
+      "support": {
+        "name": "Support Group",
+        "category": "Support",
+        "description": "Peer support groups for ongoing emotional and psychological assistance."
+      }
+    },
+    "guidelines": {
+      "title": "Creation Guidelines",
+      "participants": {
+        "title": "Participant Management",
+        "rule1": "10-50 participants per program (current system limit)",
+        "rule2": "Smaller groups (10-15) work better for therapy and counseling",
+        "rule3": "Larger groups (20-50) are suitable for workshops and training",
+        "rule4": "Consider facilitator capacity when setting participant limits"
+      },
+      "duration": {
+        "title": "Program Duration",
+        "rule1": "Minimum 5 days advance booking required for proper preparation",
+        "rule2": "Short programs (1-3 days): workshops, seminars, training sessions",
+        "rule3": "Medium programs (4-8 weeks): skill development, support groups",
+        "rule4": "Long programs (8+ weeks): therapy, comprehensive treatment plans"
+      },
+      "format": {
+        "title": "Format Selection",
+        "rule1": "Online format: best for educational content and remote accessibility",
+        "rule2": "Offline format: ideal for hands-on therapy and personal interaction",
+        "rule3": "Consider participant technology access for online programs",
+        "rule4": "Ensure appropriate facilities and resources for chosen format"
+      },
+      "content": {
+        "title": "Content & Structure",
+        "rule1": "Define clear, measurable learning objectives and outcomes",
+        "rule2": "Create detailed session plans with activities and materials",
+        "rule3": "Include assessment methods and progress tracking mechanisms",
+        "rule4": "Plan for follow-up support and resource provision"
+      }
+    },
+    "bestPractices": {
+      "title": "Best Practices",
+      "preparation": {
+        "title": "Program Preparation",
+        "tip1": "Conduct needs assessment before program design",
+        "tip2": "Prepare comprehensive materials and resources in advance",
+        "tip3": "Train facilitators and establish clear protocols"
+      },
+      "execution": {
+        "title": "Program Execution",
+        "tip1": "Maintain consistent communication with participants",
+        "tip2": "Monitor progress and adjust content as needed",
+        "tip3": "Document sessions and maintain detailed records"
+      }
+    },
+    "mistakes": {
+      "title": "Common Mistakes to Avoid",
+      "warning": "Avoid these common pitfalls when creating programs:",
+      "mistake1": "Setting unrealistic participant numbers or duration expectations",
+      "mistake2": "Insufficient preparation time (less than 5 days advance notice)",
+      "mistake3": "Choosing inappropriate format for content type or participant needs",
+      "mistake4": "Lack of clear objectives or measurable outcomes",
+      "mistake5": "Inadequate follow-up planning or resource allocation"
+    },
+    "footer": "This helper provides general guidelines. Always consider specific organizational policies and participant needs."
   }
 }

@@ -33,10 +33,10 @@ const GoogleCallBack = () => {
 
         // Tạo object user từ decoded token
         const user = {
-          id: decodedToken?.sub || decodedToken?.userId || 1,
+          id: decodedToken?.userId || 1,
           fullName:
-            decodedToken?.name || decodedToken?.fullname || 'Google User',
-          email: decodedToken?.email || '',
+            decodedToken?.name || decodedToken?.fullName || 'Google User',
+          email: decodedToken?.email || decodedToken?.sub || '',
           role: decodedToken?.role
             ? String(decodedToken.role).toLowerCase()
             : null,

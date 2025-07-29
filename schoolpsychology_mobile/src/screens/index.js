@@ -25,6 +25,13 @@ export { default as BookingScreen } from "./Appointment/BookingScreen";
 export { default as StatusScreen } from "./Appointment/StatusScreen";
 export { default as AppointmentDetailsScreen } from "./Appointment/AppointmentDetails";
 export { default as AppointmentRecordScreen } from "./Appointment/AppointmentRecord";
+export { default as AppointmentRecordDetailScreen } from "./Appointment/AppointmentRecordDetail";
 
 // Calendar screens
 export { default as CalendarAccess } from "./Calendar/CalendarAccess";
+
+//Program screens
+export { default as ProgramRecordScreen } from "./Program/ProgramRecord";
+
+// Record screens./Program/ProgramRecord
+export { default as RecordScreen } from "./Record/Record";

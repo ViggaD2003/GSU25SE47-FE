@@ -75,11 +75,11 @@ const StatusScreen = ({ route }) => {
   }, []);
 
   const handleGoHome = () => {
-    navigation.popTo("Home");
+    navigation.popTo("MainBottomTabs", "Home");
   };
 
-  const handleViewAppointments = () => {
-    navigation.navigate("Appointments");
+  const handleBooking = () => {
+    navigation.popTo("Appointment");
   };
 
   const formatTime = (dateTimeString) => {
@@ -234,7 +234,7 @@ const StatusScreen = ({ route }) => {
           <View style={styles.buttonContainer}>
             <TouchableOpacity
               style={styles.primaryButton}
-              onPress={handleViewAppointments}
+              onPress={handleBooking}
               activeOpacity={0.8}
             >
               <LinearGradient
@@ -249,9 +249,7 @@ const StatusScreen = ({ route }) => {
                   color="white"
                   style={styles.buttonIcon}
                 />
-                <Text style={styles.primaryButtonText}>
-                  Xem lịch hẹn của tôi
-                </Text>
+                <Text style={styles.primaryButtonText}>Đặt lịch hẹn khác</Text>
               </LinearGradient>
             </TouchableOpacity>
 

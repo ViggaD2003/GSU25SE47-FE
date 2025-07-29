@@ -1,4 +1,5 @@
 export { default as AutoTranslatedText } from './AutoTranslatedText'
 export { default as LanguageSwitcher } from './LanguageSwitcher'
+export { default as ProgramCreationHelper } from './ProgramCreationHelper'
 export { default as ThemeSwitcher } from './ThemeSwitcher'
 export { default as TokenDebugger } from './TokenDebugger'

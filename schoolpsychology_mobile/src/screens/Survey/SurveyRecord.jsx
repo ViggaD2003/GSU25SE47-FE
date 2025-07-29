@@ -19,6 +19,7 @@ import {
   getScoreIcon,
   getScoreLevel,
 } from "../../utils/helpers";
+import { useFocusEffect } from "@react-navigation/native";
 
 const PAGE_SIZE = 3; // Number of records to fetch per page
 
@@ -70,6 +71,13 @@ const SurveyRecord = ({ navigation }) => {
     setRefreshing(false);
   }, []);
 
+  // Load data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchSurveyRecords();
+    }, [fetchSurveyRecords])
+  );
+
   const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });
   }, []);
@@ -88,12 +96,16 @@ const SurveyRecord = ({ navigation }) => {
         surveyCode: record.surveyCode,
         name: record.surveyName,
         id: record.surveyId,
+        ...record,
       };
-      navigation.navigate("SurveyResult", {
-        survey,
-        result: record,
-        screen: "SurveyRecord",
-        showRecordsButton: false,
+
+      navigation.navigate("Survey", {
+        screen: "SurveyResult",
+        params: {
+          survey,
+          result: record,
+          showRecordsButton: false,
+        },
       });
     },
     [navigation]
@@ -194,7 +206,7 @@ const SurveyRecord = ({ navigation }) => {
               </Text>
               <TouchableOpacity
                 style={styles.emptyButton}
-                onPress={() => navigation.navigate("Home")}
+                onPress={() => navigation.navigate("MainBottomTabs")}
               >
                 <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
               </TouchableOpacity>

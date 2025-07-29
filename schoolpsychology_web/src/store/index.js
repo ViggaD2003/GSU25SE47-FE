@@ -4,6 +4,7 @@ import surveyReducer from './slices/surveySlice'
 import slotReducer from './slices/slotSlice'
 import appointmentReducer from './slices/appointmentSlice'
 import classReducer from './slices/classSlice'
+import programReducer from './slices/programSlice'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     slot: slotReducer,
     appointment: appointmentReducer,
     class: classReducer,
+    program: programReducer,
   },
 })
 

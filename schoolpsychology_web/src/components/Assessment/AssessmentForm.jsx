@@ -26,7 +26,15 @@ const { Title, Text } = Typography
 const { TextArea } = Input
 
 const AssessmentForm = memo(
-  ({ isVisible, onClose, onSubmit, _t, isDarkMode, appointmentId }) => {
+  ({
+    isVisible,
+    onClose,
+    onSubmit,
+    _t,
+    isDarkMode,
+    appointmentId,
+    loading = false,
+  }) => {
     // State cho form assessment
     const [selectedMentalHealth, setSelectedMentalHealth] = useState([])
     const [selectedEnvironment, setSelectedEnvironment] = useState([])
@@ -115,7 +123,8 @@ const AssessmentForm = memo(
         appointmentId: appointmentId,
         sessionFlow: sessionFlow,
         studentCoopLevel: studentCoopLevel,
-        status: 'DRAFT',
+        status: 'SUBMITTED',
+        appointmentStatus: 'COMPLETED',
         noteSummary: noteSummary,
         noteSuggest: noteSuggest,
         reason: '',
@@ -190,31 +199,33 @@ const AssessmentForm = memo(
             onChange={onChange}
             value={selectedData.map(item => item.id)}
           >
-            <div className="space-y-2">
+            <div className="space-y-2 flex flex-row gap-2 flex-wrap w-full">
               {data.map(item => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="min-w-[300px] flex flex-row justify-end items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
-                  <Checkbox value={item.id}>
-                    <Text className="text-gray-800 dark:text-gray-200">
-                      {item.label}
-                    </Text>
+                  <Checkbox value={item.id} className="w-full">
+                    <div className="w-full flex gap-6 items-center">
+                      <Text className="text-gray-800 dark:text-gray-200">
+                        {item.label}
+                      </Text>
+                      {/* <Badge
+                        count={item.score}
+                        style={{
+                          backgroundColor:
+                            item.score >= 4
+                              ? '#ff4d4f'
+                              : item.score >= 3
+                                ? '#fa8c16'
+                                : item.score >= 2
+                                  ? '#faad14'
+                                  : '#52c41a',
+                        }}
+                        title={`Điểm nghiêm trọng: ${item.score}`}
+                      /> */}
+                    </div>
                   </Checkbox>
-                  <Badge
-                    count={item.score}
-                    style={{
-                      backgroundColor:
-                        item.score >= 4
-                          ? '#ff4d4f'
-                          : item.score >= 3
-                            ? '#fa8c16'
-                            : item.score >= 2
-                              ? '#faad14'
-                              : '#52c41a',
-                    }}
-                    title={`Điểm nghiêm trọng: ${item.score}`}
-                  />
                 </div>
               ))}
             </div>
@@ -347,9 +358,11 @@ const AssessmentForm = memo(
                         onClick={handleSubmit}
                         icon={<CheckCircleOutlined />}
                         disabled={
-                          selectedMentalHealth.length === 0 &&
-                          selectedEnvironment.length === 0
+                          loading ||
+                          (selectedMentalHealth.length === 0 &&
+                            selectedEnvironment.length === 0)
                         }
+                        loading={loading}
                       >
                         Xác nhận đánh giá
                       </Button>
@@ -601,6 +614,8 @@ const AssessmentForm = memo(
                   type="primary"
                   onClick={handleFinalSubmit}
                   icon={<CheckCircleOutlined />}
+                  loading={loading}
+                  disabled={loading}
                 >
                   Hoàn thành đánh giá
                 </Button>

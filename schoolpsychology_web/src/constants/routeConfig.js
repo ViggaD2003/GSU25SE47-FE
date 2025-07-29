@@ -71,6 +71,12 @@ export const ROUTE_CONFIG = [
     element: 'ProgramManagement',
   },
   {
+    key: '/program-management/details',
+    element: 'ProgramDetails',
+    allowedRoles: ['manager', 'counselor'],
+    hidden: true,
+  },
+  {
     key: '/slot-management',
     icon: ClockCircleOutlined,
     labelKey: 'navigation.slotManagement',

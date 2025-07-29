@@ -166,11 +166,108 @@
   },
   "programManagement": {
     "title": "Quản lý chương trình hỗ trợ",
-    "description": "Quản lý chương trình hỗ trợ và thông tin của họ",
+    "description": "Quản lý các chương trình hỗ trợ và thông tin của chúng",
+    "refresh": "Làm mới",
+    "create": "Tạo chương trình mới",
+    "search": "Tìm kiếm chương trình...",
+    "filters": {
+      "status": "Trạng thái",
+      "category": "Danh mục",
+      "type": "Loại hình",
+      "dateRange": "Khoảng thời gian",
+      "all": "Tất cả",
+      "online": "Trực tuyến",
+      "offline": "Trực tiếp",
+      "reset": "Đặt lại bộ lọc"
+    },
     "table": {
       "name": "Tên chương trình",
       "description": "Mô tả",
-      "status": "Trạng thái"
+      "participants": "Học viên",
+      "sessions": "Buổi học",
+      "type": "Loại hình",
+      "category": "Danh mục",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "status": "Trạng thái",
+      "actions": "Thao tác"
+    },
+    "status": {
+      "UPCOMING": "Sắp diễn ra",
+      "ONGOING": "Đang diễn ra",
+      "COMPLETED": "Đã hoàn thành",
+      "CANCELLED": "Đã hủy"
+    },
+    "type": {
+      "online": "Trực tuyến",
+      "offline": "Trực tiếp"
+    },
+    "actions": {
+      "view": "Xem",
+      "edit": "Chỉnh sửa",
+      "delete": "Xóa",
+      "viewDetails": "Xem chi tiết"
+    },
+    "messages": {
+      "fetchError": "Không thể tải danh sách chương trình",
+      "createSuccess": "Tạo chương trình thành công",
+      "createError": "Không thể tạo chương trình",
+      "updateSuccess": "Cập nhật chương trình thành công",
+      "updateError": "Không thể cập nhật chương trình",
+      "deleteSuccess": "Xóa chương trình thành công",
+      "deleteError": "Không thể xóa chương trình",
+      "confirmDelete": "Bạn có chắc chắn muốn xóa chương trình này?"
+    },
+    "empty": {
+      "title": "Không tìm thấy chương trình",
+      "description": "Không có chương trình hỗ trợ nào phù hợp với tiêu chí của bạn."
+    },
+    "modal": {
+      "addTitle": "Tạo chương trình hỗ trợ mới",
+      "editTitle": "Chỉnh sửa chương trình hỗ trợ",
+      "viewTitle": "Xem chi tiết chương trình hỗ trợ"
+    },
+    "form": {
+      "basicInfo": "Thông tin cơ bản",
+      "settings": "Cài đặt chương trình",
+      "schedule": "Lịch trình & Địa điểm",
+      "name": "Tên chương trình",
+      "nameRequired": "Tên chương trình là bắt buộc",
+      "nameMinLength": "Tên chương trình phải có ít nhất 3 ký tự",
+      "nameMaxLength": "Tên chương trình không được vượt quá 100 ký tự",
+      "namePlaceholder": "Nhập tên chương trình",
+      "description": "Mô tả",
+      "descriptionRequired": "Mô tả là bắt buộc",
+      "descriptionMinLength": "Mô tả phải có ít nhất 10 ký tự",
+      "descriptionMaxLength": "Mô tả không được vượt quá 500 ký tự",
+      "descriptionPlaceholder": "Nhập mô tả chi tiết về chương trình",
+      "category": "Danh mục",
+      "categoryRequired": "Danh mục là bắt buộc",
+      "categoryPlaceholder": "Chọn danh mục chương trình",
+      "maxParticipants": "Số lượng tối đa",
+      "maxParticipantsRequired": "Số lượng tối đa là bắt buộc",
+      "maxParticipantsMin": "Phải có ít nhất 1 học viên",
+      "maxParticipantsMax": "Không được vượt quá 1000 học viên",
+      "maxParticipantsPlaceholder": "Nhập số lượng học viên tối đa",
+      "status": "Trạng thái",
+      "statusRequired": "Trạng thái là bắt buộc",
+      "statusPlaceholder": "Chọn trạng thái chương trình",
+      "type": "Loại hình",
+      "typeOnline": "Chương trình trực tuyến",
+      "typeOffline": "Chương trình trực tiếp",
+      "dateRange": "Thời gian",
+      "dateRangeRequired": "Thời gian diễn ra là bắt buộc",
+      "startDateMinDays": "Ngày bắt đầu phải cách ngày hiện tại ít nhất 5 ngày",
+      "endDateMinDays": "Ngày kết thúc phải sau ngày bắt đầu ít nhất 1 ngày",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "location": "Địa điểm",
+      "locationRequired": "Địa điểm là bắt buộc cho chương trình trực tiếp",
+      "locationPlaceholder": "Nhập địa điểm diễn ra (bắt buộc cho trực tiếp)",
+      "locationMaxLength": "Địa điểm không được vượt quá 200 ký tự",
+      "programInfo": "Thông tin chương trình",
+      "onlineInfo": "Đây là chương trình trực tuyến. Link tham gia sẽ được cung cấp cho học viên.",
+      "formError": "Vui lòng kiểm tra lại thông tin trong form"
     }
   },
   "caseManagement": {
@@ -192,6 +289,8 @@
     "table": {
       "slotName": "Tên giờ làm",
       "type": "Loại",
+      "date": "Ngày",
+      "time": "Thời gian",
       "startTime": "Giờ bắt đầu",
       "endTime": "Giờ kết thúc",
       "status": "Trạng thái",
@@ -205,6 +304,7 @@
       "slotNameRequired": "Vui lòng nhập tên giờ làm",
       "startDateTime": "Ngày và giờ bắt đầu",
       "startDateTimeRequired": "Vui lòng chọn ngày và giờ bắt đầu",
+      "endDateTime": "Ngày và giờ kết thúc",
       "duration": "Thời lượng (giờ)",
       "durationPlaceholder": "Nhập thời lượng",
       "durationRequired": "Vui lòng nhập thời lượng",
@@ -284,6 +384,45 @@
         "viewDetail": "Xem chi tiết"
       }
     },
+    "detail": {
+      "title": "Chi tiết khảo sát",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "surveyCode": "Mã khảo sát",
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "recurringCycle": "Chu kỳ lặp lại",
+      "required": "Bắt buộc",
+      "questionsList": "Danh sách câu hỏi",
+      "category": "Danh mục",
+      "score": "Điểm",
+      "answer": "Đáp án",
+      "update": "Cập nhật",
+      "cancel": "Hủy",
+      "edit": "Sửa",
+      "validation": {
+        "descriptionRequired": "Không được để trống mô tả",
+        "startDateRequired": "Không được để trống ngày bắt đầu",
+        "startDateFuture": "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại",
+        "startDateBeforeEnd": "Ngày bắt đầu phải nhỏ hơn ngày kết thúc",
+        "endDateRequired": "Không được để trống ngày kết thúc",
+        "recurringCycleRequired": "Vui lòng chọn chu kỳ lặp lại"
+      },
+      "messages": {
+        "updateSuccess": "Cập nhật thành công",
+        "updateError": "Cập nhật thất bại",
+        "noChanges": "Không có thay đổi nào để cập nhật"
+      },
+      "recurringOptions": {
+        "none": "Không",
+        "weekly": "Hàng tuần",
+        "monthly": "Hàng tháng"
+      },
+      "recurringHelp": {
+        "none": "Khảo sát không lặp lại (isRecurring: false)",
+        "active": "Khảo sát có lặp lại (isRecurring: true)"
+      }
+    },
     "form": {
       "name": "Tên khảo sát",
       "namePlaceholder": "Nhập tên khảo sát",
@@ -310,7 +449,14 @@
       "addQuestion": "Thêm câu hỏi",
       "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
       "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
-      "sampleSurveys": "Khảo sát mẫu cho danh mục"
+      "sampleSurveys": "Khảo sát mẫu cho danh mục",
+      "recurringValidation": {
+        "invalidCycle": "Đối với khảo sát lặp lại, vui lòng chọn chu kỳ hợp lệ: Hàng ngày, Hàng tuần, hoặc Hàng tháng",
+        "endDateTooFar": "Đối với khảo sát lặp lại {{cycle}}, ngày kết thúc phải trong vòng {{maxDays}} ngày từ ngày bắt đầu",
+        "endDateDaily": "Đối với khảo sát lặp lại hàng ngày, ngày kết thúc phải trong vòng 1 ngày từ ngày bắt đầu",
+        "endDateWeekly": "Đối với khảo sát lặp lại hàng tuần, ngày kết thúc phải trong vòng 7 ngày từ ngày bắt đầu",
+        "endDateMonthly": "Đối với khảo sát lặp lại hàng tháng, ngày kết thúc phải trong vòng 30 ngày từ ngày bắt đầu"
+      }
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",
@@ -340,7 +486,8 @@
     "save": "Lưu",
     "loading": "Đang tải...",
     "view": "Xem",
-    "delete": "Xóa"
+    "delete": "Xóa",
+    "total": "Tổng"
   },
   "classManagement": {
     "title": "Quản lý lớp học",
@@ -562,6 +709,166 @@
       "mentalHealth": "Tâm Lý",
       "environment": "Môi Trường",
       "impact": "Ảnh Hưởng"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "pending": "Chờ xem xét"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "normal": "Bình thường",
+      "difficult": "Khó khăn",
+      "unknown": "Không xác định"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "unknown": "Không xác định"
     }
+  },
+  "appointmentRecord": {
+    "title": "Bản Ghi Đánh Giá",
+    "viewRecord": "Xem Đánh Giá",
+    "noRecord": "Chưa Có Đánh Giá",
+    "noScore": "Chưa có",
+    "sessionInfo": "Thông Tin Buổi Tư Vấn",
+    "assessmentResults": "Kết Quả Đánh Giá",
+    "noteSummary": "Ghi Chú Tóm Tắt",
+    "noteSuggest": "Gợi Ý Can Thiệp",
+    "totalScore": "Tổng Điểm",
+    "riskLevel": "Mức Độ Rủi Ro",
+    "sessionFlowTitle": "Diễn Biến Buổi Tư Vấn",
+    "cooperationLevelTitle": "Mức Độ Hợp Tác",
+    "statusTitle": "Trạng Thái Đánh Giá",
+    "completedOn": "Hoàn Thành Lúc",
+    "additionalNotes": "Ghi Chú Thêm",
+    "messages": {
+      "saveSuccess": "Lưu đánh giá thành công!",
+      "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
+    },
+    "riskLevels": {
+      "low": "Rủi Ro Thấp",
+      "medium": "Rủi Ro Trung Bình",
+      "high": "Rủi Ro Cao"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "average": "Trung Bình",
+      "poor": "Kém",
+      "unknown": "Chưa rõ"
+    },
+    "cooperationLevel": {
+      "high": "Cao",
+      "medium": "Trung Bình",
+      "low": "Thấp",
+      "unknown": "Chưa rõ"
+    },
+    "status": {
+      "submitted": "Đã nộp",
+      "finalized": "Đã hoàn thành",
+      "cancelled": "Đã hủy"
+    }
+  },
+  "programHelper": {
+    "title": "Hướng Dẫn Tạo Chương Trình",
+    "toggle": "Hiển Thị Hướng Dẫn",
+    "welcome": {
+      "title": "Chào Mừng Đến Với Trợ Lý Tạo Chương Trình",
+      "description": "Sử dụng hướng dẫn này để tạo các chương trình hỗ trợ hiệu quả và chuyên nghiệp. Tuân theo các nguyên tắc này để đảm bảo chương trình đạt tiêu chuẩn chất lượng và mang lại kết quả tốt nhất."
+    },
+    "types": {
+      "title": "Các Loại Chương Trình Khuyến Nghị",
+      "participants": "Số người tham gia",
+      "duration": "Thời lượng",
+      "format": "Hình thức",
+      "formats": {
+        "online": "Trực tuyến",
+        "offline": "Trực tiếp",
+        "hybrid": "Kết hợp"
+      },
+      "counseling": {
+        "name": "Tư Vấn Cá Nhân",
+        "category": "Trị liệu",
+        "description": "Phiên tư vấn một đối một để hỗ trợ và hướng dẫn tâm lý cá nhân hóa."
+      },
+      "skillsDevelopment": {
+        "name": "Phát Triển Kỹ Năng",
+        "category": "Đào tạo",
+        "description": "Chương trình nhóm tập trung phát triển các kỹ năng tâm lý và xã hội cụ thể."
+      },
+      "groupTherapy": {
+        "name": "Trị Liệu Nhóm",
+        "category": "Trị liệu",
+        "description": "Các phiên trị liệu được thực hiện trong nhóm nhỏ có trải nghiệm chung."
+      },
+      "workshop": {
+        "name": "Hội Thảo Giáo Dục",
+        "category": "Giáo dục",
+        "description": "Chương trình ngắn hạn chuyên sâu để học các chủ đề hoặc kỹ thuật cụ thể."
+      },
+      "support": {
+        "name": "Nhóm Hỗ Trợ",
+        "category": "Hỗ trợ",
+        "description": "Nhóm hỗ trợ đồng đẳng để hỗ trợ cảm xúc và tâm lý liên tục."
+      }
+    },
+    "guidelines": {
+      "title": "Hướng Dẫn Tạo Lập",
+      "participants": {
+        "title": "Quản Lý Người Tham Gia",
+        "rule1": "10-50 người tham gia mỗi chương trình (giới hạn hệ thống hiện tại)",
+        "rule2": "Nhóm nhỏ hơn (10-15) phù hợp với trị liệu và tư vấn",
+        "rule3": "Nhóm lớn hơn (20-50) phù hợp với hội thảo và đào tạo",
+        "rule4": "Xem xét năng lực của người hướng dẫn khi đặt giới hạn số người"
+      },
+      "duration": {
+        "title": "Thời Lượng Chương Trình",
+        "rule1": "Yêu cầu đặt trước tối thiểu 5 ngày để chuẩn bị đầy đủ",
+        "rule2": "Chương trình ngắn (1-3 ngày): hội thảo, hội nghị, khóa đào tạo",
+        "rule3": "Chương trình trung bình (4-8 tuần): phát triển kỹ năng, nhóm hỗ trợ",
+        "rule4": "Chương trình dài (8+ tuần): trị liệu, kế hoạch điều trị toàn diện"
+      },
+      "format": {
+        "title": "Lựa Chọn Hình Thức",
+        "rule1": "Hình thức trực tuyến: tốt nhất cho nội dung giáo dục và khả năng tiếp cận từ xa",
+        "rule2": "Hình thức trực tiếp: lý tưởng cho trị liệu thực hành và tương tác cá nhân",
+        "rule3": "Xem xét khả năng tiếp cận công nghệ của người tham gia cho chương trình trực tuyến",
+        "rule4": "Đảm bảo cơ sở vật chất và tài nguyên phù hợp cho hình thức đã chọn"
+      },
+      "content": {
+        "title": "Nội Dung & Cấu Trúc",
+        "rule1": "Xác định mục tiêu học tập rõ ràng, có thể đo lường được",
+        "rule2": "Tạo kế hoạch phiên chi tiết với các hoạt động và tài liệu",
+        "rule3": "Bao gồm phương pháp đánh giá và cơ chế theo dõi tiến độ",
+        "rule4": "Lập kế hoạch hỗ trợ theo dõi và cung cấp tài nguyên"
+      }
+    },
+    "bestPractices": {
+      "title": "Thực Hành Tốt Nhất",
+      "preparation": {
+        "title": "Chuẩn Bị Chương Trình",
+        "tip1": "Thực hiện đánh giá nhu cầu trước khi thiết kế chương trình",
+        "tip2": "Chuẩn bị tài liệu và tài nguyên toàn diện trước",
+        "tip3": "Đào tạo người hướng dẫn và thiết lập quy trình rõ ràng"
+      },
+      "execution": {
+        "title": "Thực Hiện Chương Trình",
+        "tip1": "Duy trì giao tiếp nhất quán với người tham gia",
+        "tip2": "Theo dõi tiến độ và điều chỉnh nội dung khi cần",
+        "tip3": "Ghi chép phiên và duy trì hồ sơ chi tiết"
+      }
+    },
+    "mistakes": {
+      "title": "Lỗi Thường Gặp Cần Tránh",
+      "warning": "Tránh những sai lầm thường gặp sau khi tạo chương trình:",
+      "mistake1": "Đặt số lượng người tham gia hoặc kỳ vọng thời lượng không thực tế",
+      "mistake2": "Thời gian chuẩn bị không đủ (ít hơn 5 ngày thông báo trước)",
+      "mistake3": "Chọn hình thức không phù hợp với loại nội dung hoặc nhu cầu người tham gia",
+      "mistake4": "Thiếu mục tiêu rõ ràng hoặc kết quả có thể đo lường",
+      "mistake5": "Lập kế hoạch theo dõi hoặc phân bổ tài nguyên không đầy đủ"
+    },
+    "footer": "Trợ lý này cung cấp hướng dẫn chung. Luôn xem xét các chính sách tổ chức cụ thể và nhu cầu người tham gia."
   }
 }
