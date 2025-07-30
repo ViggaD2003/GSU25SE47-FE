@@ -301,6 +301,14 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   }
 
   const handleRemoveSlot = slotId => {
+    if (Array.isArray(slotId)) {
+      const updatedSlots = previewSlots.filter(
+        slot => !slotId.includes(slot.id)
+      )
+      setPreviewSlots(updatedSlots)
+      message.success(t('slotManagement.messages.dayRemoved'))
+      return
+    }
     const updatedSlots = previewSlots.filter(slot => slot.id !== slotId)
     setPreviewSlots(updatedSlots)
     message.success(t('slotManagement.messages.slotRemoved'))
@@ -1048,7 +1056,9 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
 
             <Popconfirm
               title={t('slotManagement.preview.deleteDayConfirm')}
-              onConfirm={() => handleRemoveSlot(dateGroup.slots[0].id)}
+              onConfirm={() =>
+                handleRemoveSlot(dateGroup.slots.map(slot => slot.id))
+              }
               okText={t('common.yes')}
               cancelText={t('common.no')}
             >

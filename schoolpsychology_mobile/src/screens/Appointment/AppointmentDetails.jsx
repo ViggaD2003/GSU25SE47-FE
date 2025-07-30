@@ -22,9 +22,11 @@ import {
 } from "@/services/api/AppointmentService";
 import CalendarService from "@/services/CalendarService";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AppointmentDetails = ({ route, navigation }) => {
   const { appointment } = route.params;
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
@@ -194,6 +196,23 @@ const AppointmentDetails = ({ route, navigation }) => {
   const canConfirmOrReject = () => {
     if (!appointment) return false;
     return appointment.status === "PENDING";
+  };
+
+  // Determine what booking information to show based on user role and ID
+  const shouldShowBookedFor = () => {
+    // If user is STUDENT, don't show "booked for" person
+    if (user?.role === "STUDENT") {
+      return false;
+    }
+    return true;
+  };
+
+  const shouldShowBookedBy = () => {
+    // If user is PARENT and userId matches bookedBy.id, don't show "booked by" person
+    if (user?.role === "PARENT" && user?.id === appointment.bookedBy?.id) {
+      return false;
+    }
+    return true;
   };
 
   // Event handlers
@@ -384,7 +403,9 @@ const AppointmentDetails = ({ route, navigation }) => {
   };
 
   const statusConfig = getStatusConfig(appointment.status);
-  const hostConfig = getHostTypeConfig(appointment.slot?.roleName);
+  const hostConfig = getHostTypeConfig(
+    appointment.hostedBy?.roleName || appointment.slot?.roleName
+  );
 
   return (
     <Container>
@@ -425,7 +446,7 @@ const AppointmentDetails = ({ route, navigation }) => {
           <View style={styles.appointmentTitle}>
             <Text style={styles.titleText}>Lịch hẹn với</Text>
             <Text style={styles.hostNameText}>
-              {appointment.slot?.fullName}
+              {appointment.hostedBy?.fullName || appointment.slot?.fullName}
             </Text>
           </View>
         </View>
@@ -453,7 +474,9 @@ const AppointmentDetails = ({ route, navigation }) => {
               />
             </LinearGradient>
             <View style={styles.hostInfo}>
-              <Text style={styles.hostName}>{appointment.slot?.fullName}</Text>
+              <Text style={styles.hostName}>
+                {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+              </Text>
               <Text style={styles.hostType}>{hostConfig.text}</Text>
               <View style={styles.onlineStatus}>
                 <View
@@ -547,37 +570,76 @@ const AppointmentDetails = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Booking Information */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons
-              name="people"
-              size={20}
-              color={GlobalStyles.colors.primary}
-            />
-            <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
-          </View>
-
-          <View style={styles.detailsCard}>
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Ionicons name="person-outline" size={20} color="#6B7280" />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>
-                  {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
-                </Text>
-                <Text style={styles.detailValue}>
-                  {isSamePerson()
-                    ? appointment.bookedBy?.fullName
-                    : appointment.bookedFor?.fullName}
-                </Text>
-              </View>
+        {/* Booking Information - conditionally displayed */}
+        {shouldShowBookedFor() && appointment.bookedFor && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons
+                name="people"
+                size={20}
+                color={GlobalStyles.colors.primary}
+              />
+              <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
             </View>
 
-            {!isSamePerson() && (
-              <>
-                <View style={styles.divider} />
+            <View style={styles.detailsCard}>
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons name="person-outline" size={20} color="#6B7280" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>
+                    {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
+                  </Text>
+                  <Text style={styles.detailValue}>
+                    {isSamePerson()
+                      ? appointment.bookedBy?.fullName
+                      : appointment.bookedFor?.fullName}
+                  </Text>
+                </View>
+              </View>
+
+              {!isSamePerson() &&
+                shouldShowBookedBy() &&
+                appointment.bookedBy && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.detailRow}>
+                      <View style={styles.detailIcon}>
+                        <Ionicons
+                          name="people-outline"
+                          size={20}
+                          color="#6B7280"
+                        />
+                      </View>
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>Đặt bởi</Text>
+                        <Text style={styles.detailValue}>
+                          {appointment.bookedBy?.fullName}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                )}
+            </View>
+          </View>
+        )}
+
+        {/* Show booked by only if booked for is not shown and we should show booked by */}
+        {!shouldShowBookedFor() &&
+          shouldShowBookedBy() &&
+          appointment.bookedBy && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons
+                  name="people"
+                  size={20}
+                  color={GlobalStyles.colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
+              </View>
+
+              <View style={styles.detailsCard}>
                 <View style={styles.detailRow}>
                   <View style={styles.detailIcon}>
                     <Ionicons name="people-outline" size={20} color="#6B7280" />
@@ -589,10 +651,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                     </Text>
                   </View>
                 </View>
-              </>
-            )}
-          </View>
-        </View>
+              </View>
+            </View>
+          )}
 
         {/* Reason */}
         {appointment.reasonBooking && (

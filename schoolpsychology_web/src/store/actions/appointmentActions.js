@@ -1,18 +1,52 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { appointmentAPI } from '../../services/appointmentApi'
 
-// Async thunk for getting all appointments
-export const getAppointments = createAsyncThunk(
-  'appointment/getAppointments',
-  async (_, { rejectWithValue }) => {
+// Async thunk for getting active appointments
+export const getActiveAppointments = createAsyncThunk(
+  'appointment/getActiveAppointments',
+  async (accountId, { rejectWithValue }) => {
     try {
-      const response = await appointmentAPI.getAppointments()
+      const response = await appointmentAPI.getActiveAppointments(accountId)
       return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to fetch appointments'
+          'Failed to fetch active appointments'
+      )
+    }
+  }
+)
+
+// Async thunk for getting past appointments
+export const getPastAppointments = createAsyncThunk(
+  'appointment/getPastAppointments',
+  async (accountId, { rejectWithValue }) => {
+    try {
+      const response = await appointmentAPI.getPastAppointments(accountId)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to fetch past appointments'
+      )
+    }
+  }
+)
+
+// Async thunk for getting appointment by id
+export const getAppointmentById = createAsyncThunk(
+  'appointment/getAppointmentById',
+  async (appointmentId, { rejectWithValue }) => {
+    try {
+      const response = await appointmentAPI.getAppointmentById(appointmentId)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to fetch appointment details'
       )
     }
   }
@@ -23,12 +57,11 @@ export const updateAppointment = createAsyncThunk(
   'appointment/updateAppointment',
   async (appointmentData, { rejectWithValue }) => {
     try {
-      const data = {
-        appointmentId: appointmentData.id,
-        location: appointmentData.location,
-      }
-      await appointmentAPI.updateAppointment(data)
-      return appointmentData
+      const response = await appointmentAPI.updateAppointment(
+        appointmentData.id,
+        appointmentData
+      )
+      return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
@@ -39,36 +72,41 @@ export const updateAppointment = createAsyncThunk(
   }
 )
 
-// Async thunk for getting appointment records
-export const getAppointmentRecords = createAsyncThunk(
-  'appointment/getAppointmentRecords',
-  async (_, { rejectWithValue }) => {
+// Async thunk for updating appointment with assessment data
+export const updateAppointmentWithAssessment = createAsyncThunk(
+  'appointment/updateAppointmentWithAssessment',
+  async (appointmentData, { rejectWithValue }) => {
     try {
-      const response = await appointmentAPI.getAppointmentRecords()
+      const response = await appointmentAPI.updateAppointment(
+        appointmentData.appointmentId,
+        appointmentData
+      )
       return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to fetch appointment records'
+          'Failed to update appointment with assessment'
       )
     }
   }
 )
 
-// Async thunk for creating appointment record
-export const createAppointmentRecord = createAsyncThunk(
-  'appointment/createAppointmentRecord',
-  async (appointmentData, { rejectWithValue }) => {
+// Async thunk for updating appointment status
+export const updateAppointmentStatus = createAsyncThunk(
+  'appointment/updateAppointmentStatus',
+  async ({ appointmentId, status }, { rejectWithValue }) => {
     try {
-      const response =
-        await appointmentAPI.createAppointmentRecord(appointmentData)
-      return response
+      const response = await appointmentAPI.updateAppointmentStatus(
+        appointmentId,
+        status
+      )
+      return { id: appointmentId, status, ...response }
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to create appointment record'
+          'Failed to update appointment status'
       )
     }
   }

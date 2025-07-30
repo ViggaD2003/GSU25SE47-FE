@@ -633,14 +633,18 @@
     "searchStudent": "Search student...",
     "tabs": {
       "active": "Active Appointments",
+      "past": "Past Appointments",
       "completed": "Completed Appointments"
     },
     "status": {
       "label": "Status",
       "pending": "Pending",
       "confirmed": "Confirmed",
+      "in_progress": "In Progress",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "canceled": "Canceled",
+      "absent": "Absent",
+      "expired": "Expired"
     },
     "formality": {
       "label": "Formality",
@@ -658,18 +662,38 @@
       "reason": "Reason",
       "time": "Time",
       "duration": "Duration",
-      "actions": "Actions"
+      "actions": "Actions",
+      "noLocation": "Not specified"
     },
     "hostType": {
       "teacher": "Teacher",
       "counselor": "Counselor",
       "student": "Student"
     },
+    "role": {
+      "manager": "Manager",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
     "messages": {
       "fetchSuccess": "Appointments fetched successfully",
       "fetchError": "Failed to fetch appointments",
       "updateSuccess": "Appointment updated successfully",
-      "updateError": "Failed to update appointment"
+      "updateError": "Failed to update appointment",
+      "noData": "No appointments found",
+      "filterApplied": "Filters applied successfully"
+    },
+    "manager": {
+      "viewOnly": "View Only Mode",
+      "viewOnlyDescription": "Managers can only view appointment information and cannot start sessions",
+      "readOnly": "Read-only mode for manager"
+    },
+    "filter": {
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "dateRange": "Date Range",
+      "clearFilters": "Clear Filters",
+      "applyFilters": "Apply Filters"
     }
   },
   "common": {
@@ -694,6 +718,7 @@
     "items": "items",
     "close": "Close",
     "view": "View",
+    "viewDetails": "View Details",
     "delete": "Delete",
     "total": "Total",
     "retry": "Retry",
@@ -818,7 +843,16 @@
     "location": "Location",
     "notFound": "Appointment not found",
     "notFoundDescription": "The appointment you are looking for doesn't exist or has been deleted.",
-    "error": "Error"
+    "error": "Error",
+    "errorDesc": "An error occurred while loading the appointment details. Please try again.",
+    "loadingDescription": "Loading appointment details...",
+    "joinMeetingTooltip": "Join the online meeting",
+    "startSessionTooltip": "Start the counseling session",
+    "editTooltip": "Edit appointment details",
+    "sessionInProgress": "Session in Progress",
+    "sessionInProgressDescription": "A counseling session is currently active for this appointment.",
+    "continueAssessment": "Continue Assessment",
+    "noReason": "No reason"
   },
   "categoryManagement": {
     "title": "Category Management",
@@ -1053,6 +1087,7 @@
   "appointmentRecord": {
     "title": "Assessment Record",
     "viewRecord": "View Assessment",
+    "viewDetails": "View Details",
     "noRecord": "No Assessment Available",
     "noScore": "N/A",
     "sessionInfo": "Session Information",
@@ -1066,6 +1101,27 @@
     "statusTitle": "Assessment Status",
     "completedOn": "Completed On",
     "additionalNotes": "Additional Notes",
+    "riskAssessment": "Risk Assessment",
+    "reasonCanceled": "Reason Canceled",
+    "noReasonCanceled": "No reason canceled",
+    "noNoteSummary": "No summary notes",
+    "noNoteSuggestion": "No intervention suggestions",
+    "noSessionNotes": "No session notes",
+    "noRiskAssessment": "No risk assessment",
+    "noAssessmentScores": "No assessment scores available",
+    "assessmentScores": "Assessment Scores",
+    "totalAssessmentScore": "Total Assessment Score",
+    "totalAssessmentScoreDesc": "Overall risk assessment based on all categories",
+    "categoryBreakdown": "Category Breakdown",
+    "legend": "Score Legend",
+    "severity": "Severity",
+    "frequency": "Frequency",
+    "impairment": "Impairment",
+    "chronicity": "Chronicity",
+    "low": "Low",
+    "moderate": "Moderate",
+    "high": "High",
+    "critical": "Critical",
     "messages": {
       "saveSuccess": "Assessment saved successfully!",
       "saveError": "Error saving assessment. Please try again!"
@@ -1074,6 +1130,12 @@
       "low": "Low Risk",
       "medium": "Medium Risk",
       "high": "High Risk"
+    },
+    "intervention": {
+      "monitoring": "Regular monitoring recommended",
+      "support": "Support and guidance needed",
+      "professional": "Professional intervention required",
+      "noIntervention": "No intervention required"
     },
     "sessionFlow": {
       "good": "Good",
@@ -1089,8 +1151,19 @@
     },
     "status": {
       "submitted": "Submitted",
-      "finalized": "Finalized",
+      "canceled": "Canceled",
+      "in_progress": "In Progress",
+      "pending": "Pending Review",
+      "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "sessionNotes": "Session Notes",
+    "timeline": {
+      "title": "Appointment Timeline",
+      "created": "Appointment Created",
+      "confirmed": "Appointment Confirmed",
+      "inProgress": "Session Started",
+      "completed": "Session Completed"
     }
   },
   "programHelper": {

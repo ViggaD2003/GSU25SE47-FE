@@ -45,8 +45,11 @@ export const SURVEY_TYPE_PERMISSIONS = {
 export const APPOINTMENT_STATUS = {
   PENDING: 'PENDING',
   CONFIRMED: 'CONFIRMED',
+  IN_PROGRESS: 'IN_PROGRESS',
   COMPLETED: 'COMPLETED',
-  CANCELLED: 'CANCELLED',
+  ABSENT: 'ABSENT',
+  CANCELED: 'CANCELED',
+  EXPIRED: 'EXPIRED',
 }
 
 export const APPOINTMENT_TYPE = {
@@ -63,6 +66,22 @@ export const HOST_TYPE = {
   TEACHER: 'TEACHER',
   COUNSELOR: 'COUNSELOR',
   STUDENT: 'STUDENT',
+}
+
+// Session Flow Enums
+export const SESSION_FLOW = {
+  GOOD: 'GOOD',
+  AVERAGE: 'AVERAGE',
+  POOR: 'POOR',
+  UNKNOWN: 'UNKNOWN',
+}
+
+// Student Cooperation Level Enums
+export const STUDENT_COOP_LEVEL = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW',
+  UNKNOWN: 'UNKNOWN',
 }
 
 // Support Program Enums
@@ -127,8 +146,23 @@ export const STATUS_COLORS = {
   // Appointment status colors
   [APPOINTMENT_STATUS.PENDING]: 'orange',
   [APPOINTMENT_STATUS.CONFIRMED]: 'blue',
+  [APPOINTMENT_STATUS.IN_PROGRESS]: 'purple',
   [APPOINTMENT_STATUS.COMPLETED]: 'green',
-  [APPOINTMENT_STATUS.CANCELLED]: 'red',
+  [APPOINTMENT_STATUS.ABSENT]: 'red',
+  [APPOINTMENT_STATUS.CANCELED]: 'red',
+  [APPOINTMENT_STATUS.EXPIRED]: 'gray',
+
+  // Session flow colors
+  [SESSION_FLOW.GOOD]: 'green',
+  [SESSION_FLOW.AVERAGE]: 'orange',
+  [SESSION_FLOW.POOR]: 'red',
+  [SESSION_FLOW.UNKNOWN]: 'gray',
+
+  // Student cooperation level colors
+  [STUDENT_COOP_LEVEL.HIGH]: 'green',
+  [STUDENT_COOP_LEVEL.MEDIUM]: 'orange',
+  [STUDENT_COOP_LEVEL.LOW]: 'red',
+  [STUDENT_COOP_LEVEL.UNKNOWN]: 'gray',
 
   // Program status colors
   [PROGRAM_STATUS.UPCOMING]: 'blue',

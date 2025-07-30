@@ -10,12 +10,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 const isMediumDevice = width >= 375 && width < 414;
 
 const AppointmentCard = ({ appointment, onPress }) => {
+  const { user } = useAuth();
+
   const formatDateTime = (dateTimeString) => {
     try {
       return dayjs(dateTimeString).format("HH:mm");
@@ -125,8 +128,27 @@ const AppointmentCard = ({ appointment, onPress }) => {
     return appointment.bookedFor.id === appointment.bookedBy.id;
   };
 
+  // Determine what booking information to show based on user role and ID
+  const shouldShowBookedFor = () => {
+    // If user is STUDENT, don't show "booked for" person
+    if (user?.role === "STUDENT") {
+      return false;
+    }
+    return true;
+  };
+
+  const shouldShowBookedBy = () => {
+    // If user is PARENT and userId matches bookedBy.id, don't show "booked by" person
+    if (user?.role === "PARENT" && user?.id === appointment.bookedBy?.id) {
+      return false;
+    }
+    return true;
+  };
+
   const statusConfig = getStatusConfig(appointment.status);
-  const hostTypeColor = getHostTypeColor(appointment.slot?.roleName);
+  const hostTypeColor = getHostTypeColor(
+    appointment.hostedBy?.roleName || appointment.slot?.roleName
+  );
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
@@ -154,16 +176,22 @@ const AppointmentCard = ({ appointment, onPress }) => {
             style={styles.hostIconContainer}
           >
             <Ionicons
-              name={getHostTypeIcon(appointment.slot?.roleName)}
+              name={getHostTypeIcon(
+                appointment.hostedBy?.roleName || appointment.slot?.roleName
+              )}
               size={20}
               color={hostTypeColor}
             />
           </LinearGradient>
           <View style={styles.hostInfo}>
-            <Text style={styles.hostName}>{appointment.slot?.fullName}</Text>
+            <Text style={styles.hostName}>
+              {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+            </Text>
             <View style={styles.hostTypeContainer}>
               <Text style={[styles.hostType, { color: hostTypeColor }]}>
-                {getHostTypeText(appointment.slot?.roleName)}
+                {getHostTypeText(
+                  appointment.hostedBy?.roleName || appointment.slot?.roleName
+                )}
               </Text>
             </View>
           </View>
@@ -208,27 +236,48 @@ const AppointmentCard = ({ appointment, onPress }) => {
           </View>
         </View>
 
-        {/* Booking information */}
-        <View style={styles.bookingSection}>
-          <View style={styles.iconWrapper}>
-            <Ionicons name="person-outline" size={16} color="#6B7280" />
-          </View>
-          <View style={styles.bookingInfo}>
-            <Text style={styles.bookingLabel}>
-              {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
-            </Text>
-            <Text style={styles.bookingName}>
-              {isSamePerson()
-                ? appointment.bookedBy?.fullName
-                : appointment.bookedFor?.fullName}
-            </Text>
-            {!isSamePerson() && (
-              <Text style={styles.bookingBy}>
-                Đặt bởi: {appointment.bookedBy?.fullName}
+        {/* Booking information - conditionally displayed */}
+        {shouldShowBookedFor() && appointment.bookedFor && (
+          <View style={styles.bookingSection}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="person-outline" size={16} color="#6B7280" />
+            </View>
+            <View style={styles.bookingInfo}>
+              <Text style={styles.bookingLabel}>
+                {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
               </Text>
-            )}
+              <Text style={styles.bookingName}>
+                {isSamePerson()
+                  ? appointment.bookedBy?.fullName
+                  : appointment.bookedFor?.fullName}
+              </Text>
+              {!isSamePerson() &&
+                shouldShowBookedBy() &&
+                appointment.bookedBy && (
+                  <Text style={styles.bookingBy}>
+                    Đặt bởi: {appointment.bookedBy?.fullName}
+                  </Text>
+                )}
+            </View>
           </View>
-        </View>
+        )}
+
+        {/* Show booked by only if booked for is not shown and we should show booked by */}
+        {!shouldShowBookedFor() &&
+          shouldShowBookedBy() &&
+          appointment.bookedBy && (
+            <View style={styles.bookingSection}>
+              <View style={styles.iconWrapper}>
+                <Ionicons name="people-outline" size={16} color="#6B7280" />
+              </View>
+              <View style={styles.bookingInfo}>
+                <Text style={styles.bookingLabel}>Đặt bởi</Text>
+                <Text style={styles.bookingName}>
+                  {appointment.bookedBy?.fullName}
+                </Text>
+              </View>
+            </View>
+          )}
 
         {/* Reason with enhanced styling */}
         {/* {appointment.reasonBooking && (

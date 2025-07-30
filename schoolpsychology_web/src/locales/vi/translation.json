@@ -642,6 +642,7 @@
     "items": "mục",
     "close": "Đóng",
     "view": "Xem",
+    "viewDetails": "Xem chi tiết",
     "delete": "Xóa",
     "total": "Tổng",
     "retry": "Thử lại",
@@ -724,14 +725,18 @@
     "searchStudent": "Tìm kiếm sinh viên...",
     "tabs": {
       "active": "Cuộc hẹn đang hoạt động",
+      "past": "Cuộc hẹn đã qua",
       "completed": "Cuộc hẹn đã hoàn thành"
     },
     "status": {
       "label": "Trạng thái",
       "pending": "Chờ xác nhận",
       "confirmed": "Đã xác nhận",
+      "in_progress": "Đang tiến hành",
       "completed": "Hoàn thành",
-      "cancelled": "Đã hủy"
+      "canceled": "Đã hủy",
+      "absent": "Vắng mặt",
+      "expired": "Hết hạn"
     },
     "formality": {
       "label": "Hình thức",
@@ -749,18 +754,38 @@
       "reason": "Lý do",
       "time": "Thời gian",
       "duration": "Thời lượng",
-      "actions": "Hành động"
+      "actions": "Hành động",
+      "noLocation": "Không xác định"
     },
     "hostType": {
       "teacher": "Giáo viên",
       "counselor": "Tư vấn viên",
       "student": "Học sinh"
     },
+    "role": {
+      "manager": "Quản lý",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
     "messages": {
       "fetchSuccess": "Tải cuộc hẹn thành công",
       "fetchError": "Không thể tải cuộc hẹn",
       "updateSuccess": "Cập nhật cuộc hẹn thành công",
-      "updateError": "Không thể cập nhật cuộc hẹn"
+      "updateError": "Không thể cập nhật cuộc hẹn",
+      "noData": "Không tìm thấy cuộc hẹn nào",
+      "filterApplied": "Áp dụng bộ lọc thành công"
+    },
+    "manager": {
+      "viewOnly": "Chế độ chỉ xem",
+      "viewOnlyDescription": "Quản lý chỉ có thể xem thông tin cuộc hẹn và không thể bắt đầu phiên",
+      "readOnly": "Chế độ chỉ xem cho quản lý"
+    },
+    "filter": {
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "dateRange": "Khoảng thời gian",
+      "clearFilters": "Xóa bộ lọc",
+      "applyFilters": "Áp dụng bộ lọc"
     }
   },
   "appointmentDetails": {
@@ -812,7 +837,16 @@
     "location": "Địa điểm",
     "notFound": "Không tìm thấy cuộc hẹn",
     "notFoundDescription": "Cuộc hẹn bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "errorDesc": "Đã xảy ra lỗi khi tải chi tiết cuộc hẹn. Vui lòng thử lại.",
+    "loadingDescription": "Đang tải chi tiết cuộc hẹn...",
+    "joinMeetingTooltip": "Tham gia cuộc họp trực tuyến",
+    "startSessionTooltip": "Bắt đầu phiên tư vấn",
+    "editTooltip": "Chỉnh sửa chi tiết cuộc hẹn",
+    "sessionInProgress": "Phiên đang diễn ra",
+    "sessionInProgressDescription": "Một phiên tư vấn đang diễn ra cho cuộc hẹn này.",
+    "continueAssessment": "Tiếp tục đánh giá",
+    "noReason": "Không có lý do"
   },
   "categoryManagement": {
     "title": "Quản lý danh mục",
@@ -1047,6 +1081,7 @@
   "appointmentRecord": {
     "title": "Bản Ghi Đánh Giá",
     "viewRecord": "Xem Đánh Giá",
+    "viewDetails": "Xem Chi Tiết",
     "noRecord": "Chưa Có Đánh Giá",
     "noScore": "Chưa có",
     "sessionInfo": "Thông Tin Buổi Tư Vấn",
@@ -1060,6 +1095,27 @@
     "statusTitle": "Trạng Thái Đánh Giá",
     "completedOn": "Hoàn Thành Lúc",
     "additionalNotes": "Ghi Chú Thêm",
+    "riskAssessment": "Đánh Giá Rủi Ro",
+    "reasonCanceled": "Lý Do Hủy",
+    "noReasonCanceled": "Không có lý do hủy",
+    "noNoteSummary": "Không có ghi chú tóm tắt",
+    "noNoteSuggestion": "Không có gợi ý can thiệp",
+    "noSessionNotes": "Không có ghi chú phiên",
+    "noRiskAssessment": "Không có đánh giá rủi ro",
+    "noAssessmentScores": "Không có đánh giá điểm",
+    "assessmentScores": "Đánh Giá Điểm",
+    "totalAssessmentScore": "Tổng Điểm Đánh Giá",
+    "totalAssessmentScoreDesc": "Đánh giá rủi ro dựa trên tất cả các danh mục",
+    "categoryBreakdown": "Phân Tích Danh Mục",
+    "legend": "Chú Giải Điểm",
+    "severity": "Độ Nghiêm Trọng",
+    "frequency": "Tần Suất",
+    "impairment": "Tác Động",
+    "chronicity": "Chronicity",
+    "low": "Thấp",
+    "moderate": "Trung Bình",
+    "high": "Cao",
+    "critical": "Nghiêm Trọng",
     "messages": {
       "saveSuccess": "Lưu đánh giá thành công!",
       "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
@@ -1068,6 +1124,11 @@
       "low": "Rủi Ro Thấp",
       "medium": "Rủi Ro Trung Bình",
       "high": "Rủi Ro Cao"
+    },
+    "intervention": {
+      "monitoring": "Khuyến nghị giám sát thường xuyên",
+      "support": "Cần hỗ trợ và hướng dẫn",
+      "professional": "Cần can thiệp chuyên môn"
     },
     "sessionFlow": {
       "good": "Tốt",
@@ -1083,8 +1144,19 @@
     },
     "status": {
       "submitted": "Đã nộp",
-      "finalized": "Đã hoàn thành",
+      "canceled": "Đã hủy",
+      "in_progress": "Đang diễn ra",
+      "pending": "Chờ xem xét",
+      "completed": "Đã hoàn thành",
       "cancelled": "Đã hủy"
+    },
+    "sessionNotes": "Ghi chú phiên",
+    "timeline": {
+      "title": "Lịch Trình Cuộc Hẹn",
+      "created": "Cuộc Hẹn Được Tạo",
+      "confirmed": "Cuộc Hẹn Được Xác Nhận",
+      "inProgress": "Phiên Đã Bắt Đầu",
+      "completed": "Phiên Đã Hoàn Thành"
     }
   },
   "programHelper": {
