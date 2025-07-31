@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import AppRouter from './routes/AppRouter'
 import store from './store'
 import ProgramDetails from './pages/main/ProgramManagement/ProgramDetails'
+import { WebSocketProvider } from './contexts/WebSocketContext'
 
 // Create a separate component that uses the theme hook inside ThemeProvider
 const AppContent = () => {
@@ -25,9 +26,11 @@ function App() {
   return (
     <Provider store={store}>
       <AuthProvider>
-        <ThemeProvider>
-          <AppContent />
-        </ThemeProvider>
+        <WebSocketProvider>
+          <ThemeProvider>
+            <AppContent />
+          </ThemeProvider>
+        </WebSocketProvider>
       </AuthProvider>
     </Provider>
   )
