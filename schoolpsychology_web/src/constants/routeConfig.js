@@ -63,29 +63,6 @@ export const ROUTE_CONFIG = [
     ],
   },
 
-  // Case Management (Case Management, Case Assign) - Manager
-  {
-    key: '/case-management',
-    icon: AlertOutlined,
-    labelKey: 'navigation.caseManagement',
-    allowedRoles: ['manager'],
-    element: 'CaseManagement',
-    // children: [
-    //   {
-    //     key: '/case-management',
-    //     labelKey: 'navigation.caseManagement',
-    //     allowedRoles: ['manager'],
-    //     element: 'CaseManagement',
-    //   },
-    //   {
-    //     key: '/case-assign',
-    //     labelKey: 'navigation.caseAssign',
-    //     allowedRoles: ['manager'],
-    //     element: 'CaseAssign',
-    //   },
-    // ],
-  },
-
   // Class Management (Class, Teacher, Student) - Manager
   {
     key: 'classes',
@@ -98,12 +75,6 @@ export const ROUTE_CONFIG = [
         labelKey: 'navigation.classManagement',
         allowedRoles: ['manager'],
         element: 'ClassManagement',
-      },
-      {
-        key: '/teacher-management',
-        labelKey: 'navigation.teacherManagement',
-        allowedRoles: ['manager'],
-        element: 'StaffManagement',
       },
       {
         key: '/student-management',
@@ -128,7 +99,7 @@ export const ROUTE_CONFIG = [
         element: 'ClientManagement',
       },
       {
-        key: 'observed-cases',
+        key: '/observed-cases',
         labelKey: 'navigation.observedCases',
         allowedRoles: ['teacher'],
         element: 'CaseManagement',
@@ -153,8 +124,14 @@ export const ROUTE_CONFIG = [
     allowedRoles: ['manager'],
     children: [
       {
-        key: '/staff-management',
-        labelKey: 'navigation.staffManagement.staffList',
+        key: '/counselor-management',
+        labelKey: 'navigation.staffManagement.counselorList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/teacher-management',
+        labelKey: 'navigation.staffManagement.teacherList',
         element: 'StaffManagement',
         allowedRoles: ['manager'],
       },
@@ -174,6 +151,29 @@ export const ROUTE_CONFIG = [
     labelKey: 'navigation.slotManagement',
     allowedRoles: ['teacher', 'counselor'],
     element: 'SlotManagement',
+  },
+
+  // Case Management (Case Management, Case Assign) - Manager
+  {
+    key: '/case-management',
+    icon: AlertOutlined,
+    labelKey: 'navigation.caseManagement',
+    allowedRoles: ['manager'],
+    element: 'CaseManagement',
+    // children: [
+    //   {
+    //     key: '/case-management',
+    //     labelKey: 'navigation.caseManagement',
+    //     allowedRoles: ['manager'],
+    //     element: 'CaseManagement',
+    //   },
+    //   {
+    //     key: '/case-assign',
+    //     labelKey: 'navigation.caseAssign',
+    //     allowedRoles: ['manager'],
+    //     element: 'CaseAssign',
+    //   },
+    // ],
   },
 
   // {

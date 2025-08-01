@@ -17,8 +17,8 @@ const ClassTable = ({
   pagination,
   onChange,
   onView,
-  onEdit,
-  onDelete,
+  // onEdit,
+  // onDelete,
 }) => {
   const { t } = useTranslation()
 
@@ -102,7 +102,7 @@ const ClassTable = ({
             size="small"
             className="text-blue-500 hover:text-blue-700"
           />
-          <Button
+          {/* <Button
             icon={<EditOutlined />}
             onClick={() => onEdit(record)}
             type="text"
@@ -116,7 +116,7 @@ const ClassTable = ({
             size="small"
             danger
             className="text-red-500 hover:text-red-700"
-          />
+          /> */}
         </Space>
       ),
     },

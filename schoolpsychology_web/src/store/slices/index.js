@@ -15,3 +15,6 @@ export * from './classSlice'
 
 // Program slice
 export * from './programSlice'
+
+// Case slice
+export * from './caseSlice'

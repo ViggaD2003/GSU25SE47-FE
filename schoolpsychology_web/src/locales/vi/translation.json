@@ -8,6 +8,8 @@
     "staffManagement": {
       "title": "Nhân sự",
       "staffList": "Danh sách nhân sự",
+      "counselorList": "Danh sách tư vấn viên",
+      "teacherList": "Danh sách giáo viên",
       "workSchedule": "Lịch làm việc"
     },
     "psychologicalSupport": "Hỗ trợ tâm lý",
@@ -110,15 +112,23 @@
     "counselor": "Tư vấn viên"
   },
   "clientManagement": {
-    "title": "Quản lý tài khoản người dùng",
-    "description": "Quản lý tài khoản người dùng và thông tin của họ",
+    "manageTitle": "Danh sách học sinh",
+    "manageTitleTeacher": "Lớp của tôi",
+    "description": "Quản lý học sinh của lớp",
     "refresh": "Làm mới",
     "addUser": "Thêm người dùng",
     "search": "Tìm kiếm người dùng...",
+    "selectClass": "Chọn lớp",
+    "selectYear": "Chọn năm",
+    "allYears": "Tất cả năm",
+    "noClass": "Không có lớp",
+    "schoolYear": "Năm học",
     "messages": {
       "editUserSuccess": "Sửa tài khoản người dùng thành công",
       "addUserSuccess": "Thêm tài khoản người dùng thành công",
-      "inactiveSuccess": "Chặn tài khoản người dùng thành công"
+      "inactiveSuccess": "Chặn tài khoản người dùng thành công",
+      "createCaseSuccess": "Tạo ca tư vấn thành công",
+      "createCaseError": "Không thể tạo ca tư vấn"
     }
   },
   "staffManagement": {
@@ -158,7 +168,11 @@
     "fullName": "Họ và tên",
     "email": "Email",
     "phone": "Số điện thoại",
+    "studentCode": "Mã học sinh",
+    "gender": "Giới tính",
+    "dob": "Ngày sinh",
     "role": "Vai trò",
+    "createCase": "Tạo ca tư vấn",
     "roleOptions": {
       "student": "Học sinh",
       "guardian": "Phụ huynh",
@@ -170,6 +184,18 @@
       "active": "Hoạt động",
       "inactive": "Chặn"
     },
+    "surveyStatus": "Trạng thái khảo sát",
+    "surveyEnabled": "Bật",
+    "surveyDisabled": "Tắt",
+    "caseStatus": "Trạng thái vụ việc",
+    "activeCases": "Có vụ việc",
+    "noCases": "Không có vụ việc",
+    "hasActiveCases": "Có vụ việc hỗ trợ đang hoạt động",
+    "noActiveCases": "Không có vụ việc hỗ trợ đang hoạt động",
+    "latestSurvey": "Khảo sát gần nhất",
+    "hasSurveyRecord": "Có bản ghi",
+    "noSurveyRecord": "Không có bản ghi",
+    "viewDetails": "Xem chi tiết",
     "createDate": "Ngày tạo",
     "lastLogin": "Đăng nhập gần nhất"
   },
@@ -282,10 +308,97 @@
   "caseManagement": {
     "title": "Quản lý ca tư vấn",
     "description": "Quản lý ca tư vấn và thông tin của họ",
+    "createNew": "Tạo ca tư vấn mới",
+    "createCase": "Tạo ca tư vấn",
+    "editCase": "Chỉnh sửa ca tư vấn",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa ca tư vấn này?",
     "table": {
-      "name": "Tên ca tư vấn",
+      "title": "Tiêu đề",
       "description": "Mô tả",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "priority": "Mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển",
+      "student": "Học sinh",
+      "studentCode": "Mã học sinh",
+      "createBy": "Người tạo",
+      "teacherCode": "Mã giáo viên",
+      "currentLevel": "Mức độ hiện tại",
+      "initialLevel": "Mức độ ban đầu",
+      "createdAt": "Ngày tạo",
+      "noDescription": "Không có mô tả"
+    },
+    "form": {
+      "title": "Tiêu đề",
+      "titlePlaceholder": "Nhập tiêu đề ca tư vấn",
+      "titleRequired": "Vui lòng nhập tiêu đề ca tư vấn",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhập mô tả ca tư vấn",
+      "descriptionRequired": "Vui lòng nhập mô tả ca tư vấn",
+      "priority": "Mức độ ưu tiên",
+      "priorityRequired": "Vui lòng chọn mức độ ưu tiên",
+      "priorityPlaceholder": "Chọn mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển",
+      "progressTrendRequired": "Vui lòng chọn xu hướng tiến triển",
+      "progressTrendPlaceholder": "Chọn xu hướng tiến triển",
+      "studentId": "Mã học sinh",
+      "studentIdRequired": "Vui lòng nhập mã học sinh",
+      "studentIdPlaceholder": "Nhập mã học sinh",
+      "createBy": "Người tạo",
+      "createByRequired": "Vui lòng nhập người tạo",
+      "createByPlaceholder": "Nhập ID người tạo",
+      "currentLevelId": "Mức độ hiện tại",
+      "currentLevelIdRequired": "Vui lòng chọn mức độ hiện tại",
+      "currentLevelIdPlaceholder": "Nhập ID mức độ hiện tại",
+      "initialLevelId": "Mức độ ban đầu",
+      "initialLevelIdRequired": "Vui lòng chọn mức độ ban đầu",
+      "initialLevelIdPlaceholder": "Nhập ID mức độ ban đầu",
+      "category": "Danh mục",
+      "categoryRequired": "Vui lòng chọn danh mục",
+      "categoryPlaceholder": "Chọn danh mục",
+      "level": "Mức độ",
+      "levelRequired": "Vui lòng chọn mức độ",
+      "levelPlaceholder": "Chọn mức độ",
+      "save": "Lưu",
+      "cancel": "Hủy"
+    },
+    "priorityOptions": {
+      "HIGH": "Cao",
+      "MEDIUM": "Trung bình",
+      "LOW": "Thấp"
+    },
+    "progressTrendOptions": {
+      "IMPROVED": "Cải thiện",
+      "STABLE": "Ổn định",
+      "DECLINED": "Suy giảm"
+    },
+    "statusOptions": {
+      "NEW": "Mới",
+      "IN_PROGRESS": "Đang tiến hành",
+      "CLOSED": "Đã đóng"
+    },
+    "statistics": {
+      "total": "Tổng số ca tư vấn",
+      "highPriority": "Ưu tiên cao",
+      "mediumPriority": "Ưu tiên trung bình",
+      "lowPriority": "Ưu tiên thấp",
+      "newStatus": "Ca tư vấn mới",
+      "inProgressStatus": "Đang tiến hành",
+      "closedStatus": "Ca tư vấn đã đóng"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm ca tư vấn, học sinh hoặc người tạo..."
+    },
+    "messages": {
+      "fetchError": "Không thể tải danh sách ca tư vấn",
+      "createSuccess": "Tạo ca tư vấn thành công",
+      "updateSuccess": "Cập nhật ca tư vấn thành công",
+      "saveError": "Không thể lưu ca tư vấn"
+    },
+    "confirmModal": {
+      "title": "Xác nhận thông tin",
+      "student": "Học sinh",
+      "creator": "Người tạo",
+      "confirmMessage": "Vui lòng kiểm tra lại thông tin trước khi lưu"
     }
   },
   "slotManagement": {
@@ -658,7 +771,10 @@
     "required": "Bắt buộc",
     "optional": "Tùy chọn",
     "active": "Đang hoạt động",
-    "inactive": "Không hoạt động"
+    "inactive": "Không hoạt động",
+    "description": "Mô tả",
+    "reference": "Tham khảo",
+    "refresh": "Làm mới"
   },
   "classManagement": {
     "title": "Quản lý lớp học",
@@ -786,6 +902,17 @@
       "dateRange": "Khoảng thời gian",
       "clearFilters": "Xóa bộ lọc",
       "applyFilters": "Áp dụng bộ lọc"
+    },
+    "statistics": {
+      "title": "Thống kê cuộc hẹn",
+      "total": "Tổng cộng",
+      "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
+      "inProgress": "Đang tiến hành",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy",
+      "absent": "Vắng mặt",
+      "expired": "Hết hạn"
     }
   },
   "appointmentDetails": {
@@ -1076,6 +1203,77 @@
       "medium": "Trung bình",
       "low": "Thấp",
       "unknown": "Không xác định"
+    },
+    "form": {
+      "title": "Đánh Giá Tình Trạng Học Sinh",
+      "sessionNotes": "Ghi chú phiên tư vấn",
+      "sessionNotesPlaceholder": "Ghi chú về hành vi của học sinh trong buổi tư vấn",
+      "noteSummary": "Tóm tắt ghi chú",
+      "noteSummaryPlaceholder": "Tóm tắt những điểm chính từ buổi tư vấn",
+      "noteSuggestion": "Gợi ý can thiệp",
+      "noteSuggestionPlaceholder": "Đề xuất các biện pháp can thiệp và hỗ trợ",
+      "sessionFlow": "Diễn biến buổi tư vấn",
+      "studentCoopLevel": "Mức độ hợp tác của học sinh",
+      "progress": "Tiến độ hoàn thành",
+      "saveProgress": "Lưu tiến độ",
+      "submitAssessment": "Nộp đánh giá",
+      "assessement": "Đánh giá tình trạng học sinh",
+      "validation": {
+        "sessionNotesRequired": "Ghi chú phiên tư vấn là bắt buộc",
+        "noteSummaryRequired": "Tóm tắt ghi chú là bắt buộc",
+        "noteSuggestionRequired": "Gợi ý can thiệp là bắt buộc",
+        "assessmentRequired": "Vui lòng đánh giá ít nhất một vấn đề"
+      },
+      "messages": {
+        "saveSuccess": "Đã lưu tiến độ thành công!",
+        "saveError": "Lỗi khi lưu tiến độ. Vui lòng thử lại!",
+        "submitSuccess": "Đánh giá đã được nộp thành công!",
+        "submitError": "Lỗi khi nộp đánh giá. Vui lòng thử lại!",
+        "resetSuccess": "Đã đặt lại form thành công!"
+      }
+    },
+    "sections": {
+      "counselorInputs": "Thông tin tư vấn viên",
+      "assessmentCategories": "Danh mục đánh giá",
+      "mentalHealthSection": "Tình trạng tâm lý",
+      "environmentSection": "Yếu tố môi trường"
+    },
+    "options": {
+      "frequency": {
+        "0": "Không bao giờ hoặc hiếm khi (0)",
+        "1": "Thỉnh thoảng (1)",
+        "2": "Thường xuyên (2)",
+        "3": "Rất thường xuyên (3)",
+        "4": "Luôn luôn (4)"
+      },
+      "impairment": {
+        "0": "Không ảnh hưởng (0)",
+        "1": "Ảnh hưởng nhẹ (1)",
+        "2": "Ảnh hưởng vừa phải (2)",
+        "3": "Ảnh hưởng nghiêm trọng (3)",
+        "4": "Ảnh hưởng rất nghiêm trọng (4)"
+      },
+      "chronicity": {
+        "0": "Dưới 1 tuần (0)",
+        "1": "1-2 tuần (1)",
+        "2": "2-4 tuần (2)",
+        "3": "1-3 tháng (3)",
+        "4": "Trên 3 tháng (4)"
+      },
+      "sessionFlow": {
+        "LOW": "Thấp",
+        "AVERAGE": "Trung bình",
+        "GOOD": "Cao"
+      },
+      "cooperationLevel": {
+        "LOW": "Thấp",
+        "MEDIUM": "Trung bình",
+        "HIGH": "Cao"
+      }
+    },
+    "warnings": {
+      "highRisk": "Cảnh báo: Cần can thiệp ngay lập tức",
+      "highRiskDescription": "Học sinh có dấu hiệu nguy cơ cao. Vui lòng liên hệ ngay với chuyên gia tâm lý hoặc cơ quan chức năng."
     }
   },
   "appointmentRecord": {
@@ -1111,7 +1309,7 @@
     "severity": "Độ Nghiêm Trọng",
     "frequency": "Tần Suất",
     "impairment": "Tác Động",
-    "chronicity": "Chronicity",
+    "chronicity": "Tính kéo dài",
     "low": "Thấp",
     "moderate": "Trung Bình",
     "high": "Cao",

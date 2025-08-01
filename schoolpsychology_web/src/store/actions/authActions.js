@@ -20,7 +20,7 @@ export const loginUser = createAsyncThunk(
         credentials.password
       )
 
-      console.log(response)
+      // console.log(response)
 
       if (response.success) {
         const isGoogleOAuthUrl =
@@ -38,6 +38,7 @@ export const loginUser = createAsyncThunk(
 
         const decodedToken = decodeJWT(response.data.token)
         const user = {
+          ...decodedToken,
           id: decodedToken['user-id'] || decodedToken?.userId || 1,
           fullName:
             decodedToken?.name ||
@@ -86,6 +87,7 @@ export const refreshToken = createAsyncThunk(
           // Update user data from decoded token if available
           if (decodedToken) {
             authData.user = {
+              ...decodedToken,
               ...authData.user,
               id:
                 decodedToken['user-id'] ||
@@ -96,7 +98,7 @@ export const refreshToken = createAsyncThunk(
                 decodedToken.fullName ||
                 authData.user.fullName,
               email:
-                decodedToken.sub || decodedToken.email || authData.user.email,
+                decodedToken.email || decodedToken.sub || authData.user.email,
               role: decodedToken.role
                 ? String(decodedToken.role).toLowerCase()
                 : null,
@@ -164,6 +166,7 @@ export const initializeAuthFromStorage = createAsyncThunk(
         if (decodedToken) {
           // Update user data with fresh data from token
           authData.user = {
+            ...decodedToken,
             ...authData.user,
             id:
               decodedToken['user-id'] ||
@@ -174,7 +177,7 @@ export const initializeAuthFromStorage = createAsyncThunk(
               decodedToken.fullName ||
               authData.user.fullName,
             email:
-              decodedToken.sub || decodedToken.email || authData.user.email,
+              decodedToken.email || decodedToken.sub || authData.user.email,
             role: decodedToken.role
               ? String(decodedToken.role).toLowerCase()
               : null,

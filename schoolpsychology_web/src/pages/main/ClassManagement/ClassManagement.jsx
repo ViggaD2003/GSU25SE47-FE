@@ -29,8 +29,8 @@ import { useTheme } from '@/contexts/ThemeContext'
 import {
   getAllClasses,
   createClass,
-  updateClass,
-  deleteClass,
+  // updateClass,
+  // deleteClass,
 } from '@/store/actions/classActions'
 
 const { Title, Text } = Typography
@@ -160,33 +160,33 @@ const ClassManagement = () => {
   }, [])
 
   // Handle edit
-  const handleEdit = useCallback(record => {
-    setSelectedClass(record)
-    setIsEdit(true)
-    setIsView(false)
-    setIsModalVisible(true)
-  }, [])
+  // const handleEdit = useCallback(record => {
+  //   setSelectedClass(record)
+  //   setIsEdit(true)
+  //   setIsView(false)
+  //   setIsModalVisible(true)
+  // }, [])
 
   // Handle delete
-  const handleDelete = useCallback(
-    record => {
-      Modal.confirm({
-        title: t('classManagement.messages.deleteTitle'),
-        content: t('classManagement.messages.deleteConfirm'),
-        icon: <ExclamationCircleOutlined />,
-        onOk: async () => {
-          try {
-            await dispatch(deleteClass(record.codeClass))
-            messageApi.success(t('classManagement.messages.deleteSuccess'))
-            dispatch(getAllClasses())
-          } catch {
-            messageApi.error(t('classManagement.messages.deleteError'))
-          }
-        },
-      })
-    },
-    [dispatch, t, messageApi]
-  )
+  // const handleDelete = useCallback(
+  //   record => {
+  //     Modal.confirm({
+  //       title: t('classManagement.messages.deleteTitle'),
+  //       content: t('classManagement.messages.deleteConfirm'),
+  //       icon: <ExclamationCircleOutlined />,
+  //       onOk: async () => {
+  //         try {
+  //           await dispatch(deleteClass(record.codeClass))
+  //           messageApi.success(t('classManagement.messages.deleteSuccess'))
+  //           dispatch(getAllClasses())
+  //         } catch {
+  //           messageApi.error(t('classManagement.messages.deleteError'))
+  //         }
+  //       },
+  //     })
+  //   },
+  //   [dispatch, t, messageApi]
+  // )
 
   // Handle add
   const handleAdd = useCallback(() => {
@@ -201,7 +201,7 @@ const ClassManagement = () => {
     async classData => {
       try {
         if (isEdit) {
-          await dispatch(updateClass(selectedClass.codeClass, classData))
+          // await dispatch(updateClass(selectedClass.codeClass, classData))
           messageApi.success(t('classManagement.messages.editSuccess'))
         } else {
           await dispatch(createClass(classData))
@@ -301,8 +301,8 @@ const ClassManagement = () => {
               pagination={pagination}
               onChange={handleTableChange}
               onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              // onEdit={handleEdit}
+              // onDelete={handleDelete}
             />
           </Suspense>
         </Card>

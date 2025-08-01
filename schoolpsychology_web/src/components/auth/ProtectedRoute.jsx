@@ -64,7 +64,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <AccessFail isCurrentPath={true} userRole={userRole} />
   }
 
-  return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
+  return children
 }
 
 export default ProtectedRoute

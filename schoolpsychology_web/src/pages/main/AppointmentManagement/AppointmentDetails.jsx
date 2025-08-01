@@ -19,8 +19,6 @@ import {
   Spin,
   Empty,
   Tooltip,
-  Timeline,
-  Collapse,
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -49,7 +47,6 @@ import {
 import dayjs from 'dayjs'
 import {
   getAppointmentById,
-  updateAppointmentStatus,
   updateAppointmentWithAssessment,
 } from '../../../store/actions/appointmentActions'
 import {
@@ -71,6 +68,7 @@ import {
   IMPROVED_SCORING_SYSTEM,
   calculateCompositeScore,
 } from '../../../constants/improvedAssessmentScoring'
+import { categoriesAPI } from '@/services/categoryApi'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -604,6 +602,7 @@ const AppointmentDetails = () => {
   const { isDarkMode } = useTheme()
   const [messageApi, contextHolder] = message.useMessage()
   const dispatch = useDispatch()
+  const [categories, setCategories] = useState([])
 
   // Redux selectors
   const appointmentDetails = useSelector(selectAppointmentDetails)
@@ -617,10 +616,22 @@ const AppointmentDetails = () => {
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [submittingAssessment, setSubmittingAssessment] = useState(false)
 
+  // Fetch categories function
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await categoriesAPI.getCategories()
+      setCategories(response || [])
+    } catch (error) {
+      console.error('Failed to fetch categories:', error)
+      messageApi.error(t('categoryManagement.messages.fetchError'))
+    }
+  }, [])
+
   // Load appointment details on component mount
   useEffect(() => {
     if (id) {
       dispatch(getAppointmentById(id))
+      fetchCategories()
     }
   }, [dispatch, id])
 
@@ -740,49 +751,7 @@ const AppointmentDetails = () => {
         setSubmittingAssessment(true)
 
         // First update status to IN_PROGRESS if not already
-        if (appointment.status !== APPOINTMENT_STATUS.IN_PROGRESS) {
-          await dispatch(
-            updateAppointmentStatus({
-              appointmentId: appointment.id,
-              status: APPOINTMENT_STATUS.IN_PROGRESS,
-            })
-          ).unwrap()
-        }
-
-        // Calculate enhanced composite score using improved scoring system
-        let compositeScore = 0
-        let riskLevel = 'low'
-        let interventionLevel = 'monitor'
-
-        if (data.assessmentScores && data.assessmentScores.length > 0) {
-          const scores = data.assessmentScores.map(assessment => {
-            const issue =
-              IMPROVED_SCORING_SYSTEM.MENTAL_HEALTH_ISSUES[assessment.issueId]
-            if (issue) {
-              return calculateCompositeScore(
-                issue.baseScore,
-                assessment.frequency || 2,
-                assessment.impairment || 2,
-                assessment.duration || 2,
-                assessment.comorbidities || [],
-                assessment.culturalFactors || {}
-              )
-            }
-            return 0
-          })
-
-          compositeScore =
-            Math.round(scores.reduce((sum, score) => sum + score, 0) * 10) / 10
-
-          // Determine risk level based on composite score
-          if (compositeScore >= 7) {
-            riskLevel = 'high'
-            interventionLevel = 'immediate'
-          } else if (compositeScore >= 4) {
-            riskLevel = 'medium'
-            interventionLevel = 'urgent'
-          }
-        }
+        if (appointment.status !== APPOINTMENT_STATUS.IN_PROGRESS) return
 
         // Enhanced assessment data with improved scoring
         const assessmentData = {
@@ -794,17 +763,9 @@ const AppointmentDetails = () => {
           sessionFlow: data.sessionFlow || SESSION_FLOW.GOOD,
           studentCoopLevel: data.studentCoopLevel || STUDENT_COOP_LEVEL.HIGH,
           assessmentScores: data.assessmentScores || [],
-          // Add enhanced scoring data
-          enhancedScoring: {
-            compositeScore,
-            riskLevel,
-            interventionLevel,
-            culturalFactors: data.culturalFactors || {},
-            comorbidities: data.comorbidities || [],
-            scoringSystem: 'IMPROVED_SCORING_SYSTEM',
-            version: '2.0',
-          },
         }
+
+        console.log('assessmentData', assessmentData)
 
         await dispatch(updateAppointmentWithAssessment(assessmentData)).unwrap()
 
@@ -860,22 +821,20 @@ const AppointmentDetails = () => {
     setEditedAppointment(null)
   }, [])
 
-  const handleSave = useCallback(async () => {
-    try {
-      await dispatch(
-        updateAppointmentWithAssessment(editedAppointment)
-      ).unwrap()
-      setIsEditing(false)
-      setEditedAppointment(null)
-      messageApi.success(t('appointmentDetails.updateSuccess'))
+  // const handleSave = useCallback(async () => {
+  //   try {
+  //     await handleAssessmentSubmit(editedAppointment)
+  //     setIsEditing(false)
+  //     setEditedAppointment(null)
+  //     messageApi.success(t('appointmentDetails.updateSuccess'))
 
-      // Refresh appointment details
-      dispatch(getAppointmentById(appointment.id))
-    } catch (error) {
-      console.error('Error updating appointment:', error)
-      messageApi.error(t('appointmentDetails.updateError'))
-    }
-  }, [dispatch, editedAppointment, messageApi, t, appointment])
+  //     // Refresh appointment details
+  //     dispatch(getAppointmentById(appointment.id))
+  //   } catch (error) {
+  //     console.error('Error updating appointment:', error)
+  //     messageApi.error(t('appointmentDetails.updateError'))
+  //   }
+  // }, [dispatch, editedAppointment, messageApi, t, appointment])
 
   const handleLocationChange = useCallback(e => {
     setEditedAppointment(prev => ({
@@ -989,14 +948,14 @@ const AppointmentDetails = () => {
 
         {isEditing && (
           <>
-            <Button
+            {/* <Button
               type="primary"
               icon={<CheckCircleOutlined />}
               onClick={handleSave}
               className="bg-green-600 hover:bg-green-700 shadow-lg"
             >
               {t('common.save')}
-            </Button>
+            </Button> */}
             <Button
               icon={<CloseCircleOutlined />}
               onClick={handleCancel}
@@ -1311,6 +1270,7 @@ const AppointmentDetails = () => {
                   assessmentScores={currentData.assessmentScores || []}
                   isDarkMode={isDarkMode}
                   t={t}
+                  categories={categories}
                 />
               </Col>
 
@@ -1474,7 +1434,7 @@ const AppointmentDetails = () => {
       )}
 
       {/* Enhanced Assessment Form Modal */}
-      {showAssessmentForm && (
+      {showAssessmentForm && !isAppointmentRecord && (
         <AssessmentForm
           isVisible={showAssessmentForm}
           onClose={handleCloseAssessmentForm}
@@ -1483,12 +1443,10 @@ const AppointmentDetails = () => {
           isDarkMode={isDarkMode}
           appointmentId={appointment.id}
           loading={submittingAssessment}
-          // Pass enhanced scoring system data
-          enhancedScoring={IMPROVED_SCORING_SYSTEM}
-          // Pass current appointment data for pre-filling
           appointmentData={appointment}
-          // Pass assessment status for better UX
           assessmentStatus={appointment.status}
+          message={messageApi}
+          categories={categories}
         />
       )}
     </div>

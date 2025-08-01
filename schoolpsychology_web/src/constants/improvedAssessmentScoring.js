@@ -361,3 +361,162 @@ export const VALIDATION_CHECKLIST = {
 }
 
 export default IMPROVED_SCORING_SYSTEM
+
+export const reportForm = {
+  id: 1,
+  title: 'Đánh giá sức khỏe tâm lý đầu vào',
+  description:
+    'Phiếu khảo sát giúp đánh giá tần suất và mức độ ảnh hưởng của các triệu chứng tâm lý.',
+  questions: [
+    {
+      questionId: 101,
+      questionText:
+        'Bạn cảm thấy lo âu hay căng thẳng như thế nào trong tuần qua?',
+      category: {
+        id: 1,
+        code: 'GAD',
+        name: 'Rối loạn lo âu',
+      },
+      scoreTypes: [
+        {
+          scoreType: 'frequency',
+          options: [
+            {
+              optionId: 1,
+              label: 'Không bao giờ',
+              score: 0,
+            },
+            {
+              optionId: 2,
+              label: 'Vài ngày',
+              score: 1,
+            },
+            {
+              optionId: 3,
+              label: 'Hơn một nửa số ngày',
+              score: 2,
+            },
+            {
+              optionId: 4,
+              label: 'Gần như mỗi ngày',
+              score: 3,
+            },
+          ],
+        },
+        {
+          scoreType: 'impairment',
+          options: [
+            {
+              optionId: 5,
+              label: 'Không ảnh hưởng',
+              score: 0,
+            },
+            {
+              optionId: 6,
+              label: 'Ảnh hưởng nhẹ',
+              score: 1,
+            },
+            {
+              optionId: 7,
+              label: 'Ảnh hưởng trung bình',
+              score: 2,
+            },
+            {
+              optionId: 8,
+              label: 'Ảnh hưởng nghiêm trọng',
+              score: 3,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      questionId: 102,
+      questionText: 'Bạn có cảm thấy buồn bã, tuyệt vọng không?',
+      category: {
+        id: 2,
+        code: 'PHQ',
+        name: 'Trầm cảm',
+      },
+      scoreTypes: [
+        {
+          scoreType: 'frequency',
+          options: [
+            {
+              optionId: 9,
+              label: 'Không bao giờ',
+              score: 0,
+            },
+            {
+              optionId: 10,
+              label: 'Vài ngày',
+              score: 1,
+            },
+            {
+              optionId: 11,
+              label: 'Hơn một nửa số ngày',
+              score: 2,
+            },
+            {
+              optionId: 12,
+              label: 'Gần như mỗi ngày',
+              score: 3,
+            },
+          ],
+        },
+      ],
+    },
+    // ... More questions
+  ],
+}
+
+export const assessmentResult = {
+  id: 1001,
+  formId: 1,
+  submittedBy: {
+    id: 2001,
+    fullName: 'Nguyễn Văn A',
+    role: 'student',
+  },
+  results: [
+    {
+      questionId: 101,
+      questionText:
+        'Trong 2 tuần qua, bạn cảm thấy buồn, chán nản hoặc vô vọng như thế nào?',
+      category: {
+        id: 1,
+        code: 'DEPRESSION',
+        name: 'Trầm cảm',
+      },
+      scores: {
+        frequency: {
+          selectedOptionId: 3,
+          label: 'Hơn một nửa số ngày',
+          score: 2,
+        },
+        impairment: {
+          selectedOptionId: 7,
+          label: 'Ảnh hưởng vừa',
+          score: 2,
+        },
+      },
+    },
+    {
+      questionId: 102,
+      questionContent:
+        'Bạn cảm thấy lo lắng hoặc bồn chồn bao nhiêu lần trong 2 tuần qua?',
+      category: {
+        id: 2,
+        code: 'ANXIETY',
+        name: 'Lo âu',
+      },
+      scores: {
+        frequency: {
+          selectedOptionId: 12,
+          label: 'Gần như mỗi ngày',
+          score: 3,
+        },
+      },
+    },
+  ],
+}

@@ -25,7 +25,7 @@ import { useTheme } from '../../contexts/ThemeContext'
 const { Title, Text, Paragraph } = Typography
 
 const AssessmentDemo = () => {
-  const { _t } = useLanguage()
+  const { t } = useLanguage()
   const { isDarkMode } = useTheme()
 
   // States for demo
@@ -447,7 +447,7 @@ const AssessmentDemo = () => {
                 isVisible={true}
                 onClose={() => setOldSystemVisible(false)}
                 onSubmit={handleOldSystemSubmit}
-                _t={_t}
+                t={t}
                 isDarkMode={isDarkMode}
                 appointmentId={mockAppointmentId}
                 loading={false}

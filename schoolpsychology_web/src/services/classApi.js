@@ -6,19 +6,27 @@ export const classAPI = {
     return response.data
   },
   getClassesByCode: async code => {
-    const response = await api.get(`/api/v1/classes/${code}`)
+    if (!code) return
+    const response = await api.get(`/api/v1/classes/code/${code}`)
+    return response.data
+  },
+  getClassById: async id => {
+    if (!id) return
+    const response = await api.get(`/api/v1/classes/${id}`)
     return response.data
   },
   createClass: async data => {
-    const response = await api.post('/api/v1/classes', data)
+    const requestBody = Array.isArray(data) ? data : [data]
+    const response = await api.post('/api/v1/classes', requestBody)
     return response.data
   },
-  updateClass: async (code, data) => {
-    const response = await api.patch(`/api/v1/classes/update/${code}`, data)
-    return response.data
-  },
-  deleteClass: async code => {
-    const response = await api.delete(`/api/classes/${code}`)
+  enrollClass: async data => {
+    if (!data) return
+    const requestBody = {
+      classId: data.classId,
+      studentIds: data.studentIds || [],
+    }
+    const response = await api.post('/api/v1/classes/enrollments', requestBody)
     return response.data
   },
 }
