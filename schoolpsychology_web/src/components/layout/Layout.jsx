@@ -8,6 +8,7 @@ import {
   Flex,
   Button,
   Badge,
+  message,
 } from 'antd'
 import {
   LogoutOutlined,
@@ -23,8 +24,8 @@ import ThemeSwitcher from '../../components/common/ThemeSwitcher'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher'
 import Navigation from '../../components/layout/Navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import NotificationBell from '@/components/common/NotificationBell'
 import { useWebSocket } from '@/contexts/WebSocketContext'
-
 
 const { Header, Content, Sider } = Layout
 
@@ -34,51 +35,29 @@ const MemoizedThemeSwitcher = React.memo(ThemeSwitcher)
 const MemoizedLanguageSwitcher = React.memo(LanguageSwitcher)
 
 const LayoutComponent = () => {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { isDarkMode } = useTheme()
-  const { t } = useTranslation()
   const navigate = useNavigate()
+  const [messageApi, contextHolder] = message.useMessage()
   const [collapsed, setCollapsed] = useState(false)
-  const { sendMessage, subscribeToTopic, isConnected } = useWebSocket()
-
+  const [lastNotificationCount, setLastNotificationCount] = useState(0)
+  const { sendMessage, notifications } = useWebSocket()
 
   useEffect(() => {
-    if (isConnected) {
-      const subscription = subscribeToTopic('/user/queue/notifications', (data) => {
-        console.log('📩 Thông báo từ server:', data)
-        // ở đây bạn có thể dùng toast, hoặc cập nhật state nếu cần
-      })
-
-      return () => {
-        subscription?.unsubscribe()
-        console.log('🛑 Unsubscribed from /topic/notifications')
-      }
+    if (notifications.length > lastNotificationCount) {
+      messageApi.success(t('notification.newNotification'))
+      setLastNotificationCount(notifications.length)
     }
-  }, [isConnected, subscribeToTopic])
-
+  }, [notifications, lastNotificationCount, t])
 
   const handleLogout = useCallback(() => {
     logout()
     navigate('/login')
   }, [logout, navigate])
 
-  // const handleProfileClick = useCallback(() => {
-  //   navigate('/profile')
-  // }, [navigate])
-
   const userMenuItems = useMemo(
     () => [
-      // {
-      //   key: 'profile',
-      //   icon: <UserOutlined />,
-      //   label: t('navigation.profile'),
-      //   onClick: handleProfileClick,
-      //   hidden: user?.role === 'manager',
-      // },
-      // {
-      //   type: 'divider',
-      //   className: user?.role === 'manager' ? 'hidden' : 'block',
-      // },
       {
         key: 'logout',
         icon: <LogoutOutlined style={{ color: 'red' }} />,
@@ -165,6 +144,7 @@ const LayoutComponent = () => {
 
   return (
     <Layout className="min-h-screen">
+      {contextHolder}
       {/* Sidebar */}
       <Sider
         trigger={null}
@@ -218,14 +198,16 @@ const LayoutComponent = () => {
               <Avatar size="small" icon={<UserOutlined />} />
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-sm font-medium truncate ${isDarkMode ? 'text-white' : 'text-gray-900'
-                    }`}
+                  className={`text-sm font-medium truncate ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}
                 >
                   {user?.fullName || user?.username}
                 </p>
                 <p
-                  className={`text-xs truncate ${isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                    }`}
+                  className={`text-xs truncate ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}
                 >
                   {user?.role}
                 </p>
@@ -246,53 +228,28 @@ const LayoutComponent = () => {
                 type="text"
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                 onClick={toggleSidebar}
-                className={`${isDarkMode
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
+                className={`${
+                  isDarkMode
+                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
               />
             </div>
 
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
-              {/* Notifications */}
-              {/* <Button
-                type="text"
-                icon={
-                  <Badge count={3} size="small">
-                    <BellOutlined />
-                  </Badge>
-                }
-                className={`${isDarkMode
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-              /> */}
-
+              {/* Test notification button */}
               <Button
-                type="text"
-                icon={
-                  <Badge count={3} size="small">
-                    <BellOutlined />
-                  </Badge>
-                }
-                className={`${isDarkMode
-                  ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
                 onClick={() => {
-                  if (isConnected) {
-                    sendMessage('/app/send', {
-                      title: "Hello from client!",
-                      content: "This is a test message.",
-                      username: "teacher@school.com"
-                    })
-                  } else {
-                    console.warn('❌ WebSocket chưa kết nối')
-                  }
+                  sendMessage()
                 }}
-              />
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Test notification
+              </Button>
 
+              {/* Notifications */}
+              <NotificationBell />
 
               {/* Theme switcher */}
               <MemoizedThemeSwitcher />
@@ -308,10 +265,11 @@ const LayoutComponent = () => {
                 className="h-12 px-3"
               >
                 <div
-                  className={`flex items-center gap-3 cursor-pointer rounded-lg transition-colors ${isDarkMode
-                    ? 'hover:bg-gray-700 text-gray-300'
-                    : 'hover:bg-gray-100 text-gray-700'
-                    }`}
+                  className={`flex items-center gap-3 cursor-pointer rounded-lg transition-colors ${
+                    isDarkMode
+                      ? 'hover:bg-gray-700 text-gray-300'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
                 >
                   <Avatar icon={<UserOutlined />} size="small" />
                   <span className="hidden md:inline-block">

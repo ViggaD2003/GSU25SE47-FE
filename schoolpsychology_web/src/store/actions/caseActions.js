@@ -51,3 +51,37 @@ export const createCase = createAsyncThunk(
     }
   }
 )
+
+// Async thunk for assigning a case
+export const assignCase = createAsyncThunk(
+  'case/assignCase',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await caseAPI.assignCase(data)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to assign case'
+      )
+    }
+  }
+)
+
+// Async thunk for updating a case
+export const updateCase = createAsyncThunk(
+  'case/updateCase',
+  async ({ caseId, caseData }, { rejectWithValue }) => {
+    try {
+      const response = await caseAPI.updateCase(caseId, caseData)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to update case'
+      )
+    }
+  }
+)

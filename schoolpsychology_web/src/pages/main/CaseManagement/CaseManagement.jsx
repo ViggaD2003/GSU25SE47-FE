@@ -33,12 +33,15 @@ import {
   ClockCircleOutlined,
   UserOutlined,
   BookOutlined,
+  SaveOutlined,
+  CloseOutlined,
 } from '@ant-design/icons'
-import { getCases } from '../../../store/actions/caseActions'
+import { assignCase, getCases } from '../../../store/actions/caseActions'
 import { clearError } from '../../../store/slices/caseSlice'
 import CaseModal from './CaseModal'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
+import { accountAPI } from '@/services/accountApi'
 
 const { Search } = Input
 const { Title, Text } = Typography
@@ -117,9 +120,10 @@ const CaseManagement = () => {
   const { cases, loading, error } = useSelector(state => state.case)
   const [searchText, setSearchText] = useState('')
   const [dateRange, setDateRange] = useState(null)
-  const [isModalVisible, setIsModalVisible] = useState(false)
-  const [editingCase, setEditingCase] = useState(null)
-  const [modalLoading, setModalLoading] = useState(false)
+  const [editingHostBy, setEditingHostBy] = useState(null)
+  const [tempHostBy, setTempHostBy] = useState(null)
+  const [availableHosts, setAvailableHosts] = useState([])
+  const [hostsLoading, setHostsLoading] = useState(false)
 
   useEffect(() => {
     dispatch(getCases())
@@ -131,6 +135,27 @@ const CaseManagement = () => {
       dispatch(clearError())
     }
   }, [error, t, messageApi, dispatch])
+
+  // Load available hosts for managers
+  useEffect(() => {
+    const loadAvailableHosts = async () => {
+      if (user?.role === 'manager') {
+        setHostsLoading(true)
+        try {
+          const response = await accountAPI.getAccounts({
+            role: 'COUNSELOR',
+          })
+          setAvailableHosts(response)
+        } catch (error) {
+          console.error('Failed to load available hosts:', error)
+        } finally {
+          setHostsLoading(false)
+        }
+      }
+    }
+
+    loadAvailableHosts()
+  }, [user?.role])
 
   // Calculate statistics
   const statistics = useMemo(() => {
@@ -214,34 +239,100 @@ const CaseManagement = () => {
   //   setIsModalVisible(true)
   // }, [])
 
-  const handleEdit = useCallback(record => {
-    setEditingCase(record)
-    setIsModalVisible(true)
+  // HostBy editing handlers
+  const handleEditHostBy = useCallback(record => {
+    setEditingHostBy(record.id)
   }, [])
 
-  const handleModalOk = useCallback(async () => {
-    try {
-      setModalLoading(true)
-      if (editingCase) {
-        // await dispatch(updateCase({ id: editingCase.id, ...values }))
-        messageApi.success(t('caseManagement.messages.updateSuccess'))
-      } else {
-        // await dispatch(createCase(values))
-        messageApi.success(t('caseManagement.messages.createSuccess'))
+  const handleSaveHostBy = useCallback(
+    async record => {
+      try {
+        if (!tempHostBy) {
+          setEditingHostBy(null)
+          return
+        }
+        await dispatch(
+          assignCase({
+            caseId: record.id,
+            counselorId: tempHostBy,
+          })
+        )
+        messageApi.success(t('caseManagement.messages.assignSuccess'))
+        setEditingHostBy(null)
+      } catch {
+        messageApi.error(t('caseManagement.messages.assignError'))
       }
-      setIsModalVisible(false)
-      setEditingCase(null)
-    } catch {
-      messageApi.error(t('caseManagement.messages.saveError'))
-    } finally {
-      setModalLoading(false)
-    }
-  }, [dispatch, editingCase, messageApi, t])
+    },
+    [dispatch, messageApi, t, tempHostBy]
+  )
 
-  const handleModalCancel = useCallback(() => {
-    setIsModalVisible(false)
-    setEditingCase(null)
+  const handleCancelHostBy = useCallback(() => {
+    setEditingHostBy(null)
+    setTempHostBy(null)
   }, [])
+
+  const handleChangeHostBy = useCallback(value => {
+    console.log(value)
+    setTempHostBy(value)
+  }, [])
+
+  const editHostByColumn = useCallback(
+    (counselor, record) => {
+      const isEditing = editingHostBy === record.id
+
+      if (isEditing) {
+        return (
+          <div className="flex items-center space-x-2">
+            <Select
+              placeholder={t('caseManagement.table.hostBy')}
+              value={tempHostBy}
+              onChange={handleChangeHostBy}
+              style={{ width: 150 }}
+              loading={hostsLoading}
+            >
+              {availableHosts.map(host => (
+                <Option key={host.id} value={host.id}>
+                  <div className="font-medium flex items-center">
+                    <UserOutlined className="mr-1" />
+                    {host.fullName} -{' '}
+                    {host?.gender ? t('common.male') : t('common.female')}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {host?.counselorCode &&
+                      `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
+                  </div>
+                </Option>
+              ))}
+            </Select>
+          </div>
+        )
+      }
+      return (
+        <div className="flex items-center justify-between">
+          <div>
+            {counselor ? (
+              <>
+                <div className="font-medium flex items-center">
+                  <UserOutlined className="mr-1" />
+                  {counselor?.fullName} -{' '}
+                  {counselor?.gender ? t('common.male') : t('common.female')}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {counselor?.counselorCode &&
+                    `${t('caseManagement.table.counselorCode')}: ${counselor.counselorCode}`}
+                </div>
+              </>
+            ) : (
+              <div className="text-gray-400">
+                {t('caseManagement.table.noHost')}
+              </div>
+            )}
+          </div>
+        </div>
+      )
+    },
+    [t, editingHostBy, availableHosts, hostsLoading, user?.role, tempHostBy]
+  )
 
   // Table columns
   const columns = useMemo(
@@ -258,7 +349,7 @@ const CaseManagement = () => {
                 record.description || t('caseManagement.table.noDescription')
               }
             >
-              <Text ellipsis={{ rows: 2 }}>
+              <Text className="line-clamp-2">
                 {record.description || t('caseManagement.table.noDescription')}
               </Text>
             </Tooltip>
@@ -364,6 +455,14 @@ const CaseManagement = () => {
         hidden: user?.role === 'teacher',
       },
       {
+        title: t('caseManagement.table.hostBy'),
+        dataIndex: 'counselor',
+        key: 'counselor',
+        render: (counselor, record) => editHostByColumn(counselor, record),
+        editable: record => user?.role === 'manager' && record.status === 'NEW',
+        hidden: user?.role === 'teacher',
+      },
+      {
         title: t('caseManagement.table.currentLevel'),
         dataIndex: 'currentLevel',
         key: 'currentLevel',
@@ -407,25 +506,48 @@ const CaseManagement = () => {
       {
         key: 'actions',
         width: 100,
-        render: (_, record) => (
-          <Space size="small">
-            <Tooltip title={t('common.view')}>
-              <Button type="text" icon={<EyeOutlined />} size="small" />
-            </Tooltip>
-            <Tooltip title={t('common.edit')}>
-              <Button
-                type="text"
-                icon={<EditOutlined />}
-                size="small"
-                onClick={() => handleEdit(record)}
-              />
-            </Tooltip>
-          </Space>
-        ),
+        render: (_, record) =>
+          !editingHostBy ? (
+            <Space size="small">
+              <Tooltip title={t('common.view')}>
+                <Button type="text" icon={<EyeOutlined />} size="small" />
+              </Tooltip>
+              {user?.role === 'manager' && record.status === 'NEW' && (
+                <Tooltip title={t('common.edit')}>
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    size="small"
+                    onClick={() => handleEditHostBy(record)}
+                  />
+                </Tooltip>
+              )}
+            </Space>
+          ) : (
+            <Space size="small">
+              <Tooltip title={t('common.save')}>
+                <Button
+                  type="text"
+                  icon={<SaveOutlined />}
+                  size="small"
+                  onClick={() => handleSaveHostBy(record)}
+                />
+              </Tooltip>
+              <Tooltip title={t('common.cancel')}>
+                <Button
+                  type="text"
+                  danger
+                  icon={<CloseOutlined />}
+                  size="small"
+                  onClick={handleCancelHostBy}
+                />
+              </Tooltip>
+            </Space>
+          ),
         fixed: 'right',
       },
     ],
-    [t]
+    [t, user?.role, editHostByColumn]
   )
 
   return (
@@ -565,18 +687,9 @@ const CaseManagement = () => {
             showTotal: (total, range) =>
               `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
           }}
-          scroll={{ x: 1400 }}
+          scroll={{ x: 1800 }}
         />
       </Card>
-
-      {/* Case Modal */}
-      <CaseModal
-        visible={isModalVisible}
-        onCancel={handleModalCancel}
-        onSubmit={handleModalOk}
-        editingCase={editingCase}
-        confirmLoading={modalLoading}
-      />
     </div>
   )
 }

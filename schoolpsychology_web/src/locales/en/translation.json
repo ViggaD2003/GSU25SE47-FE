@@ -3,6 +3,13 @@
     "title": "MindfulCare",
     "welcome": "Welcome"
   },
+  "notification": {
+    "newNotification": "You have new notifications",
+    "title": "Notification",
+    "testSound": "Test Sound",
+    "noNotifications": "No notifications",
+    "content": "Content of notification"
+  },
   "navigation": {
     "dashboard": "Dashboard",
     "staffManagement": {
@@ -321,10 +328,13 @@
       "studentCode": "Student Code",
       "createBy": "Created By",
       "teacherCode": "Teacher Code",
+      "counselorCode": "Counselor Code",
+      "hostBy": "Hosted By",
       "currentLevel": "Current Level",
       "initialLevel": "Initial Level",
       "createdAt": "Created At",
-      "noDescription": "No description"
+      "noDescription": "No description",
+      "noHost": "Not assigned"
     },
     "form": {
       "title": "Title",
@@ -391,7 +401,9 @@
       "fetchError": "Failed to fetch cases",
       "createSuccess": "Case created successfully",
       "updateSuccess": "Case updated successfully",
-      "saveError": "Failed to save case"
+      "saveError": "Failed to save case",
+      "assignSuccess": "Case assigned successfully",
+      "assignError": "Failed to assign case"
     },
     "confirmModal": {
       "title": "Confirm Information",
@@ -821,6 +833,8 @@
     }
   },
   "common": {
+    "male": "Male",
+    "female": "Female",
     "create": "Create",
     "cancel": "Cancel",
     "daily": "Daily",

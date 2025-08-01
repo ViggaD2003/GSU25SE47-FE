@@ -3,6 +3,13 @@
     "title": "MindfulCare",
     "welcome": "Chào mừng"
   },
+  "notification": {
+    "newNotification": "Bạn có thông báo mới",
+    "title": "Thông báo",
+    "testSound": "Thử âm thanh",
+    "noNotifications": "Không có thông báo nào",
+    "content": "Nội dung thông báo"
+  },
   "navigation": {
     "dashboard": "Bảng điều khiển",
     "staffManagement": {
@@ -322,10 +329,13 @@
       "studentCode": "Mã học sinh",
       "createBy": "Người tạo",
       "teacherCode": "Mã giáo viên",
+      "hostBy": "Người phụ trách",
+      "counselorCode": "Mã tư vấn viên",
       "currentLevel": "Mức độ hiện tại",
       "initialLevel": "Mức độ ban đầu",
       "createdAt": "Ngày tạo",
-      "noDescription": "Không có mô tả"
+      "noDescription": "Không có mô tả",
+      "noHost": "Chưa phân công"
     },
     "form": {
       "title": "Tiêu đề",
@@ -392,7 +402,9 @@
       "fetchError": "Không thể tải danh sách ca tư vấn",
       "createSuccess": "Tạo ca tư vấn thành công",
       "updateSuccess": "Cập nhật ca tư vấn thành công",
-      "saveError": "Không thể lưu ca tư vấn"
+      "saveError": "Không thể lưu ca tư vấn",
+      "assignSuccess": "Phân công ca tư vấn thành công",
+      "assignError": "Không thể phân công ca tư vấn"
     },
     "confirmModal": {
       "title": "Xác nhận thông tin",
@@ -734,6 +746,8 @@
     "status": "Trạng thái"
   },
   "common": {
+    "male": "Nam",
+    "female": "Nữ",
     "create": "Tạo",
     "cancel": "Hủy",
     "daily": "Hàng ngày",

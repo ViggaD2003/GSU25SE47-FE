@@ -86,6 +86,39 @@ const caseSlice = createSlice({
         state.loading = false
         state.error = action.payload || 'Failed to create case'
       })
+      // assignCase
+      .addCase('case/assignCase/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('case/assignCase/fulfilled', (state, _action) => {
+        state.loading = false
+        state.error = null
+      })
+      .addCase('case/assignCase/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to assign case'
+      })
+      // updateCase
+      .addCase('case/updateCase/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('case/updateCase/fulfilled', (state, action) => {
+        state.loading = false
+        // Update the case in the list
+        if (action.payload) {
+          const index = state.cases.findIndex(c => c.id === action.payload.id)
+          if (index !== -1) {
+            state.cases[index] = action.payload
+          }
+        }
+        state.error = null
+      })
+      .addCase('case/updateCase/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to update case'
+      })
   },
 })
 
