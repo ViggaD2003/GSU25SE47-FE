@@ -229,8 +229,7 @@
       "sessions": "Buổi học",
       "type": "Loại hình",
       "category": "Danh mục",
-      "startDate": "Ngày bắt đầu",
-      "endDate": "Ngày kết thúc",
+      "date": "Ngày & Giờ",
       "status": "Trạng thái",
       "actions": "Thao tác"
     },
@@ -286,6 +285,11 @@
       "category": "Danh mục",
       "categoryRequired": "Danh mục là bắt buộc",
       "categoryPlaceholder": "Chọn danh mục chương trình",
+      "hostedBy": "Người phụ trách",
+      "hostedByRequired": "Người phụ trách là bắt buộc",
+      "hostedByPlaceholder": "Nhập ID người phụ trách",
+      "thumbnail": "Ảnh thu nhỏ",
+      "thumbnailPlaceholder": "Nhập URL ảnh thu nhỏ",
       "maxParticipants": "Số lượng tối đa",
       "maxParticipantsRequired": "Số lượng tối đa là bắt buộc",
       "maxParticipantsMin": "Phải có ít nhất 1 học viên",
@@ -297,19 +301,26 @@
       "type": "Loại hình",
       "typeOnline": "Chương trình trực tuyến",
       "typeOffline": "Chương trình trực tiếp",
-      "dateRange": "Thời gian",
-      "dateRangeRequired": "Thời gian diễn ra là bắt buộc",
-      "startDateMinDays": "Ngày bắt đầu phải cách ngày hiện tại ít nhất 5 ngày",
-      "endDateMinDays": "Ngày kết thúc phải sau ngày bắt đầu ít nhất 1 ngày",
-      "startDate": "Ngày bắt đầu",
-      "endDate": "Ngày kết thúc",
+      "date": "Ngày",
+      "dateRequired": "Ngày diễn ra là bắt buộc",
+      "dateMinDays": "Ngày phải cách ngày hiện tại ít nhất 5 ngày",
+      "datePlaceholder": "Chọn ngày diễn ra",
+      "startTime": "Giờ bắt đầu",
+      "startTimeRequired": "Giờ bắt đầu là bắt buộc",
+      "startTimePlaceholder": "Chọn giờ bắt đầu",
+      "startTimeAfter17": "Giờ bắt đầu phải sau 17:00",
+      "endTime": "Giờ kết thúc",
+      "endTimeRequired": "Giờ kết thúc là bắt buộc",
+      "endTimePlaceholder": "Chọn giờ kết thúc",
+      "timeRangeMinHour": "Khoảng thời gian phải cách nhau ít nhất 1 tiếng",
       "location": "Địa điểm",
       "locationRequired": "Địa điểm là bắt buộc cho chương trình trực tiếp",
       "locationPlaceholder": "Nhập địa điểm diễn ra (bắt buộc cho trực tiếp)",
       "locationMaxLength": "Địa điểm không được vượt quá 200 ký tự",
       "programInfo": "Thông tin chương trình",
       "onlineInfo": "Đây là chương trình trực tuyến. Link tham gia sẽ được cung cấp cho học viên.",
-      "formError": "Vui lòng kiểm tra lại thông tin trong form"
+      "formError": "Vui lòng kiểm tra lại thông tin trong form",
+      "surveyInformation": "Thông tin khảo sát"
     }
   },
   "caseManagement": {
@@ -572,6 +583,12 @@
     "search": "Tìm kiếm khảo sát...",
     "startDate": "Ngày bắt đầu",
     "endDate": "Ngày kết thúc",
+    "searchTitle": "Tìm kiếm khảo sát",
+    "searchDescription": "Tìm kiếm trong tiêu đề",
+    "searchPlaceholder": "Tìm kiếm khảo sát...",
+    "creationDate": "Ngày tạo",
+    "creationDateDescription": "Lọc theo khoảng thời gian khảo sát",
+    "filtersAndSearch": "Lọc và tìm kiếm",
     "table": {
       "title": "Tiêu đề khảo sát",
       "description": "Mô tả",
@@ -700,7 +717,8 @@
         "endDateTooFar": "Đối với khảo sát lặp lại {{cycle}}, ngày kết thúc phải trong vòng {{maxDays}} ngày từ ngày bắt đầu",
         "endDateWeekly": "Đối với khảo sát lặp lại hàng tuần, ngày kết thúc phải trong vòng 7 ngày từ ngày bắt đầu",
         "endDateMonthly": "Đối với khảo sát lặp lại hàng tháng, ngày kết thúc phải trong vòng 30 ngày từ ngày bắt đầu"
-      }
+      },
+      "surveyInformation": "Thông tin khảo sát"
     },
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",
@@ -788,7 +806,8 @@
     "inactive": "Không hoạt động",
     "description": "Mô tả",
     "reference": "Tham khảo",
-    "refresh": "Làm mới"
+    "refresh": "Làm mới",
+    "refreshSuccess": "Làm mới thành công"
   },
   "classManagement": {
     "title": "Quản lý lớp học",

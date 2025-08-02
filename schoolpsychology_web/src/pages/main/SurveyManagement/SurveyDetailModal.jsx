@@ -892,52 +892,56 @@ const SurveyDetailModal = ({
                   }
                   styles={{ body: { padding: '20px 24px' } }}
                 >
-                  <Form.Item
-                    name={['newQuestions', question.id, 'text']}
-                    label={t('surveyManagement.detail.questionText')}
-                    rules={[
-                      {
-                        required: true,
-                        message: t(
-                          'surveyManagement.form.questionTextRequired'
-                        ),
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    name={['newQuestions', question.id, 'description']}
-                    label={t('surveyManagement.detail.questionDescription')}
-                  >
-                    <TextArea rows={2} />
-                  </Form.Item>
-                  <Row gutter={16}>
-                    <Col span={12}>
-                      <Form.Item
-                        name={['newQuestions', question.id, 'questionType']}
-                        label={t('surveyManagement.detail.questionType')}
-                        rules={[{ required: true }]}
-                      >
-                        <Select>
-                          {Object.values(QUESTION_TYPE).map(type => (
-                            <Option key={type} value={type}>
-                              {t(`surveyManagement.enums.questionType.${type}`)}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    </Col>
-                    <Col span={12}>
-                      <Form.Item
-                        name={['newQuestions', question.id, 'required']}
-                        label={t('surveyManagement.detail.required')}
-                        valuePropName="checked"
-                      >
-                        <Switch />
-                      </Form.Item>
-                    </Col>
-                  </Row>
+                  <Form form={form} layout="vertical">
+                    <Form.Item
+                      name={['newQuestions', question.id, 'text']}
+                      label={t('surveyManagement.detail.questionText')}
+                      rules={[
+                        {
+                          required: true,
+                          message: t(
+                            'surveyManagement.form.questionTextRequired'
+                          ),
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      name={['newQuestions', question.id, 'description']}
+                      label={t('surveyManagement.detail.questionDescription')}
+                    >
+                      <TextArea rows={2} />
+                    </Form.Item>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['newQuestions', question.id, 'questionType']}
+                          label={t('surveyManagement.detail.questionType')}
+                          rules={[{ required: true }]}
+                        >
+                          <Select>
+                            {Object.values(QUESTION_TYPE).map(type => (
+                              <Option key={type} value={type}>
+                                {t(
+                                  `surveyManagement.enums.questionType.${type}`
+                                )}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['newQuestions', question.id, 'required']}
+                          label={t('surveyManagement.detail.required')}
+                          valuePropName="checked"
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Form>
                 </Card>
               </List.Item>
             )}

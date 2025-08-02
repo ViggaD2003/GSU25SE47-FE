@@ -1,20 +1,6 @@
 import React, { useMemo, useCallback } from 'react'
-import {
-  Table,
-  Button,
-  Space,
-  Tag,
-  Typography,
-  Tooltip,
-  Progress,
-  Modal,
-} from 'antd'
-import {
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  ExclamationCircleOutlined,
-} from '@ant-design/icons'
+import { Table, Button, Space, Tag, Typography, Tooltip, Progress } from 'antd'
+import { EyeOutlined, EditOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 
@@ -57,22 +43,6 @@ const ProgramTable = ({
             text: status || 'Unknown',
           }
       }
-    },
-    [t]
-  )
-
-  // Type configuration
-  const getTypeConfig = useCallback(
-    isOnline => {
-      return isOnline
-        ? {
-            color: 'cyan',
-            text: t('programManagement.type.online'),
-          }
-        : {
-            color: 'purple',
-            text: t('programManagement.type.offline'),
-          }
     },
     [t]
   )
@@ -141,29 +111,6 @@ const ProgramTable = ({
         },
       },
       {
-        title: t('programManagement.table.sessions'),
-        dataIndex: 'sessions',
-        key: 'sessions',
-        width: 100,
-        align: 'center',
-        render: sessions => <Tag color="blue">{sessions?.length || 0}</Tag>,
-      },
-      {
-        title: t('programManagement.table.type'),
-        dataIndex: 'isOnline',
-        key: 'isOnline',
-        width: 120,
-        align: 'center',
-        filters: [
-          { text: t('programManagement.type.online'), value: true },
-          { text: t('programManagement.type.offline'), value: false },
-        ],
-        render: isOnline => {
-          const config = getTypeConfig(isOnline)
-          return <Tag color={config.color}>{config.text}</Tag>
-        },
-      },
-      {
         title: t('programManagement.table.category'),
         dataIndex: ['category', 'name'],
         key: 'category',
@@ -182,24 +129,25 @@ const ProgramTable = ({
         ),
       },
       {
-        title: t('programManagement.table.startDate'),
+        title: t('programManagement.table.date'),
         dataIndex: 'startDate',
-        key: 'startDate',
+        key: 'date',
         width: 120,
         sorter: true,
         sortOrder:
           sortConfig?.field === 'startDate' ? sortConfig.direction : undefined,
-        render: date => <Text>{dayjs(date).format('DD/MM/YYYY')}</Text>,
-      },
-      {
-        title: t('programManagement.table.endDate'),
-        dataIndex: 'endDate',
-        key: 'endDate',
-        width: 120,
-        sorter: true,
-        sortOrder:
-          sortConfig?.field === 'endDate' ? sortConfig.direction : undefined,
-        render: date => <Text>{dayjs(date).format('DD/MM/YYYY')}</Text>,
+        render: (date, record) => (
+          <div>
+            <Text>{dayjs(date).format('DD/MM/YYYY')}</Text>
+            {record.startTime && record.endTime && (
+              <div>
+                <Text type="secondary" className="text-xs">
+                  {record.startTime} - {record.endTime}
+                </Text>
+              </div>
+            )}
+          </div>
+        ),
       },
       {
         title: t('programManagement.table.status'),
@@ -218,9 +166,8 @@ const ProgramTable = ({
         },
       },
       {
-        title: t('programManagement.table.actions'),
         key: 'actions',
-        width: 150,
+        width: 60,
         align: 'center',
         fixed: 'right',
         render: (_, record) => (
@@ -249,7 +196,6 @@ const ProgramTable = ({
       t,
       sortConfig,
       getStatusConfig,
-      getTypeConfig,
       getParticipantProgressColor,
       onView,
       onEdit,

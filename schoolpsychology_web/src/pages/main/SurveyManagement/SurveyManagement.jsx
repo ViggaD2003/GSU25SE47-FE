@@ -25,7 +25,6 @@ import SurveyDetailModal from './SurveyDetailModal'
 import {
   getAllSurveys,
   createSurvey,
-  getSurveyInCase,
 } from '../../../store/actions/surveyActions'
 import {
   selectSurveys,
@@ -72,7 +71,7 @@ const SurveyManagement = () => {
   // Load all surveys once
   useEffect(() => {
     if (user?.role === 'counselor') {
-      dispatch(getSurveyInCase())
+      // dispatch(getSurveyInCase())
     } else {
       dispatch(getAllSurveys())
     }
@@ -244,13 +243,15 @@ const SurveyManagement = () => {
           >
             {t('surveyManagement.refresh')}
           </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAddSurvey}
-          >
-            {t('surveyManagement.addSurvey')}
-          </Button>
+          {(user?.hasActiveCases || user?.role === 'manager') && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleAddSurvey}
+            >
+              {t('surveyManagement.addSurvey')}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -261,7 +262,7 @@ const SurveyManagement = () => {
         title={
           <Space>
             <FilterOutlined />
-            <span>Filters & Search</span>
+            <span>{t('surveyManagement.filtersAndSearch')}</span>
             {hasActiveFilters && (
               <Tag color="blue">
                 {filteredSurveys.length} of {surveys?.length || 0} surveys
@@ -286,16 +287,16 @@ const SurveyManagement = () => {
           {/* Text Search - Search in title*/}
           <Col xs={24} sm={12} md={8} lg={8}>
             <div>
-              <Text strong>Search Surveys</Text>
+              <Text strong>{t('surveyManagement.searchTitle')}</Text>
               <Text
                 type="secondary"
                 style={{ display: 'block', fontSize: '12px' }}
               >
-                Search in title
+                {t('surveyManagement.searchDescription')}
               </Text>
             </div>
             <Search
-              placeholder="Search surveys..."
+              placeholder={t('surveyManagement.searchPlaceholder')}
               allowClear
               size="middle"
               onSearch={handleSearch}
@@ -308,12 +309,12 @@ const SurveyManagement = () => {
           {/* Date Range Filter - Filter by creation date */}
           <Col xs={24} sm={12} md={8} lg={8}>
             <div>
-              <Text strong>Creation Date</Text>
+              <Text strong>{t('surveyManagement.creationDate')}</Text>
               <Text
                 type="secondary"
                 style={{ display: 'block', fontSize: '12px' }}
               >
-                Filter by survey creation date range
+                {t('surveyManagement.creationDateDescription')}
               </Text>
             </div>
             <RangePicker

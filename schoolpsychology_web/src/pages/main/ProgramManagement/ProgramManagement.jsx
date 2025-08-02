@@ -44,6 +44,8 @@ import {
 } from '@/store/slices/programSlice'
 import { categoriesAPI } from '@/services/categoryApi'
 import dayjs from 'dayjs'
+import { useAuth } from '@/contexts/AuthContext'
+import { accountAPI } from '@/services/accountApi'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -55,6 +57,7 @@ const ProgramTable = lazy(() => import('./ProgramTable'))
 const ProgramModal = lazy(() => import('./ProgramModal'))
 
 const ProgramManagement = () => {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const dispatch = useDispatch()
   const { programs, loading, error, pagination, filters, sortConfig } =
@@ -70,12 +73,21 @@ const ProgramManagement = () => {
   const [isView, setIsView] = useState(false)
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(false)
+  const [counselors, setCounselors] = useState([])
+
+  const fetchCounselors = useCallback(async () => {
+    const data = await accountAPI.getAccounts({ role: 'COUNSELOR' })
+    setCounselors(data)
+  }, [])
 
   // Fetch programs on component mount
   useEffect(() => {
     dispatch(getAllPrograms())
     fetchCategories()
-  }, [dispatch])
+    if (user.role === 'manager') {
+      fetchCounselors()
+    }
+  }, [dispatch, user.role])
 
   // Handle error messages
   useEffect(() => {
@@ -123,10 +135,6 @@ const ProgramManagement = () => {
       const matchesCategory =
         !filters.category || program.category?.id === filters.category
 
-      // Type filter (online/offline)
-      const matchesType =
-        filters.isOnline === undefined || program.isOnline === filters.isOnline
-
       // Date range filter
       const matchesDateRange =
         !filters.dateRange ||
@@ -134,11 +142,7 @@ const ProgramManagement = () => {
           dayjs(program.endDate).isBefore(dayjs(filters.dateRange[1])))
 
       return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesCategory &&
-        matchesType &&
-        matchesDateRange
+        matchesSearch && matchesStatus && matchesCategory && matchesDateRange
       )
     })
   }, [programs, searchText, filters])
@@ -217,8 +221,11 @@ const ProgramManagement = () => {
   // Handle refresh
   const handleRefresh = useCallback(() => {
     dispatch(getAllPrograms())
+    if (user.role === 'manager') {
+      fetchCounselors()
+    }
     messageApi.success(t('common.refreshSuccess'))
-  }, [dispatch, t, messageApi])
+  }, [dispatch, t, messageApi, user.role])
 
   // Handle reset filters
   const handleResetFilters = useCallback(() => {
@@ -318,13 +325,34 @@ const ProgramManagement = () => {
       {contextHolder}
 
       {/* Header */}
-      <div className="mb-6">
-        <Title level={2} className="mb-2">
-          {t('programManagement.title')}
-        </Title>
-        <Text type="secondary" className="text-base">
-          {t('programManagement.description')}
-        </Text>
+      <div className="mb-6 flex justify-between items-end">
+        <div>
+          <Title level={2} className="mb-2">
+            {t('programManagement.title')}
+          </Title>
+          <Text type="secondary" className="text-base">
+            {t('programManagement.description')}
+          </Text>
+        </div>
+        {/* Action Buttons */}
+        <Space size="middle">
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={handleRefresh}
+            loading={loading}
+            size="middle"
+          >
+            {t('programManagement.refresh')}
+          </Button>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+            size="middle"
+          >
+            {t('programManagement.create')}
+          </Button>
+        </Space>
       </div>
 
       {/* Statistics Cards */}
@@ -373,7 +401,7 @@ const ProgramManagement = () => {
       <Card className="mb-6">
         <Row gutter={[16, 16]} align="middle">
           {/* Search */}
-          <Col xs={24} sm={12} md={7}>
+          <Col xs={24} sm={12} md={8}>
             <Search
               placeholder={t('programManagement.search')}
               allowClear
@@ -384,32 +412,32 @@ const ProgramManagement = () => {
             />
           </Col>
 
-          <Col xs={24} sm={12} md={4}>
-            <Select
-              placeholder={t('programManagement.filters.category')}
-              allowClear
-              value={filters.category}
-              onChange={value => handleFilterChange('category', value)}
-              loading={loadingCategories}
-              className="w-full"
-            >
-              {categories.map(category => (
-                <Option key={category.id} value={category.id}>
-                  {category.name}
-                </Option>
-              ))}
-            </Select>
+          <Col xs={24} sm={12} md={8}>
+            <RangePicker
+              value={filters.dateRange}
+              onChange={dates => handleFilterChange('dateRange', dates)}
+              format="DD/MM/YYYY"
+              placeholder={[t('common.startDate'), t('common.endDate')]}
+              className="flex-1"
+            />
           </Col>
 
           <Col xs={24} sm={12} md={6}>
             <Space size="small" className="w-full">
-              <RangePicker
-                value={filters.dateRange}
-                onChange={dates => handleFilterChange('dateRange', dates)}
-                format="DD/MM/YYYY"
-                placeholder={[t('common.startDate'), t('common.endDate')]}
-                className="flex-1"
-              />
+              <Select
+                placeholder={t('programManagement.filters.category')}
+                allowClear
+                value={filters.category}
+                onChange={value => handleFilterChange('category', value)}
+                loading={loadingCategories}
+                className="w-full"
+              >
+                {categories.map(category => (
+                  <Option key={category.id} value={category.id}>
+                    {category.name}
+                  </Option>
+                ))}
+              </Select>
               <Button
                 icon={<ClearOutlined />}
                 onClick={handleResetFilters}
@@ -417,38 +445,12 @@ const ProgramManagement = () => {
               />
             </Space>
           </Col>
-
-          {/* Action Buttons */}
-          <Col xs={24} sm={12} md={7}>
-            <div className="flex justify-end">
-              <Space size="middle">
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={handleCreate}
-                  size="middle"
-                >
-                  {t('programManagement.create')}
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefresh}
-                  loading={loading}
-                  size="middle"
-                >
-                  {t('programManagement.refresh')}
-                </Button>
-              </Space>
-            </div>
-          </Col>
         </Row>
       </Card>
 
       {/* Table */}
       <Card>
-        <Suspense
-          fallback={<Spin size="large" className="w-full text-center py-8" />}
-        >
+        <Suspense fallback={null}>
           <ProgramTable
             programs={paginatedPrograms}
             loading={loading}
@@ -467,7 +469,7 @@ const ProgramManagement = () => {
       </Card>
 
       {/* Program Modal */}
-      <Suspense fallback={<Spin size="large" />}>
+      <Suspense fallback={null}>
         <ProgramModal
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
@@ -476,6 +478,8 @@ const ProgramManagement = () => {
           isEdit={isEdit}
           isView={isView}
           categories={categories}
+          counselors={counselors}
+          message={messageApi}
         />
       </Suspense>
     </div>

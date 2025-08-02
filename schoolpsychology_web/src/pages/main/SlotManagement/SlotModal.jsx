@@ -871,6 +871,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   disabledDate={getEditDisabledDate}
                   disabledTime={getEditDisabledTime(false)}
                   style={{ width: '100%' }}
+                  minuteStep={30}
                   onChange={handleStartTimeChange}
                 />
               </Form.Item>
@@ -886,6 +887,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                   placeholder="End time"
                   disabledDate={getEditDisabledDate}
                   disabledTime={getEditDisabledTime(true)}
+                  minuteStep={30}
                   style={{ width: '100%' }}
                 />
               </Form.Item>
@@ -1307,6 +1309,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                       size="large"
                       disabledDate={getCounselorDisabledDate}
                       onChange={handleCounselorDateSelect}
+                      minuteStep={30}
                       placeholder={t('slotManagement.form.datePlaceholder')}
                     />
                   </Form.Item>
@@ -1345,6 +1348,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                           disabledTime={getSmartDisabledTime(false)}
                           style={{ width: '100%' }}
                           size="large"
+                          minuteStep={30}
                           onChange={handleFieldChange}
                         />
                       </Form.Item>
@@ -1377,6 +1381,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
                           disabledDate={getSmartDisabledDate(true)}
                           disabledTime={getSmartDisabledTime(true)}
                           style={{ width: '100%' }}
+                          minuteStep={30}
                           size="large"
                           onChange={handleFieldChange}
                         />
