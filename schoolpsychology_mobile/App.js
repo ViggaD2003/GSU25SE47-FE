@@ -4,10 +4,15 @@ import AuthStack from "./src/navigation/AuthStack";
 import MainTabs from "./src/navigation/MainTabs";
 import { AuthProvider, useAuth } from "./src/contexts/AuthContext";
 import { setLogoutCallback } from "./src/services/api/axios";
-import React, { useEffect, useCallback, useState, useRef } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { PaperProvider } from "react-native-paper";
-import { PermissionProvider } from "@/contexts";
+import { PermissionProvider } from "./src/contexts";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+// Extend dayjs with utc plugin only
+dayjs.extend(utc);
 
 function RootNavigation() {
   const { user, loading, registerLogoutCallback, logout } = useAuth();
@@ -70,5 +75,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-const styles = StyleSheet.create({});

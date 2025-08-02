@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,12 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  Dimensions,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 import {
   StatisticsCard,
@@ -17,7 +20,11 @@ import {
   SectionHeader,
   Chart,
 } from "../../components";
+import AssessmentScoreChart from "../../components/charts/AssessmentScoreChart";
 import { ParentDashboardService } from "../../services";
+
+const { width } = Dimensions.get("window");
+const isSmallDevice = width < 375;
 
 export default function ParentHome({
   user,
@@ -29,19 +36,26 @@ export default function ParentHome({
   const [selectedChild, setSelectedChild] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [dashboardData, setDashboardData] = useState({
     statistics: {},
     surveyRecords: [],
     appointmentRecords: [],
     supportProgramRecords: [],
+    assessmentScores: [],
   });
+
+  // Memoized child selection
+  const availableChildren = useMemo(() => {
+    return user?.children || [];
+  }, [user?.children]);
 
   // Set default selected child when component mounts or user changes
   useEffect(() => {
-    if (user?.children && user.children.length > 0) {
-      setSelectedChild(user.children[0]);
+    if (availableChildren.length > 0) {
+      setSelectedChild(availableChildren[0]);
     }
-  }, [user]);
+  }, [availableChildren]);
 
   // Load dashboard data when selected child changes
   useEffect(() => {
@@ -50,11 +64,32 @@ export default function ParentHome({
     }
   }, [selectedChild]);
 
+  // Auto-refresh when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (selectedChild) {
+        loadDashboardData();
+      }
+    }, [selectedChild])
+  );
+
+  // Safety check for user data
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
+        <Text style={styles.loadingText}>Đang tải thông tin người dùng...</Text>
+      </View>
+    );
+  }
+
   const loadDashboardData = async () => {
     if (!selectedChild?.userId) return;
 
     try {
       setLoading(true);
+      setError(null);
+
       const [surveyRecords, appointmentRecords, supportProgramRecords] =
         await Promise.all([
           ParentDashboardService.getChildSurveyRecords(selectedChild.userId),
@@ -66,19 +101,74 @@ export default function ParentHome({
           ),
         ]);
 
+      // Calculate statistics
+      const statistics = calculateStatistics(
+        surveyRecords,
+        appointmentRecords,
+        supportProgramRecords
+      );
+
+      // Process assessment scores from survey records
+      const assessmentScores = processAssessmentScores(surveyRecords);
+
       setDashboardData({
         surveyRecords: surveyRecords || [],
         appointmentRecords: appointmentRecords?.data || [],
         supportProgramRecords: supportProgramRecords?.data || [],
+        statistics,
+        assessmentScores,
       });
     } catch (error) {
       console.error("Error loading dashboard data:", error);
+      setError("Có lỗi xảy ra khi tải dữ liệu");
       setShowToast(true);
       setToastMessage("Có lỗi xảy ra khi tải dữ liệu");
       setToastType("error");
     } finally {
       setLoading(false);
     }
+  };
+
+  const calculateStatistics = (
+    surveyRecords,
+    appointmentRecords,
+    supportProgramRecords
+  ) => {
+    const completedSurveys = surveyRecords?.length || 0;
+    const activeAppointments = appointmentRecords?.length || 0;
+    const activePrograms = supportProgramRecords?.length || 0;
+
+    // Calculate average score from completed surveys
+    const averageScore =
+      surveyRecords?.length > 0
+        ? Math.round(
+            surveyRecords.reduce(
+              (sum, record) => sum + (record.totalScore || 0),
+              0
+            ) / surveyRecords.length
+          )
+        : 0;
+
+    return {
+      completedSurveys,
+      averageScore,
+      activeAppointments,
+      activePrograms,
+    };
+  };
+
+  const processAssessmentScores = (surveyRecords) => {
+    if (!surveyRecords || surveyRecords.length === 0) return [];
+
+    // Get the most recent survey record with assessment scores
+    const latestRecord = surveyRecords
+      .filter(
+        (record) =>
+          record.assessmentScores && record.assessmentScores.length > 0
+      )
+      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0];
+
+    return latestRecord?.assessmentScores || [];
   };
 
   const onRefresh = async () => {
@@ -96,21 +186,22 @@ export default function ParentHome({
   };
 
   const handleViewAllAppointments = () => {
-    console.log("Appointment Records");
-
-    // Navigate to appointments screen
-    // navigation.navigate("AppointmentRecord");
+    navigation.navigate("Appointment", { screen: "AppointmentRecord" });
   };
 
   const handleViewAllSupportPrograms = () => {
-    console.log("Program Records");
-
-    // Navigate to support programs screen
-    // navigation.navigate("ProgramRecord");
+    navigation.navigate("Program", { screen: "ProgramRecord" });
   };
 
   const handleBooking = () => {
-    // Lưu selectedChild vào global variable
+    if (!selectedChild) {
+      Alert.alert("Lỗi", "Vui lòng chọn con trước khi đặt lịch tư vấn", [
+        { text: "OK" },
+      ]);
+      return;
+    }
+
+    // Save selectedChild to global variable
     global.selectedChildForAppointment = selectedChild;
 
     // Navigate to Appointment stack
@@ -135,6 +226,411 @@ export default function ParentHome({
     });
   };
 
+  const handleViewAppointmentDetail = (record) => {
+    navigation.navigate("Appointment", {
+      screen: "AppointmentRecordDetail",
+      params: { appointment: record },
+    });
+  };
+
+  const handleViewProgramDetail = (record) => {
+    navigation.navigate("Program", {
+      screen: "ProgramRecordDetail",
+      params: { program: record },
+    });
+  };
+
+  // Memoized chart data
+  const chartData = useMemo(() => {
+    const last7Days = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dayName = date.toLocaleDateString("vi-VN", { weekday: "short" });
+
+      // Mock data - replace with real data from API
+      last7Days.push({
+        label: dayName,
+        value: Math.floor(Math.random() * 10) + 1,
+      });
+    }
+
+    return last7Days;
+  }, []);
+
+  const renderChildSelection = () => {
+    if (availableChildren.length <= 1) return null;
+
+    return (
+      <View style={styles.childSelectionContainer}>
+        <Text style={styles.childSelectionTitle}>Chọn con</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.childSelectionScroll}
+        >
+          {availableChildren.map((child, index) => (
+            <TouchableOpacity
+              key={child.userId}
+              style={[
+                styles.childOption,
+                selectedChild?.userId === child.userId &&
+                  styles.childOptionActive,
+              ]}
+              onPress={() => handleChildSelect(child)}
+            >
+              <View style={styles.childAvatarContainer}>
+                <Text style={styles.childAvatarText}>
+                  {child.fullName?.charAt(0)?.toUpperCase() || "C"}
+                </Text>
+              </View>
+              <Text
+                style={[
+                  styles.childName,
+                  selectedChild?.userId === child.userId &&
+                    styles.childNameActive,
+                ]}
+                numberOfLines={1}
+              >
+                {child.fullName}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderSelectedChildInfo = () => {
+    if (!selectedChild) return null;
+
+    return (
+      <View style={styles.selectedChildContainer}>
+        <View style={styles.selectedChildHeader}>
+          <View style={styles.selectedChildAvatar}>
+            <Text style={styles.selectedChildAvatarText}>
+              {selectedChild.fullName?.charAt(0)?.toUpperCase() || "C"}
+            </Text>
+          </View>
+          <View style={styles.selectedChildInfo}>
+            <Text style={styles.selectedChildName}>
+              {selectedChild.fullName}
+            </Text>
+            <Text style={styles.selectedChildStatus}>
+              {selectedChild.isEnable ? (
+                <Text style={styles.selectedChildStatusActive}>
+                  Đang nhận bài khảo sát
+                </Text>
+              ) : (
+                <Text style={styles.selectedChildStatusInactive}>
+                  Đã ngưng nhận bài khảo sát
+                </Text>
+              )}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.childSettingsButton}
+            onPress={() => {
+              // Navigate to child settings with proper data structure
+              navigation.navigate("Profile", {
+                screen: "MyChildren",
+                params: {
+                  data: { student: user?.children || [] },
+                  onRefresh: () => {
+                    // Refresh parent data if needed
+                    console.log("Refreshing parent data");
+                  },
+                },
+              });
+            }}
+          >
+            <Ionicons name="settings-outline" size={20} color="#6B7280" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderBookingSection = () => {
+    if (!selectedChild) return null;
+
+    return (
+      <View style={styles.bookingSection}>
+        <TouchableOpacity
+          style={styles.bookingButton}
+          onPress={handleBooking}
+          activeOpacity={0.9}
+        >
+          <LinearGradient
+            colors={["#4CAF50", "#45a049"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.bookingGradient}
+          >
+            <View style={styles.bookingButtonContent}>
+              <View style={styles.bookingIconContainer}>
+                <Ionicons name="calendar" size={22} color="#FFFFFF" />
+              </View>
+              <View style={styles.bookingTextContainer}>
+                <Text style={styles.bookingTitle}>Đặt lịch tư vấn</Text>
+                <View style={{ gap: 4 }}>
+                  <Text style={styles.bookingSubtitle}>
+                    Hẹn gặp chuyên gia tâm lý cho
+                  </Text>
+                  <Text style={styles.bookingChildName}>
+                    {selectedChild.fullName}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.bookingArrowContainer}>
+                <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+              </View>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const renderStatistics = () => {
+    const { statistics } = dashboardData;
+
+    return (
+      <>
+        <SectionHeader
+          title="Thống kê tổng quan"
+          subtitle="Dữ liệu 30 ngày gần nhất"
+          showViewAll={false}
+        />
+
+        <View style={styles.statisticsGrid}>
+          <StatisticsCard
+            title="Bài khảo sát"
+            value={statistics.completedSurveys || 0}
+            change={statistics.completedSurveys > 0 ? "+12%" : "0%"}
+            changeType={
+              statistics.completedSurveys > 0 ? "positive" : "neutral"
+            }
+            icon="document-text"
+            color="#3B82F6"
+            subtitle="Đã hoàn thành"
+            trend={statistics.completedSurveys > 0 ? "up" : "neutral"}
+            percentage={statistics.completedSurveys > 0 ? 12 : 0}
+            size="small"
+          />
+          <StatisticsCard
+            title="Điểm trung bình"
+            value={statistics.averageScore || 0}
+            change={statistics.averageScore > 0 ? "+2.1" : "0"}
+            changeType={statistics.averageScore > 0 ? "positive" : "neutral"}
+            icon="trending-up"
+            color="#10B981"
+            subtitle="Trên 10"
+            trend={statistics.averageScore > 0 ? "up" : "neutral"}
+            percentage={statistics.averageScore > 0 ? 21 : 0}
+            size="small"
+          />
+          <StatisticsCard
+            title="Lịch hẹn"
+            value={statistics.activeAppointments || 0}
+            change={statistics.activeAppointments > 0 ? "+3" : "0"}
+            changeType={
+              statistics.activeAppointments > 0 ? "positive" : "neutral"
+            }
+            icon="calendar"
+            color="#F59E0B"
+            subtitle="Đã lên lịch"
+            trend={statistics.activeAppointments > 0 ? "up" : "neutral"}
+            percentage={statistics.activeAppointments > 0 ? 15 : 0}
+            size="small"
+          />
+          <StatisticsCard
+            title="Chương trình hỗ trợ"
+            value={statistics.activePrograms || 0}
+            change={statistics.activePrograms > 0 ? "+1" : "0"}
+            changeType={statistics.activePrograms > 0 ? "positive" : "neutral"}
+            icon="heart"
+            color="#EF4444"
+            subtitle="Đang tham gia"
+            trend={statistics.activePrograms > 0 ? "up" : "neutral"}
+            percentage={statistics.activePrograms > 0 ? 8 : 0}
+            size="small"
+          />
+        </View>
+      </>
+    );
+  };
+
+  const renderCharts = () => {
+    return (
+      <>
+        {/* <SectionHeader
+          title="Biểu đồ thống kê"
+          subtitle="Xu hướng 7 ngày gần nhất"
+          showViewAll={false}
+        />
+
+        <View style={styles.chartsContainer}>
+          <Chart
+            title="Điểm khảo sát"
+            data={chartData}
+            type="line"
+            color="#10B981"
+          />
+          <Chart
+            title="Số bài khảo sát"
+            data={chartData}
+            type="bar"
+            color="#3B82F6"
+          />
+        </View> */}
+      </>
+    );
+  };
+
+  const renderAssessmentScores = () => {
+    const { assessmentScores } = dashboardData;
+
+    if (assessmentScores.length === 0) return null;
+
+    return (
+      <>
+        <SectionHeader
+          title="Đánh giá chi tiết"
+          subtitle="Kết quả khảo sát gần nhất"
+          showViewAll={false}
+        />
+        <AssessmentScoreChart
+          scores={assessmentScores}
+          title="Phân tích đánh giá"
+        />
+      </>
+    );
+  };
+
+  const renderSurveyRecords = () => {
+    const { surveyRecords } = dashboardData;
+
+    return (
+      <>
+        <SectionHeader
+          title="Bài khảo sát gần đây"
+          subtitle={`${surveyRecords.length} bài khảo sát`}
+          onViewAll={handleViewAllSurveys}
+        />
+
+        {surveyRecords.length > 0 ? (
+          surveyRecords
+            .slice(0, 3)
+            .map((record, index) => (
+              <RecordCard
+                key={record.id || index}
+                type="survey"
+                title={record.survey?.name || record.name}
+                subtitle={record.survey?.surveyCode || record.surveyCode}
+                date={record.completedAt || record.createdAt}
+                status={record.status}
+                score={record.totalScore}
+                icon="document-text"
+                color="#3B82F6"
+                onPress={() => handleViewSurveyDetail(record)}
+              />
+            ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
+            <Text style={styles.emptySubtitle}>
+              Con của bạn chưa hoàn thành bài khảo sát nào
+            </Text>
+          </View>
+        )}
+      </>
+    );
+  };
+
+  const renderAppointmentRecords = () => {
+    const { appointmentRecords } = dashboardData;
+
+    return (
+      <>
+        <SectionHeader
+          title="Lịch hẹn gần đây"
+          subtitle={`${appointmentRecords.length} lịch hẹn`}
+          onViewAll={handleViewAllAppointments}
+        />
+
+        {appointmentRecords.length > 0 ? (
+          appointmentRecords
+            .slice(0, 3)
+            .map((record, index) => (
+              <RecordCard
+                key={record.id || index}
+                type="appointment"
+                title={record.title || record.appointmentType}
+                subtitle={record.description}
+                date={record.appointmentDate || record.createdAt}
+                status={record.status}
+                icon="calendar"
+                color="#F59E0B"
+                onPress={() => handleViewAppointmentDetail(record)}
+              />
+            ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
+            <Text style={styles.emptySubtitle}>
+              Chưa có lịch hẹn nào được lên lịch
+            </Text>
+          </View>
+        )}
+      </>
+    );
+  };
+
+  const renderSupportProgramRecords = () => {
+    const { supportProgramRecords } = dashboardData;
+
+    return (
+      <>
+        <SectionHeader
+          title="Chương trình hỗ trợ"
+          subtitle={`${supportProgramRecords.length} chương trình`}
+          onViewAll={handleViewAllSupportPrograms}
+        />
+
+        {supportProgramRecords.length > 0 ? (
+          supportProgramRecords
+            .slice(0, 3)
+            .map((record, index) => (
+              <RecordCard
+                key={record.id || index}
+                type="support"
+                title={record.programName || record.title}
+                subtitle={record.description}
+                date={record.startDate || record.createdAt}
+                status={record.status}
+                icon="heart"
+                color="#EF4444"
+                onPress={() => handleViewProgramDetail(record)}
+              />
+            ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyTitle}>Chưa có chương trình hỗ trợ</Text>
+            <Text style={styles.emptySubtitle}>
+              Chưa có chương trình hỗ trợ nào được đề xuất
+            </Text>
+          </View>
+        )}
+      </>
+    );
+  };
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -145,73 +641,10 @@ export default function ParentHome({
       }
     >
       {/* Child Selection Header */}
-      {user?.children && user.children.length > 1 && (
-        <View style={styles.childSelectionContainer}>
-          <Text style={styles.childSelectionTitle}>Select Child</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.childSelectionScroll}
-          >
-            {user.children.map((child, index) => (
-              <TouchableOpacity
-                key={child.userId}
-                style={[
-                  styles.childOption,
-                  selectedChild?.userId === child.userId &&
-                    styles.childOptionActive,
-                ]}
-                onPress={() => handleChildSelect(child)}
-              >
-                <View style={styles.childAvatarContainer}>
-                  <Text style={styles.childAvatarText}>
-                    {child.fullName?.charAt(0)?.toUpperCase() || "C"}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.childName,
-                    selectedChild?.userId === child.userId &&
-                      styles.childNameActive,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {child.fullName}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+      {renderChildSelection()}
 
       {/* Selected Child Info */}
-      {selectedChild && (
-        <View style={styles.selectedChildContainer}>
-          <View style={styles.selectedChildHeader}>
-            <View style={styles.selectedChildAvatar}>
-              <Text style={styles.selectedChildAvatarText}>
-                {selectedChild.fullName?.charAt(0)?.toUpperCase() || "C"}
-              </Text>
-            </View>
-            <View style={styles.selectedChildInfo}>
-              <Text style={styles.selectedChildName}>
-                {selectedChild.fullName}
-              </Text>
-              <Text style={styles.selectedChildStatus}>
-                {selectedChild.isEnable ? (
-                  <Text style={styles.selectedChildStatusActive}>
-                    Đang nhận bài khảo sát
-                  </Text>
-                ) : (
-                  <Text style={styles.selectedChildStatusInactive}>
-                    Đã ngưng nhận bài khảo sát
-                  </Text>
-                )}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
+      {renderSelectedChildInfo()}
 
       {/* Dashboard Content */}
       {loading ? (
@@ -219,243 +652,42 @@ export default function ParentHome({
           <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
           <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
         </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
+          <Text style={styles.errorTitle}>Có lỗi xảy ra</Text>
+          <Text style={styles.errorSubtitle}>{error}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={loadDashboardData}
+          >
+            <Text style={styles.retryButtonText}>Thử lại</Text>
+          </TouchableOpacity>
+        </View>
       ) : selectedChild ? (
         <>
           {/* Quick Booking Button */}
-          <View style={styles.bookingSection}>
-            <TouchableOpacity
-              style={styles.bookingButton}
-              onPress={handleBooking}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={["#4CAF50", "#45a049"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.bookingGradient}
-              >
-                <View style={styles.bookingButtonContent}>
-                  <View style={styles.bookingIconContainer}>
-                    <Ionicons name="calendar" size={22} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.bookingTextContainer}>
-                    <Text style={styles.bookingTitle}>Đặt lịch tư vấn</Text>
-                    <View style={{ gap: 4 }}>
-                      <Text style={styles.bookingSubtitle}>
-                        Hẹn gặp chuyên gia tâm lý cho
-                      </Text>
-
-                      <Text
-                        style={{
-                          fontWeight: 600,
-                          color: "#FFFFFF",
-                        }}
-                      >
-                        {selectedChild.fullName}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.bookingArrowContainer}>
-                    <Ionicons
-                      name="chevron-forward"
-                      size={18}
-                      color="#FFFFFF"
-                    />
-                  </View>
-                </View>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
+          {renderBookingSection()}
 
           {/* Statistics Section */}
-          <SectionHeader
-            title="Thống kê tổng quan"
-            subtitle="Dữ liệu 30 ngày gần nhất"
-            showViewAll={false}
-          />
-
-          <View style={styles.statisticsGrid}>
-            <StatisticsCard
-              title="Bài khảo sát"
-              value={dashboardData.surveyRecords.length || 0}
-              change={"+12%"}
-              changeType="positive"
-              icon="document-text"
-              color="#3B82F6"
-              subtitle="Đã hoàn thành"
-            />
-            <StatisticsCard
-              title="Điểm trung bình"
-              value={0}
-              change={"+2.1"}
-              changeType="positive"
-              icon="trending-up"
-              color="#10B981"
-              subtitle="Trên 10"
-            />
-            <StatisticsCard
-              title="Lịch hẹn"
-              value={0}
-              change={"+3"}
-              changeType="positive"
-              icon="calendar"
-              color="#F59E0B"
-              subtitle="Đã lên lịch"
-            />
-            <StatisticsCard
-              title="Chương trình hỗ trợ"
-              value={0}
-              change={"+1"}
-              changeType="positive"
-              icon="heart"
-              color="#EF4444"
-              subtitle="Đang tham gia"
-            />
-          </View>
+          {renderStatistics()}
 
           {/* Charts Section */}
-          <SectionHeader
-            title="Biểu đồ thống kê"
-            subtitle="Xu hướng 7 ngày gần nhất"
-            showViewAll={false}
-          />
+          {renderCharts()}
 
-          <View style={styles.chartsContainer}>
-            <Chart
-              title="Điểm khảo sát"
-              data={[
-                { label: "T2", value: 8 },
-                { label: "T3", value: 7 },
-                { label: "T4", value: 9 },
-                { label: "T5", value: 8 },
-                { label: "T6", value: 9 },
-                { label: "T7", value: 8 },
-                { label: "CN", value: 9 },
-              ]}
-              type="line"
-              color="#10B981"
-            />
-            <Chart
-              title="Số bài khảo sát"
-              data={[
-                { label: "T2", value: 2 },
-                { label: "T3", value: 1 },
-                { label: "T4", value: 3 },
-                { label: "T5", value: 2 },
-                { label: "T6", value: 1 },
-                { label: "T7", value: 2 },
-                { label: "CN", value: 1 },
-              ]}
-              type="bar"
-              color="#3B82F6"
-            />
-          </View>
+          {/* Assessment Scores Section */}
+          {renderAssessmentScores()}
 
           {/* Survey Records Section */}
-          <SectionHeader
-            title="Bài khảo sát gần đây"
-            subtitle={`${dashboardData.surveyRecords.length} bài khảo sát`}
-            onViewAll={handleViewAllSurveys}
-          />
-
-          {dashboardData.surveyRecords.length > 0 ? (
-            dashboardData.surveyRecords
-              .slice(0, 3)
-              .map((record, index) => (
-                <RecordCard
-                  key={record.id || index}
-                  type="survey"
-                  title={record.survey.name || record.name}
-                  subtitle={record.survey.surveyCode}
-                  date={record.completedAt || record.createdAt}
-                  status={record.status}
-                  score={record.totalScore}
-                  icon="document-text"
-                  color="#3B82F6"
-                  onPress={() => handleViewSurveyDetail(record)}
-                />
-              ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={48}
-                color="#9CA3AF"
-              />
-              <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
-              <Text style={styles.emptySubtitle}>
-                Con của bạn chưa hoàn thành bài khảo sát nào
-              </Text>
-            </View>
-          )}
+          {renderSurveyRecords()}
           <View style={styles.space} />
 
           {/* Appointment Records Section */}
-          <SectionHeader
-            title="Lịch hẹn gần đây"
-            subtitle={`${dashboardData.appointmentRecords.length} lịch hẹn`}
-            onViewAll={handleViewAllAppointments}
-          />
-
-          {dashboardData.appointmentRecords.length > 0 ? (
-            dashboardData.appointmentRecords
-              .slice(0, 3)
-              .map((record, index) => (
-                <RecordCard
-                  key={record.id || index}
-                  type="appointment"
-                  title={record.title || record.appointmentType}
-                  subtitle={record.description}
-                  date={record.appointmentDate || record.createdAt}
-                  status={record.status}
-                  icon="calendar"
-                  color="#F59E0B"
-                  onPress={() => {}}
-                />
-              ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-              <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
-              <Text style={styles.emptySubtitle}>
-                Chưa có lịch hẹn nào được lên lịch
-              </Text>
-            </View>
-          )}
+          {renderAppointmentRecords()}
           <View style={styles.space} />
 
           {/* Support Program Records Section */}
-          <SectionHeader
-            title="Chương trình hỗ trợ"
-            subtitle={`${dashboardData.supportProgramRecords.length} chương trình`}
-            onViewAll={handleViewAllSupportPrograms}
-          />
-
-          {dashboardData.supportProgramRecords.length > 0 ? (
-            dashboardData.supportProgramRecords
-              .slice(0, 3)
-              .map((record, index) => (
-                <RecordCard
-                  key={record.id || index}
-                  type="support"
-                  title={record.programName || record.title}
-                  subtitle={record.description}
-                  date={record.startDate || record.createdAt}
-                  status={record.status}
-                  icon="heart"
-                  color="#EF4444"
-                  onPress={() => {}}
-                />
-              ))
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
-              <Text style={styles.emptyTitle}>Chưa có chương trình hỗ trợ</Text>
-              <Text style={styles.emptySubtitle}>
-                Chưa có chương trình hỗ trợ nào được đề xuất
-              </Text>
-            </View>
-          )}
+          {renderSupportProgramRecords()}
         </>
       ) : (
         <View style={styles.emptyContainer}>
@@ -660,6 +892,11 @@ const styles = StyleSheet.create({
   selectedChildStatusInactive: {
     color: "#EF4444",
   },
+  childSettingsButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -671,10 +908,42 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     marginTop: 16,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#EF4444",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+    marginBottom: 24,
+    paddingHorizontal: 40,
+  },
+  retryButton: {
+    backgroundColor: "#EF4444",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
   statisticsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
+    gap: 12,
     marginBottom: 32,
   },
   chartsContainer: {
@@ -699,7 +968,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingHorizontal: 40,
   },
-
   space: {
     marginBottom: 20,
   },
@@ -749,6 +1017,10 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.85)",
     fontWeight: "400",
     lineHeight: 18,
+  },
+  bookingChildName: {
+    fontWeight: 600,
+    color: "#FFFFFF",
   },
   bookingArrowContainer: {
     width: 28,

@@ -1,628 +1,711 @@
-import React, { useState, useCallback, memo } from 'react'
+import React, { useState, useCallback, useEffect, memo } from 'react'
 import {
   Card,
   Button,
   Typography,
-  Badge,
-  Checkbox,
-  Row,
-  Col,
-  Space,
+  Tabs,
+  Collapse,
   Select,
   Input,
+  Progress,
+  Alert,
+  Space,
+  Divider,
+  Tooltip,
+  Badge,
+  Row,
+  Col,
 } from 'antd'
 import {
-  CloseCircleOutlined,
+  InfoCircleOutlined,
+  SaveOutlined,
   CheckCircleOutlined,
-  ArrowLeftOutlined,
+  ExclamationCircleOutlined,
+  UserOutlined,
+  FileTextOutlined,
+  BarChartOutlined,
+  SafetyOutlined,
 } from '@ant-design/icons'
-import { reportData } from '../../constants/appointmentReport'
-import {
-  SESSION_FLOW_OPTIONS,
-  STUDENT_COOP_LEVEL_OPTIONS,
-} from '../../constants/assessmentOptions'
+import { reportScore } from '../../constants/appointmentReport'
 
-const { Title, Text } = Typography
+const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
+const { Panel } = Collapse
+const { TabPane } = Tabs
+
+// Helper function to get score color
+const getScoreColor = (score, t) => {
+  if (score <= 1)
+    return {
+      color: '#52c41a',
+      label: t('assessmentForm.scoreLevel.low'),
+      bg: '#f6ffed',
+    }
+  if (score <= 3)
+    return {
+      color: '#faad14',
+      label: t('assessmentForm.scoreLevel.medium'),
+      bg: '#fffbe6',
+    }
+  return {
+    color: '#ff4d4f',
+    label: t('assessmentForm.scoreLevel.high'),
+    bg: '#fff2f0',
+  }
+}
 
 const AssessmentForm = memo(
   ({
     isVisible,
     onClose,
     onSubmit,
-    _t,
+    t,
     isDarkMode,
-    appointmentId,
     loading = false,
+    message,
+    categories,
   }) => {
-    // State cho form assessment
-    const [selectedMentalHealth, setSelectedMentalHealth] = useState([])
-    const [selectedEnvironment, setSelectedEnvironment] = useState([])
-    const [sessionFlow, setSessionFlow] = useState('GOOD')
-    const [studentCoopLevel, setStudentCoopLevel] = useState('HIGH')
-    const [showResults, setShowResults] = useState(false)
-    const [totalScoreData, setTotalScoreData] = useState(null)
+    // State for form data
+    const [formData, setFormData] = useState({
+      sessionNotes: '',
+      noteSummary: '',
+      noteSuggestion: '',
+      sessionFlow: 'AVERAGE',
+      studentCoopLevel: 'MEDIUM',
+      assessmentScores: [],
+    })
 
-    // State cho note tổng hợp
-    const [noteSummary, setNoteSummary] = useState('')
-    const [noteSuggest, setNoteSuggest] = useState('')
+    // State for tracking progress
+    const [progress, setProgress] = useState(0)
+    const [expandedPanels, setExpandedPanels] = useState([])
 
-    // Hàm tính điểm tổng
-    const calculateTotalScore = useCallback(data => {
-      const mentalHealthScore = data.mental_health.reduce(
-        (sum, item) => sum + item.score,
-        0
-      )
-      const environmentScore = data.environment.reduce(
-        (sum, item) => sum + item.score,
-        0
-      )
+    // State for high-risk warnings
+    const [highRiskWarnings, setHighRiskWarnings] = useState([])
 
-      return {
-        totalScore: mentalHealthScore + environmentScore,
-        breakdown: {
-          mental_health: mentalHealthScore,
-          environment: environmentScore,
-        },
+    // Initialize assessment scores
+    useEffect(() => {
+      const initialScores = categories.map(category => ({
+        categoryId: category.id,
+        severityScore: 0,
+        frequencyScore: 0,
+        impairmentScore: 0,
+        chronicityScore: 0,
+      }))
+
+      // console.log('initialScores', initialScores)
+
+      setFormData(prev => ({
+        ...prev,
+        assessmentScores: initialScores,
+      }))
+    }, [categories])
+    // console.log('formData', formData)
+
+    // Calculate progress
+    useEffect(() => {
+      const totalFields = 3 + categories.length * 3 // session notes + summary + suggestion + each assessment item * 3 questions
+      let completedFields = 0
+
+      if (formData.sessionNotes.trim()) completedFields++
+      if (formData.noteSummary.trim()) completedFields++
+      if (formData.noteSuggestion.trim()) completedFields++
+      ;(formData.assessmentScores || []).forEach(score => {
+        if (score && score.severityScore > 0) completedFields++
+        if (score && score.frequencyScore > 0) completedFields++
+        if (score && score.impairmentScore > 0) completedFields++
+        if (score && score.chronicityScore > 0) completedFields++
+      })
+
+      setProgress(Math.round((completedFields / totalFields) * 100))
+    }, [formData, categories])
+
+    // Check for high-risk items
+    useEffect(() => {
+      const warnings = []
+      ;(formData.assessmentScores || []).forEach(score => {
+        if (
+          score &&
+          (score.frequencyScore >= 4 ||
+            score.impairmentScore >= 4 ||
+            score.chronicityScore >= 4 ||
+            score.severityScore >= 4)
+        ) {
+          const item = categories.find(c => c.id === score.categoryId)
+          warnings.push({
+            type: 'error',
+            message: `${t('assessmentForm.warnings.highRisk')}: ${item?.name} - ${t('assessmentForm.warnings.highRiskDescription')}`,
+            item: item,
+          })
+        }
+      })
+      setHighRiskWarnings(warnings)
+    }, [formData.assessmentScores])
+
+    // Auto-save to localStorage
+    useEffect(() => {
+      if (progress > 0) {
+        localStorage.setItem('assessmentFormData', JSON.stringify(formData))
+        localStorage.setItem('assessmentFormProgress', progress.toString())
       }
-    }, [])
+    }, [formData, progress])
 
-    // Hàm tạo note tổng hợp
-    const generateCombinedNotes = useCallback((mentalHealth, environment) => {
-      const allSelected = [...mentalHealth, ...environment]
-      const summaries = allSelected
-        .map(item => item.noteSummary)
-        .filter(Boolean)
-      const suggestions = allSelected
-        .map(item => item.noteSuggest)
-        .filter(Boolean)
+    // Load from localStorage on mount
+    useEffect(() => {
+      const savedData = localStorage.getItem('assessmentFormData')
+      const savedProgress = localStorage.getItem('assessmentFormProgress')
 
-      setNoteSummary(summaries.join('. '))
-      setNoteSuggest(suggestions.join('. '))
-    }, [])
+      if (savedData) {
+        setFormData(JSON.parse(savedData))
+        if (savedProgress) {
+          setProgress(parseInt(savedProgress))
+          message.success(t('assessmentForm.form.messages.saveSuccess'))
+        }
+      }
+    }, [t, message])
 
-    // Hàm xử lý khi checkbox mental health thay đổi
-    const handleMentalHealthChange = useCallback(
-      checkedValues => {
-        const selected = reportData.mental_health.data.filter(item =>
-          checkedValues.includes(item.id)
-        )
-        setSelectedMentalHealth(selected)
-        generateCombinedNotes(selected, selectedEnvironment)
+    // Handle assessment score changes
+    const handleAssessmentScoreChange = useCallback(
+      (categoryId, field, value) => {
+        setFormData(prev => {
+          const newScores = [...(prev.assessmentScores || [])]
+          const categoryIndex = newScores.findIndex(
+            score => score.categoryId === categoryId
+          )
+
+          if (categoryIndex === -1) {
+            newScores.push({
+              categoryId: categoryId,
+              severityScore: 0,
+              frequencyScore: 0,
+              impairmentScore: 0,
+              chronicityScore: 0,
+            })
+          }
+          newScores[categoryIndex] = {
+            ...newScores[categoryIndex],
+            [field]: value,
+          }
+
+          return {
+            ...prev,
+            assessmentScores: newScores,
+          }
+        })
       },
-      [selectedEnvironment, generateCombinedNotes]
+      []
     )
 
-    // Hàm xử lý khi checkbox environment thay đổi
-    const handleEnvironmentChange = useCallback(
-      checkedValues => {
-        const selected = reportData.environment.data.filter(item =>
-          checkedValues.includes(item.id)
-        )
-        setSelectedEnvironment(selected)
-        generateCombinedNotes(selectedMentalHealth, selected)
-      },
-      [selectedMentalHealth, generateCombinedNotes]
-    )
+    // Handle form field changes
+    const handleFormFieldChange = useCallback((field, value) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value,
+      }))
+    }, [])
 
-    // Hàm xử lý khi submit form
+    // Handle panel expand/collapse
+    const handlePanelChange = useCallback(keys => {
+      setExpandedPanels(keys)
+    }, [])
+
+    // Handle form submission
     const handleSubmit = useCallback(() => {
-      const data = {
-        mental_health: selectedMentalHealth,
-        environment: selectedEnvironment,
+      // Validate required fields
+      if (!formData.sessionNotes.trim()) {
+        message.error(t('assessmentForm.form.validation.sessionNotesRequired'))
+        return
       }
 
-      const scoreData = calculateTotalScore(data)
-      setTotalScoreData(scoreData)
-      setShowResults(true)
-    }, [selectedMentalHealth, selectedEnvironment, calculateTotalScore])
-
-    // Hàm xử lý khi xác nhận đánh giá cuối cùng
-    const handleFinalSubmit = useCallback(() => {
-      const submitData = {
-        appointmentId: appointmentId,
-        sessionFlow: sessionFlow,
-        studentCoopLevel: studentCoopLevel,
-        status: 'SUBMITTED',
-        appointmentStatus: 'COMPLETED',
-        noteSummary: noteSummary,
-        noteSuggest: noteSuggest,
-        reason: '',
-        totalScore: totalScoreData.totalScore,
-        reportCategoryRequests: [
-          {
-            categoryId: reportData.mental_health.id,
-            score: totalScoreData.breakdown.mental_health,
-          },
-          {
-            categoryId: reportData.environment.id,
-            score: totalScoreData.breakdown.environment,
-          },
-        ],
+      if (!formData.noteSummary.trim()) {
+        message.error(t('assessmentForm.form.validation.noteSummaryRequired'))
+        return
       }
 
-      onSubmit && onSubmit(submitData)
+      if (!formData.noteSuggestion.trim()) {
+        message.error(
+          t('assessmentForm.form.validation.noteSuggestionRequired')
+        )
+        return
+      }
+
+      // Check if at least one assessment item has been evaluated
+      // const hasAssessments = (formData.assessmentScores || []).some(
+      //   score =>
+      //     score &&
+      //     (score.frequencyScore > 0 ||
+      //       score.impairmentScore > 0 ||
+      //       score.chronicityScore > 0 ||
+      //       score.severityScore > 0)
+      // )
+
+      // if (!hasAssessments) {
+      //   message.error(t('assessmentForm.form.validation.assessmentRequired'))
+      //   return
+      // }
+
+      // Show high-risk warning if applicable
+      if (highRiskWarnings.some(w => w.type === 'error')) {
+        message.warning(t('assessmentForm.warnings.highRisk'))
+      }
+
+      // Clear localStorage
+      localStorage.removeItem('assessmentFormData')
+      localStorage.removeItem('assessmentFormProgress')
+
+      // Submit data
+      onSubmit && onSubmit(formData)
       onClose()
-    }, [
-      appointmentId,
-      sessionFlow,
-      studentCoopLevel,
-      noteSummary,
-      noteSuggest,
-      totalScoreData,
-      onSubmit,
-      onClose,
-    ])
+    }, [formData, highRiskWarnings, onSubmit, onClose, t, message])
 
-    // Hàm reset form
+    // Reset form
     const handleReset = useCallback(() => {
-      setSelectedMentalHealth([])
-      setSelectedEnvironment([])
-      setSessionFlow('GOOD')
-      setStudentCoopLevel('HIGH')
-      setNoteSummary('')
-      setNoteSuggest('')
-      setShowResults(false)
-      setTotalScoreData(null)
-    }, [])
+      setFormData({
+        sessionNotes: '',
+        noteSummary: '',
+        noteSuggestion: '',
+        sessionFlow: 'AVERAGE',
+        studentCoopLevel: 'MEDIUM',
+        assessmentScores: categories.map(category => ({
+          categoryId: category.id,
+          severityScore: 0,
+          frequencyScore: 0,
+          impairmentScore: 0,
+          chronicityScore: 0,
+        })),
+      })
+      setProgress(0)
+      setExpandedPanels([])
+      setHighRiskWarnings([])
 
-    // Hàm đóng modal
+      localStorage.removeItem('assessmentFormData')
+      localStorage.removeItem('assessmentFormProgress')
+
+      message.info(t('assessmentForm.form.messages.resetSuccess'))
+    }, [t, message])
+
+    // Close form
     const handleClose = useCallback(() => {
       handleReset()
       onClose()
     }, [handleReset, onClose])
 
-    // Hàm lấy màu sắc theo điểm
-    const getScoreColor = useCallback(score => {
-      if (score <= 5) return { color: '#52c41a', label: 'Thấp', bg: '#f6ffed' }
-      if (score <= 12)
-        return { color: '#faad14', label: 'Trung bình', bg: '#fffbe6' }
-      return { color: '#ff4d4f', label: 'Cao', bg: '#fff2f0' }
-    }, [])
+    // Render assessment item header
+    const renderAssessmentItemHeader = useCallback(
+      item => {
+        const score = (formData.assessmentScores &&
+          formData.assessmentScores.find(s => s.categoryId === item.id)) || {
+          severityScore: 0,
+          frequencyScore: 0,
+          impairmentScore: 0,
+          chronicityScore: 0,
+        }
+        const isHighRisk =
+          score &&
+          ((score.frequencyScore ?? 0) >= 4 ||
+            (score.impairmentScore ?? 0) >= 4 ||
+            (score.chronicityScore ?? 0) >= 4)
+        const scoreColor = getScoreColor(
+          score ? (score.severityScore ?? 0) : 0,
+          t
+        )
 
-    // Render checkbox table
-    const renderCheckboxTable = useCallback(
-      (title, data, selectedData, onChange, color) => (
-        <Card
-          title={
-            <Text strong style={{ color }}>
-              {title}
-            </Text>
-          }
-          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
-        >
-          <div className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-            Tick những vấn đề được ghi nhận (điểm từ 0-4)
-          </div>
-          <Checkbox.Group
-            style={{ width: '100%' }}
-            onChange={onChange}
-            value={selectedData.map(item => item.id)}
-          >
-            <div className="space-y-2 flex flex-row gap-2 flex-wrap w-full">
-              {data.map(item => (
-                <div
-                  key={item.id}
-                  className="min-w-[300px] flex flex-row justify-end items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <Checkbox value={item.id} className="w-full">
-                    <div className="w-full flex gap-6 items-center">
-                      <Text className="text-gray-800 dark:text-gray-200">
-                        {item.label}
-                      </Text>
-                      {/* <Badge
-                        count={item.score}
-                        style={{
-                          backgroundColor:
-                            item.score >= 4
-                              ? '#ff4d4f'
-                              : item.score >= 3
-                                ? '#fa8c16'
-                                : item.score >= 2
-                                  ? '#faad14'
-                                  : '#52c41a',
-                        }}
-                        title={`Điểm nghiêm trọng: ${item.score}`}
-                      /> */}
-                    </div>
-                  </Checkbox>
-                </div>
-              ))}
+        return (
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <Text strong>{item?.name}</Text>
+              {isHighRisk && (
+                <Badge
+                  count={
+                    <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />
+                  }
+                  style={{ backgroundColor: '#fff2f0' }}
+                />
+              )}
             </div>
-          </Checkbox.Group>
-        </Card>
-      ),
-      [isDarkMode]
+            <div className="flex items-center gap-2">
+              <Text className="text-sm text-gray-500">
+                {t('assessmentForm.totalScore')}:{' '}
+                {score ? (score.severityScore ?? 0) : 0}
+              </Text>
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: scoreColor.color }}
+              />
+            </div>
+          </div>
+        )
+      },
+      [formData.assessmentScores, t]
+    )
+
+    // Render assessment item content
+    const renderAssessmentItemContent = useCallback(
+      item => {
+        const score = (formData.assessmentScores &&
+          formData.assessmentScores.find(s => s.categoryId === item.id)) || {
+          severityScore: 0,
+          frequencyScore: 0,
+          impairmentScore: 0,
+          chronicityScore: 0,
+        }
+        const isHighRisk =
+          score &&
+          ((score.frequencyScore ?? 0) >= 4 ||
+            (score.impairmentScore ?? 0) >= 4 ||
+            (score.chronicityScore ?? 0) >= 4)
+
+        return (
+          <div className="space-y-4">
+            {/* <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+              <Text className="text-sm text-gray-600 dark:text-gray-400">
+                <strong>{t('common.description')}:</strong> {item.description}
+              </Text>
+              <br />
+              <Text className="text-xs text-gray-500 dark:text-gray-500">
+                <strong>{t('common.reference')}:</strong> {item.reference}
+              </Text>
+            </div> */}
+
+            <Row gutter={[16, 16]}>
+              <Col span={8}>
+                <div className="space-y-2">
+                  <Text strong>{t('appointmentRecord.severity')}</Text>
+                  <Select
+                    value={score ? (score.severityScore ?? 0) : 0}
+                    onChange={value =>
+                      handleAssessmentScoreChange(
+                        item.id,
+                        'severityScore',
+                        value
+                      )
+                    }
+                    style={{ width: '100%' }}
+                    placeholder={t('assessmentForm.options.severity.0')}
+                  >
+                    {reportScore.severity.options.map(option => (
+                      <Select.Option key={option.score} value={option.score}>
+                        {option.text} ({option.score})
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+              </Col>
+
+              <Col span={8}>
+                <div className="space-y-2">
+                  <Text strong>{t('appointmentRecord.frequency')}</Text>
+                  <Select
+                    value={score ? (score.frequencyScore ?? 0) : 0}
+                    onChange={value =>
+                      handleAssessmentScoreChange(
+                        item.id,
+                        'frequencyScore',
+                        value
+                      )
+                    }
+                    style={{ width: '100%' }}
+                    placeholder={t('assessmentForm.options.frequency.0')}
+                  >
+                    {reportScore.frequency.options.map(option => (
+                      <Select.Option key={option.score} value={option.score}>
+                        {option.text} ({option.score})
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+              </Col>
+
+              <Col span={8}>
+                <div className="space-y-2">
+                  <Text strong>{t('appointmentRecord.impairment')}</Text>
+                  <Select
+                    value={score ? (score.impairmentScore ?? 0) : 0}
+                    onChange={value =>
+                      handleAssessmentScoreChange(
+                        item.id,
+                        'impairmentScore',
+                        value
+                      )
+                    }
+                    style={{ width: '100%' }}
+                    placeholder={t('assessmentForm.options.impairment.0')}
+                  >
+                    {reportScore.impairment.options.map(option => (
+                      <Select.Option key={option.score} value={option.score}>
+                        {option.text} ({option.score})
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+              </Col>
+
+              <Col span={8}>
+                <div className="space-y-2">
+                  <Text strong>{t('appointmentRecord.chronicity')}</Text>
+                  <Select
+                    value={score ? (score.chronicityScore ?? 0) : 0}
+                    onChange={value =>
+                      handleAssessmentScoreChange(
+                        item.id,
+                        'chronicityScore',
+                        value
+                      )
+                    }
+                    style={{ width: '100%' }}
+                    placeholder={t('assessmentForm.options.chronicity.0')}
+                  >
+                    {reportScore.chronicity.options.map(option => (
+                      <Select.Option key={option.score} value={option.score}>
+                        {option.text} ({option.score})
+                      </Select.Option>
+                    ))}
+                  </Select>
+                </div>
+              </Col>
+            </Row>
+
+            {isHighRisk && (
+              <Alert
+                message={t('assessmentForm.warnings.highRiskDescription')}
+                type="warning"
+                showIcon
+                icon={<SafetyOutlined />}
+              />
+            )}
+          </div>
+        )
+      },
+      [formData.assessmentScores, handleAssessmentScoreChange, t]
     )
 
     if (!isVisible) return null
 
     return (
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <Card
-          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-sm`}
+          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <Title level={3} className="mb-1">
-                Form Đánh Giá Tình Trạng Học Sinh
+              <Title level={3} className="mb-2">
+                <FileTextOutlined className="mr-2" />
+                {t('assessmentForm.form.title')}
               </Title>
-              <Text className="text-gray-500 dark:text-gray-400">
-                Đánh giá tổng hợp tình trạng tâm lý và môi trường học sinh
+              <Text
+                type="secondary"
+                className="text-gray-600 dark:text-gray-400"
+              >
+                {t('assessmentForm.title')}
               </Text>
             </div>
-            <Button
-              onClick={handleClose}
-              type="text"
-              icon={<CloseCircleOutlined />}
-            >
-              Đóng form
-            </Button>
+            {/* <div className="flex items-center gap-4">
+              <div className="text-right">
+                <Text className="text-sm text-gray-500">
+                  {t('assessmentForm.form.progress')}
+                </Text>
+                <div className="text-lg font-semibold">{progress}%</div>
+              </div>
+              <Progress
+                type="circle"
+                percent={progress}
+                size={60}
+                strokeColor={{
+                  '0%': '#108ee9',
+                  '100%': '#87d068',
+                }}
+              />
+            </div> */}
+          </div>
+
+          {/* Progress Bar */}
+          {/* <Progress
+            percent={progress}
+            strokeColor={{
+              '0%': '#108ee9',
+              '100%': '#87d068',
+            }}
+            showInfo={false}
+          /> */}
+        </Card>
+
+        {/* High Risk Warnings */}
+        {highRiskWarnings?.length > 0 && (
+          <div className="space-y-2">
+            {highRiskWarnings.map((warning, index) => (
+              <Alert
+                key={index}
+                message={warning.message}
+                type={warning.type}
+                showIcon
+                icon={<ExclamationCircleOutlined />}
+                action={
+                  <Button size="small" type="link">
+                    {t('common.viewDetails')}
+                  </Button>
+                }
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Main Form */}
+        <Card
+          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
+        >
+          <div className="space-y-6 p-4">
+            <Row gutter={[24, 24]}>
+              <Col span={12}>
+                <div className="space-y-2">
+                  <Text strong>{t('assessmentForm.form.sessionFlow')} *</Text>
+                  <Select
+                    value={formData.sessionFlow}
+                    onChange={value =>
+                      handleFormFieldChange('sessionFlow', value)
+                    }
+                    style={{ width: '100%' }}
+                    size="large"
+                    placeholder={t('assessmentForm.form.sessionFlow')}
+                  >
+                    <Select.Option value="LOW">
+                      {t('assessmentForm.options.sessionFlow.LOW')}
+                    </Select.Option>
+                    <Select.Option value="AVERAGE">
+                      {t('assessmentForm.options.sessionFlow.AVERAGE')}
+                    </Select.Option>
+                    <Select.Option value="GOOD">
+                      {t('assessmentForm.options.sessionFlow.GOOD')}
+                    </Select.Option>
+                  </Select>
+                </div>
+              </Col>
+
+              <Col span={12}>
+                <div className="space-y-2">
+                  <Text strong>
+                    {t('assessmentForm.form.studentCoopLevel')} *
+                  </Text>
+                  <Select
+                    value={formData.studentCoopLevel}
+                    onChange={value =>
+                      handleFormFieldChange('studentCoopLevel', value)
+                    }
+                    style={{ width: '100%' }}
+                    size="large"
+                    placeholder={t('assessmentForm.form.studentCoopLevel')}
+                  >
+                    <Select.Option value="LOW">
+                      {t('assessmentForm.options.cooperationLevel.LOW')}
+                    </Select.Option>
+                    <Select.Option value="MEDIUM">
+                      {t('assessmentForm.options.cooperationLevel.MEDIUM')}
+                    </Select.Option>
+                    <Select.Option value="HIGH">
+                      {t('assessmentForm.options.cooperationLevel.HIGH')}
+                    </Select.Option>
+                  </Select>
+                </div>
+              </Col>
+            </Row>
+
+            <div className="p-4">
+              <Text strong>{t('assessmentForm.form.assessement')} *</Text>
+              <Collapse
+                activeKey={expandedPanels}
+                onChange={handlePanelChange}
+                ghost
+                items={categories.map(category => ({
+                  key: category.id,
+                  label: renderAssessmentItemHeader(category),
+                  children: renderAssessmentItemContent(category),
+                  extra: (
+                    <Tooltip title={category.description}>
+                      <InfoCircleOutlined className="text-blue-500" />
+                    </Tooltip>
+                  ),
+                }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Text strong>{t('assessmentForm.form.sessionNotes')} *</Text>
+              <TextArea
+                value={formData.sessionNotes}
+                onChange={e =>
+                  handleFormFieldChange('sessionNotes', e.target.value)
+                }
+                placeholder={t('assessmentForm.form.sessionNotesPlaceholder')}
+                rows={4}
+                showCount
+                maxLength={1000}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Text strong>{t('assessmentForm.form.noteSummary')} *</Text>
+              <TextArea
+                value={formData.noteSummary}
+                onChange={e =>
+                  handleFormFieldChange('noteSummary', e.target.value)
+                }
+                placeholder={t('assessmentForm.form.noteSummaryPlaceholder')}
+                rows={3}
+                showCount
+                maxLength={500}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Text strong>{t('assessmentForm.form.noteSuggestion')} *</Text>
+              <TextArea
+                value={formData.noteSuggestion}
+                onChange={e =>
+                  handleFormFieldChange('noteSuggestion', e.target.value)
+                }
+                placeholder={t('assessmentForm.form.noteSuggestionPlaceholder')}
+                rows={3}
+                showCount
+                maxLength={500}
+                required
+              />
+            </div>
           </div>
         </Card>
 
-        {!showResults ? (
-          <Row gutter={[24, 24]}>
-            {/* Left side - Assessment Form */}
-            <Col span={16}>
-              <div className="space-y-6">
-                {/* Session Flow and Student Cooperation Level */}
-                <Card
-                  className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
-                >
-                  <Title level={4} className="mb-4">
-                    Đánh giá phiên tư vấn
-                  </Title>
-                  <Row gutter={[16, 16]}>
-                    <Col span={12}>
-                      <div className="mb-2">
-                        <Text strong>Diễn biến phiên tư vấn:</Text>
-                      </div>
-                      <Select
-                        value={sessionFlow}
-                        onChange={setSessionFlow}
-                        style={{ width: '100%' }}
-                        size="large"
-                      >
-                        {SESSION_FLOW_OPTIONS.map(option => (
-                          <Select.Option
-                            key={option.value}
-                            value={option.value}
-                          >
-                            <span style={{ color: option.color }}>
-                              {option.label}
-                            </span>
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Col>
-                    <Col span={12}>
-                      <div className="mb-2">
-                        <Text strong>Mức độ hợp tác của học sinh:</Text>
-                      </div>
-                      <Select
-                        value={studentCoopLevel}
-                        onChange={setStudentCoopLevel}
-                        style={{ width: '100%' }}
-                        size="large"
-                      >
-                        {STUDENT_COOP_LEVEL_OPTIONS.map(option => (
-                          <Select.Option
-                            key={option.value}
-                            value={option.value}
-                          >
-                            <span style={{ color: option.color }}>
-                              {option.label}
-                            </span>
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Col>
-                  </Row>
-                </Card>
-
-                {/* Mental Health Section */}
-                {renderCheckboxTable(
-                  'Tâm lý',
-                  reportData.mental_health.data,
-                  selectedMentalHealth,
-                  handleMentalHealthChange,
-                  '#1890ff'
-                )}
-
-                {/* Environment Section */}
-                {renderCheckboxTable(
-                  'Môi trường sống',
-                  reportData.environment.data,
-                  selectedEnvironment,
-                  handleEnvironmentChange,
-                  '#52c41a'
-                )}
-
-                {/* Action Buttons */}
-                <Card
-                  className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
-                >
-                  <div className="flex justify-between items-center">
-                    <Button
-                      onClick={handleReset}
-                      icon={<CloseCircleOutlined />}
-                    >
-                      Đặt lại
-                    </Button>
-                    <Space>
-                      <Button onClick={handleClose}>Hủy</Button>
-                      <Button
-                        type="primary"
-                        onClick={handleSubmit}
-                        icon={<CheckCircleOutlined />}
-                        disabled={
-                          loading ||
-                          (selectedMentalHealth.length === 0 &&
-                            selectedEnvironment.length === 0)
-                        }
-                        loading={loading}
-                      >
-                        Xác nhận đánh giá
-                      </Button>
-                    </Space>
-                  </div>
-                </Card>
-              </div>
-            </Col>
-
-            {/* Right side - Notes */}
-            <Col span={8}>
-              <div className="space-y-6 sticky top-4">
-                {/* Summary Note */}
-                <Card
-                  title="Tóm tắt tình trạng"
-                  className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} h-fit`}
-                >
-                  <TextArea
-                    value={noteSummary}
-                    onChange={e => setNoteSummary(e.target.value)}
-                    placeholder="Tóm tắt tình trạng sẽ được tạo tự động khi bạn chọn các vấn đề..."
-                    rows={6}
-                    style={{
-                      resize: 'none',
-                      border: 'none',
-                      boxShadow: 'none',
-                    }}
-                  />
-                </Card>
-
-                {/* Suggestion Note */}
-                <Card
-                  title="Gợi ý can thiệp"
-                  className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} h-fit`}
-                >
-                  <TextArea
-                    value={noteSuggest}
-                    onChange={e => setNoteSuggest(e.target.value)}
-                    placeholder="Gợi ý can thiệp sẽ được tạo tự động khi bạn chọn các vấn đề..."
-                    rows={6}
-                    style={{
-                      resize: 'none',
-                      border: 'none',
-                      boxShadow: 'none',
-                    }}
-                  />
-                </Card>
-
-                {/* Selected Items Summary */}
-                {(selectedMentalHealth.length > 0 ||
-                  selectedEnvironment.length > 0) && (
-                  <Card
-                    title="Vấn đề đã chọn"
-                    className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
-                  >
-                    <div className="space-y-3">
-                      {selectedMentalHealth.length > 0 && (
-                        <div>
-                          <Text
-                            strong
-                            className="text-blue-600 dark:text-blue-400 block mb-2"
-                          >
-                            Tâm lý ({selectedMentalHealth.length})
-                          </Text>
-                          <div className="space-y-1">
-                            {selectedMentalHealth.map(item => (
-                              <div
-                                key={item.id}
-                                className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-900 rounded"
-                              >
-                                <Text className="text-sm">{item.label}</Text>
-                                <Badge
-                                  count={item.score}
-                                  style={{ backgroundColor: '#1890ff' }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedEnvironment.length > 0 && (
-                        <div>
-                          <Text
-                            strong
-                            className="text-green-600 dark:text-green-400 block mb-2"
-                          >
-                            Môi trường ({selectedEnvironment.length})
-                          </Text>
-                          <div className="space-y-1">
-                            {selectedEnvironment.map(item => (
-                              <div
-                                key={item.id}
-                                className="flex justify-between items-center p-2 bg-green-50 dark:bg-green-900 rounded"
-                              >
-                                <Text className="text-sm">{item.label}</Text>
-                                <Badge
-                                  count={item.score}
-                                  style={{ backgroundColor: '#52c41a' }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                )}
-              </div>
-            </Col>
-          </Row>
-        ) : (
-          // Results Section
-          <Card
-            className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
-          >
-            <div className="space-y-6">
-              <div className="text-center py-4">
-                <Title level={2} className="mb-2">
-                  Kết quả đánh giá
-                </Title>
-                <Text className="text-gray-600 dark:text-gray-400">
-                  Tổng hợp điểm số và phân tích tình trạng học sinh
-                </Text>
-              </div>
-
-              {/* Session Summary */}
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Card className="text-center">
-                    <Text strong className="block mb-2">
-                      Diễn biến phiên tư vấn
-                    </Text>
-                    <div
-                      className="text-2xl font-bold"
-                      style={{
-                        color: SESSION_FLOW_OPTIONS.find(
-                          opt => opt.value === sessionFlow
-                        )?.color,
-                      }}
-                    >
-                      {
-                        SESSION_FLOW_OPTIONS.find(
-                          opt => opt.value === sessionFlow
-                        )?.label
-                      }
-                    </div>
-                  </Card>
-                </Col>
-                <Col span={12}>
-                  <Card className="text-center">
-                    <Text strong className="block mb-2">
-                      Mức độ hợp tác
-                    </Text>
-                    <div
-                      className="text-2xl font-bold"
-                      style={{
-                        color: STUDENT_COOP_LEVEL_OPTIONS.find(
-                          opt => opt.value === studentCoopLevel
-                        )?.color,
-                      }}
-                    >
-                      {
-                        STUDENT_COOP_LEVEL_OPTIONS.find(
-                          opt => opt.value === studentCoopLevel
-                        )?.label
-                      }
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-
-              {/* Total Score */}
-              <div
-                className="text-center p-6 rounded-lg"
-                style={{
-                  backgroundColor: getScoreColor(totalScoreData.totalScore).bg,
-                }}
+        {/* Action Buttons */}
+        <Card
+          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
+        >
+          <div className="flex justify-between items-center">
+            <Space>
+              <Button
+                onClick={handleReset}
+                icon={<SaveOutlined />}
+                size="large"
               >
-                <Title
-                  level={1}
-                  style={{
-                    color: getScoreColor(totalScoreData.totalScore).color,
-                    margin: 0,
-                    fontSize: '3rem',
-                  }}
-                >
-                  {totalScoreData.totalScore}
-                </Title>
-                <Text
-                  className="text-xl font-semibold"
-                  style={{
-                    color: getScoreColor(totalScoreData.totalScore).color,
-                  }}
-                >
-                  Mức độ: {getScoreColor(totalScoreData.totalScore).label}
-                </Text>
-              </div>
+                {t('assessmentForm.reset')}
+              </Button>
+              <Button onClick={handleClose} size="large">
+                {t('assessmentForm.cancel')}
+              </Button>
+            </Space>
 
-              {/* Breakdown */}
-              <Row gutter={[16, 16]}>
-                <Col span={12}>
-                  <Card className="text-center">
-                    <Title level={3} style={{ color: '#1890ff', margin: 0 }}>
-                      {totalScoreData.breakdown.mental_health}
-                    </Title>
-                    <Text>Tâm lý</Text>
-                  </Card>
-                </Col>
-                <Col span={12}>
-                  <Card className="text-center">
-                    <Title level={3} style={{ color: '#52c41a', margin: 0 }}>
-                      {totalScoreData.breakdown.environment}
-                    </Title>
-                    <Text>Môi trường</Text>
-                  </Card>
-                </Col>
-              </Row>
-
-              {/* Final Notes */}
-              {(noteSummary || noteSuggest) && (
-                <Row gutter={[16, 16]}>
-                  {noteSummary && (
-                    <Col span={12}>
-                      <Card title="Tóm tắt tình trạng">
-                        <Text>{noteSummary}</Text>
-                      </Card>
-                    </Col>
-                  )}
-                  {noteSuggest && (
-                    <Col span={12}>
-                      <Card title="Gợi ý can thiệp">
-                        <Text>{noteSuggest}</Text>
-                      </Card>
-                    </Col>
-                  )}
-                </Row>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-center space-x-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <Button
-                  onClick={() => setShowResults(false)}
-                  icon={<ArrowLeftOutlined />}
-                >
-                  Quay lại chỉnh sửa
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={handleFinalSubmit}
-                  icon={<CheckCircleOutlined />}
-                  loading={loading}
-                  disabled={loading}
-                >
-                  Hoàn thành đánh giá
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
+            <Space>
+              <Button
+                type="primary"
+                onClick={handleSubmit}
+                icon={<CheckCircleOutlined />}
+                size="large"
+                loading={loading}
+                disabled={loading || progress < 20}
+              >
+                {t('assessmentForm.complete')}
+              </Button>
+            </Space>
+          </div>
+        </Card>
       </div>
     )
   }

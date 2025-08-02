@@ -7,6 +7,9 @@ export { default as ConfirmModal } from "./common/ConfirmModal";
 export { default as Alert } from "./common/Alert";
 export { default as Dropdown } from "./common/Dropdown";
 export { default as SlotDayCard } from "./common/SlotDayCard";
+export { default as FilterSortModal } from "./common/FilterSortModal";
+export { default as SurveyRecordCard } from "./common/SurveyRecordCard";
+export { default as LazyLoader } from "./common/LazyLoader";
 
 // UI components
 export { default as Container } from "./ui/Container";
@@ -14,6 +17,9 @@ export { default as ProtectedRoute } from "./ui/ProtectedRoute";
 
 // Dashboard components
 export * from "./dashboard";
+
+// Chart components
+export * from "./charts";
 
 // Forms components (future)
 // export { default as LoginForm } from './forms/LoginForm';

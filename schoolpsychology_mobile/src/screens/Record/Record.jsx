@@ -72,7 +72,7 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Appointment Records</Text>
+              <Text style={styles.cardTitle}>Appointment History</Text>
               <Text style={styles.cardDescription}>
                 Track your counseling sessions and appointment history
               </Text>
@@ -96,7 +96,7 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Program Records</Text>
+              <Text style={styles.cardTitle}>Completed Programs</Text>
               <Text style={styles.cardDescription}>
                 Monitor your participation in support programs and activities
               </Text>

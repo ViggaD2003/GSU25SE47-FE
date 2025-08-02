@@ -1,8 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
-  appointments: [],
-  appointmentRecords: [],
+  activeAppointments: [],
+  pastAppointments: [],
+  appointmentDetails: null,
   selectedAppointment: null,
   loading: false,
   error: null,
@@ -10,6 +11,16 @@ const initialState = {
     current: 1,
     pageSize: 10,
     total: 0,
+  },
+  statistics: {
+    total: 0,
+    pending: 0,
+    confirmed: 0,
+    completed: 0,
+    cancelled: 0,
+    inProgress: 0,
+    absent: 0,
+    expired: 0,
   },
 }
 
@@ -25,13 +36,14 @@ const appointmentSlice = createSlice({
     updatePagination: (state, action) => {
       state.pagination = { ...state.pagination, ...action.payload }
     },
-    // Clear appointments
-    clearAppointments: state => {
-      state.appointments = []
+
+    // Set appointment details
+    setAppointmentDetails: (state, action) => {
+      state.appointmentDetails = action.payload
     },
-    // Clear appointment records
-    clearAppointmentRecords: state => {
-      state.appointmentRecords = []
+    // Clear appointment details
+    clearAppointmentDetails: state => {
+      state.appointmentDetails = null
     },
     // Set selected appointment
     setSelectedAppointment: (state, action) => {
@@ -41,28 +53,62 @@ const appointmentSlice = createSlice({
     clearSelectedAppointment: state => {
       state.selectedAppointment = null
     },
+    // Update statistics
+    updateStatistics: (state, action) => {
+      state.statistics = { ...state.statistics, ...action.payload }
+    },
   },
   extraReducers: builder => {
     builder
-      // getAppointments
-      .addCase('appointment/getAppointments/pending', state => {
+      // getActiveAppointments
+      .addCase('appointment/getActiveAppointments/pending', state => {
         state.loading = true
         state.error = null
       })
-      .addCase('appointment/getAppointments/fulfilled', (state, action) => {
-        state.loading = false
-        state.appointments = action.payload.data || action.payload
-        if (action.payload.pagination) {
-          state.pagination = {
-            ...state.pagination,
-            ...action.payload.pagination,
-          }
+      .addCase(
+        'appointment/getActiveAppointments/fulfilled',
+        (state, action) => {
+          state.loading = false
+          state.activeAppointments = action.payload.data || action.payload
+          state.error = null
         }
+      )
+      .addCase(
+        'appointment/getActiveAppointments/rejected',
+        (state, action) => {
+          state.loading = false
+          state.error = action.payload || 'Failed to fetch active appointments'
+        }
+      )
+
+      // getPastAppointments
+      .addCase('appointment/getPastAppointments/pending', state => {
+        state.loading = true
         state.error = null
       })
-      .addCase('appointment/getAppointments/rejected', (state, action) => {
+      .addCase('appointment/getPastAppointments/fulfilled', (state, action) => {
         state.loading = false
-        state.error = action.payload || 'Failed to fetch appointments'
+        state.pastAppointments = action.payload.data || action.payload
+        state.error = null
+      })
+      .addCase('appointment/getPastAppointments/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to fetch past appointments'
+      })
+
+      // getAppointmentById
+      .addCase('appointment/getAppointmentById/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('appointment/getAppointmentById/fulfilled', (state, action) => {
+        state.loading = false
+        state.appointmentDetails = action.payload.data || action.payload
+        state.error = null
+      })
+      .addCase('appointment/getAppointmentById/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to fetch appointment details'
       })
 
       // updateAppointment
@@ -74,11 +120,27 @@ const appointmentSlice = createSlice({
         state.loading = false
         // Update the appointment in the list
         if (action.payload && action.payload.id) {
-          const index = state.appointments.findIndex(
-            appointment => appointment.id === action.payload.id
-          )
-          if (index !== -1) {
-            state.appointments[index] = action.payload
+          const updateAppointmentInList = list => {
+            const index = list.findIndex(
+              appointment => appointment.id === action.payload.id
+            )
+            if (index !== -1) {
+              list[index] = { ...list[index], ...action.payload }
+            }
+          }
+
+          updateAppointmentInList(state.activeAppointments)
+          updateAppointmentInList(state.pastAppointments)
+
+          // Update appointment details if it's the same appointment
+          if (
+            state.appointmentDetails &&
+            state.appointmentDetails.id === action.payload.id
+          ) {
+            state.appointmentDetails = {
+              ...state.appointmentDetails,
+              ...action.payload,
+            }
           }
         }
         state.error = null
@@ -88,48 +150,48 @@ const appointmentSlice = createSlice({
         state.error = action.payload || 'Failed to update appointment'
       })
 
-      // getAppointmentRecords
-      .addCase('appointment/getAppointmentRecords/pending', state => {
+      // updateAppointmentStatus
+      .addCase('appointment/updateAppointmentStatus/pending', state => {
         state.loading = true
         state.error = null
       })
       .addCase(
-        'appointment/getAppointmentRecords/fulfilled',
+        'appointment/updateAppointmentStatus/fulfilled',
         (state, action) => {
           state.loading = false
-          state.appointmentRecords = action.payload.data || action.payload
-          state.error = null
-        }
-      )
-      .addCase(
-        'appointment/getAppointmentRecords/rejected',
-        (state, action) => {
-          state.loading = false
-          state.error = action.payload || 'Failed to fetch appointment records'
-        }
-      )
+          // Update the appointment status in all lists
+          if (action.payload && action.payload.id) {
+            const updateAppointmentInList = list => {
+              const index = list.findIndex(
+                appointment => appointment.id === action.payload.id
+              )
+              if (index !== -1) {
+                list[index] = { ...list[index], status: action.payload.status }
+              }
+            }
 
-      // createAppointmentRecord
-      .addCase('appointment/createAppointmentRecord/pending', state => {
-        state.loading = true
-        state.error = null
-      })
-      .addCase(
-        'appointment/createAppointmentRecord/fulfilled',
-        (state, action) => {
-          state.loading = false
-          // Add the new appointment record to the list
-          if (action.payload) {
-            state.appointmentRecords.unshift(action.payload)
+            updateAppointmentInList(state.activeAppointments)
+            updateAppointmentInList(state.pastAppointments)
+
+            // Update appointment details if it's the same appointment
+            if (
+              state.appointmentDetails &&
+              state.appointmentDetails.id === action.payload.id
+            ) {
+              state.appointmentDetails = {
+                ...state.appointmentDetails,
+                status: action.payload.status,
+              }
+            }
           }
           state.error = null
         }
       )
       .addCase(
-        'appointment/createAppointmentRecord/rejected',
+        'appointment/updateAppointmentStatus/rejected',
         (state, action) => {
           state.loading = false
-          state.error = action.payload || 'Failed to create appointment record'
+          state.error = action.payload || 'Failed to update appointment status'
         }
       )
   },
@@ -138,47 +200,38 @@ const appointmentSlice = createSlice({
 export const {
   clearError,
   updatePagination,
-  clearAppointments,
-  clearAppointmentRecords,
-  clearAppointment,
+  setAppointmentDetails,
+  clearAppointmentDetails,
   setSelectedAppointment,
   clearSelectedAppointment,
+  updateStatistics,
 } = appointmentSlice.actions
 
 // Selectors
-export const selectAppointments = state => state.appointment.appointments
-export const selectAppointmentRecords = state =>
-  state.appointment.appointmentRecords
+export const selectActiveAppointments = state =>
+  state.appointment.activeAppointments
+export const selectPastAppointments = state =>
+  state.appointment.pastAppointments
+export const selectAppointmentDetails = state =>
+  state.appointment.appointmentDetails
+export const selectSelectedAppointment = state =>
+  state.appointment.selectedAppointment
 export const selectAppointmentLoading = state => state.appointment.loading
 export const selectAppointmentError = state => state.appointment.error
-export const selectAppointmentPagination = state => state.appointment.pagination
+export const selectAppointmentStatistics = state => state.appointment.statistics
 
-// Selector to get appointment by id
-export const selectAppointmentById = (state, appointmentId) => {
-  return state.appointment.appointments.find(
+// Selector to get active appointment by id
+export const selectActiveAppointmentById = (state, appointmentId) => {
+  return state.appointment.activeAppointments.find(
     appointment => String(appointment.id) === String(appointmentId)
   )
 }
 
-// Selector to get appointment record by id
-export const selectAppointmentRecordById = (state, recordId) => {
-  return state.appointment.appointmentRecords.find(
-    record => String(record.id) === String(recordId)
+// Selector to get past appointment by id
+export const selectPastAppointmentById = (state, appointmentId) => {
+  return state.appointment.pastAppointments.find(
+    appointment => String(appointment.id) === String(appointmentId)
   )
 }
-
-// Selector to get appointment record by appointment id
-export const selectAppointmentRecordByAppointmentId = (
-  state,
-  appointmentId
-) => {
-  return state.appointment.appointmentRecords.find(
-    record => String(record.appointment?.id) === String(appointmentId)
-  )
-}
-
-// Selector to get selected appointment
-export const selectSelectedAppointment = state =>
-  state.appointment.selectedAppointment
 
 export default appointmentSlice.reducer

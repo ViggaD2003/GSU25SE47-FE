@@ -7,12 +7,33 @@ export const getAllSurveys = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await surveyAPI.getAllSurveys(params)
-      return response
+      const data = response.map(survey => ({
+        ...survey,
+        targetGrade: survey.targetGrade.map(grade => grade.targetLevel),
+      }))
+      return data
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
           'Failed to fetch surveys'
+      )
+    }
+  }
+)
+
+// Async thunk for getting all surveys in case
+export const getSurveyInCase = createAsyncThunk(
+  'survey/getSurveyInCase',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await surveyAPI.getSurveyInCase()
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to fetch surveys in case'
       )
     }
   }
@@ -35,18 +56,67 @@ export const createSurvey = createAsyncThunk(
   }
 )
 
-// Async thunk for getting categories
-export const getCategories = createAsyncThunk(
-  'survey/getCategories',
-  async (_, { rejectWithValue }) => {
+// Async thunk for updating a survey
+export const updateSurvey = createAsyncThunk(
+  'survey/updateSurvey',
+  async ({ surveyId, surveyData }, { rejectWithValue }) => {
     try {
-      const response = await surveyAPI.getCategories()
+      // Transform form data to match new API structure
+      const transformedData = {
+        title: surveyData.name || surveyData.title,
+        description: surveyData.description,
+        isRequired: surveyData.isRequired,
+        isRecurring: surveyData.isRecurring,
+        recurringCycle: surveyData.isRecurring
+          ? surveyData.recurringCycle
+          : 'NONE',
+        round: surveyData.round,
+        surveyType: surveyData.surveyType,
+        status: surveyData.status,
+        targetScope: surveyData.targetScope,
+        targetGrade: surveyData.targetGrade,
+        startDate: surveyData.startDate,
+        endDate: surveyData.endDate,
+        categoryId: surveyData.categoryId,
+        questions:
+          surveyData.questions?.map(question => ({
+            text: question.text,
+            description: question.description || '',
+            questionType: question.questionType,
+            moduleType: 'SURVEY',
+            answers:
+              question.answers?.map(answer => ({
+                score: answer.score,
+                text: answer.text,
+              })) || [],
+            required: question.required || false,
+          })) || [],
+      }
+
+      const response = await surveyAPI.updateSurvey(surveyId, transformedData)
       return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to fetch categories'
+          'Failed to update survey'
+      )
+    }
+  }
+)
+
+// Async thunk for deleting a survey
+export const deleteSurvey = createAsyncThunk(
+  'survey/deleteSurvey',
+  async (surveyId, { rejectWithValue }) => {
+    try {
+      await surveyAPI.deleteSurvey(surveyId)
+      return surveyId
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to delete survey'
       )
     }
   }

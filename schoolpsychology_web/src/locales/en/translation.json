@@ -3,20 +3,38 @@
     "title": "MindfulCare",
     "welcome": "Welcome"
   },
+  "notification": {
+    "newNotification": "You have new notifications",
+    "title": "Notification",
+    "testSound": "Test Sound",
+    "noNotifications": "No notifications",
+    "content": "Content of notification"
+  },
   "navigation": {
     "dashboard": "Dashboard",
-    "accountManagement": {
-      "title": "Account Management",
-      "clients": "Clients",
-      "staffs": "Staffs"
+    "staffManagement": {
+      "title": "Staff Management",
+      "staffList": "Staff List",
+      "counselorList": "Counselor List",
+      "teacherList": "Teacher List",
+      "workSchedule": "Work Schedule"
     },
-    "appointmentsManagement": "Appointments Management",
-    "surveyManagement": "Survey Management",
-    "programManagement": "Support Program Management",
-    "slotManagement": "Slot Management",
-    "classManagement": "Class Management",
-    "caseManagement": "Student Support Cases",
-    "categoryManagement": "Category Management",
+    "psychologicalSupport": "Psychological Support",
+    "appointmentsManagement": "Appointments",
+    "surveyManagement": "Surveys",
+    "programManagement": "Support Programs",
+    "slotManagement": "Slots",
+    "classManagement": "Classes",
+    "teacherManagement": "Homeroom Teacher",
+    "studentManagement": "Student in Class",
+    "myClass": "My Class",
+    "myStudent": "Student in Clas",
+    "caseManagement": "Support Cases",
+    "caseAssign": "Case Assigned",
+    "observedCases": "Observed Cases",
+    "assignedCases": "Assigned Cases",
+    "categoryManagement": "Category",
+    "assessmentDemo": "Assessment Demo Lab",
     "login": "Login",
     "logout": "Logout"
   },
@@ -100,15 +118,23 @@
     "counselor": "Counselor"
   },
   "clientManagement": {
-    "title": "Client Management",
-    "description": "Manage your clients and their information",
+    "manageTitle": "Student List",
+    "manageTitleTeacher": "My Class",
+    "description": "Manage students in class",
     "refresh": "Refresh",
     "addUser": "Add User",
     "search": "Search user...",
+    "selectClass": "Select Class",
+    "selectYear": "Select Year",
+    "allYears": "All Years",
+    "noClass": "No Class",
+    "schoolYear": "School Year",
     "messages": {
       "editUserSuccess": "Edit user successfully",
       "addUserSuccess": "Add user successfully",
-      "inactiveSuccess": "Inactive user successfully"
+      "inactiveSuccess": "Inactive user successfully",
+      "createCaseSuccess": "Create case successfully",
+      "createCaseError": "Failed to create case"
     }
   },
   "staffManagement": {
@@ -148,7 +174,11 @@
     "fullName": "Full Name",
     "email": "Email",
     "phone": "Phone",
+    "studentCode": "Student Code",
+    "gender": "Gender",
+    "dob": "Date of Birth",
     "role": "Role",
+    "createCase": "Create Case",
     "roleOptions": {
       "student": "Student",
       "guardian": "Guardian",
@@ -160,6 +190,18 @@
       "active": "Active",
       "inactive": "Inactive"
     },
+    "surveyStatus": "Survey Status",
+    "surveyEnabled": "Enabled",
+    "surveyDisabled": "Disabled",
+    "caseStatus": "Case Status",
+    "activeCases": "Active Cases",
+    "noCases": "No Cases",
+    "hasActiveCases": "Has active support cases",
+    "noActiveCases": "No active support cases",
+    "latestSurvey": "Latest Survey",
+    "hasSurveyRecord": "Has Record",
+    "noSurveyRecord": "No Record",
+    "viewDetails": "View Details",
     "createDate": "Create Date",
     "lastLogin": "Last Login"
   },
@@ -272,10 +314,102 @@
   "caseManagement": {
     "title": "Case Management",
     "description": "Manage your case and their information",
+    "createNew": "Create New Case",
+    "createCase": "Create Case",
+    "editCase": "Edit Case",
+    "confirmDelete": "Are you sure you want to delete this case?",
     "table": {
-      "name": "Case Name",
+      "title": "Title",
       "description": "Description",
-      "status": "Status"
+      "status": "Status",
+      "priority": "Priority",
+      "progressTrend": "Progress Trend",
+      "student": "Student",
+      "studentCode": "Student Code",
+      "createBy": "Created By",
+      "teacherCode": "Teacher Code",
+      "counselorCode": "Counselor Code",
+      "hostBy": "Hosted By",
+      "currentLevel": "Current Level",
+      "initialLevel": "Initial Level",
+      "createdAt": "Created At",
+      "noDescription": "No description",
+      "noHost": "Not assigned"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Enter case title",
+      "titleRequired": "Please enter case title",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter case description",
+      "descriptionRequired": "Please enter case description",
+      "priority": "Priority",
+      "priorityRequired": "Please select priority",
+      "priorityPlaceholder": "Select priority level",
+      "progressTrend": "Progress Trend",
+      "progressTrendRequired": "Please select progress trend",
+      "progressTrendPlaceholder": "Select progress trend",
+      "studentId": "Student ID",
+      "studentIdRequired": "Please enter student ID",
+      "studentIdPlaceholder": "Enter student ID",
+      "createBy": "Created By",
+      "createByRequired": "Please enter creator",
+      "createByPlaceholder": "Enter creator ID",
+      "currentLevelId": "Current Level",
+      "currentLevelIdRequired": "Please select current level",
+      "currentLevelIdPlaceholder": "Enter current level ID",
+      "initialLevelId": "Initial Level",
+      "initialLevelIdRequired": "Please select initial level",
+      "initialLevelIdPlaceholder": "Enter initial level ID",
+      "category": "Category",
+      "categoryRequired": "Please select category",
+      "categoryPlaceholder": "Select category",
+      "level": "Level",
+      "levelRequired": "Please select level",
+      "levelPlaceholder": "Select level",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "priorityOptions": {
+      "HIGH": "High",
+      "MEDIUM": "Medium",
+      "LOW": "Low"
+    },
+    "progressTrendOptions": {
+      "IMPROVED": "Improved",
+      "STABLE": "Stable",
+      "DECLINED": "Declined"
+    },
+    "statusOptions": {
+      "NEW": "New",
+      "IN_PROGRESS": "In Progress",
+      "CLOSED": "Closed"
+    },
+    "statistics": {
+      "total": "Total Cases",
+      "highPriority": "High Priority",
+      "mediumPriority": "Medium Priority",
+      "lowPriority": "Low Priority",
+      "newStatus": "New Cases",
+      "inProgressStatus": "In Progress",
+      "closedStatus": "Closed Cases"
+    },
+    "search": {
+      "placeholder": "Search cases, students, or creators..."
+    },
+    "messages": {
+      "fetchError": "Failed to fetch cases",
+      "createSuccess": "Case created successfully",
+      "updateSuccess": "Case updated successfully",
+      "saveError": "Failed to save case",
+      "assignSuccess": "Case assigned successfully",
+      "assignError": "Failed to assign case"
+    },
+    "confirmModal": {
+      "title": "Confirm Information",
+      "student": "Student",
+      "creator": "Creator",
+      "confirmMessage": "Please review the information before saving"
     }
   },
   "slotManagement": {
@@ -283,8 +417,11 @@
     "description": "Manage your time slots and their information",
     "refresh": "Refresh",
     "publish": "Publish",
+    "publishSlot": "Manage Slot Publishing",
     "addSlot": "Create New Slot",
     "search": "Search slot...",
+    "startDate": "Start Date",
+    "endDate": "End Date",
     "table": {
       "slotName": "Slot Name",
       "type": "Type",
@@ -316,10 +453,23 @@
       "addSlot": "Add Slot",
       "createAll": "Create All Slots",
       "cancel": "Cancel",
-      "startDateTimeHelp": "Please select a start date and time from now or later. All times are shown in Vietnam time (GMT+7).",
       "durationHelp": "Duration must be a whole number (minimum 1 hour). End time must be after start time and in the future.",
       "lunchBreakHelp": "Lunch break is from 12:00 to 13:00. Counselors can only book slots from 08:00 to 12:00.",
-      "lunchBreakConflict": "Slots cannot overlap with lunch break (12:00-13:00)"
+      "lunchBreakConflict": "Slots cannot overlap with lunch break (12:00-13:00)",
+      "counselorInfo": "Counselor Slot Creation",
+      "counselorDescription": "Select a date to automatically create morning (8:00-12:00) and afternoon (14:00-17:00) slots.",
+      "selectDate": "Select Date",
+      "dateRequired": "Please select a date",
+      "counselorDateHelp": "Morning slot: 8:00-12:00, Afternoon slot: 14:00-17:00",
+      "datePlaceholder": "Select a date",
+      "endDateTimeRequired": "Please select end date and time",
+      "endDateTimeHelp": "Select end time. Must be same day as start time and at least 1 hour later. Only 00 or 30 minutes allowed.",
+      "editTimeOnlyNote": "Note: You can only edit the time on the original date",
+      "startDateTimeHelp": "Select start time at least 1 day from now. No Sundays. Time range: 8:00-17:00. Only 00 or 30 minutes allowed."
+    },
+    "period": {
+      "morning": "Morning",
+      "afternoon": "Afternoon"
     },
     "preview": {
       "title": "Slot Preview",
@@ -329,7 +479,14 @@
       "duration": "Duration",
       "hours": "hours",
       "host": "Host",
-      "deleteConfirm": "Are you sure you want to delete this slot?"
+      "deleteConfirm": "Are you sure you want to delete this slot?",
+      "deleteDay": "Delete Day",
+      "deleteDayConfirm": "Are you sure you want to delete all slots for this day?",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "timeConflictsDetected": "Time Conflicts Detected",
+      "timeConflictsDetectedDescription": "The following slots have conflicts with existing slots in the database:",
+      "clearConflicts": "Clear Conflicts"
     },
     "typeOptions": {
       "appointment": "Appointment",
@@ -340,6 +497,10 @@
       "draft": "Draft",
       "closed": "Closed"
     },
+    "status": {
+      "conflict": "Conflict",
+      "hasConflicts": "Has Conflicts"
+    },
     "messages": {
       "createSuccess": "Slots created successfully",
       "createError": "Failed to create slots",
@@ -347,10 +508,15 @@
       "validationError": "Please check your input",
       "slotAdded": "Slot added to preview successfully",
       "slotRemoved": "Slot removed from preview successfully",
+      "dayRemoved": "All slots for the selected day have been removed",
       "noSlotsToCreate": "Please add at least one slot before creating",
       "slotConflict": "Slot conflicts with existing slots",
       "slotUpdated": "Slot updated successfully",
-      "publishSuccess": "Slot published successfully"
+      "updateError": "Failed to update slot. Please try again",
+      "publishSuccess": "Slot published successfully",
+      "publishError": "Failed to publish slot",
+      "slotsGenerated": "Morning and afternoon slots generated successfully",
+      "generateError": "Error generating slots"
     },
     "validation": {
       "startTimeBeforeEndTime": "Start time must be before end time",
@@ -360,11 +526,41 @@
       "durationInteger": "Duration must be a whole number",
       "endTimeBefore17": "End time cannot be after 17:00",
       "startTimeAfter8": "Start time cannot be before 08:00",
-      "lunchBreakConflict": "Slots cannot overlap with lunch break (12:00-13:00)",
+      "lunchBreakConflict": "Slots cannot overlap with lunch break (12:00-13:30)",
       "slotConflict": "Slot conflicts with existing slots",
-      "managerProgramOnly": "Managers can only create PROGRAM slots for others",
+      "managerProgramOnly": "Managers can only publish slots, not create them",
       "staffAppointmentOnly": "Staff can only create APPOINTMENT slots for themselves",
-      "conflictDetails": "Slot conflicts with existing slots"
+      "conflictDetails": "Slot conflicts with existing slots",
+      "counselorTimeSlots": "Counselors must create slots either in the morning (8:00-12:00) or afternoon (13:30-17:00)",
+      "counselorMorningExists": "Morning slot (8:00-12:00) already exists for this day",
+      "counselorAfternoonExists": "Afternoon slot (13:30-17:00) already exists for this day",
+      "counselorMaxSlots": "Counselors can only create 2 slots per day",
+      "startTimeOneDayAfter": "Start time must be at least 1 day from now",
+      "noSunday": "Cannot create slots on Sunday",
+      "sameDay": "Start and end time must be on the same day",
+      "endAfterStart": "End time must be after start time",
+      "minimumOneHour": "Minimum duration is 1 hour",
+      "timeRange": "Time must be between 8:00-17:00",
+      "minuteRestriction": "Only 00 or 30 minutes allowed",
+      "counselorTimeRestriction": "Counselors cannot create slots during 12:00-13:30",
+      "counselorDateExists": "This date already has slots. Please select a different date or remove existing slots first.",
+      "endTimeExceedsLimit": "Cannot set end time after 17:00. Please choose an earlier start time."
+    },
+    "rules": {
+      "title": "Slot Creation Rules",
+      "timeRestrictions": "Time Restrictions",
+      "minimumAdvance": "Must be created at least 1 day in advance",
+      "noSundays": "Cannot create slots on Sundays",
+      "timeRange": "Available time: 8:00 AM - 5:00 PM",
+      "minuteOptions": "Only 00 or 30 minutes allowed",
+      "minimumDuration": "Minimum duration: 1 hour",
+      "sameDay": "Start and end time must be on the same day",
+      "counselorSpecific": "Counselor Rules",
+      "counselorLunchBreak": "Cannot create slots during 12:00-13:30 PM (lunch break)",
+      "counselorAutoSlots": "Selecting a date automatically creates morning (8:00-12:00) and afternoon (13:30-17:00) slots",
+      "smartSelection": "Smart Selection",
+      "smartDateLock": "Selecting one time locks the other to the same date",
+      "smartTimeRestriction": "Available times adjust based on minimum 1-hour duration requirement"
     }
   },
   "surveyManagement": {
@@ -373,12 +569,19 @@
     "refresh": "Refresh",
     "addSurvey": "Add Survey",
     "search": "Search survey...",
+    "startDate": "Start Date",
+    "endDate": "End Date",
     "table": {
-      "name": "Survey Name",
+      "title": "Survey Title",
       "description": "Description",
+      "category": "Category",
+      "surveyType": "Survey Type",
+      "targetScope": "Target Scope",
+      "targetGrade": "Grade",
       "status": "Status",
       "startDate": "Start Date",
       "endDate": "End Date",
+      "createdAt": "Created At",
       "action": {
         "viewDetail": "View Detail"
       }
@@ -396,9 +599,33 @@
       "category": "Category",
       "score": "Score",
       "answer": "Answer",
+      "answers": "Answers",
+      "question": "Question",
+      "questionType": "Question Type",
+      "round": "Round",
+      "surveyType": "Survey Type",
+      "targetScope": "Target Scope",
+      "targetGrade": "Target Grade",
+      "recurring": "Recurring",
       "update": "Update",
       "cancel": "Cancel",
       "edit": "Edit",
+      "save": "Save",
+      "close": "Close",
+      "refresh": "Refresh",
+      "loading": "Loading...",
+      "noData": "No survey data available",
+      "noQuestions": "No questions available",
+      "errorTitle": "Error Loading Survey",
+      "basicInfo": "Basic Information",
+      "surveyProgress": "Survey Progress",
+      "active": "Active",
+      "inactive": "Inactive",
+      "totalQuestions": "Total Questions",
+      "requiredQuestions": "Required Questions",
+      "avgAnswers": "Avg Answers/Question",
+      "questions": "questions",
+      "activeRange": "Active Range",
       "validation": {
         "descriptionRequired": "Description cannot be empty",
         "startDateRequired": "Start date cannot be empty",
@@ -410,6 +637,7 @@
       "messages": {
         "updateSuccess": "Updated successfully",
         "updateError": "Update failed",
+        "fetchError": "Failed to fetch survey details",
         "noChanges": "No changes to update"
       },
       "recurringOptions": {
@@ -420,20 +648,35 @@
       "recurringHelp": {
         "none": "Survey is not recurring (isRecurring: false)",
         "active": "Survey is recurring (isRecurring: true)"
-      }
+      },
+      "publishedEditInfo": "Published surveys can only have their status updated",
+      "draftEditInfo": "Draft surveys can be fully edited",
+      "archivedEditInfo": "Archived surveys can only update limited fields and add questions",
+      "addQuestion": "Add Question",
+      "newQuestions": "New Questions",
+      "newQuestion": "New Question",
+      "questionText": "Question Text",
+      "questionDescription": "Question Description"
     },
     "form": {
-      "name": "Survey Name",
-      "namePlaceholder": "Enter survey name",
-      "nameRequired": "Please enter survey name",
+      "title": "Survey Title",
+      "titlePlaceholder": "Enter survey title",
+      "titleRequired": "Please enter survey title",
       "description": "Description",
       "descriptionPlaceholder": "Enter survey description",
       "category": "Category",
       "categoryPlaceholder": "Select a category",
       "categoryRequired": "Please select a category",
-      "surveyCode": "Survey Code",
-      "surveyCodePlaceholder": "Select a survey code",
-      "surveyCodeRequired": "Please select a survey code",
+      "surveyType": "Survey Type",
+      "surveyTypePlaceholder": "Select survey type",
+      "surveyTypeRequired": "Please select survey type",
+      "targetScope": "Target Scope",
+      "targetScopePlaceholder": "Select target scope",
+      "targetScopeRequired": "Please select target scope",
+      "targetGrade": "Target Grade",
+      "targetGradePlaceholder": "Select target grade",
+      "targetGradeRequired": "Please select target grade",
+      "descriptionRequired": "Please enter survey description",
       "isRequired": "Required",
       "isRecurring": "Recurring",
       "recurringCycle": "Recurring Cycle",
@@ -448,11 +691,12 @@
       "addQuestion": "Add Question",
       "startDateBeforeToday": "Start date must be today or after today",
       "endDateBeforeStartDate": "End date must be after start date",
+      "dateRangeError": "End date must be after start date",
+      "questionTextRequired": "Question text is required",
       "sampleSurveys": "Sample surveys for category",
       "recurringValidation": {
-        "invalidCycle": "For recurring surveys, please select a valid cycle: Daily, Weekly, or Monthly",
+        "invalidCycle": "For recurring surveys, please select a valid cycle: Weekly, or Monthly",
         "endDateTooFar": "For {{cycle}} recurring surveys, end date must be within {{maxDays}} days from start date",
-        "endDateDaily": "For daily recurring surveys, end date must be within 1 day from start date",
         "endDateWeekly": "For weekly recurring surveys, end date must be within 7 days from start date",
         "endDateMonthly": "For monthly recurring surveys, end date must be within 30 days from start date"
       }
@@ -460,6 +704,39 @@
     "messages": {
       "addSuccess": "Survey created successfully",
       "addError": "Failed to create survey"
+    },
+    "enums": {
+      "surveyStatus": {
+        "DRAFT": "Draft",
+        "PUBLISHED": "Published",
+        "ARCHIVED": "Archived"
+      },
+      "surveyType": {
+        "SCREENING": "Screening",
+        "PROGRAM": "Program",
+        "FOLLOWUP": "Follow Up"
+      },
+      "targetScope": {
+        "ALL": "All Students",
+        "GRADE": "Grade",
+        "NONE": "None"
+      },
+      "gradeLevel": {
+        "GRADE_10": "Grade 10",
+        "GRADE_11": "Grade 11",
+        "GRADE_12": "Grade 12"
+      },
+      "recurringCycle": {
+        "NONE": "None",
+        "WEEKLY": "Weekly",
+        "MONTHLY": "Monthly"
+      },
+      "questionType": {
+        "LINKERT_SCALE": "Likert Scale",
+        "MULTIPLE_CHOICE": "Multiple Choice",
+        "SINGLE_CHOICE": "Single Choice",
+        "TEXT": "Text"
+      }
     }
   },
   "appointmentManagement": {
@@ -481,14 +758,18 @@
     "searchStudent": "Search student...",
     "tabs": {
       "active": "Active Appointments",
+      "past": "Past Appointments",
       "completed": "Completed Appointments"
     },
     "status": {
       "label": "Status",
       "pending": "Pending",
       "confirmed": "Confirmed",
+      "in_progress": "In Progress",
       "completed": "Completed",
-      "cancelled": "Cancelled"
+      "canceled": "Canceled",
+      "absent": "Absent",
+      "expired": "Expired"
     },
     "formality": {
       "label": "Formality",
@@ -506,21 +787,54 @@
       "reason": "Reason",
       "time": "Time",
       "duration": "Duration",
-      "actions": "Actions"
+      "actions": "Actions",
+      "noLocation": "Not specified"
     },
     "hostType": {
       "teacher": "Teacher",
       "counselor": "Counselor",
       "student": "Student"
     },
+    "role": {
+      "manager": "Manager",
+      "teacher": "Teacher",
+      "counselor": "Counselor"
+    },
     "messages": {
       "fetchSuccess": "Appointments fetched successfully",
       "fetchError": "Failed to fetch appointments",
       "updateSuccess": "Appointment updated successfully",
-      "updateError": "Failed to update appointment"
+      "updateError": "Failed to update appointment",
+      "noData": "No appointments found",
+      "filterApplied": "Filters applied successfully"
+    },
+    "manager": {
+      "viewOnly": "View Only Mode",
+      "viewOnlyDescription": "Managers can only view appointment information and cannot start sessions",
+      "readOnly": "Read-only mode for manager"
+    },
+    "filter": {
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "dateRange": "Date Range",
+      "clearFilters": "Clear Filters",
+      "applyFilters": "Apply Filters"
+    },
+    "statistics": {
+      "title": "Appointment Statistics",
+      "total": "Total",
+      "pending": "Pending",
+      "confirmed": "Confirmed",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "absent": "Absent",
+      "expired": "Expired"
     }
   },
   "common": {
+    "male": "Male",
+    "female": "Female",
     "create": "Create",
     "cancel": "Cancel",
     "daily": "Daily",
@@ -537,9 +851,31 @@
     "edit": "Edit",
     "save": "Save",
     "loading": "Loading...",
+    "showing": "Showing",
+    "of": "of",
+    "items": "items",
+    "close": "Close",
     "view": "View",
+    "viewDetails": "View Details",
     "delete": "Delete",
-    "total": "Total"
+    "total": "Total",
+    "retry": "Retry",
+    "weekdays": {
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "sunday": "Sunday"
+    },
+    "required": "Required",
+    "optional": "Optional",
+    "active": "Active",
+    "inactive": "Inactive",
+    "description": "Description",
+    "reference": "Reference",
+    "refresh": "Refresh"
   },
   "classManagement": {
     "title": "Class Management",
@@ -646,12 +982,18 @@
     "class": "Class",
     "surveyProgress": "Survey Progress Over Time",
     "location": "Location",
-    "noLocation": "No location",
-    "updateSuccess": "Update appointment successfully",
-    "updateError": "Update appointment failed",
     "notFound": "Appointment not found",
     "notFoundDescription": "The appointment you are looking for doesn't exist or has been deleted.",
-    "error": "Error"
+    "error": "Error",
+    "errorDesc": "An error occurred while loading the appointment details. Please try again.",
+    "loadingDescription": "Loading appointment details...",
+    "joinMeetingTooltip": "Join the online meeting",
+    "startSessionTooltip": "Start the counseling session",
+    "editTooltip": "Edit appointment details",
+    "sessionInProgress": "Session in Progress",
+    "sessionInProgressDescription": "A counseling session is currently active for this appointment.",
+    "continueAssessment": "Continue Assessment",
+    "noReason": "No reason"
   },
   "categoryManagement": {
     "title": "Category Management",
@@ -659,18 +1001,153 @@
     "refresh": "Refresh",
     "addCategory": "Add Category",
     "search": "Search category...",
+    "searchDescription": "Search in name, code",
+    "status": "Status",
+    "statusDescription": "Filter by status",
+    "selectStatus": "Select status",
     "table": {
       "name": "Category Name",
       "code": "Category Code",
-      "actions": "Actions"
+      "questionLength": "Questions",
+      "scoreRange": "Score Range",
+      "settings": "Settings",
+      "actions": "Actions",
+      "active": "Active",
+      "inactive": "Inactive",
+      "minScore": "Min Score",
+      "maxScore": "Max Score",
+      "severityWeight": "Weight",
+      "isSum": "Sum",
+      "isLimited": "Limited",
+      "levels": "Levels",
+      "viewDetails": "View Details",
+      "edit": "Edit",
+      "delete": "Delete",
+      "total": "Total"
     },
     "form": {
+      "basicInfo": "Basic Information",
+      "questionSettings": "Question Settings",
+      "scoreSettings": "Score Settings",
       "name": "Category Name",
       "namePlaceholder": "Enter category name",
       "nameRequired": "Please enter category name",
+      "nameMinLength": "Category name must be at least 2 characters",
+      "nameMaxLength": "Category name cannot exceed 100 characters",
+      "nameNoWhitespace": "Category name cannot contain only whitespace",
       "code": "Category Code",
       "codePlaceholder": "Enter category code",
-      "codeRequired": "Please enter category code"
+      "codeRequired": "Please enter category code",
+      "codePattern": "Code must contain only uppercase letters, numbers, and underscores",
+      "codeMinLength": "Code must be at least 2 characters",
+      "codeMaxLength": "Code cannot exceed 20 characters",
+      "description": "Description",
+      "descriptionPlaceholder": "Enter category description",
+      "descriptionMaxLength": "Description cannot exceed 500 characters",
+      "questionLength": "Question Length",
+      "questionLengthPlaceholder": "Enter number of questions",
+      "questionLengthRequired": "Please enter question length",
+      "questionLengthMin": "Question length must be at least 1",
+      "questionLengthMax": "Question length cannot exceed 1000",
+      "questionCount": "Question Count",
+      "questionCountPlaceholder": "Enter number of questions",
+      "questionCountRequired": "Please enter question count",
+      "questionCountMin": "Question count must be at least 0",
+      "questionCountMax": "Question count cannot exceed 10",
+      "severityWeight": "Severity Weight",
+      "severityWeightPlaceholder": "Enter severity weight",
+      "severityWeightRequired": "Please enter severity weight",
+      "severityWeightMin": "Severity weight must be at least 0.1",
+      "severityWeightMax": "Severity weight cannot exceed 10",
+      "isActive": "Active Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "scoreRangeStart": "Minimum score per question",
+      "minScorePlaceholder": "Enter minimum score",
+      "minScoreRequired": "Please enter minimum score",
+      "minScoreMin": "Minimum score must be at least 0",
+      "minScoreLessThanMax": "Minimum score must be less than maximum score",
+      "scoreRangeEnd": "Maximum score per question",
+      "maxScorePlaceholder": "Enter maximum score",
+      "maxScoreRequired": "Please enter maximum score",
+      "maxScoreMin": "Maximum score must be at least 1",
+      "maxScoreGreaterThanMin": "Maximum score must be greater than minimum score",
+      "isSum": "Sum Calculation",
+      "isLimited": "Limited Access",
+      "yes": "Yes",
+      "no": "No",
+      "levels": "Assessment Levels",
+      "addLevel": "Add Level",
+      "editLevel": "Edit Level",
+      "level": "Level",
+      "levelLabel": "Level Label",
+      "levelLabelPlaceholder": "Enter level label",
+      "levelLabelRequired": "Please enter level label",
+      "levelLabelMinLength": "Level label must be at least 2 characters",
+      "levelLabelMaxLength": "Level label cannot exceed 50 characters",
+      "levelLabelNoWhitespace": "Level label cannot contain only whitespace",
+      "levelCode": "Level Code",
+      "levelCodePlaceholder": "Enter level code",
+      "levelCodeRequired": "Please enter level code",
+      "levelCodePattern": "Level code must contain only uppercase letters, numbers, and underscores",
+      "levelCodeMinLength": "Level code must be at least 2 characters",
+      "levelCodeMaxLength": "Level code cannot exceed 20 characters",
+      "levelDescription": "Level Description",
+      "levelDescriptionPlaceholder": "Enter level description",
+      "levelDescriptionMaxLength": "Level description cannot exceed 300 characters",
+      "symptomsDescription": "Symptoms Description",
+      "symptomsDescriptionPlaceholder": "Enter symptoms description",
+      "symptomsDescriptionMaxLength": "Symptoms description cannot exceed 300 characters",
+      "interventionRequired": "Intervention Required",
+      "interventionRequiredPlaceholder": "Enter intervention requirements",
+      "interventionRequiredMaxLength": "Intervention required cannot exceed 300 characters",
+      "levelMinScore": "Min Score",
+      "levelMinScorePlaceholder": "Enter minimum score",
+      "levelMinScoreRequired": "Please enter minimum score",
+      "levelMinScoreMin": "Minimum score must be at least 0",
+      "levelMinScoreMax": "Minimum score cannot exceed 100",
+      "levelMinScoreLessThanMax": "Minimum score must be less than maximum score",
+      "levelMaxScore": "Max Score",
+      "levelMaxScorePlaceholder": "Enter maximum score",
+      "levelMaxScoreRequired": "Please enter maximum score",
+      "levelMaxScoreMin": "Maximum score must be at least 0",
+      "levelMaxScoreMax": "Maximum score cannot exceed 100",
+      "levelMaxScoreGreaterThanMin": "Maximum score must be greater than minimum score",
+      "levelType": "Level Type",
+      "levelTypePlaceholder": "Select level type",
+      "levelTypeRequired": "Please select level type",
+      "levelTypes": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "critical": "Critical"
+      },
+      "noLevels": "No levels yet",
+      "scoreRange": "Score Range",
+      "levelSummary": "Level Summary",
+      "addQuickLevels": "Add Quick Levels",
+      "addQuickLevelsTooltip": "Add predefined levels (Low, Medium, High, Critical)",
+      "scoreRangeError": "Minimum score must be less than maximum score",
+      "scoreOverlapError": "Score ranges cannot overlap with other levels",
+      "clickToEdit": "Click on any level card to edit its information",
+      "quickLevels": {
+        "low": "Low Risk",
+        "lowDescription": "Minimal symptoms, no immediate intervention needed",
+        "lowSymptoms": "Mild symptoms that don't significantly impact daily functioning",
+        "lowIntervention": "Regular monitoring and basic support",
+        "medium": "Medium Risk",
+        "mediumDescription": "Moderate symptoms requiring attention",
+        "mediumSymptoms": "Noticeable symptoms that may affect some daily activities",
+        "mediumIntervention": "Structured support and regular check-ins",
+        "high": "High Risk",
+        "highDescription": "Significant symptoms requiring immediate attention",
+        "highSymptoms": "Severe symptoms that significantly impact daily functioning",
+        "highIntervention": "Intensive support and professional intervention",
+        "critical": "Critical Risk",
+        "criticalDescription": "Critical symptoms requiring urgent intervention",
+        "criticalSymptoms": "Severe symptoms that pose immediate risk",
+        "criticalIntervention": "Immediate professional intervention and crisis management"
+      }
     },
     "modal": {
       "addTitle": "Add New Category",
@@ -680,6 +1157,7 @@
     "messages": {
       "fetchSuccess": "Categories fetched successfully",
       "fetchError": "Failed to fetch categories",
+      "fetchDetailError": "Failed to fetch category details",
       "addSuccess": "Category added successfully",
       "addError": "Failed to add category",
       "editSuccess": "Category updated successfully",
@@ -687,8 +1165,21 @@
       "deleteSuccess": "Category deleted successfully",
       "deleteError": "Failed to delete category",
       "deleteConfirm": "Are you sure you want to delete this category?",
-      "deleteTitle": "Delete Category"
-    }
+      "deleteTitle": "Delete Category",
+      "levelAddSuccess": "Level added successfully",
+      "levelEditSuccess": "Level updated successfully",
+      "levelRemoved": "Level removed successfully",
+      "quickLevelsAdded": "Quick levels added successfully",
+      "validationError": "Please check the form for errors",
+      "invalidLevelScoreRange": "Invalid score range for level {{level}}. Minimum score must be less than maximum score.",
+      "overlappingScores": "Score ranges overlap between levels {{level1}} and {{level2}}.",
+      "duplicateLevelCodes": "Duplicate level codes found: {{codes}}",
+      "duplicateLevelCode": "Level code already exists. Please use a different code.",
+      "categoryScoreRangeInvalid": "Category score range is invalid. Minimum score must be less than maximum score.",
+      "questionCountRequired": "Question count is required when limited access is enabled.",
+      "levelValidationError": "Please check the level form for errors"
+    },
+    "loadingDetails": "Loading category details..."
   },
   "assessmentForm": {
     "title": "Student Assessment Form",
@@ -706,6 +1197,7 @@
     "summary": "Summary",
     "suggestion": "Suggestion",
     "scoreRange": "Score Range: 0 (No impact) - 4 (Very severe impact)",
+    "assessement": "Assessment Scores",
     "scoreLevel": {
       "low": "Low",
       "medium": "Medium",
@@ -732,11 +1224,82 @@
       "medium": "Medium",
       "low": "Low",
       "unknown": "Unknown"
+    },
+    "form": {
+      "title": "Student Assessment Form",
+      "sessionNotes": "Session Notes",
+      "sessionNotesPlaceholder": "Notes about student behavior during the counseling session",
+      "noteSummary": "Summary Notes",
+      "noteSummaryPlaceholder": "Summarize key points from the counseling session",
+      "noteSuggestion": "Intervention Suggestions",
+      "noteSuggestionPlaceholder": "Suggest intervention measures and support",
+      "sessionFlow": "Session Progress",
+      "studentCoopLevel": "Student Cooperation Level",
+      "progress": "Completion Progress",
+      "saveProgress": "Save Progress",
+      "submitAssessment": "Submit Assessment",
+      "validation": {
+        "sessionNotesRequired": "Session notes are required",
+        "noteSummaryRequired": "Summary notes are required",
+        "noteSuggestionRequired": "Intervention suggestions are required",
+        "assessmentRequired": "Please evaluate at least one issue"
+      },
+      "messages": {
+        "saveSuccess": "Progress saved successfully!",
+        "saveError": "Error saving progress. Please try again!",
+        "submitSuccess": "Assessment submitted successfully!",
+        "submitError": "Error submitting assessment. Please try again!",
+        "resetSuccess": "Form has been reset successfully!"
+      }
+    },
+    "sections": {
+      "counselorInputs": "Counselor Information",
+      "assessmentCategories": "Assessment Categories",
+      "mentalHealthSection": "Mental Health Status",
+      "environmentSection": "Environmental Factors"
+    },
+    "options": {
+      "frequency": {
+        "0": "Never or rarely (0)",
+        "1": "Sometimes (1)",
+        "2": "Often (2)",
+        "3": "Very often (3)",
+        "4": "Always (4)"
+      },
+      "impairment": {
+        "0": "No impact (0)",
+        "1": "Mild impact (1)",
+        "2": "Moderate impact (2)",
+        "3": "Severe impact (3)",
+        "4": "Very severe impact (4)"
+      },
+      "chronicity": {
+        "0": "Less than 1 week (0)",
+        "1": "1-2 weeks (1)",
+        "2": "2-4 weeks (2)",
+        "3": "1-3 months (3)",
+        "4": "Over 3 months (4)"
+      },
+      "sessionFlow": {
+        "LOW": "Low",
+        "AVERAGE": "Average",
+        "GOOD": "Good"
+      },
+      "cooperationLevel": {
+        "LOW": "Low",
+        "MEDIUM": "Medium",
+        "HIGH": "High"
+      }
+    },
+    "warnings": {
+      "highRisk": "Warning: Immediate intervention required",
+      "highRiskDescription": "Student shows high-risk signs. Please contact a psychologist or relevant authorities immediately."
     }
   },
   "appointmentRecord": {
     "title": "Assessment Record",
     "viewRecord": "View Assessment",
+    "viewDetails": "View Details",
     "noRecord": "No Assessment Available",
     "noScore": "N/A",
     "sessionInfo": "Session Information",
@@ -750,6 +1313,27 @@
     "statusTitle": "Assessment Status",
     "completedOn": "Completed On",
     "additionalNotes": "Additional Notes",
+    "riskAssessment": "Risk Assessment",
+    "reasonCanceled": "Reason Canceled",
+    "noReasonCanceled": "No reason canceled",
+    "noNoteSummary": "No summary notes",
+    "noNoteSuggestion": "No intervention suggestions",
+    "noSessionNotes": "No session notes",
+    "noRiskAssessment": "No risk assessment",
+    "noAssessmentScores": "No assessment scores available",
+    "assessmentScores": "Assessment Scores",
+    "totalAssessmentScore": "Total Assessment Score",
+    "totalAssessmentScoreDesc": "Overall risk assessment based on all categories",
+    "categoryBreakdown": "Category Breakdown",
+    "legend": "Score Legend",
+    "severity": "Severity",
+    "frequency": "Frequency",
+    "impairment": "Impairment",
+    "chronicity": "Chronicity",
+    "low": "Low",
+    "moderate": "Moderate",
+    "high": "High",
+    "critical": "Critical",
     "messages": {
       "saveSuccess": "Assessment saved successfully!",
       "saveError": "Error saving assessment. Please try again!"
@@ -758,6 +1342,12 @@
       "low": "Low Risk",
       "medium": "Medium Risk",
       "high": "High Risk"
+    },
+    "intervention": {
+      "monitoring": "Regular monitoring recommended",
+      "support": "Support and guidance needed",
+      "professional": "Professional intervention required",
+      "noIntervention": "No intervention required"
     },
     "sessionFlow": {
       "good": "Good",
@@ -773,8 +1363,19 @@
     },
     "status": {
       "submitted": "Submitted",
-      "finalized": "Finalized",
+      "canceled": "Canceled",
+      "in_progress": "In Progress",
+      "pending": "Pending Review",
+      "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "sessionNotes": "Session Notes",
+    "timeline": {
+      "title": "Appointment Timeline",
+      "created": "Appointment Created",
+      "confirmed": "Appointment Confirmed",
+      "inProgress": "Session Started",
+      "completed": "Session Completed"
     }
   },
   "programHelper": {

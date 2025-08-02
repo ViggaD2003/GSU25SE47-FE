@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import {
   Layout,
   Avatar,
@@ -8,6 +8,7 @@ import {
   Flex,
   Button,
   Badge,
+  message,
 } from 'antd'
 import {
   LogoutOutlined,
@@ -23,6 +24,8 @@ import ThemeSwitcher from '../../components/common/ThemeSwitcher'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher'
 import Navigation from '../../components/layout/Navigation'
 import { useAuth } from '@/contexts/AuthContext'
+import NotificationBell from '@/components/common/NotificationBell'
+import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Header, Content, Sider } = Layout
 
@@ -32,34 +35,29 @@ const MemoizedThemeSwitcher = React.memo(ThemeSwitcher)
 const MemoizedLanguageSwitcher = React.memo(LanguageSwitcher)
 
 const LayoutComponent = () => {
+  const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { isDarkMode } = useTheme()
-  const { t } = useTranslation()
   const navigate = useNavigate()
+  const [messageApi, contextHolder] = message.useMessage()
   const [collapsed, setCollapsed] = useState(false)
+  const [lastNotificationCount, setLastNotificationCount] = useState(0)
+  const { sendMessage, notifications } = useWebSocket()
+
+  useEffect(() => {
+    if (notifications.length > lastNotificationCount) {
+      messageApi.success(t('notification.newNotification'))
+      setLastNotificationCount(notifications.length)
+    }
+  }, [notifications, lastNotificationCount, t])
 
   const handleLogout = useCallback(() => {
     logout()
     navigate('/login')
   }, [logout, navigate])
 
-  // const handleProfileClick = useCallback(() => {
-  //   navigate('/profile')
-  // }, [navigate])
-
   const userMenuItems = useMemo(
     () => [
-      // {
-      //   key: 'profile',
-      //   icon: <UserOutlined />,
-      //   label: t('navigation.profile'),
-      //   onClick: handleProfileClick,
-      //   hidden: user?.role === 'manager',
-      // },
-      // {
-      //   type: 'divider',
-      //   className: user?.role === 'manager' ? 'hidden' : 'block',
-      // },
       {
         key: 'logout',
         icon: <LogoutOutlined style={{ color: 'red' }} />,
@@ -146,6 +144,7 @@ const LayoutComponent = () => {
 
   return (
     <Layout className="min-h-screen">
+      {contextHolder}
       {/* Sidebar */}
       <Sider
         trigger={null}
@@ -239,20 +238,18 @@ const LayoutComponent = () => {
 
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
-              {/* Notifications */}
+              {/* Test notification button */}
               <Button
-                type="text"
-                icon={
-                  <Badge count={3} size="small">
-                    <BellOutlined />
-                  </Badge>
-                }
-                className={`${
-                  isDarkMode
-                    ? 'text-gray-300 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
-              />
+                onClick={() => {
+                  sendMessage()
+                }}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                Test notification
+              </Button>
+
+              {/* Notifications */}
+              <NotificationBell />
 
               {/* Theme switcher */}
               <MemoizedThemeSwitcher />

@@ -1,80 +1,226 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   RefreshControl,
   ActivityIndicator,
-  FlatList,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { Toast } from "../../components";
-import { getSurveyRecords } from "../../services/api/SurveyService";
 import {
-  formatDate,
-  getScoreColor,
-  getScoreIcon,
-  getScoreLevel,
-} from "../../utils/helpers";
+  Toast,
+  ReusableBarChart,
+  StatisticsCard,
+  HorizontalChartCarousel,
+  Container,
+  FilterSortModal,
+  SurveyRecordCard,
+} from "../../components";
+import { getSurveyRecordsByAccount } from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
+import { useAuth } from "../../contexts";
+import { filterSurveyTypes } from "../../utils/helpers";
 
-const PAGE_SIZE = 3; // Number of records to fetch per page
+const PAGE_SIZE = 2; // Number of records to fetch per page
 
 const SurveyRecord = ({ navigation }) => {
-  const [allSurveyRecords, setAllSurveyRecords] = useState([]);
+  const { user } = useAuth();
   const [surveyRecords, setSurveyRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
     type: "info",
   });
-  const [page, setPage] = useState(1); // Current page number
-  useEffect(() => {
-    fetchSurveyRecords();
-  }, []);
 
-  const fetchSurveyRecords = async () => {
-    try {
-      setLoading(true);
-      const response = await getSurveyRecords();
-      if (response.data) {
-        // console.log("get success");
+  // Pagination state (1-based indexing for frontend)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [numberOfSkipped, setNumberOfSkipped] = useState(0);
 
-        const allSurveyRecords = response.data.filter(
-          (record) => record.status === "COMPLETED"
-        );
+  // Filter and sort state
+  const [filters, setFilters] = useState({
+    surveyType: "",
+  });
+  const [sort, setSort] = useState({
+    label: "Mới nhất",
+    value: "completedAt",
+    direction: "desc",
+  });
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
-        setAllSurveyRecords(allSurveyRecords || []);
-        const surveyRecords = allSurveyRecords.slice(0, PAGE_SIZE);
+  const [statistics, setStatistics] = useState({
+    totalSurveys: 0,
+    currentSurveys: 0,
+    completionRate: 0,
+    scoreLevelDistribution: [],
+  });
 
-        // Wait for all promises to resolve
-        setSurveyRecords(surveyRecords || []);
-      } else {
-        showToast("Không thể tải dữ liệu khảo sát", "error");
+  const calculateStatistics = useCallback(
+    (records, totalRecords, recordsSkipped) => {
+      if (!records || records.length === 0) {
+        return {
+          totalSurveys: 0,
+          currentSurveys: 0,
+          completionRate: 0,
+          scoreLevelDistribution: [],
+        };
       }
-    } catch (error) {
-      console.error("Error fetching survey records:", error);
-      showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      const totalSurveys = totalRecords;
+      const currentSurveys = records.length;
+      const completedSurveys = totalRecords - recordsSkipped;
+      const completionRate =
+        totalRecords > 0
+          ? Math.round((completedSurveys / totalRecords) * 100)
+          : 0;
+
+      // Create score level distribution for BarChart
+      const scoreLevels = [
+        { level: "Rất thấp", min: 0, max: 20, color: "#EF4444" },
+        { level: "Thấp", min: 21, max: 40, color: "#F59E0B" },
+        { level: "Trung bình", min: 41, max: 60, color: "#10B981" },
+        { level: "Cao", min: 61, max: 80, color: "#3B82F6" },
+        { level: "Rất cao", min: 81, max: 100, color: "#8B5CF6" },
+      ];
+
+      const scoreLevelDistribution = scoreLevels.map((level) => {
+        const count = records.filter(
+          (record) =>
+            !record.isSkipped &&
+            record.totalScore >= level.min &&
+            record.totalScore <= level.max
+        ).length;
+        const percentage =
+          completedSurveys > 0
+            ? Math.round((count / completedSurveys) * 100)
+            : 0;
+
+        return {
+          label: level.level,
+          value: percentage,
+          count: count,
+          color: level.color,
+        };
+      });
+
+      return {
+        totalSurveys,
+        currentSurveys,
+        completionRate,
+        scoreLevelDistribution,
+      };
+    },
+    []
+  );
+
+  const fetchSurveyRecords = useCallback(
+    async (page = 1, isRefresh = false) => {
+      try {
+        if (page === 1) {
+          setInitialLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+
+        const params = {
+          page: page,
+          size: PAGE_SIZE,
+          field: sort.value,
+          direction: sort.direction,
+          ...filters,
+        };
+
+        console.log("Fetching survey records with params:", params);
+
+        const response = await getSurveyRecordsByAccount(user.userId, params);
+        // console.log("API Response:", {
+        //   page: response.page,
+        //   totalElements: response.totalElements,
+        //   hasNext: response.hasNext,
+        //   contentLength: response.content?.length,
+        // });
+
+        if (response) {
+          const newRecords = Array.isArray(response?.content)
+            ? response.content.filter((record) => {
+                return filterSurveyTypes({
+                  surveyType: record.survey?.surveyType,
+                  allowedTypes: ["SCREENING", "FOLLOWUP"],
+                });
+              })
+            : [];
+
+          if (isRefresh || page === 1) {
+            setSurveyRecords(newRecords);
+          } else {
+            setSurveyRecords((prev) => {
+              // Create a map to avoid duplicates based on record ID
+              const existingIds = new Set(prev.map((record) => record.id));
+              const uniqueNewRecords = newRecords.filter(
+                (record) => !existingIds.has(record.id)
+              );
+              return [...prev, ...uniqueNewRecords];
+            });
+          }
+
+          // Update pagination info
+          // Convert 0-based page to 1-based for frontend consistency
+          setCurrentPage((response.page || 0) + 1);
+          setTotalElements(response.totalElements || 0);
+          setNumberOfSkipped(response.numberOfSkipped || 0);
+          setHasNext(response.hasNext || false);
+
+          // Calculate statistics for all records (use the same deduplication logic)
+          const allRecords =
+            isRefresh || page === 1
+              ? newRecords
+              : (() => {
+                  const existingIds = new Set(
+                    surveyRecords.map((record) => record.id)
+                  );
+                  const uniqueNewRecords = newRecords.filter(
+                    (record) => !existingIds.has(record.id)
+                  );
+                  return [...surveyRecords, ...uniqueNewRecords];
+                })();
+
+          const stats = calculateStatistics(
+            allRecords,
+            response.totalElements,
+            response?.numberOfSkipped || 0
+          );
+          setStatistics(stats);
+        } else {
+          showToast("Không thể tải dữ liệu khảo sát", "error");
+        }
+      } catch (error) {
+        console.error("Error fetching survey records:", error);
+        showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
+      } finally {
+        setInitialLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [user?.userId, sort, filters]
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchSurveyRecords();
+    await fetchSurveyRecords(1, true);
     setRefreshing(false);
-  }, []);
+  }, [fetchSurveyRecords]);
 
   // Load data when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchSurveyRecords();
+      fetchSurveyRecords(1, true);
     }, [fetchSurveyRecords])
   );
 
@@ -92,114 +238,203 @@ const SurveyRecord = ({ navigation }) => {
 
   const handleViewResult = useCallback(
     (record) => {
-      const survey = {
-        surveyCode: record.surveyCode,
-        name: record.surveyName,
-        id: record.surveyId,
-        ...record,
-      };
-
-      navigation.navigate("Survey", {
-        screen: "SurveyResult",
-        params: {
-          survey,
-          result: record,
-          showRecordsButton: false,
-        },
+      navigation.navigate("SurveyResult", {
+        result: record,
+        showRecordsButton: false,
+        type: "record",
       });
     },
     [navigation]
   );
 
-  const renderSurveyRecord = (record) => (
-    <TouchableOpacity
-      key={record.id}
-      style={styles.recordCard}
-      onPress={() => handleViewResult(record)}
-    >
-      <View style={styles.recordHeader}>
-        <View style={styles.recordIcon}>
-          <Ionicons name="document-text" size={24} color="#3B82F6" />
-        </View>
-        <View style={styles.recordInfo}>
-          <Text style={styles.recordTitle}>{record.survey.name}</Text>
-          <Text style={styles.recordDate}>
-            Hoàn thành: {formatDate(record.completedAt)}
-          </Text>
-        </View>
-        <View style={styles.scoreContainer}>
-          <View
-            style={[styles.scoreCircle, { borderColor: getScoreColor(record) }]}
-          >
-            <Text style={[styles.scoreText, { color: getScoreColor(record) }]}>
-              {record.totalScore}
-            </Text>
+  const handleFilterSortApply = useCallback(
+    ({ filters: newFilters, sort: newSort }) => {
+      console.log("Applying filters and sort:", { newFilters, newSort });
+      setFilters(newFilters);
+      setSort(newSort);
+      setCurrentPage(1);
+      fetchSurveyRecords(1, true);
+    },
+    [fetchSurveyRecords]
+  );
+
+  const loadMore = useCallback(() => {
+    if (loadingMore || !hasNext) return;
+
+    const nextPage = currentPage + 1;
+    console.log(
+      "Loading more - currentPage:",
+      currentPage,
+      "nextPage:",
+      nextPage
+    );
+    fetchSurveyRecords(nextPage, false);
+  }, [loadingMore, hasNext, currentPage, fetchSurveyRecords]);
+
+  const renderSurveyRecord = useCallback(
+    (record, index) => (
+      <SurveyRecordCard
+        key={`${record.id}-${index}`}
+        record={record}
+        onPress={() => handleViewResult(record)}
+        showIntervention={true}
+      />
+    ),
+    [handleViewResult]
+  );
+
+  const renderStatisticsSection = useCallback(
+    () => (
+      <View style={styles.statisticsSection}>
+        {/* Header */}
+        <View style={styles.statsHeader}>
+          <Text style={styles.statsTitle}>Thống kê tổng quan</Text>
+          <View style={styles.statsBadge}>
+            <Ionicons name="analytics" size={16} color="#3B82F6" />
           </View>
         </View>
-      </View>
 
-      <View style={styles.recordDetails}>
-        <View style={styles.scoreInfo}>
-          <Ionicons
-            name={getScoreIcon(record)}
-            size={20}
-            color={getScoreColor(record)}
+        {/* Main Statistics Cards */}
+        <View style={styles.mainStatsContainer}>
+          <StatisticsCard
+            title="Tổng khảo sát"
+            value={statistics.currentSurveys}
+            subtitle={`${totalElements} bài tổng cộng`}
+            icon="document-text"
+            iconColor="#3B82F6"
+            valueColor="#1A1A1A"
+            size="small"
           />
-          <Text style={[styles.scoreLevel, { color: getScoreColor(record) }]}>
-            {getScoreLevel(record)}
-          </Text>
+          <StatisticsCard
+            title="Tỷ lệ hoàn thành"
+            value={`${statistics.completionRate}%`}
+            subtitle="Đã hoàn thành"
+            icon="checkmark-circle"
+            iconColor="#10B981"
+            valueColor="#10B981"
+            size="small"
+          />
         </View>
 
-        {record.noteSuggest && (
-          <View style={styles.suggestionContainer}>
-            <Text style={styles.suggestionText} numberOfLines={2}>
-              {record.noteSuggest}
-            </Text>
+        {/* Charts Section with Horizontal Scroll */}
+        {statistics.scoreLevelDistribution.length > 0 && (
+          <View style={styles.chartsSection}>
+            <Text style={styles.chartsSectionTitle}>Phân tích chi tiết</Text>
+            <HorizontalChartCarousel>
+              {/* Score Level Distribution Chart */}
+              <ReusableBarChart
+                key="score-distribution"
+                data={statistics.scoreLevelDistribution.map((item) => ({
+                  x: item.label,
+                  y: item.value,
+                }))}
+                title="Phân bố mức độ điểm số (%)"
+                yAxisMax={100}
+                barColor="#3B82F6"
+                height={200}
+                valueFormatter={(value) => `${value}%`}
+              />
+
+              {/* Completion Rate Chart */}
+              {statistics.completionRate > 0 && (
+                <ReusableBarChart
+                  key="completion-rate"
+                  data={[
+                    {
+                      x: "Hoàn thành",
+                      y: statistics.completionRate,
+                    },
+                    {
+                      x: "Bỏ qua",
+                      y: 100 - statistics.completionRate,
+                    },
+                  ]}
+                  title="Tỷ lệ hoàn thành (%)"
+                  yAxisMax={100}
+                  barColor="#10B981"
+                  height={200}
+                  valueFormatter={(value) => `${value}%`}
+                />
+              )}
+            </HorizontalChartCarousel>
           </View>
         )}
       </View>
-
-      <View style={styles.recordFooter}>
-        <Text style={styles.viewResultText}>Xem chi tiết</Text>
-        <Ionicons name="chevron-forward" size={16} color="#6B7280" />
-      </View>
-    </TouchableOpacity>
+    ),
+    [statistics, totalElements]
   );
 
-  const loadMore = () => {
-    if (loading) return;
-    const nextPage = page + 1;
-    const nextRecords = allSurveyRecords.slice(0, nextPage * PAGE_SIZE);
-    if (nextRecords.length > surveyRecords.length) {
-      setSurveyRecords(nextRecords);
-      setPage(nextPage);
-    }
-  };
+  if (initialLoading) {
+    return (
+      <Container>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
+          <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+        </View>
+      </Container>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Container>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
-        <View style={styles.headerSpacer} />
+        <TouchableOpacity
+          style={styles.filterButton}
+          onPress={() => setShowFilterModal(true)}
+        >
+          <Ionicons name="filter" size={20} color="#3B82F6" />
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={surveyRecords}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => renderSurveyRecord(item)}
-        contentContainerStyle={{ padding: 20 }}
-        ListEmptyComponent={
-          !loading && (
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Statistics Section */}
+        {renderStatisticsSection()}
+
+        {/* Survey Records */}
+        <View style={styles.recordsSection}>
+          <View style={styles.recordsHeader}>
+            <Text style={styles.sectionTitle}>Danh sách khảo sát</Text>
+            <View style={styles.recordsCountContainer}>
+              <View style={styles.recordsCountSkipped}>
+                <Text style={styles.recordsCountTextSkipped}>
+                  {numberOfSkipped} bài bỏ qua
+                </Text>
+              </View>
+              <View style={styles.recordsCount}>
+                <Text style={styles.recordsCountText}>
+                  {statistics.currentSurveys} / {totalElements} bài
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {surveyRecords.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons
-                name="document-text-outline"
-                size={64}
-                color="#9CA3AF"
-              />
+              <View style={styles.emptyIconContainer}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={64}
+                  color="#9CA3AF"
+                />
+              </View>
               <Text style={styles.emptyTitle}>Chưa có kết quả khảo sát</Text>
               <Text style={styles.emptySubtitle}>
                 Hoàn thành khảo sát đầu tiên để xem kết quả tại đây
@@ -208,48 +443,52 @@ const SurveyRecord = ({ navigation }) => {
                 style={styles.emptyButton}
                 onPress={() => navigation.navigate("MainBottomTabs")}
               >
+                <Ionicons
+                  name="add-circle"
+                  size={18}
+                  color="#fff"
+                  style={{ marginRight: 8 }}
+                />
                 <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
               </TouchableOpacity>
             </View>
-          )
-        }
-        ListHeaderComponent={
-          surveyRecords.length > 0 && (
-            <View style={styles.statsContainer}>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>{allSurveyRecords.length}</Text>
-                <Text style={styles.statLabel}>Tổng số khảo sát</Text>
-              </View>
-              <View style={styles.statCard}>
-                <Text style={styles.statNumber}>
-                  {allSurveyRecords.length > 0
-                    ? Math.round(
-                        allSurveyRecords.reduce(
-                          (sum, record) => sum + record.totalScore,
-                          0
-                        ) / allSurveyRecords.length
-                      )
-                    : 0}
-                </Text>
-                <Text style={styles.statLabel}>Điểm trung bình</Text>
-              </View>
-            </View>
-          )
-        }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.2}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListFooterComponent={
-          loading && (
-            <ActivityIndicator
-              style={{ marginVertical: 16 }}
-              size={30}
-              color={GlobalStyles.colors.primary}
-            />
-          )
-        }
+          ) : (
+            <>
+              {surveyRecords.map((record, index) =>
+                renderSurveyRecord(record, index)
+              )}
+
+              {/* Load More Button */}
+              {hasNext && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={loadMore}
+                  disabled={loadingMore}
+                >
+                  {loadingMore ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <>
+                      <Text style={styles.loadMoreText}>
+                        Xem thêm ({totalElements - surveyRecords.length})
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color="#fff" />
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
+            </>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Filter & Sort Modal */}
+      <FilterSortModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        onApply={handleFilterSortApply}
+        currentFilters={filters}
+        currentSort={sort}
       />
 
       {/* Toast */}
@@ -259,7 +498,7 @@ const SurveyRecord = ({ navigation }) => {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+    </Container>
   );
 };
 
@@ -267,17 +506,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",
-  },
-  loadingIndicator: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1000,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
   },
   header: {
     flexDirection: "row",
@@ -288,185 +516,194 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   backButton: {
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 10,
     backgroundColor: "#F1F5F9",
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 20,
+    fontWeight: "700",
     color: "#1A1A1A",
   },
   headerSpacer: {
     width: 40,
   },
+  filterButton: {
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#EFF6FF",
+  },
   scrollView: {
     flex: 1,
-    padding: 20,
-    position: "relative",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F8FAFC",
   },
   loadingText: {
     fontSize: 16,
     color: "#6B7280",
     marginTop: 16,
+    fontWeight: "500",
   },
-  emptyContainer: {
-    flex: 1,
+  statisticsSection: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 20,
+    paddingVertical: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  statsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  statsTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  statsBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
   },
-  emptyTitle: {
-    fontSize: 18,
+  mainStatsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 12,
+    marginBottom: 24,
+  },
+  chartsSection: {
+    marginTop: 8,
+  },
+  chartsSectionTitle: {
+    fontSize: 16,
     fontWeight: "600",
     color: "#374151",
-    marginTop: 16,
+    paddingHorizontal: 24,
+    marginBottom: 16,
+  },
+  recordsSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  recordsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+  },
+
+  recordsCountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+
+  recordsCountSkipped: {
+    backgroundColor: "#E7E7E796",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  recordsCountTextSkipped: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#9B9B9BFF",
+  },
+  recordsCount: {
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  recordsCountText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#3B82F6",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: "#F9FAFB",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#374151",
     marginBottom: 8,
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: 14,
     color: "#6B7280",
     textAlign: "center",
-    marginBottom: 24,
-    paddingHorizontal: 40,
+    marginBottom: 32,
+    lineHeight: 20,
   },
   emptyButton: {
     backgroundColor: GlobalStyles.colors.primary,
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
   emptyButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
   },
-  statsContainer: {
+
+  loadMoreButton: {
+    backgroundColor: GlobalStyles.colors.primary,
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
-    padding: 20,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    marginTop: 8,
+    gap: 8,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: GlobalStyles.colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  recordsContainer: {
-    gap: 16,
-  },
-  recordCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 16,
-  },
-  recordHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  recordIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: "#EFF6FF",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  recordInfo: {
-    flex: 1,
-  },
-  recordTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1A1A1A",
-    marginBottom: 4,
-  },
-  recordDate: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  scoreContainer: {
-    marginLeft: 12,
-  },
-  scoreCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 2,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  scoreText: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  recordDetails: {
-    marginBottom: 16,
-  },
-  scoreInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  scoreLevel: {
+  loadMoreText: {
+    color: "#fff",
     fontSize: 14,
     fontWeight: "600",
-    marginLeft: 8,
-  },
-  suggestionContainer: {
-    backgroundColor: "#F9FAFB",
-    padding: 12,
-    borderRadius: 8,
-  },
-  suggestionText: {
-    fontSize: 12,
-    color: "#374151",
-    lineHeight: 16,
-  },
-  recordFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-  },
-  viewResultText: {
-    fontSize: 14,
-    color: GlobalStyles.colors.primary,
-    fontWeight: "500",
   },
 });
 

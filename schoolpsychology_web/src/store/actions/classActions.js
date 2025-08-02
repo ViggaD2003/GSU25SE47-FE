@@ -43,12 +43,20 @@ export const createClass = createAsyncThunk(
   'class/createClass',
   async (classData, { rejectWithValue }) => {
     try {
-      const data = {
-        teacherCode: classData?.teacherCode || null,
-        codeClass: classData?.codeClass || null,
-        classYear: new Date(classData?.classYear, 'YYYY-MM-DD'),
-        studentCodes: classData?.studentCodes || [],
+      if (!classData) {
+        return rejectWithValue('Class data is required')
       }
+      const data = [
+        {
+          grade: classData?.grade || 'GRADE_10',
+          teacherId: classData?.teacherId || null,
+          codeClass: classData?.codeClass || null,
+          schoolYear: classData?.schoolYear || null,
+          startTime: classData?.startTime || null,
+          endTime: classData?.endTime || null,
+          isActive: classData?.isActive || true,
+        },
+      ]
       const response = await classAPI.createClass(data)
       return response
     } catch (error) {
@@ -61,47 +69,45 @@ export const createClass = createAsyncThunk(
   }
 )
 
-// Async thunk for updating a class
-export const updateClass = createAsyncThunk(
-  'class/updateClass',
-  async (code, classData, { rejectWithValue }) => {
+// Async thunk for getting a class by id
+export const getClassById = createAsyncThunk(
+  'class/getClassById',
+  async (id, { rejectWithValue }) => {
     try {
-      if (!code) {
-        return rejectWithValue('Class code is required')
+      if (!id) {
+        return rejectWithValue('Class id is required')
       }
-      const data = {
-        teacherCode: classData?.teacherCode || null,
-        codeClass: classData?.codeClass || null,
-        classYear: new Date(classData?.classYear, 'YYYY-MM-DD'),
-        studentCodes: classData?.studentCodes || [],
-      }
-      const response = await classAPI.updateClass(code, data)
+      const response = await classAPI.getClassById(id)
       return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to update class'
+          'Failed to fetch class by id'
       )
     }
   }
 )
 
-// Async thunk for deleting a class
-export const deleteClass = createAsyncThunk(
-  'class/deleteClass',
-  async (code, { rejectWithValue }) => {
+// Async thunk for enrolling a class
+export const enrollClass = createAsyncThunk(
+  'class/enrollClass',
+  async (data, { rejectWithValue }) => {
     try {
-      if (!code) {
-        return rejectWithValue('Class code is required')
+      if (!data) {
+        return rejectWithValue('Enrollment data is required')
       }
-      const response = await classAPI.deleteClass(code)
+      const requestBody = {
+        classId: data.classId,
+        studentIds: data.studentIds || [],
+      }
+      const response = await classAPI.enrollClass(requestBody)
       return response
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          'Failed to delete class'
+          'Failed to enroll class'
       )
     }
   }

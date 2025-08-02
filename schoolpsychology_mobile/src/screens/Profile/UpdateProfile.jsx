@@ -29,6 +29,20 @@ export default function UpdateProfile({ route }) {
     isEnableSurvey: false,
   });
 
+  // Class information (read-only)
+  const [classInfo, setClassInfo] = useState({
+    studentCode: "",
+    codeClass: "",
+    schoolYear: "",
+  });
+
+  // Teacher information (read-only)
+  const [teacherInfo, setTeacherInfo] = useState({
+    teacherName: "",
+    teacherEmail: "",
+    teacherPhone: "",
+  });
+
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const updateFormData = (field, value) => {
@@ -46,6 +60,20 @@ export default function UpdateProfile({ route }) {
           dob: profileData.dob || "",
           isEnableSurvey: profileData.isEnableSurvey ?? false,
         });
+
+        // Set class information
+        setClassInfo({
+          studentCode: profileData.studentCode || "",
+          codeClass: profileData.classDto?.codeClass || "",
+          schoolYear: profileData.classDto?.schoolYear || "",
+        });
+
+        // Set teacher information
+        setTeacherInfo({
+          teacherName: profileData.classDto?.teacher?.fullName || "",
+          teacherEmail: profileData.classDto?.teacher?.email || "",
+          teacherPhone: profileData.classDto?.teacher?.phoneNumber || "",
+        });
       }
     }, [])
   );
@@ -59,14 +87,38 @@ export default function UpdateProfile({ route }) {
         phoneNumber: formData.phoneNumber,
         gender: formData.gender,
         dob: formData.dob,
-        isEnableSurvey: formData.isEnableSurvey,
       };
+
+      await api.patch(
+        `/api/v1/account/update-able-survey/${user?.userId}?isAbleSurvey=${formData.isEnableSurvey}`
+      );
 
       const response = await api.put("/api/v1/account", payload);
       console.log("Update Profile:", response.data);
 
       // Update user context with new data
-      setFormData({ ...response.data });
+      setFormData({
+        ...response.data,
+        isEnableSurvey: formData.isEnableSurvey,
+      });
+
+      // Update class information if available
+      if (response.data.classDto) {
+        setClassInfo({
+          studentCode: response.data.studentCode || "",
+          codeClass: response.data.classDto.codeClass || "",
+          schoolYear: response.data.classDto.schoolYear || "",
+        });
+
+        // Update teacher information if available
+        if (response.data.classDto.teacher) {
+          setTeacherInfo({
+            teacherName: response.data.classDto.teacher.fullName || "",
+            teacherEmail: response.data.classDto.teacher.email || "",
+            teacherPhone: response.data.classDto.teacher.phoneNumber || "",
+          });
+        }
+      }
 
       console.log("About to show success message");
 
@@ -262,6 +314,100 @@ export default function UpdateProfile({ route }) {
             </TouchableOpacity>
           </View>
 
+          {/* Class Information (Student only) */}
+          {user?.role === "STUDENT" && (
+            <>
+              {/* Student Code */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Mã học sinh</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={classInfo.studentCode}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>
+                  Mã học sinh không thể thay đổi
+                </Text>
+              </View>
+
+              {/* Class Code */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Lớp</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={classInfo.codeClass}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>
+                  Thông tin lớp không thể thay đổi
+                </Text>
+              </View>
+
+              {/* School Year */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Năm học</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={classInfo.schoolYear}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>
+                  Năm học không thể thay đổi
+                </Text>
+              </View>
+
+              {/* Teacher Information Section */}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>
+                  Thông tin giáo viên chủ nhiệm
+                </Text>
+              </View>
+
+              {/* Teacher Name */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Tên giáo viên</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={teacherInfo.teacherName}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>Tên giáo viên chủ nhiệm</Text>
+              </View>
+
+              {/* Teacher Email */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email giáo viên</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={teacherInfo.teacherEmail}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>
+                  Email liên hệ với giáo viên
+                </Text>
+              </View>
+
+              {/* Teacher Phone */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Số điện thoại giáo viên</Text>
+                <TextInput
+                  style={[styles.input, styles.disabledInput]}
+                  value={teacherInfo.teacherPhone}
+                  editable={false}
+                  placeholderTextColor="#9CA3AF"
+                />
+                <Text style={styles.helperText}>
+                  Số điện thoại liên hệ với giáo viên
+                </Text>
+              </View>
+            </>
+          )}
+
           {/* Enable Survey (Student only) */}
           {user?.role === "STUDENT" && (
             <View style={styles.inputGroup}>
@@ -395,6 +541,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#9CA3AF",
     marginTop: 4,
+  },
+  sectionHeader: {
+    marginTop: 32,
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
   },
   genderContainer: {
     flexDirection: "row",

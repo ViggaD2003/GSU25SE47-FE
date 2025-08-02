@@ -22,7 +22,7 @@ export const login = async (email, password) => {
       email,
       password,
     });
-    console.log(response);
+    console.log(response.data);
 
     const { token: accessToken } = response.data.data;
 
@@ -37,6 +37,8 @@ export const login = async (email, password) => {
 
     // Validate the token before saving
     const tokenValidation = await validateToken(accessToken);
+    console.log("is valid", tokenValidation.isValid);
+
     if (!tokenValidation.isValid) {
       throw new Error(tokenValidation.error);
     }

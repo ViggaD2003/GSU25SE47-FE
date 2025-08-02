@@ -23,7 +23,9 @@ const LoadingFallback = ({ error }) => (
         </button>
       </div>
     ) : (
-      <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
     )}
   </div>
 )
@@ -152,75 +154,75 @@ const AppRouter = () => {
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/"
-            element={
-              <GuestRoute>
-                <AnonymousLayoutComponent />
-              </GuestRoute>
-            }
-          >
-            <Route index element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="login-success" element={<GoogleCallBack />} />
-          </Route>
+      {/* <Suspense fallback={<LoadingFallback />}> */}
+      <Routes>
+        {/* Public routes */}
+        <Route
+          path="/"
+          element={
+            <GuestRoute>
+              <AnonymousLayoutComponent />
+            </GuestRoute>
+          }
+        >
+          <Route index element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="login-success" element={<GoogleCallBack />} />
+        </Route>
 
-          {/* Protected routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            {ROUTE_CONFIG.map(route => {
-              if (route.children) {
-                return route.children.map(child => (
-                  <Route
-                    key={child.key}
-                    path={child.key.replace(/^\//, '')}
-                    element={
-                      <ProtectedRoute allowedRoles={route.allowedRoles}>
-                        <Suspense fallback={<LoadingFallback />}>
-                          {elementMap[child.element]
-                            ? React.createElement(elementMap[child.element])
-                            : null}
-                        </Suspense>
-                      </ProtectedRoute>
-                    }
-                  />
-                ))
-              }
-
-              // Handle routes with or without parameters, including hidden routes
-              const path = route.key.replace(/^\//, '')
-              const Component = elementMap[route.element]
-
-              return (
+        {/* Protected routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          {ROUTE_CONFIG.map(route => {
+            if (route.children) {
+              return route.children.map(child => (
                 <Route
-                  key={route.key}
-                  path={path}
+                  key={child.key}
+                  path={child.key.replace(/^\//, '')}
                   element={
                     <ProtectedRoute allowedRoles={route.allowedRoles}>
-                      <Suspense fallback={<LoadingFallback />}>
-                        {Component ? React.createElement(Component) : null}
-                      </Suspense>
+                      {/* <Suspense fallback={<LoadingFallback />}> */}
+                      {elementMap[child.element]
+                        ? React.createElement(elementMap[child.element])
+                        : null}
+                      {/* </Suspense> */}
                     </ProtectedRoute>
                   }
                 />
-              )
-            })}
-          </Route>
+              ))
+            }
 
-          {/* 404 route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            // Handle routes with or without parameters, including hidden routes
+            const path = route.key.replace(/^\//, '')
+            const Component = elementMap[route.element]
+
+            return (
+              <Route
+                key={route.key}
+                path={path}
+                element={
+                  <ProtectedRoute allowedRoles={route.allowedRoles}>
+                    {/* <Suspense fallback={<LoadingFallback />}> */}
+                    {Component ? React.createElement(Component) : null}
+                    {/* </Suspense> */}
+                  </ProtectedRoute>
+                }
+              />
+            )
+          })}
+        </Route>
+
+        {/* 404 route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      {/* </Suspense> */}
     </ErrorBoundary>
   )
 }

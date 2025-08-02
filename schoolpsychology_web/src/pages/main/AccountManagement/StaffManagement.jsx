@@ -13,6 +13,7 @@ import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import UserTable from './UserTable'
+import { useAuth } from '@/contexts/AuthContext'
 
 const { Title, Text } = Typography
 const { Option } = Select
@@ -20,6 +21,7 @@ const { Search } = Input
 const UserModal = lazy(() => import('./UserModal'))
 
 const StaffManagement = () => {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [loading, setLoading] = useState(false)
@@ -180,6 +182,7 @@ const StaffManagement = () => {
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
         >
           <UserTable
+            user={user}
             data={data}
             loading={loading}
             pagination={pagination}

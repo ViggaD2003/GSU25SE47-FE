@@ -3,20 +3,38 @@
     "title": "MindfulCare",
     "welcome": "Chào mừng"
   },
+  "notification": {
+    "newNotification": "Bạn có thông báo mới",
+    "title": "Thông báo",
+    "testSound": "Thử âm thanh",
+    "noNotifications": "Không có thông báo nào",
+    "content": "Nội dung thông báo"
+  },
   "navigation": {
     "dashboard": "Bảng điều khiển",
-    "accountManagement": {
-      "title": "Quản lý tài khoản",
-      "clients": "Người dùng",
-      "staffs": "Nhân viên"
+    "staffManagement": {
+      "title": "Nhân sự",
+      "staffList": "Danh sách nhân sự",
+      "counselorList": "Danh sách tư vấn viên",
+      "teacherList": "Danh sách giáo viên",
+      "workSchedule": "Lịch làm việc"
     },
-    "appointmentsManagement": "Quản lý cuộc hẹn",
-    "surveyManagement": "Quản lý khảo sát",
+    "psychologicalSupport": "Hỗ trợ tâm lý",
+    "appointmentsManagement": "Cuộc hẹn",
+    "surveyManagement": "Khảo sát",
     "programManagement": "Chương trình hỗ trợ",
-    "slotManagement": "Quản lý giờ làm",
-    "classManagement": "Quản lý lớp học",
+    "slotManagement": "Giờ làm",
+    "classManagement": "Lớp học",
+    "teacherManagement": "Giáo viên chủ nhiệm",
+    "studentManagement": "Học sinh theo lớp",
+    "myClass": "Lớp của tôi",
+    "myStudent": "Danh sách học sinh",
     "caseManagement": "Ca tư vấn",
-    "categoryManagement": "Quản lý danh mục",
+    "caseAssign": "Ca chỉ định",
+    "assignedCases": "Ca phụ trách",
+    "observedCases": "Ca quan sát",
+    "categoryManagement": "Danh mục",
+    "assessmentDemo": "Phòng thí nghiệm đánh giá",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
   },
@@ -101,15 +119,23 @@
     "counselor": "Tư vấn viên"
   },
   "clientManagement": {
-    "title": "Quản lý tài khoản người dùng",
-    "description": "Quản lý tài khoản người dùng và thông tin của họ",
+    "manageTitle": "Danh sách học sinh",
+    "manageTitleTeacher": "Lớp của tôi",
+    "description": "Quản lý học sinh của lớp",
     "refresh": "Làm mới",
     "addUser": "Thêm người dùng",
     "search": "Tìm kiếm người dùng...",
+    "selectClass": "Chọn lớp",
+    "selectYear": "Chọn năm",
+    "allYears": "Tất cả năm",
+    "noClass": "Không có lớp",
+    "schoolYear": "Năm học",
     "messages": {
       "editUserSuccess": "Sửa tài khoản người dùng thành công",
       "addUserSuccess": "Thêm tài khoản người dùng thành công",
-      "inactiveSuccess": "Chặn tài khoản người dùng thành công"
+      "inactiveSuccess": "Chặn tài khoản người dùng thành công",
+      "createCaseSuccess": "Tạo ca tư vấn thành công",
+      "createCaseError": "Không thể tạo ca tư vấn"
     }
   },
   "staffManagement": {
@@ -149,7 +175,11 @@
     "fullName": "Họ và tên",
     "email": "Email",
     "phone": "Số điện thoại",
+    "studentCode": "Mã học sinh",
+    "gender": "Giới tính",
+    "dob": "Ngày sinh",
     "role": "Vai trò",
+    "createCase": "Tạo ca tư vấn",
     "roleOptions": {
       "student": "Học sinh",
       "guardian": "Phụ huynh",
@@ -161,6 +191,18 @@
       "active": "Hoạt động",
       "inactive": "Chặn"
     },
+    "surveyStatus": "Trạng thái khảo sát",
+    "surveyEnabled": "Bật",
+    "surveyDisabled": "Tắt",
+    "caseStatus": "Trạng thái vụ việc",
+    "activeCases": "Có vụ việc",
+    "noCases": "Không có vụ việc",
+    "hasActiveCases": "Có vụ việc hỗ trợ đang hoạt động",
+    "noActiveCases": "Không có vụ việc hỗ trợ đang hoạt động",
+    "latestSurvey": "Khảo sát gần nhất",
+    "hasSurveyRecord": "Có bản ghi",
+    "noSurveyRecord": "Không có bản ghi",
+    "viewDetails": "Xem chi tiết",
     "createDate": "Ngày tạo",
     "lastLogin": "Đăng nhập gần nhất"
   },
@@ -273,10 +315,102 @@
   "caseManagement": {
     "title": "Quản lý ca tư vấn",
     "description": "Quản lý ca tư vấn và thông tin của họ",
+    "createNew": "Tạo ca tư vấn mới",
+    "createCase": "Tạo ca tư vấn",
+    "editCase": "Chỉnh sửa ca tư vấn",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa ca tư vấn này?",
     "table": {
-      "name": "Tên ca tư vấn",
+      "title": "Tiêu đề",
       "description": "Mô tả",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "priority": "Mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển",
+      "student": "Học sinh",
+      "studentCode": "Mã học sinh",
+      "createBy": "Người tạo",
+      "teacherCode": "Mã giáo viên",
+      "hostBy": "Người phụ trách",
+      "counselorCode": "Mã tư vấn viên",
+      "currentLevel": "Mức độ hiện tại",
+      "initialLevel": "Mức độ ban đầu",
+      "createdAt": "Ngày tạo",
+      "noDescription": "Không có mô tả",
+      "noHost": "Chưa phân công"
+    },
+    "form": {
+      "title": "Tiêu đề",
+      "titlePlaceholder": "Nhập tiêu đề ca tư vấn",
+      "titleRequired": "Vui lòng nhập tiêu đề ca tư vấn",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhập mô tả ca tư vấn",
+      "descriptionRequired": "Vui lòng nhập mô tả ca tư vấn",
+      "priority": "Mức độ ưu tiên",
+      "priorityRequired": "Vui lòng chọn mức độ ưu tiên",
+      "priorityPlaceholder": "Chọn mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển",
+      "progressTrendRequired": "Vui lòng chọn xu hướng tiến triển",
+      "progressTrendPlaceholder": "Chọn xu hướng tiến triển",
+      "studentId": "Mã học sinh",
+      "studentIdRequired": "Vui lòng nhập mã học sinh",
+      "studentIdPlaceholder": "Nhập mã học sinh",
+      "createBy": "Người tạo",
+      "createByRequired": "Vui lòng nhập người tạo",
+      "createByPlaceholder": "Nhập ID người tạo",
+      "currentLevelId": "Mức độ hiện tại",
+      "currentLevelIdRequired": "Vui lòng chọn mức độ hiện tại",
+      "currentLevelIdPlaceholder": "Nhập ID mức độ hiện tại",
+      "initialLevelId": "Mức độ ban đầu",
+      "initialLevelIdRequired": "Vui lòng chọn mức độ ban đầu",
+      "initialLevelIdPlaceholder": "Nhập ID mức độ ban đầu",
+      "category": "Danh mục",
+      "categoryRequired": "Vui lòng chọn danh mục",
+      "categoryPlaceholder": "Chọn danh mục",
+      "level": "Mức độ",
+      "levelRequired": "Vui lòng chọn mức độ",
+      "levelPlaceholder": "Chọn mức độ",
+      "save": "Lưu",
+      "cancel": "Hủy"
+    },
+    "priorityOptions": {
+      "HIGH": "Cao",
+      "MEDIUM": "Trung bình",
+      "LOW": "Thấp"
+    },
+    "progressTrendOptions": {
+      "IMPROVED": "Cải thiện",
+      "STABLE": "Ổn định",
+      "DECLINED": "Suy giảm"
+    },
+    "statusOptions": {
+      "NEW": "Mới",
+      "IN_PROGRESS": "Đang tiến hành",
+      "CLOSED": "Đã đóng"
+    },
+    "statistics": {
+      "total": "Tổng số ca tư vấn",
+      "highPriority": "Ưu tiên cao",
+      "mediumPriority": "Ưu tiên trung bình",
+      "lowPriority": "Ưu tiên thấp",
+      "newStatus": "Ca tư vấn mới",
+      "inProgressStatus": "Đang tiến hành",
+      "closedStatus": "Ca tư vấn đã đóng"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm ca tư vấn, học sinh hoặc người tạo..."
+    },
+    "messages": {
+      "fetchError": "Không thể tải danh sách ca tư vấn",
+      "createSuccess": "Tạo ca tư vấn thành công",
+      "updateSuccess": "Cập nhật ca tư vấn thành công",
+      "saveError": "Không thể lưu ca tư vấn",
+      "assignSuccess": "Phân công ca tư vấn thành công",
+      "assignError": "Không thể phân công ca tư vấn"
+    },
+    "confirmModal": {
+      "title": "Xác nhận thông tin",
+      "student": "Học sinh",
+      "creator": "Người tạo",
+      "confirmMessage": "Vui lòng kiểm tra lại thông tin trước khi lưu"
     }
   },
   "slotManagement": {
@@ -284,8 +418,11 @@
     "description": "Quản lý giờ làm và thông tin của họ",
     "refresh": "Làm mới",
     "publish": "Xuất bản",
+    "publishSlot": "Quản lý xuất bản giờ làm",
     "addSlot": "Tạo giờ làm mới",
     "search": "Tìm kiếm giờ làm...",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
     "table": {
       "slotName": "Tên giờ làm",
       "type": "Loại",
@@ -317,10 +454,23 @@
       "addSlot": "Thêm giờ làm",
       "createAll": "Tạo tất cả giờ làm",
       "cancel": "Hủy",
-      "startDateTimeHelp": "Vui lòng chọn ngày và giờ bắt đầu từ hiện tại trở đi. Thời gian hiển thị theo giờ Việt Nam (GMT+7).",
       "durationHelp": "Thời lượng phải là số nguyên (tối thiểu 1 giờ). Giờ kết thúc phải sau giờ bắt đầu và ở tương lai.",
       "lunchBreakHelp": "Giờ nghỉ trưa từ 12:00 đến 13:00. Tư vấn viên chỉ được đặt giờ làm từ 08:00 đến 12:00.",
-      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)"
+      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
+      "counselorInfo": "Tạo giờ làm cho tư vấn viên",
+      "counselorDescription": "Chọn ngày để tự động tạo giờ làm buổi sáng (8:00-12:00) và buổi chiều (14:00-17:00).",
+      "selectDate": "Chọn ngày",
+      "dateRequired": "Vui lòng chọn ngày",
+      "counselorDateHelp": "Buổi sáng: 8:00-12:00, Buổi chiều: 14:00-17:00",
+      "datePlaceholder": "Chọn ngày",
+      "endDateTimeRequired": "Vui lòng chọn ngày và giờ kết thúc",
+      "endDateTimeHelp": "Chọn giờ kết thúc. Phải cùng ngày với giờ bắt đầu và ít nhất sau 1 tiếng. Chỉ được chọn 00 hoặc 30 phút.",
+      "editTimeOnlyNote": "Lưu ý: Bạn chỉ có thể chỉnh sửa thời gian trong ngày gốc",
+      "startDateTimeHelp": "Chọn giờ bắt đầu ít nhất 1 ngày từ bây giờ. Không được chọn Chủ Nhật. Khung giờ: 8:00-17:00. Chỉ được chọn 00 hoặc 30 phút."
+    },
+    "period": {
+      "morning": "Buổi sáng",
+      "afternoon": "Buổi chiều"
     },
     "preview": {
       "title": "Xem trước giờ làm",
@@ -330,7 +480,14 @@
       "duration": "Thời lượng",
       "hours": "giờ",
       "host": "Người phụ trách",
-      "deleteConfirm": "Bạn có chắc chắn muốn xóa giờ làm này?"
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa giờ làm này?",
+      "deleteDay": "Xóa cả ngày",
+      "deleteDayConfirm": "Bạn có chắc chắn muốn xóa tất cả các giờ làm trong ngày này?",
+      "expand": "Mở rộng",
+      "collapse": "Thu gọn",
+      "timeConflictsDetected": "Đã phát hiện trùng lịch",
+      "timeConflictsDetectedDescription": "Các giờ làm sau đây có trùng lịch với giờ làm đã có trong cơ sở dữ liệu:",
+      "clearConflicts": "Xóa trùng lịch"
     },
     "typeOptions": {
       "appointment": "Cuộc hẹn",
@@ -341,6 +498,10 @@
       "draft": "Nháp",
       "closed": "Đã đóng"
     },
+    "status": {
+      "conflict": "Trùng lịch",
+      "hasConflicts": "Có trùng lịch"
+    },
     "messages": {
       "createSuccess": "Tạo giờ làm thành công",
       "createError": "Tạo giờ làm thất bại",
@@ -348,24 +509,59 @@
       "validationError": "Vui lòng kiểm tra thông tin nhập",
       "slotAdded": "Thêm giờ làm vào xem trước thành công",
       "slotRemoved": "Xóa giờ làm khỏi xem trước thành công",
+      "dayRemoved": "Đã xóa tất cả giờ làm của ngày đã chọn",
       "noSlotsToCreate": "Vui lòng thêm ít nhất một giờ làm trước khi tạo",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
       "slotUpdated": "Cập nhật giờ làm thành công",
-      "publishSuccess": "Xuất bản giờ làm thành công"
+      "updateError": "Không thể cập nhật slot. Vui lòng thử lại",
+      "publishSuccess": "Xuất bản giờ làm thành công",
+      "publishError": "Xuất bản giờ làm thất bại",
+      "slotsGenerated": "Tạo giờ làm buổi sáng và chiều thành công",
+      "generateError": "Lỗi khi tạo giờ làm"
     },
     "validation": {
-      "startTimeBeforeEndTime": "Giờ bắt đầu phải trước giờ kết thúc",
-      "startTimeAfterNow": "Giờ bắt đầu phải là hiện tại hoặc tương lai",
-      "endTimeAfterNow": "Giờ kết thúc phải ở tương lai",
+      "startTimeBeforeEndTime": "Thời gian bắt đầu phải trước thời gian kết thúc",
+      "startTimeAfterNow": "Thời gian bắt đầu phải là hiện tại hoặc tương lai",
+      "endTimeAfterNow": "Thời gian kết thúc phải ở tương lai",
       "durationMin": "Thời lượng phải ít nhất 1 giờ",
       "durationInteger": "Thời lượng phải là số nguyên",
-      "endTimeBefore17": "Giờ kết thúc không được sau 17:00",
-      "startTimeAfter8": "Giờ bắt đầu không được trước 08:00",
-      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:00)",
+      "endTimeBefore17": "Thời gian kết thúc không được sau 17:00",
+      "startTimeAfter8": "Thời gian bắt đầu không được trước 08:00",
+      "lunchBreakConflict": "Giờ làm không được trùng giờ nghỉ trưa (12:00-13:30)",
       "slotConflict": "Giờ làm trùng với giờ làm đã có",
-      "managerProgramOnly": "Quản lý chỉ được tạo giờ làm loại CHƯƠNG TRÌNH cho người khác",
+      "managerProgramOnly": "Quản lý chỉ có thể xuất bản slot, không thể tạo mới",
       "staffAppointmentOnly": "Nhân viên chỉ được tạo giờ làm loại CUỘC HẸN cho chính họ",
-      "conflictDetails": "Giờ làm trùng với giờ làm đã có"
+      "conflictDetails": "Giờ làm trùng với giờ làm đã có",
+      "counselorTimeSlots": "Tư vấn viên phải tạo slot vào buổi sáng (8:00-12:00) hoặc buổi chiều (13:30-17:00)",
+      "counselorMorningExists": "Đã tồn tại slot buổi sáng (8:00-12:00) cho ngày này",
+      "counselorAfternoonExists": "Đã tồn tại slot buổi chiều (13:30-17:00) cho ngày này",
+      "counselorMaxSlots": "Tư vấn viên chỉ được tạo 2 slot mỗi ngày",
+      "startTimeOneDayAfter": "Thời gian bắt đầu phải ít nhất 1 ngày từ bây giờ",
+      "noSunday": "Không được tạo slot vào Chủ Nhật",
+      "sameDay": "Thời gian bắt đầu và kết thúc phải trong cùng một ngày",
+      "endAfterStart": "Thời gian kết thúc phải sau thời gian bắt đầu",
+      "minimumOneHour": "Thời lượng tối thiểu là 1 tiếng",
+      "timeRange": "Thời gian phải trong khoảng 8:00-17:00",
+      "minuteRestriction": "Chỉ được chọn 00 hoặc 30 phút",
+      "counselorTimeRestriction": "Tư vấn viên không được tạo slot trong khung 12:00-13:30",
+      "counselorDateExists": "Ngày này đã có slot. Vui lòng chọn ngày khác hoặc xóa các slot hiện có trước.",
+      "endTimeExceedsLimit": "Không thể đặt giờ kết thúc sau 17:00. Vui lòng chọn giờ bắt đầu sớm hơn."
+    },
+    "rules": {
+      "title": "Quy Tắc Tạo Slot",
+      "timeRestrictions": "Ràng Buộc Thời Gian",
+      "minimumAdvance": "Phải tạo trước ít nhất 1 ngày",
+      "noSundays": "Không được tạo slot vào Chủ Nhật",
+      "timeRange": "Khung giờ cho phép: 8:00 - 17:00",
+      "minuteOptions": "Chỉ được chọn 00 hoặc 30 phút",
+      "minimumDuration": "Thời lượng tối thiểu: 1 tiếng",
+      "sameDay": "Thời gian bắt đầu và kết thúc phải cùng ngày",
+      "counselorSpecific": "Quy Tắc Tư Vấn Viên",
+      "counselorLunchBreak": "Không được tạo slot trong khung 12:00-13:30 (giờ nghỉ trưa)",
+      "counselorAutoSlots": "Chọn ngày sẽ tự động tạo slot buổi sáng (8:00-12:00) và buổi chiều (13:30-17:00)",
+      "smartSelection": "Chọn Thông Minh",
+      "smartDateLock": "Chọn một thời gian sẽ khóa thời gian kia về cùng ngày",
+      "smartTimeRestriction": "Thời gian có sẵn tự động điều chỉnh theo yêu cầu tối thiểu 1 tiếng"
     }
   },
   "surveyManagement": {
@@ -374,12 +570,19 @@
     "refresh": "Làm mới",
     "addSurvey": "Thêm khảo sát",
     "search": "Tìm kiếm khảo sát...",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
     "table": {
-      "name": "Tên khảo sát",
+      "title": "Tiêu đề khảo sát",
       "description": "Mô tả",
+      "category": "Danh mục",
+      "surveyType": "Loại khảo sát",
+      "targetScope": "Phạm vi mục tiêu",
+      "targetGrade": "Khối",
       "status": "Trạng thái",
       "startDate": "Ngày bắt đầu",
       "endDate": "Ngày kết thúc",
+      "createdAt": "Ngày tạo",
       "action": {
         "viewDetail": "Xem chi tiết"
       }
@@ -397,9 +600,33 @@
       "category": "Danh mục",
       "score": "Điểm",
       "answer": "Đáp án",
+      "answers": "Đáp án",
+      "question": "Câu hỏi",
+      "questionType": "Loại câu hỏi",
+      "round": "Vòng",
+      "surveyType": "Loại khảo sát",
+      "targetScope": "Phạm vi mục tiêu",
+      "targetGrade": "Lớp mục tiêu",
+      "recurring": "Lặp lại",
       "update": "Cập nhật",
       "cancel": "Hủy",
       "edit": "Sửa",
+      "save": "Lưu",
+      "close": "Đóng",
+      "refresh": "Làm mới",
+      "loading": "Đang tải...",
+      "noData": "Không có dữ liệu khảo sát",
+      "noQuestions": "Không có câu hỏi nào",
+      "errorTitle": "Lỗi tải khảo sát",
+      "basicInfo": "Thông tin cơ bản",
+      "surveyProgress": "Tiến độ khảo sát",
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
+      "totalQuestions": "Tổng câu hỏi",
+      "requiredQuestions": "Câu hỏi bắt buộc",
+      "avgAnswers": "TB đáp án/câu hỏi",
+      "questions": "câu hỏi",
+      "activeRange": "Khoảng hoạt động",
       "validation": {
         "descriptionRequired": "Không được để trống mô tả",
         "startDateRequired": "Không được để trống ngày bắt đầu",
@@ -411,6 +638,7 @@
       "messages": {
         "updateSuccess": "Cập nhật thành công",
         "updateError": "Cập nhật thất bại",
+        "fetchError": "Không thể tải chi tiết khảo sát",
         "noChanges": "Không có thay đổi nào để cập nhật"
       },
       "recurringOptions": {
@@ -421,20 +649,35 @@
       "recurringHelp": {
         "none": "Khảo sát không lặp lại (isRecurring: false)",
         "active": "Khảo sát có lặp lại (isRecurring: true)"
-      }
+      },
+      "publishedEditInfo": "Khảo sát đã xuất bản chỉ có thể cập nhật trạng thái",
+      "draftEditInfo": "Khảo sát nháp có thể chỉnh sửa hoàn toàn",
+      "archivedEditInfo": "Khảo sát đã lưu trữ chỉ có thể cập nhật một số trường và thêm câu hỏi",
+      "addQuestion": "Thêm câu hỏi",
+      "newQuestions": "Câu hỏi mới",
+      "newQuestion": "Câu hỏi mới",
+      "questionText": "Nội dung câu hỏi",
+      "questionDescription": "Mô tả câu hỏi"
     },
     "form": {
-      "name": "Tên khảo sát",
-      "namePlaceholder": "Nhập tên khảo sát",
-      "nameRequired": "Vui lòng nhập tên khảo sát",
+      "title": "Tiêu đề khảo sát",
+      "titlePlaceholder": "Nhập tiêu đề khảo sát",
+      "titleRequired": "Vui lòng nhập tiêu đề khảo sát",
       "description": "Mô tả",
       "descriptionPlaceholder": "Nhập mô tả khảo sát",
       "category": "Danh mục",
       "categoryPlaceholder": "Chọn danh mục",
       "categoryRequired": "Vui lòng chọn danh mục",
-      "surveyCode": "Mã khảo sát",
-      "surveyCodePlaceholder": "Chọn mã khảo sát",
-      "surveyCodeRequired": "Vui lòng chọn mã khảo sát",
+      "surveyType": "Loại khảo sát",
+      "surveyTypePlaceholder": "Chọn loại khảo sát",
+      "surveyTypeRequired": "Vui lòng chọn loại khảo sát",
+      "targetScope": "Phạm vi mục tiêu",
+      "targetScopePlaceholder": "Chọn phạm vi mục tiêu",
+      "targetScopeRequired": "Vui lòng chọn phạm vi mục tiêu",
+      "targetGrade": "Lớp mục tiêu",
+      "targetGradePlaceholder": "Chọn lớp mục tiêu",
+      "targetGradeRequired": "Vui lòng chọn lớp mục tiêu",
+      "descriptionRequired": "Vui lòng nhập mô tả khảo sát",
       "isRequired": "Bắt buộc",
       "isRecurring": "Lặp lại",
       "recurringCycle": "Chu kỳ lặp lại",
@@ -449,11 +692,12 @@
       "addQuestion": "Thêm câu hỏi",
       "startDateBeforeToday": "Ngày bắt đầu phải là ngày hiện tại hoặc sau ngày hiện tại",
       "endDateBeforeStartDate": "Ngày kết thúc phải sau ngày bắt đầu",
+      "dateRangeError": "Ngày kết thúc phải sau ngày bắt đầu",
+      "questionTextRequired": "Nội dung câu hỏi là bắt buộc",
       "sampleSurveys": "Khảo sát mẫu cho danh mục",
       "recurringValidation": {
-        "invalidCycle": "Đối với khảo sát lặp lại, vui lòng chọn chu kỳ hợp lệ: Hàng ngày, Hàng tuần, hoặc Hàng tháng",
+        "invalidCycle": "Đối với khảo sát lặp lại, vui lòng chọn chu kỳ hợp lệ: Hàng tuần, hoặc Hàng tháng",
         "endDateTooFar": "Đối với khảo sát lặp lại {{cycle}}, ngày kết thúc phải trong vòng {{maxDays}} ngày từ ngày bắt đầu",
-        "endDateDaily": "Đối với khảo sát lặp lại hàng ngày, ngày kết thúc phải trong vòng 1 ngày từ ngày bắt đầu",
         "endDateWeekly": "Đối với khảo sát lặp lại hàng tuần, ngày kết thúc phải trong vòng 7 ngày từ ngày bắt đầu",
         "endDateMonthly": "Đối với khảo sát lặp lại hàng tháng, ngày kết thúc phải trong vòng 30 ngày từ ngày bắt đầu"
       }
@@ -461,6 +705,39 @@
     "messages": {
       "addSuccess": "Tạo khảo sát thành công",
       "addError": "Tạo khảo sát thất bại"
+    },
+    "enums": {
+      "surveyStatus": {
+        "DRAFT": "Bản nháp",
+        "PUBLISHED": "Đã xuất bản",
+        "ARCHIVED": "Đã lưu trữ"
+      },
+      "surveyType": {
+        "SCREENING": "Sàng lọc",
+        "PROGRAM": "Chương trình",
+        "FOLLOWUP": "Theo dõi"
+      },
+      "targetScope": {
+        "ALL": "Tất cả học sinh",
+        "GRADE": "Khối",
+        "NONE": "Không có"
+      },
+      "gradeLevel": {
+        "GRADE_10": "Khối 10",
+        "GRADE_11": "Khối 11",
+        "GRADE_12": "Khối 12"
+      },
+      "recurringCycle": {
+        "NONE": "Không",
+        "WEEKLY": "Hàng tuần",
+        "MONTHLY": "Hàng tháng"
+      },
+      "questionType": {
+        "LINKERT_SCALE": "Thang đo Likert",
+        "MULTIPLE_CHOICE": "Nhiều lựa chọn",
+        "SINGLE_CHOICE": "Một lựa chọn",
+        "TEXT": "Văn bản"
+      }
     }
   },
   "appointmentManagement": {
@@ -469,6 +746,8 @@
     "status": "Trạng thái"
   },
   "common": {
+    "male": "Nam",
+    "female": "Nữ",
     "create": "Tạo",
     "cancel": "Hủy",
     "daily": "Hàng ngày",
@@ -485,9 +764,31 @@
     "edit": "Sửa",
     "save": "Lưu",
     "loading": "Đang tải...",
+    "showing": "Hiển thị",
+    "of": "trên tổng số",
+    "items": "mục",
+    "close": "Đóng",
     "view": "Xem",
+    "viewDetails": "Xem chi tiết",
     "delete": "Xóa",
-    "total": "Tổng"
+    "total": "Tổng",
+    "retry": "Thử lại",
+    "weekdays": {
+      "monday": "Thứ Hai",
+      "tuesday": "Thứ Ba",
+      "wednesday": "Thứ Tư",
+      "thursday": "Thứ Năm",
+      "friday": "Thứ Sáu",
+      "saturday": "Thứ Bảy",
+      "sunday": "Chủ Nhật"
+    },
+    "required": "Bắt buộc",
+    "optional": "Tùy chọn",
+    "active": "Đang hoạt động",
+    "inactive": "Không hoạt động",
+    "description": "Mô tả",
+    "reference": "Tham khảo",
+    "refresh": "Làm mới"
   },
   "classManagement": {
     "title": "Quản lý lớp học",
@@ -554,14 +855,18 @@
     "searchStudent": "Tìm kiếm sinh viên...",
     "tabs": {
       "active": "Cuộc hẹn đang hoạt động",
+      "past": "Cuộc hẹn đã qua",
       "completed": "Cuộc hẹn đã hoàn thành"
     },
     "status": {
       "label": "Trạng thái",
       "pending": "Chờ xác nhận",
       "confirmed": "Đã xác nhận",
+      "in_progress": "Đang tiến hành",
       "completed": "Hoàn thành",
-      "cancelled": "Đã hủy"
+      "canceled": "Đã hủy",
+      "absent": "Vắng mặt",
+      "expired": "Hết hạn"
     },
     "formality": {
       "label": "Hình thức",
@@ -579,18 +884,49 @@
       "reason": "Lý do",
       "time": "Thời gian",
       "duration": "Thời lượng",
-      "actions": "Hành động"
+      "actions": "Hành động",
+      "noLocation": "Không xác định"
     },
     "hostType": {
       "teacher": "Giáo viên",
       "counselor": "Tư vấn viên",
       "student": "Học sinh"
     },
+    "role": {
+      "manager": "Quản lý",
+      "teacher": "Giáo viên",
+      "counselor": "Tư vấn viên"
+    },
     "messages": {
       "fetchSuccess": "Tải cuộc hẹn thành công",
       "fetchError": "Không thể tải cuộc hẹn",
       "updateSuccess": "Cập nhật cuộc hẹn thành công",
-      "updateError": "Không thể cập nhật cuộc hẹn"
+      "updateError": "Không thể cập nhật cuộc hẹn",
+      "noData": "Không tìm thấy cuộc hẹn nào",
+      "filterApplied": "Áp dụng bộ lọc thành công"
+    },
+    "manager": {
+      "viewOnly": "Chế độ chỉ xem",
+      "viewOnlyDescription": "Quản lý chỉ có thể xem thông tin cuộc hẹn và không thể bắt đầu phiên",
+      "readOnly": "Chế độ chỉ xem cho quản lý"
+    },
+    "filter": {
+      "startDate": "Ngày bắt đầu",
+      "endDate": "Ngày kết thúc",
+      "dateRange": "Khoảng thời gian",
+      "clearFilters": "Xóa bộ lọc",
+      "applyFilters": "Áp dụng bộ lọc"
+    },
+    "statistics": {
+      "title": "Thống kê cuộc hẹn",
+      "total": "Tổng cộng",
+      "pending": "Chờ xác nhận",
+      "confirmed": "Đã xác nhận",
+      "inProgress": "Đang tiến hành",
+      "completed": "Hoàn thành",
+      "cancelled": "Đã hủy",
+      "absent": "Vắng mặt",
+      "expired": "Hết hạn"
     }
   },
   "appointmentDetails": {
@@ -640,12 +976,18 @@
     "class": "Lớp",
     "surveyProgress": "Tiến trình khảo sát theo thời gian",
     "location": "Địa điểm",
-    "noLocation": "Chưa có địa điểm",
-    "updateSuccess": "Cập nhật cuộc hẹn thành công",
-    "updateError": "Cập nhật cuộc hẹn thất bại",
     "notFound": "Không tìm thấy cuộc hẹn",
     "notFoundDescription": "Cuộc hẹn bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.",
-    "error": "Lỗi"
+    "error": "Lỗi",
+    "errorDesc": "Đã xảy ra lỗi khi tải chi tiết cuộc hẹn. Vui lòng thử lại.",
+    "loadingDescription": "Đang tải chi tiết cuộc hẹn...",
+    "joinMeetingTooltip": "Tham gia cuộc họp trực tuyến",
+    "startSessionTooltip": "Bắt đầu phiên tư vấn",
+    "editTooltip": "Chỉnh sửa chi tiết cuộc hẹn",
+    "sessionInProgress": "Phiên đang diễn ra",
+    "sessionInProgressDescription": "Một phiên tư vấn đang diễn ra cho cuộc hẹn này.",
+    "continueAssessment": "Tiếp tục đánh giá",
+    "noReason": "Không có lý do"
   },
   "categoryManagement": {
     "title": "Quản lý danh mục",
@@ -653,18 +995,153 @@
     "refresh": "Làm mới",
     "addCategory": "Thêm danh mục",
     "search": "Tìm kiếm danh mục...",
+    "searchDescription": "Tìm kiếm theo tên, mã",
+    "status": "Trạng thái",
+    "statusDescription": "Lọc theo trạng thái",
+    "selectStatus": "Chọn trạng thái",
     "table": {
       "name": "Tên danh mục",
       "code": "Mã danh mục",
-      "actions": "Thao tác"
+      "questionLength": "Số câu hỏi",
+      "scoreRange": "Thang điểm",
+      "settings": "Cài đặt",
+      "actions": "Thao tác",
+      "active": "Hoạt động",
+      "inactive": "Không hoạt động",
+      "minScore": "Điểm tối thiểu",
+      "maxScore": "Điểm tối đa",
+      "severityWeight": "Trọng số",
+      "isSum": "Tính tổng",
+      "isLimited": "Giới hạn",
+      "levels": "Cấp độ",
+      "viewDetails": "Xem chi tiết",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "total": "Tổng cộng"
     },
     "form": {
+      "basicInfo": "Thông tin cơ bản",
+      "questionSettings": "Cài đặt câu hỏi",
+      "scoreSettings": "Cài đặt điểm số",
       "name": "Tên danh mục",
       "namePlaceholder": "Nhập tên danh mục",
       "nameRequired": "Vui lòng nhập tên danh mục",
+      "nameMinLength": "Tên danh mục phải có ít nhất 2 ký tự",
+      "nameMaxLength": "Tên danh mục không được vượt quá 100 ký tự",
+      "nameNoWhitespace": "Tên danh mục không được chỉ chứa khoảng trắng",
       "code": "Mã danh mục",
       "codePlaceholder": "Nhập mã danh mục",
-      "codeRequired": "Vui lòng nhập mã danh mục"
+      "codeRequired": "Vui lòng nhập mã danh mục",
+      "codePattern": "Mã chỉ được chứa chữ hoa, số và dấu gạch dưới",
+      "codeMinLength": "Mã phải có ít nhất 2 ký tự",
+      "codeMaxLength": "Mã không được vượt quá 20 ký tự",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Nhập mô tả danh mục",
+      "descriptionMaxLength": "Mô tả không được vượt quá 500 ký tự",
+      "questionLength": "Số lượng câu hỏi",
+      "questionLengthPlaceholder": "Nhập số lượng câu hỏi",
+      "questionLengthRequired": "Vui lòng nhập số lượng câu hỏi",
+      "questionLengthMin": "Số lượng câu hỏi phải ít nhất 1",
+      "questionLengthMax": "Số lượng câu hỏi không được vượt quá 1000",
+      "questionCount": "Số lượng câu hỏi",
+      "questionCountPlaceholder": "Nhập số lượng câu hỏi",
+      "questionCountRequired": "Vui lòng nhập số lượng câu hỏi",
+      "questionCountMin": "Số lượng câu hỏi phải ít nhất 0",
+      "questionCountMax": "Số lượng câu hỏi không được vượt quá 10",
+      "severityWeight": "Trọng số mức độ",
+      "severityWeightPlaceholder": "Nhập trọng số mức độ",
+      "severityWeightRequired": "Vui lòng nhập trọng số mức độ",
+      "severityWeightMin": "Trọng số mức độ phải ít nhất 0.1",
+      "severityWeightMax": "Trọng số mức độ không được vượt quá 10",
+      "isActive": "Trạng thái hoạt động",
+      "active": "Hoạt động",
+      "inactive": "Không hoạt động",
+      "scoreRangeStart": "Giá trị điểm mỗi câu hỏi thấp nhất",
+      "minScorePlaceholder": "Nhập điểm tối thiểu",
+      "minScoreRequired": "Vui lòng nhập điểm tối thiểu",
+      "minScoreMin": "Điểm tối thiểu phải ít nhất 0",
+      "minScoreLessThanMax": "Điểm tối thiểu phải nhỏ hơn điểm tối đa",
+      "scoreRangeEnd": "Giá trị điểm mỗi câu hỏi cao nhất",
+      "maxScorePlaceholder": "Nhập điểm tối đa",
+      "maxScoreRequired": "Vui lòng nhập điểm tối đa",
+      "maxScoreMin": "Điểm tối đa phải ít nhất 1",
+      "maxScoreGreaterThanMin": "Điểm tối đa phải lớn hơn điểm tối thiểu",
+      "isSum": "Tính tổng điểm",
+      "isLimited": "Truy cập giới hạn",
+      "yes": "Có",
+      "no": "Không",
+      "levels": "Cấp độ đánh giá",
+      "addLevel": "Thêm cấp độ",
+      "editLevel": "Sửa cấp độ",
+      "level": "Cấp độ",
+      "levelLabel": "Nhãn cấp độ",
+      "levelLabelPlaceholder": "Nhập nhãn cấp độ",
+      "levelLabelRequired": "Vui lòng nhập nhãn cấp độ",
+      "levelLabelMinLength": "Nhãn cấp độ phải có ít nhất 2 ký tự",
+      "levelLabelMaxLength": "Nhãn cấp độ không được vượt quá 50 ký tự",
+      "levelLabelNoWhitespace": "Nhãn cấp độ không được chỉ chứa khoảng trắng",
+      "levelCode": "Mã cấp độ",
+      "levelCodePlaceholder": "Nhập mã cấp độ",
+      "levelCodeRequired": "Vui lòng nhập mã cấp độ",
+      "levelCodePattern": "Mã cấp độ chỉ được chứa chữ hoa, số và dấu gạch dưới",
+      "levelCodeMinLength": "Mã cấp độ phải có ít nhất 2 ký tự",
+      "levelCodeMaxLength": "Mã cấp độ không được vượt quá 20 ký tự",
+      "levelDescription": "Mô tả cấp độ",
+      "levelDescriptionPlaceholder": "Nhập mô tả cấp độ",
+      "levelDescriptionMaxLength": "Mô tả cấp độ không được vượt quá 300 ký tự",
+      "symptomsDescription": "Mô tả triệu chứng",
+      "symptomsDescriptionPlaceholder": "Nhập mô tả triệu chứng",
+      "symptomsDescriptionMaxLength": "Mô tả triệu chứng không được vượt quá 300 ký tự",
+      "interventionRequired": "Can thiệp cần thiết",
+      "interventionRequiredPlaceholder": "Nhập yêu cầu can thiệp",
+      "interventionRequiredMaxLength": "Can thiệp cần thiết không được vượt quá 300 ký tự",
+      "levelMinScore": "Điểm tối thiểu",
+      "levelMinScorePlaceholder": "Nhập điểm tối thiểu",
+      "levelMinScoreRequired": "Vui lòng nhập điểm tối thiểu",
+      "levelMinScoreMin": "Điểm tối thiểu phải ít nhất 0",
+      "levelMinScoreMax": "Điểm tối thiểu không được vượt quá 100",
+      "levelMinScoreLessThanMax": "Điểm tối thiểu phải nhỏ hơn điểm tối đa",
+      "levelMaxScore": "Điểm tối đa",
+      "levelMaxScorePlaceholder": "Nhập điểm tối đa",
+      "levelMaxScoreRequired": "Vui lòng nhập điểm tối đa",
+      "levelMaxScoreMin": "Điểm tối đa phải ít nhất 0",
+      "levelMaxScoreMax": "Điểm tối đa không được vượt quá 100",
+      "levelMaxScoreGreaterThanMin": "Điểm tối đa phải lớn hơn điểm tối thiểu",
+      "levelType": "Loại cấp độ",
+      "levelTypePlaceholder": "Chọn loại cấp độ",
+      "levelTypeRequired": "Vui lòng chọn loại cấp độ",
+      "levelTypes": {
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao",
+        "critical": "Nghiêm trọng"
+      },
+      "noLevels": "Chưa có cấp độ nào",
+      "scoreRange": "Thang điểm",
+      "levelSummary": "Tóm tắt cấp độ",
+      "addQuickLevels": "Thêm cấp độ nhanh",
+      "addQuickLevelsTooltip": "Thêm các cấp độ có sẵn (Thấp, Trung bình, Cao, Nghiêm trọng)",
+      "scoreRangeError": "Điểm tối thiểu phải nhỏ hơn điểm tối đa",
+      "scoreOverlapError": "Thang điểm không được chồng lấp với các cấp độ khác",
+      "clickToEdit": "Nhấp vào bất kỳ thẻ cấp độ nào để chỉnh sửa thông tin",
+      "quickLevels": {
+        "low": "Rủi ro thấp",
+        "lowDescription": "Triệu chứng tối thiểu, không cần can thiệp ngay lập tức",
+        "lowSymptoms": "Triệu chứng nhẹ không ảnh hưởng đáng kể đến hoạt động hàng ngày",
+        "lowIntervention": "Giám sát thường xuyên và hỗ trợ cơ bản",
+        "medium": "Rủi ro trung bình",
+        "mediumDescription": "Triệu chứng vừa phải cần được chú ý",
+        "mediumSymptoms": "Triệu chứng đáng chú ý có thể ảnh hưởng đến một số hoạt động hàng ngày",
+        "mediumIntervention": "Hỗ trợ có cấu trúc và kiểm tra thường xuyên",
+        "high": "Rủi ro cao",
+        "highDescription": "Triệu chứng nghiêm trọng cần được chú ý ngay lập tức",
+        "highSymptoms": "Triệu chứng nghiêm trọng ảnh hưởng đáng kể đến hoạt động hàng ngày",
+        "highIntervention": "Hỗ trợ chuyên sâu và can thiệp chuyên môn",
+        "critical": "Rủi ro nghiêm trọng",
+        "criticalDescription": "Triệu chứng nghiêm trọng cần can thiệp khẩn cấp",
+        "criticalSymptoms": "Triệu chứng nghiêm trọng gây rủi ro ngay lập tức",
+        "criticalIntervention": "Can thiệp chuyên môn ngay lập tức và quản lý khủng hoảng"
+      }
     },
     "modal": {
       "addTitle": "Thêm danh mục mới",
@@ -674,6 +1151,7 @@
     "messages": {
       "fetchSuccess": "Tải danh sách danh mục thành công",
       "fetchError": "Không thể tải danh sách danh mục",
+      "fetchDetailError": "Không thể tải chi tiết danh mục",
       "addSuccess": "Thêm danh mục thành công",
       "addError": "Không thể thêm danh mục",
       "editSuccess": "Cập nhật danh mục thành công",
@@ -681,8 +1159,21 @@
       "deleteSuccess": "Xóa danh mục thành công",
       "deleteError": "Không thể xóa danh mục",
       "deleteConfirm": "Bạn có chắc chắn muốn xóa danh mục này?",
-      "deleteTitle": "Xóa danh mục"
-    }
+      "deleteTitle": "Xóa danh mục",
+      "levelAddSuccess": "Thêm cấp độ thành công",
+      "levelEditSuccess": "Cập nhật cấp độ thành công",
+      "levelRemoved": "Xóa cấp độ thành công",
+      "quickLevelsAdded": "Thêm cấp độ nhanh thành công",
+      "validationError": "Vui lòng kiểm tra lại thông tin trong form",
+      "invalidLevelScoreRange": "Thang điểm không hợp lệ cho cấp độ {{level}}. Điểm tối thiểu phải nhỏ hơn điểm tối đa.",
+      "overlappingScores": "Thang điểm chồng lấp giữa các cấp độ {{level1}} và {{level2}}.",
+      "duplicateLevelCodes": "Tìm thấy mã cấp độ trùng lặp: {{codes}}",
+      "duplicateLevelCode": "Mã cấp độ đã tồn tại. Vui lòng sử dụng mã khác.",
+      "categoryScoreRangeInvalid": "Thang điểm danh mục không hợp lệ. Điểm tối thiểu phải nhỏ hơn điểm tối đa.",
+      "questionCountRequired": "Số lượng câu hỏi là bắt buộc khi bật truy cập giới hạn.",
+      "levelValidationError": "Vui lòng kiểm tra lại thông tin trong form cấp độ"
+    },
+    "loadingDetails": "Đang tải chi tiết danh mục..."
   },
   "assessmentForm": {
     "title": "Form Đánh Giá Tình Trạng Học Sinh",
@@ -698,7 +1189,7 @@
     "back": "Quay Lại",
     "complete": "Hoàn Thành",
     "summary": "Tóm tắt",
-    "suggestion": "Gợi ý",
+    "suggestion": "Gợi Ý",
     "scoreRange": "Thang điểm: 0 (Không ảnh hưởng) - 4 (Ảnh hưởng rất nghiêm trọng)",
     "scoreLevel": {
       "low": "Thấp",
@@ -726,11 +1217,83 @@
       "medium": "Trung bình",
       "low": "Thấp",
       "unknown": "Không xác định"
+    },
+    "form": {
+      "title": "Đánh Giá Tình Trạng Học Sinh",
+      "sessionNotes": "Ghi chú phiên tư vấn",
+      "sessionNotesPlaceholder": "Ghi chú về hành vi của học sinh trong buổi tư vấn",
+      "noteSummary": "Tóm tắt ghi chú",
+      "noteSummaryPlaceholder": "Tóm tắt những điểm chính từ buổi tư vấn",
+      "noteSuggestion": "Gợi ý can thiệp",
+      "noteSuggestionPlaceholder": "Đề xuất các biện pháp can thiệp và hỗ trợ",
+      "sessionFlow": "Diễn biến buổi tư vấn",
+      "studentCoopLevel": "Mức độ hợp tác của học sinh",
+      "progress": "Tiến độ hoàn thành",
+      "saveProgress": "Lưu tiến độ",
+      "submitAssessment": "Nộp đánh giá",
+      "assessement": "Đánh giá tình trạng học sinh",
+      "validation": {
+        "sessionNotesRequired": "Ghi chú phiên tư vấn là bắt buộc",
+        "noteSummaryRequired": "Tóm tắt ghi chú là bắt buộc",
+        "noteSuggestionRequired": "Gợi ý can thiệp là bắt buộc",
+        "assessmentRequired": "Vui lòng đánh giá ít nhất một vấn đề"
+      },
+      "messages": {
+        "saveSuccess": "Đã lưu tiến độ thành công!",
+        "saveError": "Lỗi khi lưu tiến độ. Vui lòng thử lại!",
+        "submitSuccess": "Đánh giá đã được nộp thành công!",
+        "submitError": "Lỗi khi nộp đánh giá. Vui lòng thử lại!",
+        "resetSuccess": "Đã đặt lại form thành công!"
+      }
+    },
+    "sections": {
+      "counselorInputs": "Thông tin tư vấn viên",
+      "assessmentCategories": "Danh mục đánh giá",
+      "mentalHealthSection": "Tình trạng tâm lý",
+      "environmentSection": "Yếu tố môi trường"
+    },
+    "options": {
+      "frequency": {
+        "0": "Không bao giờ hoặc hiếm khi (0)",
+        "1": "Thỉnh thoảng (1)",
+        "2": "Thường xuyên (2)",
+        "3": "Rất thường xuyên (3)",
+        "4": "Luôn luôn (4)"
+      },
+      "impairment": {
+        "0": "Không ảnh hưởng (0)",
+        "1": "Ảnh hưởng nhẹ (1)",
+        "2": "Ảnh hưởng vừa phải (2)",
+        "3": "Ảnh hưởng nghiêm trọng (3)",
+        "4": "Ảnh hưởng rất nghiêm trọng (4)"
+      },
+      "chronicity": {
+        "0": "Dưới 1 tuần (0)",
+        "1": "1-2 tuần (1)",
+        "2": "2-4 tuần (2)",
+        "3": "1-3 tháng (3)",
+        "4": "Trên 3 tháng (4)"
+      },
+      "sessionFlow": {
+        "LOW": "Thấp",
+        "AVERAGE": "Trung bình",
+        "GOOD": "Cao"
+      },
+      "cooperationLevel": {
+        "LOW": "Thấp",
+        "MEDIUM": "Trung bình",
+        "HIGH": "Cao"
+      }
+    },
+    "warnings": {
+      "highRisk": "Cảnh báo: Cần can thiệp ngay lập tức",
+      "highRiskDescription": "Học sinh có dấu hiệu nguy cơ cao. Vui lòng liên hệ ngay với chuyên gia tâm lý hoặc cơ quan chức năng."
     }
   },
   "appointmentRecord": {
     "title": "Bản Ghi Đánh Giá",
     "viewRecord": "Xem Đánh Giá",
+    "viewDetails": "Xem Chi Tiết",
     "noRecord": "Chưa Có Đánh Giá",
     "noScore": "Chưa có",
     "sessionInfo": "Thông Tin Buổi Tư Vấn",
@@ -744,6 +1307,27 @@
     "statusTitle": "Trạng Thái Đánh Giá",
     "completedOn": "Hoàn Thành Lúc",
     "additionalNotes": "Ghi Chú Thêm",
+    "riskAssessment": "Đánh Giá Rủi Ro",
+    "reasonCanceled": "Lý Do Hủy",
+    "noReasonCanceled": "Không có lý do hủy",
+    "noNoteSummary": "Không có ghi chú tóm tắt",
+    "noNoteSuggestion": "Không có gợi ý can thiệp",
+    "noSessionNotes": "Không có ghi chú phiên",
+    "noRiskAssessment": "Không có đánh giá rủi ro",
+    "noAssessmentScores": "Không có đánh giá điểm",
+    "assessmentScores": "Đánh Giá Điểm",
+    "totalAssessmentScore": "Tổng Điểm Đánh Giá",
+    "totalAssessmentScoreDesc": "Đánh giá rủi ro dựa trên tất cả các danh mục",
+    "categoryBreakdown": "Phân Tích Danh Mục",
+    "legend": "Chú Giải Điểm",
+    "severity": "Độ Nghiêm Trọng",
+    "frequency": "Tần Suất",
+    "impairment": "Tác Động",
+    "chronicity": "Tính kéo dài",
+    "low": "Thấp",
+    "moderate": "Trung Bình",
+    "high": "Cao",
+    "critical": "Nghiêm Trọng",
     "messages": {
       "saveSuccess": "Lưu đánh giá thành công!",
       "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
@@ -752,6 +1336,11 @@
       "low": "Rủi Ro Thấp",
       "medium": "Rủi Ro Trung Bình",
       "high": "Rủi Ro Cao"
+    },
+    "intervention": {
+      "monitoring": "Khuyến nghị giám sát thường xuyên",
+      "support": "Cần hỗ trợ và hướng dẫn",
+      "professional": "Cần can thiệp chuyên môn"
     },
     "sessionFlow": {
       "good": "Tốt",
@@ -767,8 +1356,19 @@
     },
     "status": {
       "submitted": "Đã nộp",
-      "finalized": "Đã hoàn thành",
+      "canceled": "Đã hủy",
+      "in_progress": "Đang diễn ra",
+      "pending": "Chờ xem xét",
+      "completed": "Đã hoàn thành",
       "cancelled": "Đã hủy"
+    },
+    "sessionNotes": "Ghi chú phiên",
+    "timeline": {
+      "title": "Lịch Trình Cuộc Hẹn",
+      "created": "Cuộc Hẹn Được Tạo",
+      "confirmed": "Cuộc Hẹn Được Xác Nhận",
+      "inProgress": "Phiên Đã Bắt Đầu",
+      "completed": "Phiên Đã Hoàn Thành"
     }
   },
   "programHelper": {

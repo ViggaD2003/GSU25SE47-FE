@@ -10,12 +10,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import { useAuth } from "../../contexts/AuthContext";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 const isMediumDevice = width >= 375 && width < 414;
 
 const AppointmentCard = ({ appointment, onPress }) => {
+  const { user } = useAuth();
+
   const formatDateTime = (dateTimeString) => {
     try {
       return dayjs(dateTimeString).format("HH:mm");
@@ -56,19 +59,12 @@ const AppointmentCard = ({ appointment, onPress }) => {
           borderColor: "#FED7AA",
           gradient: ["#F59E0B", "#D97706"],
         };
-      case "CANCELLED":
+      case "IN_PROGRESS":
         return {
-          color: "#EF4444",
-          bgColor: "#FEF2F2",
-          borderColor: "#FECACA",
-          gradient: ["#EF4444", "#DC2626"],
-        };
-      case "COMPLETED":
-        return {
-          color: "#3B82F6",
+          color: "#051396",
           bgColor: "#EFF6FF",
           borderColor: "#BFDBFE",
-          gradient: ["#3B82F6", "#2563EB"],
+          gradient: ["#051396", "#2563EB"],
         };
       default:
         return {
@@ -86,10 +82,8 @@ const AppointmentCard = ({ appointment, onPress }) => {
         return "Đã xác nhận";
       case "PENDING":
         return "Chờ xác nhận";
-      case "CANCELLED":
-        return "Đã hủy";
-      case "COMPLETED":
-        return "Hoàn thành";
+      case "IN_PROGRESS":
+        return "Đang diễn ra";
       default:
         return status;
     }
@@ -128,8 +122,33 @@ const AppointmentCard = ({ appointment, onPress }) => {
     }
   };
 
+  // Check if bookFor and bookBy are the same person
+  const isSamePerson = () => {
+    if (!appointment.bookedFor || !appointment.bookedBy) return false;
+    return appointment.bookedFor.id === appointment.bookedBy.id;
+  };
+
+  // Determine what booking information to show based on user role and ID
+  const shouldShowBookedFor = () => {
+    // If user is STUDENT, don't show "booked for" person
+    if (user?.role === "STUDENT") {
+      return false;
+    }
+    return true;
+  };
+
+  const shouldShowBookedBy = () => {
+    // If user is PARENT and userId matches bookedBy.id, don't show "booked by" person
+    if (user?.role === "PARENT" && user?.id === appointment.bookedBy?.id) {
+      return false;
+    }
+    return true;
+  };
+
   const statusConfig = getStatusConfig(appointment.status);
-  const hostTypeColor = getHostTypeColor(appointment.hostType);
+  const hostTypeColor = getHostTypeColor(
+    appointment.hostedBy?.roleName || appointment.slot?.roleName
+  );
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.9}>
@@ -157,16 +176,22 @@ const AppointmentCard = ({ appointment, onPress }) => {
             style={styles.hostIconContainer}
           >
             <Ionicons
-              name={getHostTypeIcon(appointment.hostType)}
+              name={getHostTypeIcon(
+                appointment.hostedBy?.roleName || appointment.slot?.roleName
+              )}
               size={20}
               color={hostTypeColor}
             />
           </LinearGradient>
           <View style={styles.hostInfo}>
-            <Text style={styles.hostName}>{appointment.hostName}</Text>
+            <Text style={styles.hostName}>
+              {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+            </Text>
             <View style={styles.hostTypeContainer}>
               <Text style={[styles.hostType, { color: hostTypeColor }]}>
-                {getHostTypeText(appointment.hostType)}
+                {getHostTypeText(
+                  appointment.hostedBy?.roleName || appointment.slot?.roleName
+                )}
               </Text>
             </View>
           </View>
@@ -211,17 +236,60 @@ const AppointmentCard = ({ appointment, onPress }) => {
           </View>
         </View>
 
+        {/* Booking information - conditionally displayed */}
+        {shouldShowBookedFor() && appointment.bookedFor && (
+          <View style={styles.bookingSection}>
+            <View style={styles.iconWrapper}>
+              <Ionicons name="person-outline" size={16} color="#6B7280" />
+            </View>
+            <View style={styles.bookingInfo}>
+              <Text style={styles.bookingLabel}>
+                {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
+              </Text>
+              <Text style={styles.bookingName}>
+                {isSamePerson()
+                  ? appointment.bookedBy?.fullName
+                  : appointment.bookedFor?.fullName}
+              </Text>
+              {!isSamePerson() &&
+                shouldShowBookedBy() &&
+                appointment.bookedBy && (
+                  <Text style={styles.bookingBy}>
+                    Đặt bởi: {appointment.bookedBy?.fullName}
+                  </Text>
+                )}
+            </View>
+          </View>
+        )}
+
+        {/* Show booked by only if booked for is not shown and we should show booked by */}
+        {!shouldShowBookedFor() &&
+          shouldShowBookedBy() &&
+          appointment.bookedBy && (
+            <View style={styles.bookingSection}>
+              <View style={styles.iconWrapper}>
+                <Ionicons name="people-outline" size={16} color="#6B7280" />
+              </View>
+              <View style={styles.bookingInfo}>
+                <Text style={styles.bookingLabel}>Đặt bởi</Text>
+                <Text style={styles.bookingName}>
+                  {appointment.bookedBy?.fullName}
+                </Text>
+              </View>
+            </View>
+          )}
+
         {/* Reason with enhanced styling */}
-        {appointment.reason && (
+        {/* {appointment.reasonBooking && (
           <View style={styles.reasonSection}>
             <View style={styles.iconWrapper}>
               <Ionicons name="chatbubble-outline" size={16} color="#6B7280" />
             </View>
             <Text style={styles.reasonText} numberOfLines={2}>
-              {appointment.reason}
+              {appointment.reasonBooking}
             </Text>
           </View>
-        )}
+        )} */}
 
         {/* Location with enhanced styling */}
         {appointment.location && (
@@ -392,6 +460,34 @@ const styles = StyleSheet.create({
     color: "#374151",
     fontWeight: "600",
     flex: 1,
+  },
+  bookingSection: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 12,
+    backgroundColor: "#F8FAFC",
+    padding: 12,
+    borderRadius: 12,
+  },
+  bookingInfo: {
+    flex: 1,
+  },
+  bookingLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  bookingName: {
+    fontSize: 14,
+    color: "#1F2937",
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  bookingBy: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
   },
   reasonSection: {
     flexDirection: "row",

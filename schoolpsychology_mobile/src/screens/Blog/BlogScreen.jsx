@@ -11,6 +11,7 @@ import { getBlogs } from "../../services/api/BlogService";
 import { useNavigation } from "@react-navigation/native";
 import { Container } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
+import { log } from "console";
 
 export default function BlogScreen() {
   const [blogs, setBlogs] = useState([]);
@@ -21,10 +22,9 @@ export default function BlogScreen() {
   }, []);
 
   const handlePress = (blog) => {
-    navigation.navigate("Blog", {
-      screen: "BlogDetails",
-      params: { blogId: blog.id },
-    });
+    console.log(blog.id);
+
+    navigation.navigate("BlogDetails", { blogId: blog.id });
   };
 
   const handleBackPress = () => {
@@ -53,12 +53,11 @@ export default function BlogScreen() {
     <Container>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Blog</Text>
-          <Text style={styles.headerSubtitle}>
-            Explore insights for mental wellness and growth
-          </Text>
-        </View>
+        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
+          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Blog</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <FlatList
@@ -74,25 +73,32 @@ export default function BlogScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingVertical: 16,
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  headerContent: {
-    alignItems: "center",
+  backButton: {
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F1F5F9",
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#181A3D",
-    marginBottom: 4,
+    color: "#1A1A1A",
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
+  headerSpacer: {
+    width: 40,
   },
   card: {
     flexDirection: "row",

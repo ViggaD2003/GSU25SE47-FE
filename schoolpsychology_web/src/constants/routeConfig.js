@@ -2,11 +2,9 @@ import {
   DashboardOutlined,
   UserOutlined,
   AlertOutlined,
-  CalendarOutlined,
-  FileTextOutlined,
-  AppstoreOutlined,
-  ClockCircleOutlined,
   TeamOutlined,
+  HeartOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -17,86 +15,172 @@ export const ROUTE_CONFIG = [
     allowedRoles: ['manager', 'teacher', 'counselor'],
     element: 'Dashboard',
   },
+
+  // Psychological Support (Category, Survey, Appointment, Program) - Manager, Teacher, Counselor
   {
-    key: '/account-management',
-    icon: UserOutlined,
-    labelKey: 'navigation.accountManagement.title',
-    allowedRoles: ['manager'],
+    key: 'psychological-support',
+    icon: HeartOutlined,
+    labelKey: 'navigation.psychologicalSupport',
+    allowedRoles: ['manager', 'teacher', 'counselor'],
     children: [
       {
-        key: '/client-management',
-        labelKey: 'navigation.accountManagement.clients',
-        element: 'ClientManagement',
+        key: '/category-management',
+        labelKey: 'navigation.categoryManagement',
+        allowedRoles: ['manager'],
+        element: 'CategoryManagement',
       },
       {
-        key: '/staff-management',
-        labelKey: 'navigation.accountManagement.staffs',
-        element: 'StaffManagement',
+        key: '/survey-management',
+        labelKey: 'navigation.surveyManagement',
+        allowedRoles: ['manager', 'counselor'],
+        element: 'SurveyManagement',
+      },
+      {
+        key: '/appointment-management',
+        labelKey: 'navigation.appointmentsManagement',
+        allowedRoles: ['teacher', 'counselor'],
+        element: 'AppointmentManagement',
+      },
+      {
+        key: '/appointment-management/details/:id',
+        element: 'AppointmentDetails',
+        allowedRoles: ['teacher', 'counselor'],
+        hidden: true,
+      },
+      {
+        key: '/program-management',
+        labelKey: 'navigation.programManagement',
+        allowedRoles: ['manager', 'counselor'],
+        element: 'ProgramManagement',
+      },
+      {
+        key: '/program-management/details',
+        element: 'ProgramDetails',
+        allowedRoles: ['manager', 'counselor'],
+        hidden: true,
       },
     ],
   },
-  // {
-  //   key: '/case-management',
-  //   icon: AlertOutlined,
-  //   labelKey: 'navigation.caseManagement',
-  //   allowedRoles: ['manager', 'teacher', 'counselor'],
-  //   element: 'CaseManagement',
-  // },
-  {
-    key: '/survey-management',
-    icon: FileTextOutlined,
-    labelKey: 'navigation.surveyManagement',
-    allowedRoles: ['manager'],
-    element: 'SurveyManagement',
-  },
-  {
-    key: '/appointment-management',
-    icon: CalendarOutlined,
-    labelKey: 'navigation.appointmentsManagement',
-    allowedRoles: ['teacher', 'counselor'],
-    element: 'AppointmentManagement',
-  },
-  {
-    key: '/appointment-management/details/:id',
-    element: 'AppointmentDetails',
-    allowedRoles: ['teacher', 'counselor'],
-    hidden: true,
-  },
 
+  // Class Management (Class, Teacher, Student) - Manager
   {
-    key: '/program-management',
-    icon: AppstoreOutlined,
-    labelKey: 'navigation.programManagement',
-    allowedRoles: ['manager', 'counselor'],
-    element: 'ProgramManagement',
-  },
-  {
-    key: '/program-management/details',
-    element: 'ProgramDetails',
-    allowedRoles: ['manager', 'counselor'],
-    hidden: true,
-  },
-  {
-    key: '/slot-management',
-    icon: ClockCircleOutlined,
-    labelKey: 'navigation.slotManagement',
-    allowedRoles: ['manager', 'teacher', 'counselor'],
-    element: 'SlotManagement',
-  },
-  {
-    key: '/class-management',
+    key: 'classes',
     icon: TeamOutlined,
     labelKey: 'navigation.classManagement',
     allowedRoles: ['manager'],
-    element: 'ClassManagement',
+    children: [
+      {
+        key: '/class-management',
+        labelKey: 'navigation.classManagement',
+        allowedRoles: ['manager'],
+        element: 'ClassManagement',
+      },
+      {
+        key: '/student-management',
+        labelKey: 'navigation.studentManagement',
+        allowedRoles: ['manager'],
+        element: 'ClientManagement',
+      },
+    ],
   },
+
+  // My Class (My Student, Observed Cases) - Teacher
   {
-    key: '/category-management',
-    icon: AppstoreOutlined,
-    labelKey: 'navigation.categoryManagement',
-    allowedRoles: ['manager'],
-    element: 'CategoryManagement',
+    key: 'my-class',
+    icon: TeamOutlined,
+    labelKey: 'navigation.myClass',
+    allowedRoles: ['teacher'],
+    children: [
+      {
+        key: '/my-class',
+        labelKey: 'navigation.myStudent',
+        allowedRoles: ['teacher'],
+        element: 'ClientManagement',
+      },
+      {
+        key: '/observed-cases',
+        labelKey: 'navigation.observedCases',
+        allowedRoles: ['teacher'],
+        element: 'CaseManagement',
+      },
+    ],
   },
+
+  // Assigned Cases (Assigned Cases) - Counselor
+  {
+    key: '/assigned-cases',
+    icon: AlertOutlined,
+    labelKey: 'navigation.assignedCases',
+    allowedRoles: ['counselor'],
+    element: 'CaseManagement',
+  },
+
+  // Staff Management (Staff List, Slot Management) - Manager
+  {
+    key: 'staff-management',
+    icon: UserOutlined,
+    labelKey: 'navigation.staffManagement.title',
+    allowedRoles: ['manager'],
+    children: [
+      {
+        key: '/counselor-management',
+        labelKey: 'navigation.staffManagement.counselorList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/teacher-management',
+        labelKey: 'navigation.staffManagement.teacherList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/slot-management',
+        labelKey: 'navigation.slotManagement',
+        allowedRoles: ['manager'],
+        element: 'SlotManagement',
+      },
+    ],
+  },
+
+  // Slot Management (Work Schedule) - Teacher, Counselor
+  {
+    key: '/work-schedule',
+    icon: CalendarOutlined,
+    labelKey: 'navigation.slotManagement',
+    allowedRoles: ['teacher', 'counselor'],
+    element: 'SlotManagement',
+  },
+
+  // Case Management (Case Management, Case Assign) - Manager
+  {
+    key: '/case-management',
+    icon: AlertOutlined,
+    labelKey: 'navigation.caseManagement',
+    allowedRoles: ['manager'],
+    element: 'CaseManagement',
+    // children: [
+    //   {
+    //     key: '/case-management',
+    //     labelKey: 'navigation.caseManagement',
+    //     allowedRoles: ['manager'],
+    //     element: 'CaseManagement',
+    //   },
+    //   {
+    //     key: '/case-assign',
+    //     labelKey: 'navigation.caseAssign',
+    //     allowedRoles: ['manager'],
+    //     element: 'CaseAssign',
+    //   },
+    // ],
+  },
+
+  // {
+  //   key: '/assessment-demo',
+  //   labelKey: 'navigation.assessmentDemo',
+  //   allowedRoles: ['manager', 'teacher', 'counselor'],
+  //   element: 'AssessmentDemo',
+  // },
 ]
 
 // Helper: Tạo object role -> [route] cho permission

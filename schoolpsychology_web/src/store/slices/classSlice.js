@@ -2,6 +2,8 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   classes: [],
+  listCodeClasses: [],
+  classById: null,
   selectedClass: null,
   loading: false,
   error: null,
@@ -27,6 +29,22 @@ const classSlice = createSlice({
     // Clear classes
     clearClasses: state => {
       state.classes = []
+    },
+    // Set list code classes
+    setListCodeClasses: (state, action) => {
+      state.listCodeClasses = action.payload
+    },
+    // Clear list code classes
+    clearListCodeClasses: state => {
+      state.listCodeClasses = []
+    },
+    // Set class by id
+    setClassById: (state, action) => {
+      state.classById = action.payload
+    },
+    // Clear class by id
+    clearClassById: state => {
+      state.classById = null
     },
     // Set selected class
     setSelectedClass: (state, action) => {
@@ -80,6 +98,7 @@ const classSlice = createSlice({
         state.loading = true
         state.error = null
       })
+
       .addCase('class/createClass/fulfilled', (state, action) => {
         state.loading = false
         // Add the new class to the list
@@ -93,61 +112,33 @@ const classSlice = createSlice({
         state.error = action.payload || 'Failed to create class'
       })
 
-      // updateClass
-      .addCase('class/updateClass/pending', state => {
+      // enrollClass
+      .addCase('class/enrollClass/pending', state => {
         state.loading = true
         state.error = null
       })
-      .addCase('class/updateClass/fulfilled', (state, action) => {
+      .addCase('class/enrollClass/fulfilled', (state, _action) => {
         state.loading = false
-        // Update the class in the list
-        if (action.payload && action.payload.codeClass) {
-          const index = state.classes.findIndex(
-            classItem => classItem.codeClass === action.payload.codeClass
-          )
-          if (index !== -1) {
-            state.classes[index] = action.payload
-          }
-        }
-        // Update selected class if it matches
-        if (
-          state.selectedClass &&
-          state.selectedClass.codeClass === action.payload.codeClass
-        ) {
-          state.selectedClass = action.payload
-        }
         state.error = null
       })
-      .addCase('class/updateClass/rejected', (state, action) => {
+      .addCase('class/enrollClass/rejected', (state, action) => {
         state.loading = false
-        state.error = action.payload || 'Failed to update class'
+        state.error = action.payload || 'Failed to enroll class'
       })
 
-      // deleteClass
-      .addCase('class/deleteClass/pending', state => {
+      // getClassById
+      .addCase('class/getClassById/pending', state => {
         state.loading = true
         state.error = null
       })
-      .addCase('class/deleteClass/fulfilled', (state, action) => {
+      .addCase('class/getClassById/fulfilled', (state, action) => {
         state.loading = false
-        // Remove the class from the list
-        // Note: We need to get the code from the meta.arg since the action might not contain the full class object
-        const codeToDelete = action.meta.arg
-        state.classes = state.classes.filter(
-          classItem => classItem.codeClass !== codeToDelete
-        )
-        // Clear selected class if it matches the deleted one
-        if (
-          state.selectedClass &&
-          state.selectedClass.codeClass === codeToDelete
-        ) {
-          state.selectedClass = null
-        }
+        state.classById = action.payload
         state.error = null
       })
-      .addCase('class/deleteClass/rejected', (state, action) => {
+      .addCase('class/getClassById/rejected', (state, action) => {
         state.loading = false
-        state.error = action.payload || 'Failed to delete class'
+        state.error = action.payload || 'Failed to fetch class by id'
       })
   },
 })
@@ -158,6 +149,10 @@ export const {
   clearClasses,
   setSelectedClass,
   clearSelectedClass,
+  setClassById,
+  clearClassById,
+  setListCodeClasses,
+  clearListCodeClasses,
 } = classSlice.actions
 
 // Selectors
@@ -166,6 +161,14 @@ export const selectClassLoading = state => state.class.loading
 export const selectClassError = state => state.class.error
 export const selectClassPagination = state => state.class.pagination
 export const selectSelectedClass = state => state.class.selectedClass
+export const selectClassById = state => state.class.classById
+export const selectClassByIdLoading = state => state.class.loading
+export const selectClassByIdError = state => state.class.error
+
+// Selector to get list code classes
+export const selectListCodeClasses = state => {
+  return state.class.classes.map(classItem => classItem.codeClass)
+}
 
 // Selector to get class by code
 export const selectClassByCode = (state, classCode) => {
@@ -175,17 +178,17 @@ export const selectClassByCode = (state, classCode) => {
 }
 
 // Selector to get classes by teacher code
-export const selectClassesByTeacher = (state, teacherCode) => {
+export const selectClassesByTeacher = (state, teacherId) => {
   return state.class.classes.filter(
-    classItem => classItem.teacherCode === teacherCode
+    classItem => classItem.teacher.id === teacherId
   )
 }
 
 // Selector to get classes by year
 export const selectClassesByYear = (state, year) => {
   return state.class.classes.filter(classItem => {
-    const classYear = new Date(classItem.classYear).getFullYear()
-    return classYear === year
+    const schoolYear = new Date(classItem.schoolYear).getFullYear()
+    return schoolYear === year
   })
 }
 
