@@ -11,6 +11,11 @@ export const surveyAPI = {
     return response.data
   },
 
+  getSurveyInCase: async () => {
+    const response = await api.get(`/api/v1/survey/in-case`)
+    return response.data
+  },
+
   createSurvey: async surveyData => {
     const response = await api.post('/api/v1/survey', surveyData)
     return response.data

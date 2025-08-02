@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   surveys: [],
+  surveysInCase: [],
   loading: false,
   error: null,
   pagination: {
@@ -22,6 +23,12 @@ const surveySlice = createSlice({
     // Update pagination
     updatePagination: (state, action) => {
       state.pagination = { ...state.pagination, ...action.payload }
+    },
+    setSurveysInCase: (state, action) => {
+      state.surveysInCase = action.payload
+    },
+    clearSurveysInCase: state => {
+      state.surveysInCase = []
     },
   },
   extraReducers: builder => {
@@ -49,6 +56,20 @@ const surveySlice = createSlice({
       .addCase('survey/getAllSurveys/rejected', (state, action) => {
         state.loading = false
         state.error = action.payload || 'Failed to fetch surveys'
+      })
+      // getSurveyInCase
+      .addCase('survey/getSurveyInCase/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('survey/getSurveyInCase/fulfilled', (state, action) => {
+        state.loading = false
+        state.surveys = action.payload
+        state.error = null
+      })
+      .addCase('survey/getSurveyInCase/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to fetch surveys in case'
       })
       // createSurvey
       .addCase('survey/createSurvey/pending', state => {
@@ -118,5 +139,6 @@ export const selectSurveys = state => state.survey.surveys
 export const selectSurveyLoading = state => state.survey.loading
 export const selectSurveyError = state => state.survey.error
 export const selectSurveyPagination = state => state.survey.pagination
+export const selectSurveyInCase = state => state.survey.surveysInCase
 
 export default surveySlice.reducer

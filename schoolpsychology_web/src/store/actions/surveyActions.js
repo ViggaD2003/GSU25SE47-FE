@@ -22,6 +22,23 @@ export const getAllSurveys = createAsyncThunk(
   }
 )
 
+// Async thunk for getting all surveys in case
+export const getSurveyInCase = createAsyncThunk(
+  'survey/getSurveyInCase',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await surveyAPI.getSurveyInCase()
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to fetch surveys in case'
+      )
+    }
+  }
+)
+
 // Async thunk for creating a survey
 export const createSurvey = createAsyncThunk(
   'survey/createSurvey',

@@ -460,7 +460,7 @@ const CaseManagement = () => {
         key: 'counselor',
         render: (counselor, record) => editHostByColumn(counselor, record),
         editable: record => user?.role === 'manager' && record.status === 'NEW',
-        hidden: user?.role === 'teacher',
+        hidden: user?.role === 'counselor',
       },
       {
         title: t('caseManagement.table.currentLevel'),

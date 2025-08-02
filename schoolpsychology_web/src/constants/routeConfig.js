@@ -32,7 +32,7 @@ export const ROUTE_CONFIG = [
       {
         key: '/survey-management',
         labelKey: 'navigation.surveyManagement',
-        allowedRoles: ['manager'],
+        allowedRoles: ['manager', 'counselor'],
         element: 'SurveyManagement',
       },
       {
@@ -53,7 +53,6 @@ export const ROUTE_CONFIG = [
         allowedRoles: ['manager', 'counselor'],
         element: 'ProgramManagement',
       },
-
       {
         key: '/program-management/details',
         element: 'ProgramDetails',
