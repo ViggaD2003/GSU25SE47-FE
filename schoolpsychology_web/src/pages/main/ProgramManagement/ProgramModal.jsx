@@ -15,15 +15,17 @@ import {
   Switch,
   Select,
   Checkbox,
+  Upload,
 } from 'antd'
-import { BulbOutlined } from '@ant-design/icons'
+import { BulbOutlined, UploadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import dayjs from 'dayjs'
 import { ProgramCreationHelper } from '@/components'
-import { RECURRING_CYCLE } from '@/constants/enums'
+// import { RECURRING_CYCLE } from '@/constants/enums'
 import Title from 'antd/es/typography/Title'
 import QuestionTabs from '../SurveyManagement/QuestionTabs'
+import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -33,9 +35,6 @@ const ProgramModal = ({
   visible,
   onCancel,
   onOk,
-  selectedProgram,
-  isEdit,
-  isView,
   categories = [],
   counselors = [],
   messageApi,
@@ -48,61 +47,55 @@ const ProgramModal = ({
   const [showHelper, setShowHelper] = useState(false)
   const [startTimeValue, setStartTimeValue] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const [thumbnail, setThumbnail] = useState(null)
+  const { sendMessage } = useWebSocket()
+
+  const uploadProps = {
+    name: 'image',
+    accept: '.jpg, .jpeg, .png',
+    maxCount: 1,
+    fileList: thumbnail ? [thumbnail] : [],
+    showUploadList: {
+      extra: ({ size = 0 }) => (
+        <span style={{ color: '#cccccc' }}>
+          ({(size / 1024 / 1024).toFixed(2)}MB)
+        </span>
+      ),
+      showRemoveIcon: true,
+    },
+    customRequest(info) {
+      const { file } = info
+      const isLt2M = file.size / 1024 / 1024 < 10 // Giới hạn 10MB
+      if (!isLt2M) {
+        messageApi.error(t('programManagement.form.thumbnailSizeLimit'))
+        info.onError(new Error(t('programManagement.form.thumbnailSizeLimit')))
+      } else {
+        form.setFieldValue('thumbnail', file)
+        info.onSuccess(file)
+        messageApi.success(t('programManagement.messages.fileUploadSuccess'))
+        setThumbnail(file)
+      }
+    },
+  }
 
   useEffect(() => {
     if (visible) {
-      if (selectedProgram) {
-        // Set program form values
-        form.setFieldsValue({
-          name: selectedProgram.name,
-          description: selectedProgram.description,
-          maxParticipants: selectedProgram.maxParticipants,
-          date: dayjs(selectedProgram.startDate),
-          startTime: dayjs(selectedProgram.startDate).isValid()
-            ? dayjs(selectedProgram.startDate)
-            : null,
-          endTime: dayjs(selectedProgram.endDate).isValid()
-            ? dayjs(selectedProgram.endDate)
-            : null,
-          location: selectedProgram.location,
-          categoryId: selectedProgram.category?.id,
-          hostedBy: selectedProgram.hostedBy,
-          thumbnail: selectedProgram.thumbnail,
-        })
+      // Reset and set default values for new program
+      form.resetFields()
+      surveyForm.resetFields()
+      setThumbnail(null)
+      setStartTimeValue(null)
 
-        // Set survey form values if exists
-        if (selectedProgram.survey) {
-          surveyForm.setFieldsValue({
-            title: selectedProgram.survey.title,
-            description: selectedProgram.survey.description,
-            isRequired: selectedProgram.survey.isRequired,
-            isRecurring: selectedProgram.survey.isRecurring,
-            recurringCycle: selectedProgram.survey.recurringCycle,
-            questions: selectedProgram.survey.questions,
-          })
-        }
-      } else {
-        // Reset and set default values for new program
-        form.resetFields()
-        surveyForm.resetFields()
-
-        form.setFieldsValue({
-          maxParticipants: 10,
-          date: dayjs().add(5, 'day'),
-          categoryId: categories[0]?.id,
-          hostedBy: counselors[0]?.id,
-          thumbnail: '',
-        })
-
-        surveyForm.setFieldsValue({
-          isRequired: false,
-          isRecurring: false,
-          recurringCycle: RECURRING_CYCLE.WEEKLY,
-        })
-      }
+      form.setFieldsValue({
+        maxParticipants: 10,
+        date: dayjs().add(5, 'day'),
+        categoryId: categories[0]?.id,
+        hostedBy: counselors[0]?.id,
+        thumbnail: null,
+      })
       setSelectedCategory(categories[0]?.id)
     }
-  }, [visible, selectedProgram, form, surveyForm, categories, counselors])
+  }, [visible, form, surveyForm, categories, counselors])
 
   const handleFormValuesChange = (changedValues, _allValues) => {
     if (changedValues.startTime !== undefined) {
@@ -115,11 +108,6 @@ const ProgramModal = ({
 
   // Handle form submission
   const handleOk = async () => {
-    if (isView) {
-      onCancel()
-      return
-    }
-
     try {
       setLoading(true)
       let values
@@ -131,18 +119,8 @@ const ProgramModal = ({
           form.validateFields(),
           surveyForm.validateFields(),
         ])
-      } catch (error) {
-        // Show validation errors from Form.ErrorList
-        if (error.errorFields) {
-          error.errorFields.forEach(field => {
-            messageApi.error({
-              content: field.errors[0],
-              key: field.name.join('.'),
-            })
-          })
-        } else {
-          messageApi.error(t('programManagement.messages.formError'))
-        }
+      } catch {
+        messageApi.error(t('programManagement.messages.fillAllFields'))
         setLoading(false)
         return
       }
@@ -160,20 +138,20 @@ const ProgramModal = ({
         endTime: endDate + 'T' + values.endTime.format('HH:mm:ss.SSS') + 'Z',
         location: values.location || '',
         hostedBy: values.hostedBy,
-        thumbnail: values.thumbnail || '',
         categoryId: values.categoryId,
         // Add survey data
         addNewSurveyDto: {
           title: surveyValues.title,
           description: surveyValues.description,
-          isRequired: surveyValues.isRequired || false,
-          isRecurring: surveyValues.isRecurring || false,
-          recurringCycle: surveyValues.isRecurring
-            ? surveyValues.recurringCycle
-            : null,
+          isRequired: true,
+          isRecurring: false,
+          recurringCycle: 'NONE',
           startDate: startDate,
-          endDate: endDate,
+          endDate: dayjs(values.date).add(1, 'day').format('YYYY-MM-DD'),
           categoryId: values.categoryId,
+          surveyType: 'PROGRAM',
+          targetScope: 'NONE',
+          targetGrade: [],
           questions:
             surveyValues.questions?.map(q => ({
               text: q.text,
@@ -188,9 +166,21 @@ const ProgramModal = ({
         },
       }
 
-      await onOk(programData)
-      form.resetFields()
-      surveyForm.resetFields()
+      const requestData = {
+        thumbnail: thumbnail,
+        request: { ...programData },
+      }
+
+      const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
+
+      await onOk(requestData)
+      sendMessage({
+        title: 'New Program',
+        content: `You have a new program ${values.name}`,
+        username: selectedCounselor.email,
+      })
+
+      handleCancel()
     } catch (error) {
       console.error('Submit failed:', error)
       messageApi.error(t('programManagement.messages.submitError'))
@@ -202,30 +192,27 @@ const ProgramModal = ({
   const handleCancel = () => {
     form.resetFields()
     surveyForm.resetFields()
+    setThumbnail(null)
+    setStartTimeValue(null)
+    setSelectedCategory(null)
     onCancel()
   }
 
   const getModalTitle = () => {
-    const title = isView
-      ? t('programManagement.modal.viewTitle')
-      : isEdit
-        ? t('programManagement.modal.editTitle')
-        : t('programManagement.modal.addTitle')
+    const title = t('programManagement.modal.addTitle')
 
     return (
       <div className="flex items-center justify-between">
         <span>{title}</span>
-        {!isView && (
-          <Button
-            type="text"
-            icon={<BulbOutlined className="text-yellow-500" />}
-            onClick={() => setShowHelper(!showHelper)}
-            className="mr-4"
-            size="small"
-          >
-            {t('programHelper.toggle')}
-          </Button>
-        )}
+        <Button
+          type="text"
+          icon={<BulbOutlined className="text-yellow-500" />}
+          onClick={() => setShowHelper(!showHelper)}
+          className="mr-4"
+          size="small"
+        >
+          {t('programHelper.toggle')}
+        </Button>
       </div>
     )
   }
@@ -333,16 +320,14 @@ const ProgramModal = ({
           <Button onClick={handleCancel} size="large">
             {t('common.cancel')}
           </Button>
-          {!isView && (
-            <Button
-              type="primary"
-              onClick={handleOk}
-              loading={loading}
-              size="large"
-            >
-              {isEdit ? t('common.save') : t('common.create')}
-            </Button>
-          )}
+          <Button
+            type="primary"
+            onClick={handleOk}
+            loading={loading}
+            size="large"
+          >
+            {t('common.create')}
+          </Button>
         </Space>
       }
       width={1200}
@@ -361,7 +346,6 @@ const ProgramModal = ({
             form={form}
             layout="vertical"
             onValuesChange={handleFormValuesChange}
-            disabled={isView}
           >
             {/* Program Creation Helper */}
             <ProgramCreationHelper
@@ -474,13 +458,19 @@ const ProgramModal = ({
                   <Form.Item
                     label={t('programManagement.form.thumbnail')}
                     name="thumbnail"
+                    rules={[
+                      {
+                        required: true,
+                        message: t('surveyManagement.form.thumbnailRequired'),
+                      },
+                    ]}
                   >
-                    <Input
-                      placeholder={t(
-                        'programManagement.form.thumbnailPlaceholder'
-                      )}
-                      size="large"
-                    />
+                    {/* <Text type="secondary">{uploadProps.accept}</Text> */}
+                    <Upload {...uploadProps}>
+                      <Button icon={<UploadOutlined />}>
+                        {t('programManagement.form.uploadThumbnail')}
+                      </Button>
+                    </Upload>
                   </Form.Item>
                 </Col>
               </Row>
@@ -734,90 +724,12 @@ const ProgramModal = ({
               >
                 <TextArea
                   rows={3}
+                  showCount
+                  maxLength={500}
                   placeholder={t(
                     'surveyManagement.form.descriptionPlaceholder'
                   )}
                 />
-              </Form.Item>
-
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item
-                    name="isRequired"
-                    valuePropName="checked"
-                    initialValue={false}
-                  >
-                    <Checkbox>{t('surveyManagement.form.isRequired')}</Checkbox>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    name="isRecurring"
-                    valuePropName="checked"
-                    initialValue={false}
-                  >
-                    <Checkbox>
-                      {t('surveyManagement.form.isRecurring')}
-                    </Checkbox>
-                  </Form.Item>
-                </Col>
-              </Row>
-
-              <Form.Item
-                noStyle
-                shouldUpdate={(prevValues, currentValues) =>
-                  prevValues.isRecurring !== currentValues.isRecurring
-                }
-              >
-                {({ getFieldValue }) => (
-                  <Form.Item
-                    name="recurringCycle"
-                    label={t('surveyManagement.form.recurringCycle')}
-                    rules={[
-                      {
-                        required: getFieldValue('isRecurring'),
-                        message: t(
-                          'surveyManagement.form.recurringCycleRequired'
-                        ),
-                      },
-                      {
-                        validator: (_, value) => {
-                          if (getFieldValue('isRecurring') && value) {
-                            const validCycles = [
-                              RECURRING_CYCLE.WEEKLY,
-                              RECURRING_CYCLE.MONTHLY,
-                            ]
-                            if (!validCycles.includes(value)) {
-                              return Promise.reject(
-                                new Error(
-                                  t(
-                                    'surveyManagement.form.recurringValidation.invalidCycle'
-                                  )
-                                )
-                              )
-                            }
-                          }
-                          return Promise.resolve()
-                        },
-                      },
-                    ]}
-                    hidden={!getFieldValue('isRecurring')}
-                    initialValue={RECURRING_CYCLE.WEEKLY}
-                  >
-                    <Select
-                      placeholder={t(
-                        'surveyManagement.form.recurringCyclePlaceholder'
-                      )}
-                    >
-                      <Option value={RECURRING_CYCLE.WEEKLY}>
-                        {t('surveyManagement.enums.recurringCycle.WEEKLY')}
-                      </Option>
-                      <Option value={RECURRING_CYCLE.MONTHLY}>
-                        {t('surveyManagement.enums.recurringCycle.MONTHLY')}
-                      </Option>
-                    </Select>
-                  </Form.Item>
-                )}
               </Form.Item>
 
               <Title level={5} style={{ marginBottom: '16px' }}>

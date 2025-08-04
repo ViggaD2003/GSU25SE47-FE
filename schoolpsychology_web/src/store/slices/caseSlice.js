@@ -62,12 +62,26 @@ const caseSlice = createSlice({
       })
       .addCase('case/getCaseById/fulfilled', (state, action) => {
         state.loading = false
-        state.currentCase = action.payload
+        state.currentCase = action.payload || action.payload.data
         state.error = null
       })
       .addCase('case/getCaseById/rejected', (state, action) => {
         state.loading = false
         state.error = action.payload || 'Failed to fetch case details'
+      })
+      // getCasesByCategoryId
+      .addCase('case/getCasesByCategoryId/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('case/getCasesByCategoryId/fulfilled', (state, action) => {
+        state.loading = false
+        state.cases = action.payload
+        state.error = null
+      })
+      .addCase('case/getCasesByCategoryId/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to fetch cases by category ID'
       })
       // createCase
       .addCase('case/createCase/pending', state => {
@@ -118,6 +132,19 @@ const caseSlice = createSlice({
       .addCase('case/updateCase/rejected', (state, action) => {
         state.loading = false
         state.error = action.payload || 'Failed to update case'
+      })
+      // addCaseToSurvey
+      .addCase('case/addCaseToSurvey/pending', state => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase('case/addCaseToSurvey/fulfilled', (state, _action) => {
+        state.loading = false
+        state.error = null
+      })
+      .addCase('case/addCaseToSurvey/rejected', (state, action) => {
+        state.loading = false
+        state.error = action.payload || 'Failed to add case to survey'
       })
   },
 })

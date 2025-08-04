@@ -42,6 +42,7 @@ import CaseModal from './CaseModal'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
+import { useNavigate } from 'react-router-dom'
 
 const { Search } = Input
 const { Title, Text } = Typography
@@ -124,6 +125,7 @@ const CaseManagement = () => {
   const [tempHostBy, setTempHostBy] = useState(null)
   const [availableHosts, setAvailableHosts] = useState([])
   const [hostsLoading, setHostsLoading] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     dispatch(getCases())
@@ -274,6 +276,10 @@ const CaseManagement = () => {
   const handleChangeHostBy = useCallback(value => {
     console.log(value)
     setTempHostBy(value)
+  }, [])
+
+  const handleViewCase = useCallback(record => {
+    navigate(`/case-management/details/${record.id}`)
   }, [])
 
   const editHostByColumn = useCallback(
@@ -510,7 +516,12 @@ const CaseManagement = () => {
           !editingHostBy ? (
             <Space size="small">
               <Tooltip title={t('common.view')}>
-                <Button type="text" icon={<EyeOutlined />} size="small" />
+                <Button
+                  type="text"
+                  icon={<EyeOutlined />}
+                  size="small"
+                  onClick={() => handleViewCase(record)}
+                />
               </Tooltip>
               {user?.role === 'manager' && record.status === 'NEW' && (
                 <Tooltip title={t('common.edit')}>

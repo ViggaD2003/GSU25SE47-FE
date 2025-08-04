@@ -1,8 +1,24 @@
-import React, { useMemo, useCallback } from 'react'
-import { Table, Button, Space, Tag, Typography, Tooltip, Progress } from 'antd'
-import { EyeOutlined, EditOutlined } from '@ant-design/icons'
+import React, { useMemo, useCallback, useState } from 'react'
+import {
+  Table,
+  Button,
+  Space,
+  Tag,
+  Typography,
+  Tooltip,
+  Progress,
+  Form,
+  Select,
+} from 'antd'
+import {
+  EyeOutlined,
+  EditOutlined,
+  CloseOutlined,
+  SaveOutlined,
+} from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { useAuth } from '@/contexts/AuthContext'
 
 const { Text } = Typography
 
@@ -12,25 +28,34 @@ const ProgramTable = ({
   pagination,
   onPageChange,
   onView,
-  onEdit,
   sortConfig,
   onSort,
+  onUpdateStatus, // Add this prop for handling status updates
 }) => {
   const { t } = useTranslation()
+  const { user } = useAuth()
+  const isManager = user?.role === 'manager'
+  const [editingId, setEditingId] = useState(null)
+  const [form] = Form.useForm()
 
   // Status configuration
   const getStatusConfig = useCallback(
     status => {
       switch (status?.toUpperCase()) {
-        case 'UPCOMING':
+        case 'PLANNING':
+          return {
+            color: 'purple',
+            text: t('programManagement.status.PLANNING'),
+          }
+        case 'ACTIVE':
           return {
             color: 'blue',
-            text: t('programManagement.status.UPCOMING'),
+            text: t('programManagement.status.ACTIVE'),
           }
-        case 'ONGOING':
+        case 'ON_GOING':
           return {
             color: 'green',
-            text: t('programManagement.status.ONGOING'),
+            text: t('programManagement.status.ON_GOING'),
           }
         case 'COMPLETED':
           return {
@@ -48,12 +73,75 @@ const ProgramTable = ({
   )
 
   // Get participant progress color
-  const getParticipantProgressColor = useCallback((current, max) => {
-    const percentage = (current / max) * 100
-    if (percentage >= 80) return '#52c41a' // Green
-    if (percentage >= 60) return '#faad14' // Orange
-    return '#ff4d4f' // Red
+  const getParticipantProgressColor = useCallback((_current, _max) => {
+    // const percentage = (current / max) * 100
+    // if (percentage >= 80) return '#52c41a' // Green
+    // if (percentage >= 60) return '#faad14' // Orange
+    return '#688EFFFF' // Red
   }, [])
+
+  const handleEdit = useCallback(
+    program => {
+      setEditingId(program.id)
+      form.setFieldsValue({ status: program.status })
+    },
+    [form]
+  )
+
+  const handleCancel = useCallback(() => {
+    setEditingId(null)
+    form.resetFields()
+  }, [form])
+
+  const handleSave = useCallback(
+    async record => {
+      try {
+        const values = await form.validateFields()
+        if (onUpdateStatus) {
+          await onUpdateStatus(record.id, values.status)
+        }
+        setEditingId(null)
+        form.resetFields()
+      } catch (error) {
+        console.error('Validation failed:', error)
+      }
+    },
+    [form, onUpdateStatus]
+  )
+
+  const renderEditForm = useCallback(
+    program => {
+      const config = program.status ? getStatusConfig(program.status) : {}
+      const isEditing = editingId === program.id
+
+      return isEditing ? (
+        <Form form={form}>
+          <Form.Item
+            name="status"
+            rules={[{ required: true, message: t('common.required') }]}
+          >
+            <Select placeholder={t('programManagement.selectStatus')}>
+              <Select.Option value="PLANNING">
+                {t('programManagement.status.PLANNING')}
+              </Select.Option>
+              <Select.Option value="ACTIVE">
+                {t('programManagement.status.ACTIVE')}
+              </Select.Option>
+              <Select.Option value="ON_GOING">
+                {t('programManagement.status.ON_GOING')}
+              </Select.Option>
+              <Select.Option value="COMPLETED">
+                {t('programManagement.status.COMPLETED')}
+              </Select.Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      ) : (
+        <Tag color={config.color}>{config.text}</Tag>
+      )
+    },
+    [editingId, form, getStatusConfig, t]
+  )
 
   // Table columns configuration
   const columns = useMemo(
@@ -62,7 +150,7 @@ const ProgramTable = ({
         title: t('programManagement.table.name'),
         dataIndex: 'name',
         key: 'name',
-        width: 200,
+        width: 150,
         sorter: true,
         sortOrder:
           sortConfig?.field === 'name' ? sortConfig.direction : undefined,
@@ -87,10 +175,10 @@ const ProgramTable = ({
         title: t('programManagement.table.participants'),
         dataIndex: 'participants',
         key: 'participants',
-        width: 150,
+        width: 120,
         align: 'center',
         render: (_, record) => {
-          const current = record.programRegistrations?.length || 0
+          const current = record.participants ?? 1
           const max = record.maxParticipants || 0
           const percentage = max > 0 ? (current / max) * 100 : 0
 
@@ -114,7 +202,7 @@ const ProgramTable = ({
         title: t('programManagement.table.category'),
         dataIndex: ['category', 'name'],
         key: 'category',
-        width: 150,
+        width: 120,
         render: (text, record) => (
           <div>
             <Text>{text}</Text>
@@ -154,42 +242,62 @@ const ProgramTable = ({
         dataIndex: 'status',
         key: 'status',
         width: 120,
-        align: 'center',
         filters: [
-          { text: t('programManagement.status.UPCOMING'), value: 'UPCOMING' },
-          { text: t('programManagement.status.ONGOING'), value: 'ONGOING' },
+          { text: t('programManagement.status.PLANNING'), value: 'PLANNING' },
+          { text: t('programManagement.status.ACTIVE'), value: 'ACTIVE' },
+          { text: t('programManagement.status.ON_GOING'), value: 'ON_GOING' },
           { text: t('programManagement.status.COMPLETED'), value: 'COMPLETED' },
         ],
-        render: status => {
-          const config = getStatusConfig(status)
-          return <Tag color={config.color}>{config.text}</Tag>
-        },
+        render: (_, record) => renderEditForm(record),
       },
       {
         key: 'actions',
-        width: 60,
+        width: 80,
         align: 'center',
         fixed: 'right',
-        render: (_, record) => (
-          <Space size="small">
-            <Tooltip title={t('programManagement.actions.view')}>
-              <Button
-                type="link"
-                icon={<EyeOutlined />}
-                onClick={() => onView(record)}
-                size="small"
-              />
-            </Tooltip>
-            <Tooltip title={t('programManagement.actions.edit')}>
-              <Button
-                type="link"
-                icon={<EditOutlined />}
-                onClick={() => onEdit(record)}
-                size="small"
-              />
-            </Tooltip>
-          </Space>
-        ),
+        render: (_, record) => {
+          const isEditing = editingId === record.id
+
+          return !isEditing ? (
+            <Space size="small">
+              <Tooltip title={t('programManagement.actions.view')}>
+                <Button
+                  type="link"
+                  icon={<EyeOutlined />}
+                  onClick={() => onView(record)}
+                  size="small"
+                />
+              </Tooltip>
+              {isManager && (
+                <Tooltip title={t('programManagement.actions.edit')}>
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEdit(record)}
+                    size="small"
+                  />
+                </Tooltip>
+              )}
+            </Space>
+          ) : (
+            <Space size="small">
+              <Tooltip title={t('programManagement.actions.cancel')}>
+                <Button type="link" danger onClick={handleCancel} size="small">
+                  <CloseOutlined />
+                </Button>
+              </Tooltip>
+              <Tooltip title={t('programManagement.actions.save')}>
+                <Button
+                  type="link"
+                  onClick={() => handleSave(record)}
+                  size="small"
+                >
+                  <SaveOutlined />
+                </Button>
+              </Tooltip>
+            </Space>
+          )
+        },
       },
     ],
     [
@@ -198,7 +306,12 @@ const ProgramTable = ({
       getStatusConfig,
       getParticipantProgressColor,
       onView,
-      onEdit,
+      isManager,
+      editingId,
+      renderEditForm,
+      handleEdit,
+      handleCancel,
+      handleSave,
     ]
   )
 

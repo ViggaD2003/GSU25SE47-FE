@@ -54,7 +54,7 @@ export const ROUTE_CONFIG = [
         element: 'ProgramManagement',
       },
       {
-        key: '/program-management/details',
+        key: '/program-management/details/:id',
         element: 'ProgramDetails',
         allowedRoles: ['manager', 'counselor'],
         hidden: true,
@@ -104,6 +104,13 @@ export const ROUTE_CONFIG = [
         element: 'CaseManagement',
       },
     ],
+  },
+
+  {
+    key: '/case-management/details/:id',
+    element: 'CaseDetails',
+    allowedRoles: ['teacher', 'counselor', 'manager'],
+    hidden: true,
   },
 
   // Assigned Cases (Assigned Cases) - Counselor

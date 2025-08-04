@@ -98,6 +98,7 @@ const CaseModal = ({
       currentLevelId: formData.levelId || surveyRecord?.level?.id,
       initialLevelId: formData.levelId || surveyRecord?.level?.id,
     }
+    console.log(editingCase)
     // console.log(requestData)
     setShowConfirmModal(false)
     setFormData(null)

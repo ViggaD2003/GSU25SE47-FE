@@ -1,6 +1,6 @@
 import React from 'react'
-import { Table, Tag, Button, Tooltip } from 'antd'
-import { EyeOutlined } from '@ant-design/icons'
+import { Table, Tag, Button, Tooltip, Space } from 'antd'
+import { EyeOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import {
   TARGET_SCOPE,
   getStatusColor,
@@ -49,6 +49,7 @@ const SurveyTable = ({ t, data, loading, pagination, onView, userRole }) => {
         value: surveyType,
       })),
       onFilter: (value, record) => record.surveyType === value,
+      hidden: userRole !== 'manager',
     },
     {
       title: t('surveyManagement.table.targetScope'),
@@ -88,6 +89,7 @@ const SurveyTable = ({ t, data, loading, pagination, onView, userRole }) => {
           record.targetScope === value || record.targetGrade.includes(value)
         )
       },
+      hidden: userRole !== 'manager',
     },
     {
       title: t('surveyManagement.table.status'),
@@ -125,14 +127,16 @@ const SurveyTable = ({ t, data, loading, pagination, onView, userRole }) => {
       align: 'center',
       fixed: 'right',
       render: (_, record) => (
-        <Tooltip title={t('surveyManagement.table.action.viewDetail')}>
-          <Button
-            icon={<EyeOutlined />}
-            type="link"
-            onClick={() => onView(record)}
-            style={{ padding: 0 }}
-          />
-        </Tooltip>
+        <Space>
+          <Tooltip title={t('surveyManagement.table.action.viewDetail')}>
+            <Button
+              icon={<EyeOutlined />}
+              type="link"
+              onClick={() => onView(record)}
+              style={{ padding: 0 }}
+            />
+          </Tooltip>
+        </Space>
       ),
     },
   ]

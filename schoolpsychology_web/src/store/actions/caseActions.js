@@ -35,6 +35,23 @@ export const getCaseById = createAsyncThunk(
   }
 )
 
+// Async thunk for getting cases by category ID
+export const getCasesByCategoryId = createAsyncThunk(
+  'case/getCasesByCategoryId',
+  async (categoryId, { rejectWithValue }) => {
+    try {
+      const response = await caseAPI.getCasesByCategoryId(categoryId)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to fetch cases by category ID'
+      )
+    }
+  }
+)
+
 // Async thunk for creating a case
 export const createCase = createAsyncThunk(
   'case/createCase',
@@ -81,6 +98,23 @@ export const updateCase = createAsyncThunk(
         error.response?.data?.message ||
           error.message ||
           'Failed to update case'
+      )
+    }
+  }
+)
+
+// Async thunk for adding a case to a survey
+export const addCaseToSurvey = createAsyncThunk(
+  'case/addCaseToSurvey',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await caseAPI.addCaseToSurvey(data)
+      return response
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          'Failed to add case to survey'
       )
     }
   }

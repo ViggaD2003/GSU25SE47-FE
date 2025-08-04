@@ -12,7 +12,7 @@ export const surveyAPI = {
   },
 
   getSurveyInCase: async () => {
-    const response = await api.get(`/api/v1/survey/in-case`)
+    const response = await api.get(`/api/v1/survey/get-by-account`)
     return response.data
   },
 
@@ -23,6 +23,15 @@ export const surveyAPI = {
 
   updateSurvey: async (id, surveyData) => {
     const response = await api.put(`/api/v1/survey/${id}`, surveyData)
+    return response.data
+  },
+
+  removeCaseFromSurvey: async data => {
+    if (!data) return
+    const { surveyId, caseId } = data
+    const response = await api.delete(
+      `/api/v1/survey/${surveyId}/cases/${caseId}`
+    )
     return response.data
   },
 }

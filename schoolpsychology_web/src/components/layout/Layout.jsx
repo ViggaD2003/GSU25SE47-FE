@@ -26,6 +26,7 @@ import Navigation from '../../components/layout/Navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import NotificationBell from '@/components/common/NotificationBell'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { getNotifications } from '@/services/notiApi'
 
 const { Header, Content, Sider } = Layout
 
@@ -42,14 +43,34 @@ const LayoutComponent = () => {
   const [messageApi, contextHolder] = message.useMessage()
   const [collapsed, setCollapsed] = useState(false)
   const [lastNotificationCount, setLastNotificationCount] = useState(0)
-  const { sendMessage, notifications } = useWebSocket()
+  const { notifications, setNotifications } = useWebSocket()
+
+  const fetchNotifications = useCallback(async () => {
+    const notifications = await getNotifications(user.id || user.userId)
+    setNotifications(notifications)
+  }, [])
 
   useEffect(() => {
-    if (notifications.length > lastNotificationCount) {
-      messageApi.success(t('notification.newNotification'))
-      setLastNotificationCount(notifications.length)
+    if (user) {
+      fetchNotifications()
     }
-  }, [notifications, lastNotificationCount, t])
+  }, [user])
+
+  useEffect(() => {
+    // Chỉ hiển thị thông báo khi có thông báo mới và không phải lần đầu load
+    if (
+      notifications.length > 0 &&
+      lastNotificationCount > 0 &&
+      notifications.length > lastNotificationCount
+    ) {
+      const newNotificationCount = notifications.length - lastNotificationCount
+      messageApi.success(
+        t('notification.newNotification', { count: newNotificationCount })
+      )
+    }
+    // Cập nhật số lượng thông báo hiện tại
+    setLastNotificationCount(notifications.length)
+  }, [notifications, lastNotificationCount, t, messageApi])
 
   const handleLogout = useCallback(() => {
     logout()
@@ -239,14 +260,14 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
-              <Button
+              {/* <Button
                 onClick={() => {
                   sendMessage()
                 }}
                 className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 Test notification
-              </Button>
+              </Button> */}
 
               {/* Notifications */}
               <NotificationBell />

@@ -21,6 +21,8 @@ import {
   Tooltip,
   Statistic,
   Divider,
+  Checkbox,
+  Collapse,
 } from 'antd'
 import {
   EditOutlined,
@@ -36,6 +38,7 @@ import {
   PlusOutlined,
   DeleteOutlined,
   LockOutlined,
+  CloseOutlined,
 } from '@ant-design/icons'
 import { surveyAPI } from '../../../services/surveyApi'
 import {
@@ -48,6 +51,8 @@ import {
   getStatusColor,
 } from '../../../constants/enums'
 import dayjs from 'dayjs'
+import { addCaseToSurvey, getCases } from '@/store/actions'
+import { useSelector } from 'react-redux'
 
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -270,6 +275,8 @@ const SurveyDetailModal = ({
   onClose,
   onUpdated,
   messageApi,
+  userRole,
+  dispatch,
 }) => {
   const [form] = Form.useForm()
   const [editMode, setEditMode] = useState(false)
@@ -280,6 +287,12 @@ const SurveyDetailModal = ({
   const [error, setError] = useState(null)
   const [newQuestions, setNewQuestions] = useState([])
   const [updatedQuestions, setUpdatedQuestions] = useState([])
+  const [showAddCase, setShowAddCase] = useState(false)
+  const [addedCases, setAddedCases] = useState([])
+  const [removedCases, setRemovedCases] = useState([])
+  const [selectedRemovedCases, setSelectedRemovedCases] = useState([])
+  const [selectedAddedCases, setSelectedAddedCases] = useState([])
+  const { cases, loading: casesLoading } = useSelector(state => state.case)
 
   // Fetch survey details when modal opens
   useEffect(() => {
@@ -297,9 +310,12 @@ const SurveyDetailModal = ({
       setFormValue(null)
       setNewQuestions([])
       setUpdatedQuestions([])
-      form.resetFields()
+      setShowAddCase(false)
+      if (editMode) {
+        form.resetFields()
+      }
     }
-  }, [visible, form])
+  }, [visible, form, editMode])
 
   // Fetch survey details by ID
   const fetchSurveyDetails = useCallback(async () => {
@@ -328,14 +344,17 @@ const SurveyDetailModal = ({
         isRecurring: normalizedCycle !== RECURRING_CYCLE.NONE,
       }
       setFormValue(initialValues)
-      form.setFieldsValue(initialValues)
-    } catch (err) {
-      setError(err.message || t('surveyManagement.detail.messages.fetchError'))
-      messageApi.error(t('surveyManagement.detail.messages.fetchError'))
+      if (editMode) {
+        form.setFieldsValue(initialValues)
+      }
+    } catch {
+      const errorMessage = t('surveyManagement.detail.messages.fetchError')
+      setError(errorMessage)
+      messageApi.error(errorMessage)
     } finally {
       setFetching(false)
     }
-  }, [surveyId, form])
+  }, [visible, surveyId, t, messageApi, form])
 
   // Helper functions
   const normalizeRecurringCycle = useCallback(cycle => {
@@ -437,13 +456,14 @@ const SurveyDetailModal = ({
     setEditMode(false)
     setNewQuestions([])
     setUpdatedQuestions([])
-    if (formValue) {
+    if (formValue && editMode) {
       form.setFieldsValue(formValue)
     }
-  }, [formValue, form])
+  }, [formValue, form, editMode])
 
   const handleSave = useCallback(async () => {
     try {
+      if (!editMode) return
       setLoading(true)
       const values = await form.validateFields()
 
@@ -558,6 +578,7 @@ const SurveyDetailModal = ({
     fetchSurveyDetails,
     newQuestions,
     updatedQuestions,
+    editMode,
   ])
 
   const handleRefresh = useCallback(() => {
@@ -593,6 +614,25 @@ const SurveyDetailModal = ({
   const handleRemoveNewQuestion = useCallback(questionId => {
     setNewQuestions(prev => prev.filter(q => q.id !== questionId))
   }, [])
+
+  const fetchCases = useCallback(() => {
+    if (!survey?.category?.id) return
+    if (userRole !== 'counselor') return
+    const params = {
+      categoryId: survey?.category?.id,
+      statusCase: ['IN_PROGRESS'],
+      surveyId: survey?.surveyId || surveyId,
+    }
+    dispatch(getCases(params))
+  }, [survey, dispatch, userRole, surveyId])
+
+  useEffect(() => {
+    if (!survey) return
+    if (cases.length > 0) {
+      setAddedCases(cases.filter(c => c.isAddSurvey))
+      setRemovedCases(cases.filter(c => !c.isAddSurvey))
+    }
+  }, [survey, cases])
 
   // Render functions
   const renderHeader = () => (
@@ -717,10 +757,35 @@ const SurveyDetailModal = ({
   const renderSurveyInfo = () => (
     <Card
       title={
-        <Space>
-          <InfoCircleOutlined />
-          <Text strong>{t('surveyManagement.detail.basicInfo')}</Text>
-        </Space>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Space>
+            <InfoCircleOutlined />
+            <Text strong>{t('surveyManagement.detail.basicInfo')}</Text>
+          </Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setShowAddCase(true)
+              fetchCases()
+            }}
+            style={{ marginLeft: 'auto' }}
+            loading={casesLoading}
+            hidden={
+              userRole !== 'counselor' ||
+              showAddCase ||
+              survey?.status === SURVEY_STATUS.ARCHIVED
+            }
+          >
+            {t('surveyManagement.table.action.addCase')}
+          </Button>
+        </div>
       }
       style={{ marginBottom: 16 }}
     >
@@ -1115,6 +1180,324 @@ const SurveyDetailModal = ({
     </Form>
   )
 
+  const handleCaseSelection = (caseId, type) => {
+    // console.log('handleCaseSelection')
+
+    // console.log('caseId', caseId)
+    // console.log('type', type)
+    if (type === 'removed') {
+      setSelectedAddedCases(prev => {
+        if (prev.includes(caseId)) {
+          return prev.filter(id => id !== caseId)
+        }
+        return [...prev, caseId]
+      })
+    } else {
+      setSelectedRemovedCases(prev => {
+        if (prev.includes(caseId)) {
+          return prev.filter(id => id !== caseId)
+        }
+        return [...prev, caseId]
+      })
+    }
+  }
+
+  const handleSelectAll = (checked, type) => {
+    // console.log('selectAll')
+
+    // console.log('checked', checked)
+    // console.log('type', type)
+
+    if (checked) {
+      if (type === 'removed') {
+        setSelectedAddedCases(addedCases.map(c => c.id))
+      } else {
+        setSelectedRemovedCases(removedCases.map(c => c.id))
+      }
+    } else {
+      if (type === 'removed') {
+        setSelectedAddedCases([])
+      } else {
+        setSelectedRemovedCases([])
+      }
+    }
+  }
+
+  const handleAddCase = () => {
+    const params = {
+      surveyId: survey?.surveyId || survey?.id || surveyId,
+      caseIds: selectedAddedCases,
+    }
+
+    dispatch(addCaseToSurvey(params))
+  }
+
+  const handleRemoveCase = async caseId => {
+    try {
+      await surveyAPI.removeCaseFromSurvey({
+        surveyId: survey?.surveyId || survey?.id || surveyId,
+        caseId: caseId,
+      })
+      messageApi.success(t('surveyManagement.messages.removeCaseSuccess'))
+      fetchSurveyDetails() // Refresh the survey details
+    } catch {
+      messageApi.error(t('surveyManagement.messages.removeCaseError'))
+    }
+  }
+
+  const renderAddedCaseList = () => (
+    <div>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Checkbox
+          indeterminate={
+            selectedAddedCases.length > 0 &&
+            selectedAddedCases.length < addedCases.length
+          }
+          checked={
+            addedCases.length > 0 &&
+            selectedAddedCases.length === addedCases.length
+          }
+          onChange={e => handleSelectAll(e.target.checked, 'removed')}
+          disabled={addedCases.length === 0}
+        >
+          {t('common.selectAll')}
+        </Checkbox>
+        <Button
+          type="primary"
+          disabled={selectedAddedCases.length === 0}
+          onClick={handleRemoveCase}
+        >
+          {t('common.remove')} ({selectedAddedCases.length})
+        </Button>
+      </div>
+      <List
+        dataSource={addedCases}
+        renderItem={item => (
+          <List.Item
+            style={{
+              padding: '12px',
+              marginBottom: '8px',
+              background: '#fff',
+              borderRadius: '8px',
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                }}
+              >
+                <Checkbox
+                  checked={selectedAddedCases.includes(item.id)}
+                  onChange={() => handleCaseSelection(item.id, 'removed')}
+                />
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {item.title}
+                    </Typography.Title>
+                    <Space>
+                      <Tag
+                        color={
+                          item.priority === 'HIGH'
+                            ? 'red'
+                            : item.priority === 'MEDIUM'
+                              ? 'orange'
+                              : 'green'
+                        }
+                      >
+                        {item.priority}
+                      </Tag>
+                    </Space>
+                  </div>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Student:
+                      </Typography.Text>
+                      <div>{item.student.fullName}</div>
+                    </Col>
+
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Current Level:
+                      </Typography.Text>
+                      <div>{item.currentLevel.label}</div>
+                    </Col>
+                  </Row>
+
+                  {item.description && (
+                    <Typography.Paragraph
+                      type="secondary"
+                      ellipsis={{ rows: 2 }}
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {item.description}
+                    </Typography.Paragraph>
+                  )}
+                </div>
+              </div>
+            </div>
+          </List.Item>
+        )}
+      />
+    </div>
+  )
+
+  const renderRemovedCaseList = () => (
+    <div>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Checkbox
+          indeterminate={
+            selectedRemovedCases.length > 0 &&
+            selectedRemovedCases.length < removedCases.length
+          }
+          checked={
+            removedCases.length > 0 &&
+            selectedRemovedCases.length === removedCases.length
+          }
+          onChange={e => handleSelectAll(e.target.checked, 'added')}
+          disabled={removedCases.length === 0}
+        >
+          {t('common.selectAll')}
+        </Checkbox>
+        <Button
+          type="primary"
+          disabled={selectedRemovedCases.length === 0}
+          onClick={handleAddCase}
+        >
+          {t('common.add')} ({selectedRemovedCases.length})
+        </Button>
+      </div>
+      <List
+        dataSource={removedCases}
+        renderItem={item => (
+          <List.Item
+            style={{
+              padding: '12px',
+              marginBottom: '8px',
+              background: '#fff',
+              borderRadius: '8px',
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                }}
+              >
+                <Checkbox
+                  checked={selectedRemovedCases.includes(item.id)}
+                  onChange={() => handleCaseSelection(item.id, 'added')}
+                />
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {item.title}
+                    </Typography.Title>
+                    <Space>
+                      <Tag
+                        color={
+                          item.priority === 'HIGH'
+                            ? 'red'
+                            : item.priority === 'MEDIUM'
+                              ? 'orange'
+                              : 'green'
+                        }
+                      >
+                        {item.priority}
+                      </Tag>
+                    </Space>
+                  </div>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Student:
+                      </Typography.Text>
+                      <div>{item.student.fullName}</div>
+                    </Col>
+
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Current Level:
+                      </Typography.Text>
+                      <div>{item.currentLevel.label}</div>
+                    </Col>
+                  </Row>
+
+                  {item.description && (
+                    <Typography.Paragraph
+                      type="secondary"
+                      ellipsis={{ rows: 2 }}
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {item.description}
+                    </Typography.Paragraph>
+                  )}
+                </div>
+              </div>
+            </div>
+          </List.Item>
+        )}
+      />
+    </div>
+  )
+
+  const itemsCasesCollapse = [
+    {
+      key: '1',
+      label:
+        t('surveyManagement.table.action.addedCases') +
+        ' (' +
+        (addedCases.length ?? 0) +
+        ')',
+      children: renderAddedCaseList(),
+    },
+    {
+      key: '2',
+      label:
+        t('surveyManagement.table.action.removedCases') +
+        ' (' +
+        (removedCases.length ?? 0) +
+        ')',
+      children: renderRemovedCaseList(),
+    },
+  ]
+
   // Main render
   if (error) {
     return (
@@ -1179,7 +1562,7 @@ const SurveyDetailModal = ({
               </Button>,
             ]
       }
-      width={1000}
+      width={1300}
       style={{ top: 20 }}
       styles={{
         body: {
@@ -1197,10 +1580,72 @@ const SurveyDetailModal = ({
             {editMode ? (
               renderEditForm()
             ) : (
-              <>
-                {renderSurveyInfo()}
-                {renderQuestions()}
-              </>
+              <Row gutter={16}>
+                <Col
+                  span={showAddCase && userRole === 'counselor' ? 14 : 24}
+                  style={{
+                    width: showAddCase ? '50%' : '100%',
+                    transition: 'all 0.3s ease-in-out',
+                    paddingRight: showAddCase ? '8px' : '0',
+                  }}
+                >
+                  {renderSurveyInfo()}
+                  {renderQuestions()}
+                </Col>
+                {userRole === 'counselor' && (
+                  <Col
+                    span={10}
+                    style={{
+                      opacity: showAddCase ? 1 : 0,
+                      transform: `translateX(${showAddCase ? '0' : '100%'})`,
+                      transition: 'all 0.3s ease-in-out',
+                      visibility: showAddCase ? 'visible' : 'hidden',
+                      height: '100%',
+                    }}
+                  >
+                    <div>
+                      <Card
+                        title={
+                          <Space>
+                            <Text strong>
+                              {t('surveyManagement.table.action.cases')}
+                            </Text>
+                          </Space>
+                        }
+                        extra={
+                          <Button
+                            type="text"
+                            icon={<CloseOutlined />}
+                            onClick={() => setShowAddCase(false)}
+                          />
+                        }
+                        style={{ marginBottom: 16 }}
+                      >
+                        {Array.isArray(cases) && cases.length > 0 ? (
+                          <>
+                            <Collapse items={itemsCasesCollapse} />
+                          </>
+                        ) : (
+                          <div
+                            style={{ textAlign: 'center', padding: '40px 0' }}
+                          >
+                            <FileTextOutlined
+                              style={{
+                                fontSize: 48,
+                                color: '#d9d9d9',
+                                marginBottom: 16,
+                              }}
+                            />
+                            <Text type="secondary">
+                              {t('surveyManagement.detail.noCase')}
+                            </Text>
+                          </div>
+                        )}
+                      </Card>
+                    </div>
+                  </Col>
+                )}
+              </Row>
             )}
           </div>
         ) : (

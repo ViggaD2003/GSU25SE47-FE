@@ -233,10 +233,10 @@
       "actions": "Actions"
     },
     "status": {
-      "UPCOMING": "Upcoming",
-      "ONGOING": "Ongoing",
-      "COMPLETED": "Completed",
-      "CANCELLED": "Cancelled"
+      "PLANNING": "Planning",
+      "ACTIVE": "Active",
+      "ON_GOING": "On Going",
+      "COMPLETED": "Completed"
     },
     "type": {
       "online": "Online",
@@ -256,7 +256,10 @@
       "updateError": "Failed to update program",
       "deleteSuccess": "Program deleted successfully",
       "deleteError": "Failed to delete program",
-      "confirmDelete": "Are you sure you want to delete this program?"
+      "confirmDelete": "Are you sure you want to delete this program?",
+      "submitError": "Failed to submit program",
+      "fileUploadSuccess": "File uploaded successfully",
+      "fillAllFields": "Please fill all fields"
     },
     "empty": {
       "title": "No programs found",
@@ -319,7 +322,172 @@
       "programInfo": "Program Information",
       "onlineInfo": "This is an online program. Meeting links will be provided to participants.",
       "formError": "Please check the form for errors",
-      "surveyInformation": "Survey Information"
+      "surveyInformation": "Survey Information",
+      "uploadThumbnail": "Upload Thumbnail"
+    },
+    "details": {
+      "loading": "Loading program details...",
+      "backToList": "Back to list",
+      "error": "Error",
+      "deleteSuccess": "Delete program successfully",
+      "deleteError": "Failed to delete program",
+      "editSuccess": "Edit program successfully",
+      "editError": "Failed to edit program",
+      "createSuccess": "Create program successfully",
+      "createError": "Failed to create program",
+      "editProgram": "Edit program",
+      "deleteProgram": "Delete program",
+      "overview": "Overview",
+      "assessment": "Assessment",
+      "participants": "Participants",
+      "noParticipants": "No participants",
+      "noProgramFound": "No program found",
+      "noStatisticsAvailable": "No statistics available",
+      "statusDistribution": "Phân bố trạng thái",
+      "completed": "Đã hoàn thành",
+      "enrolled": "Đã đăng ký",
+      "absent": "Absent",
+      "active": "Active",
+      "availableSpots": "Available Spots",
+      "detailedStatistics": "Detailed Statistics",
+      "noChartData": "No chart data",
+      "insufficientData": "Insufficient data to create chart.",
+      "noStatusData": "No status data",
+      "noScoreData": "No score data",
+      "summaryStatistics": "Summary Statistics",
+      "totalParticipants": "Total Participants",
+      "enrollmentRate": "Enrollment Rate",
+      "averageScore": "Average Score",
+      "completionRate": "Completion Rate",
+      "maxParticipants": "Max Participants",
+      "noDescription": "No description",
+      "survey": "Survey",
+      "noSurvey": "No survey",
+      "description": "Description",
+      "status": {
+        "title": "Status",
+        "enrolled": "Enrolled",
+        "completed": "Completed",
+        "absent": "Absent",
+        "active": "Active"
+      },
+      "confirmDelete": "Are you sure you want to delete this program?",
+      "charts": {
+        "enrollmentTrend": "Enrollment Trend",
+        "statusDistribution": "Status Distribution",
+        "assessmentScores": "Điểm đánh giá",
+        "participantCount": "Participant Count",
+        "enrollmentRate": "Enrollment Rate",
+        "averageScore": "Average Score",
+        "completionRate": "Completion Rate",
+        "noChartData": "No chart data",
+        "insufficientData": "Insufficient data to create chart.",
+        "noStatusData": "No status data",
+        "noScoreData": "No score data",
+        "summaryStatistics": "Summary Statistics",
+        "totalParticipants": "Total Participants",
+        "scoreDistribution": "Score Distribution"
+      },
+      "statistics": {
+        "title": "Statistics",
+        "averageScore": "Average Score",
+        "completionRate": "Completion Rate",
+        "noChartData": "No chart data",
+        "insufficientData": "Insufficient data to create chart.",
+        "noStatusData": "No status data",
+        "noScoreData": "No score data",
+        "summaryStatistics": "Summary Statistics",
+        "totalParticipants": "Total Participants",
+        "enrolled": "Enrolled",
+        "completed": "Completed",
+        "absent": "Absent",
+        "active": "Active",
+        "enrollmentRate": "Enrollment Rate",
+        "availableSpots": "Available Spots",
+        "detailedStatistics": "Detailed Statistics",
+        "statusDistribution": "Status Distribution",
+        "scoreDistribution": "Score Distribution"
+      },
+      "participantTable": {
+        "name": "Tên",
+        "email": "Email",
+        "phone": "Phone",
+        "joinDate": "Join Date",
+        "status": "Status",
+        "finalScore": "Final Score",
+        "actions": "Actions"
+      },
+      "participant": {
+        "studentInfo": "Student Information",
+        "name": "Name",
+        "studentCode": "Student Code",
+        "email": "Email",
+        "phone": "Phone",
+        "gender": "Gender",
+        "dateOfBirth": "Date of Birth",
+        "enrollmentInfo": "Enrollment Information",
+        "joinDate": "Join Date",
+        "status": "Status",
+        "finalScore": "Final Score",
+        "notAvailable": "Not Available",
+        "caseInfo": "Case Information",
+        "caseTitle": "Case Title",
+        "caseDescription": "Case Description",
+        "caseStatus": "Case Status",
+        "priority": "Priority",
+        "noDescription": "No description",
+        "noParticipantsEnrolled": "No participants enrolled in this program."
+      },
+      "participantInfo": "Participant Information",
+      "viewParticipant": "View Participant",
+      "basicInfo": "Basic Information",
+      "hostedBy": "Hosted By",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "meetingLink": "Meeting Link",
+      "thumbnail": "Thumbnail",
+      "category": "Category",
+      "settings": "Program Settings",
+      "schedule": "Schedule",
+      "location": "Location",
+      "programInfo": "Program Information",
+      "onlineInfo": "This is an online program. Meeting links will be provided to participants.",
+      "formError": "Please check the form for errors",
+      "statusOptions": {
+        "PLANNING": "Planning",
+        "ACTIVE": "Active",
+        "ON_GOING": "On Going",
+        "COMPLETED": "Completed"
+      },
+      "duration": "Duration",
+      "durationPlaceholder": "Enter duration",
+      "durationRequired": "Please enter duration",
+      "surveyInfo": {
+        "title": "Survey Information",
+        "description": "Survey Description",
+        "descriptionRequired": "Please enter survey description",
+        "surveyType": "Survey Type",
+        "required": "Required",
+        "recurring": "Recurring",
+        "status": "Status",
+        "schedule": "Schedule",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "categoryInfo": "Category Information",
+        "categoryName": "Category Name",
+        "categoryCode": "Category Code",
+        "questionLength": "Question Length",
+        "severityWeight": "Severity Weight",
+        "scoreRange": "Score Range",
+        "active": "Active",
+        "targetScope": "Target Scope",
+        "targetGrades": "Target Grades",
+        "allGrades": "All Grades",
+        "createdBy": "Created By",
+        "system": "System",
+        "settings": "Settings",
+        "noSurveyAssigned": "No survey assigned to this program."
+      }
     }
   },
   "caseManagement": {
@@ -421,6 +589,101 @@
       "student": "Student",
       "creator": "Creator",
       "confirmMessage": "Please review the information before saving"
+    },
+    "details": {
+      "title": "Case Details",
+      "loading": "Loading case details...",
+      "notFound": "Case not found",
+      "updateCase": "Update Case",
+      "updatePermissionDenied": "Only counselors can update cases",
+      "updateModalPlaceholder": "Update functionality will be implemented here",
+      "quickStats": {
+        "totalSurveys": "Total Surveys",
+        "totalAppointments": "Total Appointments",
+        "totalPrograms": "Total Programs",
+        "averageScore": "Average Score"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "statistics": "Statistics",
+        "charts": "Charts & Analytics",
+        "timeline": "Timeline"
+      },
+      "overview": {
+        "basicInfo": "Basic Information",
+        "levelInfo": "Level Information",
+        "studentInfo": "Student Information",
+        "createdBy": "Created By",
+        "counselor": "Assigned Counselor",
+        "interventionRequired": "Intervention Required",
+        "surveyEnabled": "Survey Enabled"
+      },
+      "statistics": {
+        "noData": "No statistical data available",
+        "lowPerformanceAlert": "Low Performance Alert",
+        "lowPerformanceDescription": "This case shows below-average performance. Consider additional interventions.",
+        "keyMetrics": "Key Metrics",
+        "totalActivities": "Total Activities",
+        "averageScore": "Average Score",
+        "totalAbsent": "Total Absent",
+        "attendanceRate": "Attendance Rate",
+        "engagementBreakdown": "Engagement Breakdown",
+        "surveyCompletion": "Survey Completion",
+        "appointmentAttendance": "Appointment Attendance",
+        "programAttendance": "Program Attendance",
+        "detailedBreakdown": "Detailed Breakdown",
+        "surveys": "Surveys",
+        "appointments": "Appointments",
+        "programs": "Programs",
+        "skipped": "Skipped",
+        "absent": "Absent"
+      },
+      "charts": {
+        "noData": "No chart data available",
+        "scoreTrend": "Score Trend Over Time",
+        "scoreTrendDescription": "This chart shows how scores have changed across different activities over time.",
+        "activityDistribution": "Activity Distribution",
+        "totalActivities": "Total Activities",
+        "scoreComparison": "Average Score by Activity Type",
+        "scoreComparisonDescription": "Comparison of average performance across different activity types.",
+        "engagementAnalysis": "Engagement Analysis",
+        "completed": "Completed",
+        "missed": "Missed",
+        "overallEngagement": "Overall Engagement",
+        "averagePerformance": "Average Performance",
+        "totalDataPoints": "Total Data Points",
+        "scoreHistory": "Score History",
+        "surveys": "Surveys",
+        "appointments": "Appointments",
+        "programs": "Programs"
+      },
+      "timeline": {
+        "title": "Case Timeline",
+        "noEvents": "No timeline events available",
+        "caseCreated": "Case Created",
+        "caseCreatedDescription": "Case was created by teacher {teacher}",
+        "initialAssessment": "Initial Assessment",
+        "initialAssessmentDescription": "Initial level assessed as {level}",
+        "counselorAssigned": "Counselor Assigned",
+        "counselorAssignedDescription": "Case assigned to counselor {counselor}",
+        "firstAppointment": "First Appointment",
+        "firstAppointmentDescription": "Initial counseling session conducted",
+        "surveyCompleted": "Survey Completed",
+        "surveyCompletedDescription": "Student completed psychological assessment survey",
+        "programEnrollment": "Program Enrollment",
+        "programEnrollmentDescription": "Student enrolled in support program",
+        "progressReview": "Progress Review",
+        "progressReviewDescription": "Regular progress assessment conducted",
+        "levelUpdated": "Level Updated",
+        "levelUpdatedDescription": "Assessment level updated to {level}",
+        "score": "Score",
+        "symptoms": "Symptoms",
+        "currentStatus": "Current Status",
+        "declinedTrendAlert": "Declining Trend Detected",
+        "declinedTrendDescription": "This case shows a declining trend. Immediate attention may be required.",
+        "improvedTrendAlert": "Positive Progress",
+        "improvedTrendDescription": "This case shows improvement. Continue with current interventions."
+      }
     }
   },
   "slotManagement": {
@@ -600,7 +863,13 @@
       "endDate": "End Date",
       "createdAt": "Created At",
       "action": {
-        "viewDetail": "View Detail"
+        "viewDetail": "View Detail",
+        "addCase": "Add Case",
+        "addedCases": "Added Cases",
+        "removedCases": "Not Added Cases",
+        "addCaseTooltip": "Add a support case for this survey",
+        "cases": "Cases",
+        "close": "Close"
       }
     },
     "detail": {
@@ -643,6 +912,9 @@
       "avgAnswers": "Avg Answers/Question",
       "questions": "questions",
       "activeRange": "Active Range",
+      "noCase": "No case",
+      "addedCases": "Added Cases",
+      "removedCases": "Not Added Cases",
       "validation": {
         "descriptionRequired": "Description cannot be empty",
         "startDateRequired": "Start date cannot be empty",
@@ -655,7 +927,9 @@
         "updateSuccess": "Updated successfully",
         "updateError": "Update failed",
         "fetchError": "Failed to fetch survey details",
-        "noChanges": "No changes to update"
+        "noChanges": "No changes to update",
+        "removeCaseSuccess": "Case removed from survey successfully",
+        "removeCaseError": "Failed to remove case from survey"
       },
       "recurringOptions": {
         "none": "None",
@@ -716,7 +990,12 @@
         "endDateTooFar": "For {{cycle}} recurring surveys, end date must be within {{maxDays}} days from start date",
         "endDateWeekly": "For weekly recurring surveys, end date must be within 7 days from start date",
         "endDateMonthly": "For monthly recurring surveys, end date must be within 30 days from start date"
-      }
+      },
+      "uploadThumbnail": "Upload Thumbnail",
+      "thumbnailRequired": "Thumbnail is required",
+      "thumbnailSize": "Thumbnail must be smaller than 10MB",
+      "thumbnailUploaded": "Thumbnail uploaded successfully",
+      "thumbnailSizeLimit": "File must be smaller than 10MB"
     },
     "messages": {
       "addSuccess": "Survey created successfully",
@@ -754,18 +1033,6 @@
         "SINGLE_CHOICE": "Single Choice",
         "TEXT": "Text"
       }
-    }
-  },
-  "appointmentManagement": {
-    "title": "Appointment Management",
-    "description": "Manage your appointment and their information",
-    "refresh": "Refresh",
-    "addAppointment": "Add Appointment",
-    "search": "Search survey...",
-    "table": {
-      "name": "Appointment Name",
-      "description": "Description",
-      "status": "Status"
     }
   },
   "appointment": {
@@ -850,6 +1117,14 @@
     }
   },
   "common": {
+    "completed": "Completed",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information",
+    "selectAll": "Select All",
+    "add": "Add",
+    "remove": "Remove",
     "male": "Male",
     "female": "Female",
     "create": "Create",
@@ -877,6 +1152,13 @@
     "delete": "Delete",
     "total": "Total",
     "retry": "Retry",
+    "phone": "Phone",
+    "gender": "Gender",
+    "dateOfBirth": "Date of Birth",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "goBack": "Go Back",
+    "yearsOld": "years old",
     "weekdays": {
       "monday": "Monday",
       "tuesday": "Tuesday",
@@ -893,7 +1175,8 @@
     "description": "Description",
     "reference": "Reference",
     "refresh": "Refresh",
-    "refreshSuccess": "Refresh successfully"
+    "refreshSuccess": "Refresh successfully",
+    "filtersReset": "Filters reset successfully"
   },
   "classManagement": {
     "title": "Class Management",
@@ -1215,7 +1498,7 @@
     "summary": "Summary",
     "suggestion": "Suggestion",
     "scoreRange": "Score Range: 0 (No impact) - 4 (Very severe impact)",
-    "assessement": "Assessment Scores",
+    "assessment": "Assessment Scores",
     "scoreLevel": {
       "low": "Low",
       "medium": "Medium",

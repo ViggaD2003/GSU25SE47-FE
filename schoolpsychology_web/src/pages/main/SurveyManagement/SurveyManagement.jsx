@@ -25,13 +25,13 @@ import SurveyDetailModal from './SurveyDetailModal'
 import {
   getAllSurveys,
   createSurvey,
+  getSurveyInCase,
 } from '../../../store/actions/surveyActions'
 import {
   selectSurveys,
   selectSurveyLoading,
   selectSurveyError,
   clearError,
-  selectSurveyInCase,
 } from '../../../store/slices/surveySlice'
 import useMessage from 'antd/es/message/useMessage'
 import dayjs from 'dayjs'
@@ -54,9 +54,6 @@ const SurveyManagement = () => {
   const loading = useSelector(selectSurveyLoading)
   const error = useSelector(selectSurveyError)
 
-  // Redux selectors
-  const surveysInCase = useSelector(selectSurveyInCase)
-
   // Local state for FE paging/search/filtering
   const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -71,12 +68,11 @@ const SurveyManagement = () => {
   // Load all surveys once
   useEffect(() => {
     if (user?.role === 'counselor') {
-      // dispatch(getSurveyInCase())
+      dispatch(getSurveyInCase())
     } else {
       dispatch(getAllSurveys())
     }
   }, [dispatch, user?.role])
-  console.log(surveysInCase)
 
   // Enhanced filtering logic with comprehensive search and filter capabilities
   const filteredSurveys = useMemo(() => {
@@ -149,9 +145,13 @@ const SurveyManagement = () => {
   }, [])
 
   const handleRefresh = useCallback(() => {
-    dispatch(getAllSurveys())
+    if (user?.role === 'counselor') {
+      dispatch(getSurveyInCase())
+    } else {
+      dispatch(getAllSurveys())
+    }
     setCurrentPage(1)
-  }, [dispatch])
+  }, [dispatch, user?.role])
 
   const handleAddSurvey = useCallback(() => {
     setIsModalVisible(true)
@@ -168,7 +168,7 @@ const SurveyManagement = () => {
       messageApi.success(t('surveyManagement.messages.addSuccess'))
       setIsModalVisible(false)
       resetFields()
-      dispatch(getAllSurveys()) // Refresh the list
+      handleRefresh()
     } catch (error) {
       messageApi.error(error || t('surveyManagement.messages.addError'))
     }
@@ -359,6 +359,8 @@ const SurveyManagement = () => {
         onClose={handleDetailClose}
         onUpdated={handleDetailUpdated}
         messageApi={messageApi}
+        userRole={user?.role}
+        dispatch={dispatch}
       />
     </div>
   )

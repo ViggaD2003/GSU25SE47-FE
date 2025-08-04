@@ -221,7 +221,7 @@ const QuestionTabs = ({
         }
       }
     },
-    [fields.length, addQuestion, remove]
+    [fields, addQuestion, remove]
   )
 
   // Cải thiện useEffect chính
@@ -245,6 +245,7 @@ const QuestionTabs = ({
       if (isLimited) {
         adjustQuestionCount(questionLength)
       } else {
+        // console.log('adjustQuestionCount')
         adjustQuestionCount(1)
       }
     } catch (error) {
@@ -262,7 +263,7 @@ const QuestionTabs = ({
         setActiveKey(lastField.key.toString())
       }
     }
-  }, [fields.length]) // Only depend on fields.length to avoid infinite loops
+  }, [fields]) // Only depend on fields.length to avoid infinite loops
 
   const onEdit = (targetKey, action) => {
     if (action === 'add') {

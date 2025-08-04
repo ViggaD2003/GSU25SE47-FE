@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const initialState = {
   programs: [],
-  selectedProgram: null,
+  program: null,
   loading: false,
   error: null,
   pagination: {
@@ -48,12 +48,12 @@ const programSlice = createSlice({
       state.programs = []
     },
     // Set selected program
-    setSelectedProgram: (state, action) => {
-      state.selectedProgram = action.payload
+    setProgram: (state, action) => {
+      state.program = action.payload
     },
     // Clear selected program
-    clearSelectedProgram: state => {
-      state.selectedProgram = null
+    clearProgram: state => {
+      state.program = null
     },
     // Reset filters
     resetFilters: state => {
@@ -89,7 +89,7 @@ const programSlice = createSlice({
       })
       .addCase('program/getProgramById/fulfilled', (state, action) => {
         state.loading = false
-        state.selectedProgram = action.payload
+        state.program = action.payload.data || action.payload
       })
       .addCase('program/getProgramById/rejected', (state, action) => {
         state.loading = false
@@ -119,8 +119,8 @@ const programSlice = createSlice({
         if (index !== -1) {
           state.programs[index] = action.payload
         }
-        if (state.selectedProgram?.id === action.payload.id) {
-          state.selectedProgram = action.payload
+        if (state.program?.id === action.payload.id) {
+          state.program = action.payload
         }
       })
       .addCase('program/updateProgram/rejected', (state, action) => {
@@ -149,9 +149,9 @@ export const {
   updateFilters,
   updateSortConfig,
   clearPrograms,
-  setSelectedProgram,
-  clearSelectedProgram,
   resetFilters,
+  setProgram,
+  clearProgram,
 } = programSlice.actions
 
 export default programSlice.reducer

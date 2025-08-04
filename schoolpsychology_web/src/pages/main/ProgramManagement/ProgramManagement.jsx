@@ -29,12 +29,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 
-import {
-  getAllPrograms,
-  createProgram,
-  updateProgram,
-  deleteProgram,
-} from '@/store/actions/programActions'
+import { getAllPrograms, createProgram } from '@/store/actions/programActions'
 import {
   updateFilters,
   updatePagination,
@@ -46,6 +41,7 @@ import { categoriesAPI } from '@/services/categoryApi'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
+import { useNavigate } from 'react-router-dom'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -67,13 +63,11 @@ const ProgramManagement = () => {
 
   // Local state
   const [searchText, setSearchText] = useState('')
-  const [selectedProgram, setSelectedProgram] = useState(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [isEdit, setIsEdit] = useState(false)
-  const [isView, setIsView] = useState(false)
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [counselors, setCounselors] = useState([])
+  const navigate = useNavigate()
 
   const fetchCounselors = useCallback(async () => {
     const data = await accountAPI.getAccounts({ role: 'COUNSELOR' })
@@ -129,7 +123,9 @@ const ProgramManagement = () => {
       // Status filter
       const matchesStatus = filters.status
         ? program.status === filters.status
-        : ['UPCOMING', 'ONGOING', 'COMPLETED'].includes(program.status)
+        : ['PLANNING', 'ACTIVE', 'ON_GOING', 'COMPLETED'].includes(
+            program.status
+          )
 
       // Category filter
       const matchesCategory =
@@ -236,68 +232,27 @@ const ProgramManagement = () => {
 
   // Handle create program
   const handleCreate = useCallback(() => {
-    setSelectedProgram(null)
-    setIsEdit(false)
-    setIsView(false)
     setIsModalVisible(true)
   }, [])
 
   // Handle view program
   const handleView = useCallback(program => {
-    setSelectedProgram(program)
-    setIsEdit(false)
-    setIsView(true)
-    setIsModalVisible(true)
+    navigate(`/program-management/details/${program.id}`)
   }, [])
-
-  // Handle edit program
-  const handleEdit = useCallback(program => {
-    setSelectedProgram(program)
-    setIsEdit(true)
-    setIsView(false)
-    setIsModalVisible(true)
-  }, [])
-
-  // Handle delete program
-  const handleDelete = useCallback(
-    async programId => {
-      try {
-        await dispatch(deleteProgram(programId)).unwrap()
-        messageApi.success(t('programManagement.messages.deleteSuccess'))
-        dispatch(getAllPrograms()) // Refresh list
-      } catch {
-        messageApi.error(t('programManagement.messages.deleteError'))
-      }
-    },
-    [dispatch, t, messageApi]
-  )
 
   // Handle save program (create/update)
   const handleSave = useCallback(
     async programData => {
       try {
-        if (isEdit) {
-          await dispatch(
-            updateProgram({
-              programId: selectedProgram.id,
-              programData,
-            })
-          ).unwrap()
-          messageApi.success(t('programManagement.messages.updateSuccess'))
-        } else {
-          await dispatch(createProgram(programData)).unwrap()
-          messageApi.success(t('programManagement.messages.createSuccess'))
-        }
+        await dispatch(createProgram(programData)).unwrap()
+        messageApi.success(t('programManagement.messages.createSuccess'))
         setIsModalVisible(false)
-        dispatch(getAllPrograms()) // Refresh list
+        // dispatch(getAllPrograms()) // Refresh list
       } catch {
-        const errorMessage = isEdit
-          ? t('programManagement.messages.updateError')
-          : t('programManagement.messages.createError')
-        messageApi.error(errorMessage)
+        throw new Error('Failed to save program')
       }
     },
-    [dispatch, isEdit, selectedProgram, t, messageApi]
+    [dispatch, t, messageApi]
   )
 
   // Calculate statistics
@@ -307,8 +262,8 @@ const ProgramManagement = () => {
 
     return {
       total: programs.length,
-      upcoming: programs.filter(p => p.status === 'UPCOMING').length,
-      ongoing: programs.filter(p => p.status === 'ONGOING').length,
+      upcoming: programs.filter(p => p.status === 'PLANNING').length,
+      ongoing: programs.filter(p => p.status === 'ON_GOING').length,
       completed: programs.filter(p => p.status === 'COMPLETED').length,
     }
   }, [programs])
@@ -371,7 +326,7 @@ const ProgramManagement = () => {
               {statistics.upcoming}
             </div>
             <div className="text-gray-500">
-              {t('programManagement.status.UPCOMING')}
+              {t('programManagement.status.PLANNING')}
             </div>
           </Card>
         </Col>
@@ -381,7 +336,7 @@ const ProgramManagement = () => {
               {statistics.ongoing}
             </div>
             <div className="text-gray-500">
-              {t('programManagement.status.ONGOING')}
+              {t('programManagement.status.ON_GOING')}
             </div>
           </Card>
         </Col>
@@ -399,7 +354,7 @@ const ProgramManagement = () => {
 
       {/* Controls */}
       <Card className="mb-6">
-        <Row gutter={[16, 16]} align="middle">
+        <Row gutter={[16, 16]}>
           {/* Search */}
           <Col xs={24} sm={12} md={8}>
             <Search
@@ -412,18 +367,17 @@ const ProgramManagement = () => {
             />
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} md={6}>
             <RangePicker
               value={filters.dateRange}
               onChange={dates => handleFilterChange('dateRange', dates)}
               format="DD/MM/YYYY"
               placeholder={[t('common.startDate'), t('common.endDate')]}
-              className="flex-1"
             />
           </Col>
 
-          <Col xs={24} sm={12} md={6}>
-            <Space size="small" className="w-full">
+          <Col xs={24} sm={12} md={8}>
+            <Space size="small">
               <Select
                 placeholder={t('programManagement.filters.category')}
                 allowClear
@@ -460,8 +414,6 @@ const ProgramManagement = () => {
             }}
             onPageChange={handlePageChange}
             onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
             sortConfig={sortConfig}
             onSort={handleSort}
           />
@@ -474,12 +426,9 @@ const ProgramManagement = () => {
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           onOk={handleSave}
-          selectedProgram={selectedProgram}
-          isEdit={isEdit}
-          isView={isView}
           categories={categories}
           counselors={counselors}
-          message={messageApi}
+          messageApi={messageApi}
         />
       </Suspense>
     </div>
