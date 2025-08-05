@@ -600,9 +600,15 @@
       "updatePermissionDenied": "Chỉ tư vấn viên mới có thể cập nhật ca tư vấn",
       "updateModalPlaceholder": "Tính năng cập nhật sẽ được triển khai tại đây",
       "quickStats": {
-        "totalSurveys": "Tổng số khảo sát",
-        "totalAppointments": "Tổng số cuộc hẹn",
-        "totalPrograms": "Tổng số chương trình",
+        "activeSurveys": "Khảo sát đang diễn ra",
+        "completedSurveys": "Khảo sát đã hoàn thành",
+        "skippedSurveys": "Khảo sát bỏ qua",
+        "activeAppointments": "Cuộc hẹn đang diễn ra",
+        "completedAppointments": "Cuộc hẹn đã hoàn thành",
+        "absentAppointments": "Cuộc hẹn vắng mặt",
+        "activePrograms": "Chương trình đang diễn ra",
+        "completedPrograms": "Chương trình đã hoàn thành",
+        "absentPrograms": "Chương trình vắng mặt",
         "averageScore": "Điểm trung bình"
       },
       "tabs": {

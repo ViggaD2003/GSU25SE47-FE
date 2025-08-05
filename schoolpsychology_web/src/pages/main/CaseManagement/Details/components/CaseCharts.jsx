@@ -47,6 +47,15 @@ const CaseCharts = ({ caseData, statistics }) => {
 
     const { survey, appointment, program } = caseData.groupedStatic
 
+    // Calculate totals from active + completed
+    const totalSurveys =
+      (statistics?.activeSurveys || 0) + (statistics?.completedSurveys || 0)
+    const totalAppointments =
+      (statistics?.activeAppointments || 0) +
+      (statistics?.completedAppointments || 0)
+    const totalPrograms =
+      (statistics?.activePrograms || 0) + (statistics?.completedPrograms || 0)
+
     // Combine all data points and sort by date
     const allDataPoints = [
       ...survey.dataSet.map(item => ({
@@ -83,11 +92,6 @@ const CaseCharts = ({ caseData, statistics }) => {
       ],
     }
 
-    // const totalCompletedSurveys = survey.dataSet.length + survey.numberOfSkips
-    // const totalCompletedAppointments =
-    //   appointment.dataSet.length + appointment.numOfAbsent
-    // const totalCompletedPrograms = program.dataSet.length + program.numOfAbsent
-
     // Prepare activity type distribution
     const activityDistribution = {
       labels: [
@@ -97,7 +101,7 @@ const CaseCharts = ({ caseData, statistics }) => {
       ],
       datasets: [
         {
-          data: [survey.totalSurvey, appointment.total, program.total],
+          data: [totalSurveys, totalAppointments, totalPrograms],
           backgroundColor: ['#52c41a', '#1890ff', '#722ed1'],
           borderWidth: 2,
           borderColor: '#ffffff',
@@ -151,9 +155,9 @@ const CaseCharts = ({ caseData, statistics }) => {
         {
           label: t('caseManagement.details.charts.completed'),
           data: [
-            survey.dataSet.length,
-            appointment.dataSet.length,
-            program.dataSet.length,
+            statistics?.completedSurveys || 0,
+            statistics?.completedAppointments || 0,
+            statistics?.completedPrograms || 0,
           ],
           backgroundColor: 'rgba(82, 196, 26, 0.8)',
           borderColor: '#52c41a',
@@ -162,9 +166,9 @@ const CaseCharts = ({ caseData, statistics }) => {
         {
           label: t('caseManagement.details.charts.missed'),
           data: [
-            survey.numberOfSkips,
-            appointment.numOfAbsent,
-            program.numOfAbsent,
+            statistics?.skippedSurveys || 0,
+            statistics?.absentAppointments || 0,
+            statistics?.absentPrograms || 0,
           ],
           backgroundColor: 'rgba(255, 77, 79, 0.8)',
           borderColor: '#ff4d4f',
@@ -179,8 +183,11 @@ const CaseCharts = ({ caseData, statistics }) => {
       scoreComparison: avgScoreByType,
       engagement: engagementData,
       dataPoints: allDataPoints,
+      totalSurveys,
+      totalAppointments,
+      totalPrograms,
     }
-  }, [caseData, t])
+  }, [caseData, t, statistics])
 
   const chartOptions = {
     responsive: true,
@@ -293,9 +300,9 @@ const CaseCharts = ({ caseData, statistics }) => {
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               <Text type="secondary">
                 {t('caseManagement.details.charts.totalActivities')}:{' '}
-                {statistics?.totalSurveys +
-                  statistics?.totalAppointments +
-                  statistics?.totalPrograms}
+                {(chartData?.totalSurveys || 0) +
+                  (chartData?.totalAppointments || 0) +
+                  (chartData?.totalPrograms || 0)}
               </Text>
             </div>
           </Card>
@@ -381,13 +388,15 @@ const CaseCharts = ({ caseData, statistics }) => {
                   >
                     <Text strong style={{ color: '#52c41a' }}>
                       {(
-                        ((statistics?.totalCompletedSurveys +
-                          statistics?.totalCompletedAppointments +
-                          statistics?.totalCompletedPrograms) /
-                          (statistics?.totalCompletedSurveys +
+                        ((statistics?.completedSurveys +
+                          statistics?.completedAppointments +
+                          statistics?.completedPrograms) /
+                          (statistics?.completedSurveys +
                             statistics?.skippedSurveys +
-                            statistics?.totalAppointments +
-                            statistics?.totalPrograms)) *
+                            statistics?.completedAppointments +
+                            statistics?.absentAppointments +
+                            statistics?.completedPrograms +
+                            statistics?.absentPrograms)) *
                           100 || 0
                       ).toFixed(1)}
                       %

@@ -113,17 +113,33 @@ const CaseDetails = () => {
           allScores.length
         : 0
 
+    // Survey
+    const activeSurveys = groupedStatic.survey.activeSurveys ?? 0
+    const completedSurveys = groupedStatic.survey.completedSurveys ?? 0
+    const skippedSurveys = groupedStatic.survey.numberOfSkips ?? 0
+
+    //appointment
+    const activeAppointments = groupedStatic.appointment.activeAppointments ?? 0
+    const completedAppointments =
+      groupedStatic.appointment.completedAppointments ?? 0
+    const absentAppointments = groupedStatic.appointment.numOfAbsent ?? 0
+
+    //program
+    const activePrograms = groupedStatic.program.activePrograms ?? 0
+    const completedPrograms = groupedStatic.program.completedPrograms ?? 0
+    const absentPrograms = groupedStatic.program.numOfAbsent ?? 0
+
     return {
-      totalSurveys: groupedStatic.survey.totalSurvey,
-      totalCompletedSurveys: groupedStatic.survey.dataSet.length,
-      totalAppointments: groupedStatic.appointment.total,
-      totalCompletedAppointments: groupedStatic.appointment.dataSet.length,
-      totalPrograms: groupedStatic.program.total,
-      totalCompletedPrograms: groupedStatic.program.dataSet.length,
+      activeSurveys,
+      completedSurveys,
+      skippedSurveys,
+      activeAppointments,
+      completedAppointments,
+      absentAppointments,
+      activePrograms,
+      completedPrograms,
+      absentPrograms,
       averageScore: avgScore,
-      skippedSurveys: groupedStatic.survey.numberOfSkips,
-      absentAppointments: groupedStatic.appointment.numOfAbsent,
-      absentPrograms: groupedStatic.program.numOfAbsent,
     }
   }, [caseData])
 
@@ -318,8 +334,8 @@ const CaseDetails = () => {
         <Col xs={24} sm={12} md={6}>
           <Card>
             <Statistic
-              title={t('caseManagement.details.quickStats.totalSurveys')}
-              value={statistics?.totalSurveys || 0}
+              title={t('caseManagement.details.quickStats.activeSurveys')}
+              value={statistics?.activeSurveys || 0}
               prefix={<FileTextOutlined />}
               valueStyle={{ color: '#3f8600' }}
             />

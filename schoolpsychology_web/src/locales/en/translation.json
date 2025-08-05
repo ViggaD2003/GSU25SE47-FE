@@ -598,9 +598,15 @@
       "updatePermissionDenied": "Only counselors can update cases",
       "updateModalPlaceholder": "Update functionality will be implemented here",
       "quickStats": {
-        "totalSurveys": "Total Surveys",
-        "totalAppointments": "Total Appointments",
-        "totalPrograms": "Total Programs",
+        "activeSurveys": "Active Surveys",
+        "completedSurveys": "Completed Surveys",
+        "skippedSurveys": "Skipped Surveys",
+        "activeAppointments": "Active Appointments",
+        "completedAppointments": "Completed Appointments",
+        "absentAppointments": "Absent Appointments",
+        "activePrograms": "Active Programs",
+        "completedPrograms": "Completed Programs",
+        "absentPrograms": "Absent Programs",
         "averageScore": "Average Score"
       },
       "tabs": {

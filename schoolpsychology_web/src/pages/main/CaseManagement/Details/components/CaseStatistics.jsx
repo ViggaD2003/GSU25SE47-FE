@@ -32,20 +32,24 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
   const engagementMetrics = useMemo(() => {
     if (!statistics) return null
 
+    // Calculate totals from active + completed
+    const totalSurveys = statistics.activeSurveys + statistics.completedSurveys
+    const totalAppointments =
+      statistics.activeAppointments + statistics.completedAppointments
+    const totalPrograms =
+      statistics.activePrograms + statistics.completedPrograms
+
     const totalAbsent =
       statistics.skippedSurveys +
       statistics.absentAppointments +
       statistics.absentPrograms
 
     const totalCompletedActivities =
-      statistics.totalCompletedSurveys +
-      statistics.totalCompletedAppointments +
-      statistics.totalCompletedPrograms
+      statistics.completedSurveys +
+      statistics.completedAppointments +
+      statistics.completedPrograms
 
-    const totalActivities =
-      statistics.totalSurveys +
-      statistics.totalAppointments +
-      statistics.totalPrograms
+    const totalActivities = totalSurveys + totalAppointments + totalPrograms
 
     const attendanceRate =
       totalCompletedActivities > 0
@@ -53,28 +57,30 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
             (totalAbsent + totalCompletedActivities)) *
           100
         : 0
-    const totalSurveys =
-      statistics.skippedSurveys + statistics.totalCompletedSurveys
+
+    const totalSurveysIncludingSkipped =
+      statistics.skippedSurveys + statistics.completedSurveys
 
     const surveyCompletionRate =
-      totalSurveys > 0
-        ? (statistics.totalCompletedSurveys / totalSurveys) * 100
+      totalSurveysIncludingSkipped > 0
+        ? (statistics.completedSurveys / totalSurveysIncludingSkipped) * 100
         : 0
 
     const appointmentAttendanceRate =
-      statistics.totalAppointments > 0
-        ? (statistics.totalCompletedAppointments /
-            statistics.totalAppointments) *
-          100
+      totalAppointments > 0
+        ? (statistics.completedAppointments / totalAppointments) * 100
         : 0
 
     const programAttendanceRate =
-      statistics.totalPrograms > 0
-        ? (statistics.totalCompletedPrograms / statistics.totalPrograms) * 100
+      totalPrograms > 0
+        ? (statistics.completedPrograms / totalPrograms) * 100
         : 0
 
     return {
       totalActivities,
+      totalSurveys,
+      totalAppointments,
+      totalPrograms,
       totalAbsent,
       attendanceRate,
       surveyCompletionRate,
@@ -294,7 +300,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                       <Col span={12}>
                         <Statistic
                           title={t('common.completed')}
-                          value={statistics.totalCompletedSurveys}
+                          value={statistics.completedSurveys}
                           valueStyle={{ fontSize: 18 }}
                         />
                       </Col>
@@ -329,7 +335,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                       <Col span={12}>
                         <Statistic
                           title={t('common.completed')}
-                          value={statistics.totalCompletedAppointments}
+                          value={statistics.completedAppointments}
                           valueStyle={{ fontSize: 18 }}
                         />
                       </Col>
@@ -364,7 +370,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                       <Col span={12}>
                         <Statistic
                           title={t('common.completed')}
-                          value={statistics.totalCompletedPrograms}
+                          value={statistics.completedPrograms}
                           valueStyle={{ fontSize: 18 }}
                         />
                       </Col>

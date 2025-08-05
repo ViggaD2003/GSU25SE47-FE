@@ -257,17 +257,17 @@ const ClientManagement = () => {
     setIsModalVisible(true)
   }
 
-  const handleModalOk = requestData => {
+  const handleModalOk = async requestData => {
     try {
       if (isCreateCase) {
-        dispatch(createCase(requestData))
-        messageApi.success(t('clientManagement.createCaseSuccess'))
+        await dispatch(createCase(requestData)).unwrap()
+        messageApi.success(t('clientManagement.messages.createCaseSuccess'))
         setIsCreateCase(false)
       } else {
         messageApi.success(
           isEdit
-            ? t('clientManagement.editUserSuccess')
-            : t('clientManagement.addUserSuccess')
+            ? t('clientManagement.messages.editUserSuccess')
+            : t('clientManagement.messages.addUserSuccess')
         )
       }
       setIsModalVisible(false)
@@ -290,7 +290,7 @@ const ClientManagement = () => {
 
   React.useEffect(() => {
     if (deletedUser) {
-      messageApi.success(t('clientManagement.inactiveSuccess'))
+      messageApi.success(t('clientManagement.messages.inactiveSuccess'))
       setDeletedUser(null)
     }
   }, [deletedUser])
