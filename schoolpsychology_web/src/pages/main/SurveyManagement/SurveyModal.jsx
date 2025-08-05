@@ -9,27 +9,46 @@ import {
   Row,
   Col,
   Typography,
-  Card,
-  Space,
 } from 'antd'
 import { useTranslation } from 'react-i18next'
 import QuestionTabs from './QuestionTabs'
-import { surveyAPI } from '../../../services/surveyApi'
-import { surveyCode, surveyData } from '../../../constants/surveyData'
+import {
+  SURVEY_TYPE,
+  TARGET_SCOPE,
+  GRADE_LEVEL,
+  RECURRING_CYCLE,
+  getSurveyTypePermissions,
+} from '../../../constants/enums'
+import { categoriesAPI } from '@/services/categoryApi'
+import dayjs from 'dayjs'
 
 const { TextArea } = Input
 const { Option } = Select
-const { Title, Text } = Typography
+const { Title } = Typography
 
-const SurveyModal = ({ visible, onCancel, onOk, messageApi }) => {
+// Custom scrollbar styles
+const scrollbarStyles = `
+  .survey-modal-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .survey-modal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .survey-modal-scroll::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 3px;
+  }
+  .survey-modal-scroll::-webkit-scrollbar-thumb:hover {
+    background: #bfbfbf;
+  }
+`
+
+const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
   const { t } = useTranslation()
   const [form] = Form.useForm()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [selectedSurveyCode, setSelectedSurveyCode] = useState(null)
-  const [sampleSurveys, setSampleSurveys] = useState([])
-  const [resetTabKey, setResetTabKey] = useState(0)
 
   // Fetch categories when modal opens
   useEffect(() => {
@@ -41,13 +60,13 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi }) => {
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const response = await surveyAPI.getCategories()
-      if (response.success) {
-        setCategories(response.data)
+      const response = await categoriesAPI.getCategories()
+      if (response.length > 0) {
+        setCategories(response)
         resetFormFields({
-          categoryId: response.data[0]?.id,
+          categoryId: response[0]?.id,
         })
-        handleCategoryChange(response.data[0]?.id)
+        setSelectedCategory(response[0])
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error)
@@ -56,735 +75,637 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi }) => {
     }
   }
 
-  // Optimized helper function to get category data
-  const getCategoryData = useCallback(
-    categoryId => {
-      const category = categories.find(cat => cat.id === categoryId)
-      if (!category) return { availableCodes: [], categorySamples: [] }
-
-      const availableCodes = surveyCode[category.code] || []
-      const categorySamples = surveyData[category.code] || []
-
-      return { availableCodes, categorySamples }
-    },
-    [categories]
-  )
-
   // Optimized reset form fields function
   const resetFormFields = useCallback(
     fieldsToSet => {
       const defaultFields = {
         isRequired: false,
         isRecurring: false,
-        recurringCycle: 'WEEKLY',
+        recurringCycle: RECURRING_CYCLE.WEEKLY,
+        surveyType: getSurveyTypePermissions(userRole)[0],
+        targetScope: TARGET_SCOPE.ALL,
+        targetGrade: null,
         startDate: null,
         endDate: null,
+        questions: [],
       }
 
       form.setFieldsValue({ ...defaultFields, ...fieldsToSet })
     },
-    [form]
+    [form, userRole]
   )
 
   const handleCategoryChange = useCallback(
     categoryId => {
-      const { availableCodes, categorySamples } = getCategoryData(categoryId)
+      const category = categories.find(category => category.id === categoryId)
 
-      // Batch state updates
-      setSelectedCategory(categoryId)
-      setSampleSurveys(categorySamples)
+      setSelectedCategory(category)
 
-      if (availableCodes.length > 0 && categorySamples.length > 0) {
-        // Auto-load first sample survey
-        const firstSample = categorySamples[0]
-        setSelectedSurveyCode(firstSample.code)
-
-        resetFormFields({
-          surveyCode: firstSample.code,
-          name: firstSample.name,
-          description: firstSample.description,
-          questions: firstSample.questions,
-        })
-        // Reset tabs to question 1 when category changes
-        setResetTabKey(prev => prev + 1)
-      } else if (availableCodes.length > 0) {
-        // Only survey codes available
-        const firstCode = availableCodes[0].code
-        setSelectedSurveyCode(firstCode)
-
-        resetFormFields({
-          surveyCode: firstCode,
-          name: '',
-          description: '',
-          questions: [],
-        })
-        // Reset tabs to question 1 when category changes
-        setResetTabKey(prev => prev + 1)
-      } else {
-        // No survey codes available
-        setSelectedSurveyCode(null)
-
-        resetFormFields({
-          surveyCode: null,
-          name: '',
-          description: '',
-          questions: [],
-        })
-        // Reset tabs to question 1 when category changes
-        setResetTabKey(prev => prev + 1)
-      }
-    },
-    [getCategoryData, resetFormFields]
-  )
-
-  // Optimized function to find survey data
-  const findSurveyData = useCallback(
-    selectedCode => {
-      const categoryCode = categories.find(
-        cat => cat.id === selectedCategory
-      )?.code
-
-      // Try current category first, then fallback to global samples
-      const selectedSurvey =
-        (categoryCode &&
-          surveyData[categoryCode]?.find(
-            survey => survey.code === selectedCode
-          )) ||
-        sampleSurveys.find(survey => survey.code === selectedCode)
-
-      const surveyInfo =
-        categoryCode &&
-        surveyCode[categoryCode]?.find(code => code.code === selectedCode)
-
-      return { selectedSurvey, surveyInfo }
-    },
-    [categories, selectedCategory, sampleSurveys]
-  )
-
-  const handleSurveyCodeChange = useCallback(
-    selectedCode => {
-      setSelectedSurveyCode(selectedCode)
-
-      const { selectedSurvey, surveyInfo } = findSurveyData(selectedCode)
-
-      // Prepare form data
-      let formData = {}
-      if (selectedSurvey) {
-        formData = {
-          name: selectedSurvey.name,
-          description: selectedSurvey.description,
-          questions: selectedSurvey.questions,
-        }
-
-        // For limited surveys, ensure questions are required
-        if (
-          surveyInfo?.limitedQuestions &&
-          (selectedCode === 'GAD-7' || selectedCode === 'PHQ-9')
-        ) {
-          formData.questions = formData.questions.map(q => ({
-            ...q,
-            required: true,
-          }))
-        }
-      } else {
-        formData = {
-          name: '',
-          description: '',
-          questions: [],
-        }
-      }
-
-      // Single form update for better performance
-      form.setFieldsValue(formData)
-
-      // Reset tabs to question 1 when survey code changes
-      if (formData.questions) {
-        setResetTabKey(prev => prev + 1)
-      }
-    },
-    [findSurveyData, form]
-  )
-
-  const loadSampleSurvey = useCallback(
-    sampleSurvey => {
-      // Batch state and form updates
-      setSelectedSurveyCode(sampleSurvey.code)
-      form.setFieldsValue({
-        name: sampleSurvey.name,
-        surveyCode: sampleSurvey.code,
-        description: sampleSurvey.description,
-        questions: sampleSurvey.questions,
+      resetFormFields({
+        categoryId: categoryId,
+        title: '',
+        description: '',
+        questions: [],
       })
-      // Reset tabs to question 1 when loading sample survey
-      setResetTabKey(prev => prev + 1)
+    },
+    [resetFormFields, categories]
+  )
+
+  const handleTargetScopeChange = useCallback(
+    scope => {
+      if (TARGET_SCOPE.GRADE === scope) {
+        form.setFieldValue({
+          targetGrade: [],
+        })
+      }
     },
     [form]
   )
 
-  const validateLimitedSurvey = values => {
-    if (!selectedSurveyCode) return true
-
-    const categoryCode = categories.find(
-      cat => cat.id === selectedCategory
-    )?.code
-    const surveyInfo = surveyCode[categoryCode]?.find(
-      code => code.code === selectedSurveyCode
-    )
-
-    if (surveyInfo?.limitedQuestions) {
-      const questionsCount = values.questions?.length || 0
-      const requiredCount = surveyInfo.length
-
-      if (questionsCount !== requiredCount) {
-        messageApi.error(
-          `Survey ${selectedSurveyCode} yêu cầu đúng ${requiredCount} câu hỏi, hiện tại có ${questionsCount} câu hỏi`
-        )
-        return false
+  const handleSurveyTypeChange = useCallback(
+    type => {
+      if (type === SURVEY_TYPE.SCREENING) {
+        form.setFieldsValue({
+          targetScope: TARGET_SCOPE.ALL,
+          targetGrade: [],
+        })
+      } else {
+        form.setFieldsValue({ targetScope: TARGET_SCOPE.NONE, targetGrade: [] })
       }
-
-      // Check if all questions are required for GAD-7 and PHQ-9
-      if (selectedSurveyCode === 'GAD-7' || selectedSurveyCode === 'PHQ-9') {
-        const hasOptionalQuestions = values.questions?.some(q => !q.required)
-        if (hasOptionalQuestions) {
-          messageApi.error(
-            `Tất cả câu hỏi trong ${selectedSurveyCode} phải là bắt buộc`
-          )
-          return false
-        }
-      }
-    }
-
-    return true
-  }
+    },
+    [form]
+  )
 
   const handleOk = () => {
     form
       .validateFields()
       .then(values => {
-        // Validate limited surveys
-        if (!validateLimitedSurvey(values)) {
-          return
-        }
-
-        const { categoryId, ...surveyData } = values
+        const targetGrade =
+          values.targetScope === TARGET_SCOPE.GRADE
+            ? values.targetGrade
+            : values.targetScope === TARGET_SCOPE.ALL
+              ? Object.values(GRADE_LEVEL).map(grade => grade.toString())
+              : []
         const requestData = {
-          ...surveyData,
-          recurringCycle: surveyData.isRecurring
-            ? surveyData.recurringCycle
-            : 'NONE',
-          questions: values.questions.map(question => ({
-            ...question,
-            description: question?.description || '',
-            categoryId: categoryId,
-            moduleType: 'SURVEY',
-          })),
+          title: values.title,
+          description: values.description || '',
+          surveyType: values.surveyType,
+          isRequired: values.isRequired || false,
+          isRecurring: values.isRecurring || false,
+          recurringCycle: values.isRecurring
+            ? values.recurringCycle
+            : RECURRING_CYCLE.NONE,
+          startDate: dayjs(values.startDate)
+            .startOf('day')
+            .format('YYYY-MM-DD'),
+          endDate: dayjs(values.endDate).startOf('day').format('YYYY-MM-DD'),
+          categoryId: values.categoryId,
+          targetScope: values.targetScope,
+          targetGrade: targetGrade,
+          questions:
+            values.questions?.map(question => ({
+              text: question.text,
+              description: question.description || '',
+              questionType: question.questionType,
+              isRequired: question.isRequired || false,
+              answers:
+                question.answers?.map(answer => ({
+                  score: answer.score,
+                  text: answer.text,
+                })) || [],
+            })) || [],
         }
 
+        console.log('requestData', requestData)
         onOk(requestData, form.resetFields, handleCategoryChange)
       })
       .catch(info => {
         console.log('Validate Failed:', info)
+        messageApi.error(info.errorFields[0].errors[0])
       })
   }
 
   const handleCancel = () => {
     form.resetFields()
-    setSelectedSurveyCode(null)
     onCancel()
   }
 
   return (
-    <Modal
-      title={t('surveyManagement.addSurvey')}
-      open={visible}
-      onOk={handleOk}
-      onCancel={handleCancel}
-      width={1200}
-      okText={t('common.create')}
-      cancelText={t('common.cancel')}
-      cancelButtonProps={{
-        style: {
-          color: 'red',
-          borderColor: 'red',
-        },
-      }}
-      style={{ height: '70vh', top: '5%' }}
-    >
-      <Form form={form} layout="vertical" name="surveyForm">
-        <Row gutter={24}>
-          {/* Survey Info Column (Left) */}
-          <Col span={11}>
-            <Title level={5}>Survey Information</Title>
+    <>
+      <style>{scrollbarStyles}</style>
+      <Modal
+        title={t('surveyManagement.addSurvey')}
+        open={visible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        width={1200}
+        okText={t('common.create')}
+        cancelText={t('common.cancel')}
+        cancelButtonProps={{
+          style: {
+            color: 'red',
+            borderColor: 'red',
+          },
+        }}
+        style={{ top: '2%' }}
+        styles={{
+          body: {
+            height: '76vh',
+            overflow: 'hidden',
+            padding: '16px 24px',
+          },
+        }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          name="surveyForm"
+          style={{ height: '100%' }}
+        >
+          <Row gutter={24} style={{ height: '100%' }}>
+            {/* Survey Info Column (Left) */}
+            <Col
+              span={11}
+              className="survey-modal-scroll"
+              style={{
+                height: '100%',
+                overflowY: 'auto',
+                paddingRight: '12px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#d9d9d9 transparent',
+              }}
+            >
+              <Title level={5} style={{ marginBottom: '16px' }}>
+                {t('surveyManagement.form.surveyInformation')}
+              </Title>
 
-            {/* Category & Survey Code*/}
-            <Row gutter={16}>
-              <Col span={16}>
-                <Form.Item
-                  name="categoryId"
-                  label={t('surveyManagement.form.category')}
-                  rules={[
-                    {
-                      required: true,
-                      message: t('surveyManagement.form.categoryRequired'),
-                    },
-                  ]}
+              {/* Category */}
+              <Form.Item
+                name="categoryId"
+                label={t('surveyManagement.form.category')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.categoryRequired'),
+                  },
+                ]}
+              >
+                <Select
+                  loading={loading}
+                  placeholder={t('surveyManagement.form.categoryPlaceholder')}
+                  onChange={handleCategoryChange}
                 >
-                  <Select
-                    loading={loading}
-                    placeholder={t('surveyManagement.form.categoryPlaceholder')}
-                    onChange={handleCategoryChange}
-                  >
-                    {categories.map(category => (
-                      <Option key={category.id} value={category.id}>
-                        {category.name}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-
-              <Col span={8}>
-                <Form.Item
-                  name="surveyCode"
-                  label={t('surveyManagement.form.surveyCode')}
-                  rules={[
-                    {
-                      required: true,
-                      message: t('surveyManagement.form.surveyCodeRequired'),
-                    },
-                  ]}
-                >
-                  <Select
-                    loading={loading}
-                    placeholder={t(
-                      'surveyManagement.form.surveyCodePlaceholder'
-                    )}
-                    onChange={handleSurveyCodeChange}
-                    disabled={!selectedCategory}
-                  >
-                    {selectedCategory &&
-                      categories.find(cat => cat.id === selectedCategory) &&
-                      surveyCode[
-                        categories.find(cat => cat.id === selectedCategory)
-                          ?.code
-                      ] &&
-                      surveyCode[
-                        categories.find(cat => cat.id === selectedCategory)
-                          ?.code
-                      ].map(code => (
-                        <Option key={code.code} value={code.code}>
-                          {code.code}
-                        </Option>
-                      ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {/* Survey Code Requirements Note */}
-            {selectedCategory && (
-              <div style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    padding: '12px 16px',
-                    backgroundColor: '#f6f8fa',
-                    border: '1px solid #d0d7de',
-                    borderRadius: '6px',
-                  }}
-                >
-                  <Text
-                    strong
-                    style={{
-                      color: '#1f2328',
-                      fontSize: '14px',
-                      display: 'block',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    📋 Yêu cầu số lượng câu hỏi cho từng loại survey:
-                  </Text>
-                  {categories.find(cat => cat.id === selectedCategory) &&
-                    surveyCode[
-                      categories.find(cat => cat.id === selectedCategory)?.code
-                    ] &&
-                    surveyCode[
-                      categories.find(cat => cat.id === selectedCategory)?.code
-                    ].map(code => (
-                      <div key={code.code} style={{ marginBottom: '4px' }}>
-                        <Text style={{ fontSize: '13px' }}>
-                          <span
-                            style={{
-                              fontWeight: 'bold',
-                              color:
-                                selectedSurveyCode === code.code
-                                  ? '#0969da'
-                                  : '#656d76',
-                              backgroundColor:
-                                selectedSurveyCode === code.code
-                                  ? '#ddf4ff'
-                                  : 'transparent',
-                              padding: '2px 6px',
-                              borderRadius: '3px',
-                            }}
-                          >
-                            {code.code}
-                          </span>
-                          {code.limitedQuestions ? (
-                            <span
-                              style={{ color: '#cf222e', marginLeft: '8px' }}
-                            >
-                              → Yêu cầu đúng {code.length} câu hỏi (tất cả bắt
-                              buộc)
-                            </span>
-                          ) : (
-                            <span
-                              style={{ color: '#1f883d', marginLeft: '8px' }}
-                            >
-                              → Không giới hạn số lượng câu hỏi
-                            </span>
-                          )}
-                        </Text>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {selectedCategory && sampleSurveys.length > 0 && (
-              <div style={{ marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    marginBottom: 8,
-                  }}
-                >
-                  <Text strong style={{ display: 'block' }}>
-                    {t('surveyManagement.form.sampleSurveys')}
-                  </Text>
-                  <Text strong style={{ display: 'block' }}>
-                    {categories.find(cat => cat.id === selectedCategory)?.name}
-                  </Text>
-                </div>
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  {sampleSurveys.map((survey, index) => (
-                    <Card
-                      key={index}
-                      size="small"
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => loadSampleSurvey(survey)}
-                      hoverable
-                    >
-                      <div>
-                        <Text strong>{survey.name}</Text>
-                        <br />
-                        <Text type="secondary" style={{ fontSize: '12px' }}>
-                          {survey.description}
-                        </Text>
-                      </div>
-                    </Card>
+                  {categories.map(category => (
+                    <Option key={category.id} value={category.id}>
+                      {category.name} - {category.code}
+                    </Option>
                   ))}
-                </Space>
-              </div>
-            )}
+                </Select>
+              </Form.Item>
 
-            <Form.Item
-              name="name"
-              label={t('surveyManagement.form.name')}
-              rules={[
-                {
-                  required: true,
-                  message: t('surveyManagement.form.nameRequired'),
-                },
-              ]}
-            >
-              <Input placeholder={t('surveyManagement.form.namePlaceholder')} />
-            </Form.Item>
-
-            <Form.Item
-              name="description"
-              label={t('surveyManagement.form.description')}
-            >
-              <TextArea
-                rows={3}
-                placeholder={t('surveyManagement.form.descriptionPlaceholder')}
-              />
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="isRequired"
-                  valuePropName="checked"
-                  initialValue={false}
+              {/* Survey Type */}
+              <Form.Item
+                name="surveyType"
+                label={t('surveyManagement.form.surveyType')}
+                initialValue={getSurveyTypePermissions(userRole)[0]}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.surveyTypeRequired'),
+                  },
+                ]}
+              >
+                <Select
+                  placeholder={t('surveyManagement.form.surveyTypePlaceholder')}
+                  onChange={handleSurveyTypeChange}
                 >
-                  <Checkbox>{t('surveyManagement.form.isRequired')}</Checkbox>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  name="isRecurring"
-                  valuePropName="checked"
-                  initialValue={false}
-                >
-                  <Checkbox>{t('surveyManagement.form.isRecurring')}</Checkbox>
-                </Form.Item>
-              </Col>
-            </Row>
+                  {getSurveyTypePermissions(userRole).map(type => (
+                    <Option key={type} value={type}>
+                      {t(`surveyManagement.enums.surveyType.${type}`)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
 
-            <Form.Item
-              noStyle
-              shouldUpdate={(prevValues, currentValues) =>
-                prevValues.isRecurring !== currentValues.isRecurring
-              }
-            >
-              {({ getFieldValue }) => (
-                <Form.Item
-                  name="recurringCycle"
-                  label={t('surveyManagement.form.recurringCycle')}
-                  rules={[
-                    {
-                      required: getFieldValue('isRecurring'),
-                      message: t(
-                        'surveyManagement.form.recurringCycleRequired'
-                      ),
-                    },
-                    {
-                      validator: (_, value) => {
-                        if (getFieldValue('isRecurring') && value) {
-                          const validCycles = ['DAILY', 'WEEKLY', 'MONTHLY']
-                          if (!validCycles.includes(value)) {
-                            return Promise.reject(
-                              new Error(
-                                t(
-                                  'surveyManagement.form.recurringValidation.invalidCycle'
+              {/* Target Scope and Grade */}
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.surveyType !== currentValues.surveyType
+                    }
+                  >
+                    {({ getFieldValue }) => (
+                      <Form.Item
+                        name="targetScope"
+                        label={t('surveyManagement.form.targetScope')}
+                        rules={[
+                          {
+                            required: true,
+                            message: t(
+                              'surveyManagement.form.targetScopeRequired'
+                            ),
+                          },
+                        ]}
+                        hidden={
+                          getFieldValue('surveyType') !== SURVEY_TYPE.SCREENING
+                        }
+                      >
+                        <Select
+                          placeholder={t(
+                            'surveyManagement.form.targetScopePlaceholder'
+                          )}
+                          onChange={handleTargetScopeChange}
+                        >
+                          {Object.values(TARGET_SCOPE)
+                            .filter(scope => scope !== TARGET_SCOPE.NONE)
+                            .map(scope => (
+                              <Option key={scope} value={scope}>
+                                {t(
+                                  `surveyManagement.enums.targetScope.${scope}`
+                                )}
+                              </Option>
+                            ))}
+                        </Select>
+                      </Form.Item>
+                    )}
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.targetScope !== currentValues.targetScope
+                    }
+                  >
+                    {({ getFieldValue }) => (
+                      <Form.Item
+                        name="targetGrade"
+                        label={t('surveyManagement.form.targetGrade')}
+                        rules={[
+                          {
+                            required:
+                              getFieldValue('targetScope') ===
+                              TARGET_SCOPE.GRADE,
+                            message: t(
+                              'surveyManagement.form.targetGradeRequired'
+                            ),
+                          },
+                        ]}
+                        hidden={
+                          getFieldValue('surveyType') !== SURVEY_TYPE.SCREENING
+                        }
+                      >
+                        <Select
+                          mode="multiple"
+                          allowClear
+                          maxTagCount={2}
+                          placeholder={t(
+                            'surveyManagement.form.targetGradePlaceholder'
+                          )}
+                          maxCount={2}
+                          disabled={
+                            getFieldValue('targetScope') !== TARGET_SCOPE.GRADE
+                          }
+                        >
+                          {Object.values(GRADE_LEVEL).map(grade => (
+                            <Option key={grade} value={grade}>
+                              {t(`surveyManagement.enums.gradeLevel.${grade}`)}
+                            </Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                    )}
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                name="title"
+                label={t('surveyManagement.form.title')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.titleRequired'),
+                  },
+                ]}
+              >
+                <Input
+                  placeholder={t('surveyManagement.form.titlePlaceholder')}
+                />
+              </Form.Item>
+
+              <Form.Item
+                name="description"
+                label={t('surveyManagement.form.description')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.descriptionRequired'),
+                  },
+                ]}
+              >
+                <TextArea
+                  rows={3}
+                  placeholder={t(
+                    'surveyManagement.form.descriptionPlaceholder'
+                  )}
+                />
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="isRequired"
+                    valuePropName="checked"
+                    initialValue={false}
+                  >
+                    <Checkbox>{t('surveyManagement.form.isRequired')}</Checkbox>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    name="isRecurring"
+                    valuePropName="checked"
+                    initialValue={false}
+                  >
+                    <Checkbox>
+                      {t('surveyManagement.form.isRecurring')}
+                    </Checkbox>
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Form.Item
+                noStyle
+                shouldUpdate={(prevValues, currentValues) =>
+                  prevValues.isRecurring !== currentValues.isRecurring
+                }
+              >
+                {({ getFieldValue }) => (
+                  <Form.Item
+                    name="recurringCycle"
+                    label={t('surveyManagement.form.recurringCycle')}
+                    rules={[
+                      {
+                        required: getFieldValue('isRecurring'),
+                        message: t(
+                          'surveyManagement.form.recurringCycleRequired'
+                        ),
+                      },
+                      {
+                        validator: (_, value) => {
+                          if (getFieldValue('isRecurring') && value) {
+                            const validCycles = [
+                              RECURRING_CYCLE.WEEKLY,
+                              RECURRING_CYCLE.MONTHLY,
+                            ]
+                            if (!validCycles.includes(value)) {
+                              return Promise.reject(
+                                new Error(
+                                  t(
+                                    'surveyManagement.form.recurringValidation.invalidCycle'
+                                  )
                                 )
                               )
-                            )
+                            }
                           }
-                        }
-                        return Promise.resolve()
-                      },
-                    },
-                  ]}
-                  hidden={!getFieldValue('isRecurring')}
-                  initialValue={'WEEKLY'}
-                >
-                  <Select
-                    placeholder={t(
-                      'surveyManagement.form.recurringCyclePlaceholder'
-                    )}
-                  >
-                    {/* <Option value="DAILY">{t('common.daily')}</Option> */}
-                    <Option value="WEEKLY">{t('common.weekly')}</Option>
-                    <Option value="MONTHLY">{t('common.monthly')}</Option>
-                  </Select>
-                </Form.Item>
-              )}
-            </Form.Item>
-
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item
-                  name="startDate"
-                  label={t('surveyManagement.form.startDate')}
-                  rules={[
-                    {
-                      required: true,
-                      message: t('surveyManagement.form.startDateRequired'),
-                    },
-                    {
-                      validator: (_, value) => {
-                        if (value) {
-                          const today = new Date()
-                          today.setHours(0, 0, 0, 0)
-                          const selectedDate = new Date(value)
-                          selectedDate.setHours(0, 0, 0, 0)
-                          if (selectedDate < today) {
-                            return Promise.reject(
-                              new Error(
-                                t('surveyManagement.form.startDateBeforeToday')
-                              )
-                            )
-                          }
-                        }
-                        return Promise.resolve()
-                      },
-                    },
-                  ]}
-                >
-                  <DatePicker
-                    style={{ width: '100%' }}
-                    disabledDate={current => {
-                      const today = new Date()
-                      today.setHours(0, 0, 0, 0)
-                      return current && current < today
-                    }}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  noStyle
-                  shouldUpdate={(prevValues, currentValues) =>
-                    prevValues.startDate !== currentValues.startDate ||
-                    prevValues.isRecurring !== currentValues.isRecurring ||
-                    prevValues.recurringCycle !== currentValues.recurringCycle
-                  }
-                >
-                  {() => (
-                    <Form.Item
-                      name="endDate"
-                      label={t('surveyManagement.form.endDate')}
-                      rules={[
-                        {
-                          required: true,
-                          message: t('surveyManagement.form.endDateRequired'),
+                          return Promise.resolve()
                         },
-                        {
-                          validator: (_, value) => {
+                      },
+                    ]}
+                    hidden={!getFieldValue('isRecurring')}
+                    initialValue={RECURRING_CYCLE.WEEKLY}
+                  >
+                    <Select
+                      placeholder={t(
+                        'surveyManagement.form.recurringCyclePlaceholder'
+                      )}
+                    >
+                      <Option value={RECURRING_CYCLE.WEEKLY}>
+                        {t('surveyManagement.enums.recurringCycle.WEEKLY')}
+                      </Option>
+                      <Option value={RECURRING_CYCLE.MONTHLY}>
+                        {t('surveyManagement.enums.recurringCycle.MONTHLY')}
+                      </Option>
+                    </Select>
+                  </Form.Item>
+                )}
+              </Form.Item>
+
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item
+                    name="startDate"
+                    label={t('surveyManagement.form.startDate')}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('surveyManagement.form.startDateRequired'),
+                      },
+                      {
+                        validator: (_, value) => {
+                          if (value) {
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const selectedDate = new Date(value)
+                            selectedDate.setHours(0, 0, 0, 0)
+                            if (selectedDate < today) {
+                              return Promise.reject(
+                                new Error(
+                                  t(
+                                    'surveyManagement.form.startDateBeforeToday'
+                                  )
+                                )
+                              )
+                            }
+                          }
+                          return Promise.resolve()
+                        },
+                      },
+                    ]}
+                  >
+                    <DatePicker
+                      style={{ width: '100%' }}
+                      disabledDate={current => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        return current && current < today
+                      }}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.startDate !== currentValues.startDate ||
+                      prevValues.isRecurring !== currentValues.isRecurring ||
+                      prevValues.recurringCycle !== currentValues.recurringCycle
+                    }
+                  >
+                    {() => (
+                      <Form.Item
+                        name="endDate"
+                        label={t('surveyManagement.form.endDate')}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('surveyManagement.form.endDateRequired'),
+                          },
+                          {
+                            validator: (_, value) => {
+                              const startDate = form.getFieldValue('startDate')
+                              const isRecurring =
+                                form.getFieldValue('isRecurring')
+                              const recurringCycle =
+                                form.getFieldValue('recurringCycle')
+
+                              if (value && startDate) {
+                                const start = new Date(startDate)
+                                start.setHours(0, 0, 0, 0)
+                                const end = new Date(value)
+                                end.setHours(0, 0, 0, 0)
+
+                                if (end <= start) {
+                                  return Promise.reject(
+                                    new Error(
+                                      t(
+                                        'surveyManagement.form.endDateBeforeStartDate'
+                                      )
+                                    )
+                                  )
+                                }
+
+                                // Additional validation for recurring surveys
+                                if (isRecurring && recurringCycle) {
+                                  const daysDiff = Math.ceil(
+                                    (end - start) / (1000 * 60 * 60 * 24)
+                                  )
+                                  let maxDays = 0
+                                  let errorKey = ''
+
+                                  switch (recurringCycle) {
+                                    case RECURRING_CYCLE.WEEKLY:
+                                      maxDays = 7
+                                      errorKey = 'endDateWeekly'
+                                      break
+                                    case RECURRING_CYCLE.MONTHLY:
+                                      maxDays = 30
+                                      errorKey = 'endDateMonthly'
+                                      break
+                                  }
+
+                                  if (daysDiff > maxDays) {
+                                    return Promise.reject(
+                                      new Error(
+                                        t(
+                                          `surveyManagement.form.recurringValidation.${errorKey}`
+                                        )
+                                      )
+                                    )
+                                  }
+                                }
+                              }
+                              return Promise.resolve()
+                            },
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          style={{ width: '100%' }}
+                          disabledDate={current => {
                             const startDate = form.getFieldValue('startDate')
                             const isRecurring =
                               form.getFieldValue('isRecurring')
                             const recurringCycle =
                               form.getFieldValue('recurringCycle')
 
-                            if (value && startDate) {
-                              const start = new Date(startDate)
-                              start.setHours(0, 0, 0, 0)
-                              const end = new Date(value)
-                              end.setHours(0, 0, 0, 0)
+                            if (!startDate) return false
 
-                              if (end <= start) {
-                                return Promise.reject(
-                                  new Error(
-                                    t(
-                                      'surveyManagement.form.endDateBeforeStartDate'
-                                    )
-                                  )
-                                )
+                            const start = new Date(startDate)
+                            start.setHours(0, 0, 0, 0)
+                            const currentDate = new Date(current)
+                            currentDate.setHours(0, 0, 0, 0)
+
+                            // Basic constraint: end date must be after start date
+                            if (currentDate <= start) return true
+
+                            // Additional constraint for recurring surveys
+                            if (isRecurring && recurringCycle) {
+                              const daysDiff = Math.ceil(
+                                (currentDate - start) / (1000 * 60 * 60 * 24)
+                              )
+                              let maxDays = 0
+
+                              switch (recurringCycle) {
+                                case RECURRING_CYCLE.WEEKLY:
+                                  maxDays = 7
+                                  break
+                                case RECURRING_CYCLE.MONTHLY:
+                                  maxDays = 30
+                                  break
                               }
 
-                              // Additional validation for recurring surveys
-                              if (isRecurring && recurringCycle) {
-                                const daysDiff = Math.ceil(
-                                  (end - start) / (1000 * 60 * 60 * 24)
-                                )
-                                let maxDays = 0
-                                let errorKey = ''
-
-                                switch (recurringCycle) {
-                                  case 'DAILY':
-                                    maxDays = 1
-                                    errorKey = 'endDateDaily'
-                                    break
-                                  case 'WEEKLY':
-                                    maxDays = 7
-                                    errorKey = 'endDateWeekly'
-                                    break
-                                  case 'MONTHLY':
-                                    maxDays = 30
-                                    errorKey = 'endDateMonthly'
-                                    break
-                                }
-
-                                if (daysDiff > maxDays) {
-                                  return Promise.reject(
-                                    new Error(
-                                      t(
-                                        `surveyManagement.form.recurringValidation.${errorKey}`
-                                      )
-                                    )
-                                  )
-                                }
-                              }
-                            }
-                            return Promise.resolve()
-                          },
-                        },
-                      ]}
-                    >
-                      <DatePicker
-                        style={{ width: '100%' }}
-                        disabledDate={current => {
-                          const startDate = form.getFieldValue('startDate')
-                          const isRecurring = form.getFieldValue('isRecurring')
-                          const recurringCycle =
-                            form.getFieldValue('recurringCycle')
-
-                          if (!startDate) return false
-
-                          const start = new Date(startDate)
-                          start.setHours(0, 0, 0, 0)
-                          const currentDate = new Date(current)
-                          currentDate.setHours(0, 0, 0, 0)
-
-                          // Basic constraint: end date must be after start date
-                          if (currentDate <= start) return true
-
-                          // Additional constraint for recurring surveys
-                          if (isRecurring && recurringCycle) {
-                            const daysDiff = Math.ceil(
-                              (currentDate - start) / (1000 * 60 * 60 * 24)
-                            )
-                            let maxDays = 0
-
-                            switch (recurringCycle) {
-                              case 'DAILY':
-                                maxDays = 1
-                                break
-                              case 'WEEKLY':
-                                maxDays = 7
-                                break
-                              case 'MONTHLY':
-                                maxDays = 30
-                                break
+                              return daysDiff > maxDays
                             }
 
-                            return daysDiff > maxDays
-                          }
+                            return false
+                          }}
+                        />
+                      </Form.Item>
+                    )}
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Col>
 
-                          return false
-                        }}
-                      />
-                    </Form.Item>
-                  )}
-                </Form.Item>
-              </Col>
-            </Row>
-          </Col>
-
-          {/* Questions Column (Right) */}
-          <Col span={13}>
-            <Title level={5}>{t('surveyManagement.form.questions')}</Title>
-            <div
+            {/* Questions Column (Right) */}
+            <Col
+              span={13}
               style={{
                 height: '100%',
-                overflowY: 'auto',
-                padding: '0 1px',
+                display: 'flex',
+                flexDirection: 'column',
+                paddingLeft: '12px',
               }}
             >
-              <Form.List name="questions">
-                {(fields, { add, remove }) => (
-                  <QuestionTabs
-                    t={t}
-                    fields={fields}
-                    add={add}
-                    remove={remove}
-                    surveyCode={selectedSurveyCode}
-                    resetTabKey={resetTabKey}
-                    selectedCategory={selectedCategory}
-                    categories={categories}
-                    messageApi={messageApi}
-                  />
-                )}
-              </Form.List>
-            </div>
-          </Col>
-        </Row>
-      </Form>
-    </Modal>
+              <Title level={5} style={{ marginBottom: '16px' }}>
+                {t('surveyManagement.form.questions')}
+              </Title>
+              <div
+                className="survey-modal-scroll"
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  padding: '0 1px',
+                  marginTop: '8px',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#d9d9d9 transparent',
+                  paddingRight: '12px',
+                  paddingLeft: '12px',
+                }}
+              >
+                <Form.List name="questions">
+                  {(fields, { add, remove }) => (
+                    <QuestionTabs
+                      t={t}
+                      fields={fields}
+                      add={add}
+                      remove={remove}
+                      selectedCategory={selectedCategory}
+                      messageApi={messageApi}
+                    />
+                  )}
+                </Form.List>
+              </div>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+    </>
   )
 }
 

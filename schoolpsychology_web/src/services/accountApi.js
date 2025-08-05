@@ -1,25 +1,17 @@
 import api from './api'
 
-const accountApi = {
-  // get all accounts
-  getAccount: async () => {
-    const response = await api.get('/api/v1/account/list-all-account')
-    return response.data
-  },
+export const accountAPI = {
+  getAccounts: async data => {
+    if (!data) return
 
-  //get all counselors
-  getCounselors: async () => {
-    const response = await api.get('/api/v1/account/view-counselor')
-    return response.data
-  },
+    const params = {
+      role: data.role || undefined,
+      classId: data.classId || undefined,
+    }
 
-  //get account by accountId
-  getAccountById: async accountId => {
-    const response = await api.get(
-      `/api/v1/account/get-account?accountId=${accountId}`
-    )
+    const response = await api.get('/api/v1/account/list-all-account', {
+      params,
+    })
     return response.data
   },
 }
-
-export default accountApi

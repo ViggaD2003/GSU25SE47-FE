@@ -6,3 +6,6 @@ export * from './surveyActions'
 
 // Appointment actions
 export * from './appointmentActions'
+
+// Case actions
+export * from './caseActions'

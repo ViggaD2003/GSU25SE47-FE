@@ -2,9 +2,9 @@ import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 
-const Loading = ({ text }) => {
+const Loading = ({ text, style }) => {
   return (
-    <View style={styles.loadingContainer}>
+    <View style={[styles.loadingContainer, style]}>
       <ActivityIndicator size="large" color="#059669" />
       <Text style={styles.loadingText}>{text}</Text>
     </View>

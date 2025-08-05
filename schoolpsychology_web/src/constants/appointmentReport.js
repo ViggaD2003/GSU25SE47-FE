@@ -1,151 +1,521 @@
-export const reportData = {
-  mental_health: {
-    id: 1,
-    title: 'Mental Health',
-    description: 'Mental Health',
-    data: [
+export const reportData = [
+  {
+    id: 'anxiety_persistent',
+    label: 'Lo âu kéo dài',
+    categoryCode: 'mental_health',
+    description: 'Dựa trên thang đo GAD‑7, RCADS‑25',
+    evidenceLevel: 'Strong',
+    reference: 'Spence, S.H. (1998). RCADS Manual. Griffith University.',
+    questions: [
       {
-        id: 'anxiety',
-        label: 'Lo âu kéo dài',
-        category: 'mental_health',
-        score: 3,
-        noteSummary:
-          'Học sinh xuất hiện tình trạng lo lắng thường xuyên, khó kiểm soát suy nghĩ tiêu cực.',
-        noteSuggest:
-          'Tiếp tục tư vấn định kỳ, hướng dẫn kỹ thuật thư giãn và viết nhật ký cảm xúc.',
+        type: 'frequency',
+        label: 'Tần suất xuất hiện',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
       },
       {
-        id: 'sleep_disorder',
-        label: 'Rối loạn giấc ngủ',
-        category: 'mental_health',
-        score: 2,
-        noteSummary: 'Học sinh khó ngủ, ngủ chập chờn hoặc ngủ quá nhiều.',
-        noteSuggest:
-          'Tư vấn điều chỉnh thói quen sinh hoạt và theo dõi thời gian ngủ hàng ngày.',
+        type: 'impairment',
+        label: 'Mức độ ảnh hưởng',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
       },
       {
-        id: 'depression',
-        label: 'Buồn chán, mất năng lượng',
-        category: 'mental_health',
-        score: 3,
-        noteSummary:
-          'Thiếu hứng thú, mệt mỏi và ít tham gia vào các hoạt động yêu thích.',
-        noteSuggest:
-          'Khuyến khích hoạt động tích cực và lên kế hoạch cá nhân hằng ngày.',
-      },
-      {
-        id: 'low_self_esteem',
-        label: 'Tự ti, tự phán xét',
-        category: 'mental_health',
-        score: 2,
-        noteSummary:
-          'Học sinh hay so sánh bản thân, thiếu tự tin trong học tập hoặc giao tiếp.',
-        noteSuggest:
-          'Tư vấn nâng cao nhận thức bản thân và xây dựng niềm tin cá nhân.',
-      },
-      {
-        id: 'self_harm',
-        label: 'Ý nghĩ tự hại / tự tử',
-        category: 'mental_health',
-        score: 4,
-        noteSummary: 'Học sinh có ý nghĩ hoặc hành vi gây hại cho bản thân.',
-        noteSuggest:
-          'Can thiệp khẩn cấp, liên hệ phụ huynh và chuyển chuyên gia tâm lý.',
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
       },
     ],
   },
-  environment: {
-    id: 2,
-    title: 'Environment',
-    description: 'Environment',
-    data: [
+  {
+    id: 'sleep_disorder',
+    label: 'Rối loạn giấc ngủ',
+    categoryCode: 'mental_health',
+    description:
+      'Theo Sleep Medicine Reviews, ảnh hưởng đến chất lượng học tập',
+    evidenceLevel: 'Moderate',
+    reference: 'Owens, J.A. (2014). Sleep Medicine Reviews, 18(4), 313‑319.',
+    questions: [
       {
-        id: 'family_conflict',
-        label: 'Xung đột với cha mẹ',
-        category: 'environment',
-        score: 3,
-        noteSummary:
-          'Học sinh thường xuyên xung đột hoặc không được lắng nghe từ cha mẹ.',
-        noteSuggest:
-          'Khuyến nghị tư vấn gia đình nếu phù hợp và hướng dẫn kỹ năng giao tiếp.',
+        type: 'frequency',
+        label: 'Tần suất rối loạn giấc ngủ',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
       },
       {
-        id: 'bullying',
-        label: 'Bị bắt nạt / cô lập',
-        category: 'environment',
-        score: 4,
-        noteSummary:
-          'Học sinh bị bạn bè xa lánh, bị chọc ghẹo hoặc bạo lực học đường.',
-        noteSuggest:
-          'Phối hợp GVCN, đảm bảo an toàn và can thiệp theo quy trình phòng chống bạo lực.',
+        type: 'impairment',
+        label: 'Ảnh hưởng đến học tập/xã hội',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
       },
       {
-        id: 'academic_pressure',
-        label: 'Áp lực học tập',
-        category: 'environment',
-        score: 3,
-        noteSummary: 'Học sinh chịu áp lực cao từ kỳ vọng điểm số hoặc thi cử.',
-        noteSuggest:
-          'Tư vấn kỹ năng học tập, lập kế hoạch và đặt mục tiêu phù hợp.',
-      },
-      {
-        id: 'lack_of_support',
-        label: 'Thiếu hỗ trợ từ giáo viên/trường',
-        category: 'environment',
-        score: 2,
-        noteSummary:
-          'Học sinh cảm thấy không được quan tâm, hỗ trợ khi cần thiết.',
-        noteSuggest:
-          'Tư vấn viên làm cầu nối với GVCN và giới thiệu kênh hỗ trợ trong trường.',
-      },
-      {
-        id: 'unstable_home',
-        label: 'Môi trường sống không ổn định',
-        category: 'environment',
-        score: 4,
-        noteSummary:
-          'Gia đình có hoàn cảnh khó khăn, ly thân, hoặc thay đổi liên tục.',
-        noteSuggest:
-          'Tư vấn dài hạn và kết nối với các chương trình học bổng / hỗ trợ.',
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
       },
     ],
   },
-  //   impact: {
-  //     title: 'Impact',
-  //     description: 'Impact',
-  //     data: [
-  //       {
-  //         id: 'impact_emotion',
-  //         label: 'Ảnh hưởng cảm xúc',
-  //         score: 3,
-  //         noteSummary:
-  //           'Cảm xúc học sinh bị ảnh hưởng rõ rệt như buồn bã, lo âu, tức giận.',
-  //         noteSuggest: 'Tư vấn kiểm soát cảm xúc và luyện tập kỹ thuật thư giãn.',
-  //       },
-  //       {
-  //         id: 'impact_academic',
-  //         label: 'Ảnh hưởng học tập',
-  //         score: 2,
-  //         noteSummary: 'Khó tập trung, giảm hiệu suất học tập, chán học.',
-  //         noteSuggest: 'Hỗ trợ kỹ năng học tập, quản lý thời gian, giảm áp lực.',
-  //       },
-  //       {
-  //         id: 'impact_social',
-  //         label: 'Ảnh hưởng quan hệ xã hội',
-  //         score: 3,
-  //         noteSummary:
-  //           'Học sinh thu mình, không hoà nhập hoặc có mâu thuẫn với bạn.',
-  //         noteSuggest:
-  //           'Tư vấn kỹ năng giao tiếp, khuyến khích tham gia nhóm tích cực.',
-  //       },
-  //       {
-  //         id: 'impact_behavior',
-  //         label: 'Hành vi nguy cơ',
-  //         score: 4,
-  //         noteSummary: 'Có hành vi bất thường như bỏ học, nói tục, gây rối.',
-  //         noteSuggest:
-  //           'Theo dõi sát, làm việc với phụ huynh và giáo viên chủ nhiệm.',
-  //       },
-  //     ],
-  //   },
+  {
+    id: 'depression_symptoms',
+    label: 'Triệu chứng trầm cảm',
+    categoryCode: 'mental_health',
+    description: 'Theo PHQ‑A, biểu hiện của rối loạn khí sắc',
+    evidenceLevel: 'Strong',
+    reference:
+      'Johnson, J.G. et al. (2002). J Adolescent Health, 30(3), 196‑204.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất triệu chứng trầm cảm',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến hoạt động và xã hội',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'low_self_esteem',
+    label: 'Lòng tự trọng thấp',
+    categoryCode: 'mental_health',
+    description: 'Dựa trên thang đo Rosenberg',
+    evidenceLevel: 'Moderate',
+    reference: 'Rosenberg, M. (1965). Rosenberg Self‑Esteem Scale.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất cảm giác lòng tự trọng thấp',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến mối quan hệ/xã hội',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'self_harm_ideation',
+    label: 'Ý nghĩ tự hại/tự tử',
+    categoryCode: 'mental_health',
+    description: 'Rủi ro cao, cần đánh giá an toàn ngay lập tức',
+    evidenceLevel: 'Strong',
+    reference: 'Posner, K. et al. (2011). Am J Psychiatry, 168(12), 1266‑1277.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất ý nghĩ tự hại/tự tử',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến chức năng/sinh hoạt',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'family_conflict',
+    label: 'Xung đột gia đình',
+    categoryCode: 'environment',
+    description: 'Ảnh hưởng lâu dài đến phát triển tâm lý trẻ',
+    evidenceLevel: 'Strong',
+    reference:
+      'Cummings, E.M. & Davies, P.T. (2010). Annual Review of Psychology, 61, 237‑263.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất xung đột gia đình',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến giao tiếp/quan hệ gia đình',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'bullying_victimization',
+    label: 'Bị bắt nạn/cô lập',
+    categoryCode: 'environment',
+    description: 'Một yếu tố nguy cơ lớn cho trầm cảm và tự tử',
+    evidenceLevel: 'Strong',
+    reference:
+      'Kowalski, R.M. et al. (2014). Psychological Bulletin, 140(4), 1073‑1137.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất bị bắt nạt/cô lập',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến cảm xúc/xã hội',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'academic_pressure',
+    label: 'Áp lực học tập',
+    categoryCode: 'environment',
+    description: 'Áp lực học tập cao trong văn hóa Á Đông',
+    evidenceLevel: 'Strong',
+    reference:
+      'Liu, Y. & Lu, Z. (2012). Educational Psychology, 32(3), 365‑377.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất cảm thấy áp lực học tập',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến hiệu suất học tập',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'lack_of_support',
+    label: 'Thiếu hỗ trợ từ trường/GV',
+    categoryCode: 'environment',
+    description: 'Gắn liền với cảm giác bị bỏ rơi trong môi trường học',
+    evidenceLevel: 'Moderate',
+    reference:
+      'Cohen, J. et al. (2009). School Climate Research Summary, 1, 1‑6.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất cảm thấy thiếu hỗ trợ từ trường/GV',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến cảm xúc/xã hội',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'unstable_home',
+    label: 'Môi trường sống không ổn định',
+    categoryCode: 'environment',
+    description: 'Ảnh hưởng nghiêm trọng đến cảm xúc, hành vi và học tập',
+    evidenceLevel: 'Strong',
+    reference: 'Evans, G.W. (2006). Annual Review of Psychology, 57, 423‑451.',
+    questions: [
+      {
+        type: 'frequency',
+        label: 'Tần suất môi trường sống không ổn định',
+        options: [
+          { score: 0, text: 'Không bao giờ hoặc hiếm khi' },
+          { score: 1, text: 'Ít hơn 1‑2 ngày trong tuần' },
+          { score: 2, text: 'Một vài ngày trong tuần (2‑3 ngày)' },
+          { score: 3, text: 'Hơn nửa số ngày trong tuần (4‑5 ngày)' },
+          { score: 4, text: 'Hầu như mỗi ngày (6‑7 ngày)' },
+          { score: 5, text: 'Liên tục, nguy cơ cao' },
+        ],
+      },
+      {
+        type: 'impairment',
+        label: 'Ảnh hưởng đến hành vi/học tập/tâm lý',
+        options: [
+          { score: 0, text: 'Không ảnh hưởng đến chức năng' },
+          { score: 1, text: 'Ảnh hưởng tối thiểu, hầu như không nhận thấy' },
+          { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+          { score: 3, text: 'Ảnh hưởng trung bình đến nhiều lĩnh vực' },
+          { score: 4, text: 'Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực' },
+          { score: 5, text: 'Không thể thực hiện chức năng cơ bản' },
+        ],
+      },
+      {
+        type: 'duration',
+        label: 'Thời gian kéo dài',
+        options: [
+          { score: 0, text: 'Không có' },
+          { score: 1, text: 'Dưới 1 tuần' },
+          { score: 2, text: '1‑2 tuần' },
+          { score: 3, text: '2‑4 tuần' },
+          { score: 4, text: '1‑3 tháng' },
+          { score: 5, text: 'Hơn 3 tháng hoặc mạn tính' },
+        ],
+      },
+    ],
+  },
+]
+
+export const reportScore = {
+  severity: {
+    label: 'Mức độ nghiêm trọng của triệu chứng',
+    options: [
+      { score: 0, text: 'Không có triệu chứng' },
+      { score: 1, text: 'Rất nhẹ, không ảnh hưởng' },
+      { score: 2, text: 'Nhẹ, đôi khi gây khó chịu' },
+      { score: 3, text: 'Trung bình, gây khó chịu rõ rệt' },
+      { score: 4, text: 'Nặng, ảnh hưởng đáng kể đến sinh hoạt' },
+      { score: 5, text: 'Rất nặng, ảnh hưởng nghiêm trọng' },
+    ],
+  },
+  frequency: {
+    label: 'Tần suất xuất hiện triệu chứng',
+    options: [
+      { score: 0, text: 'Không bao giờ hoặc hiếm khi xảy ra' },
+      { score: 1, text: 'Thỉnh thoảng (1–2 ngày mỗi tuần)' },
+      { score: 2, text: 'Một vài ngày mỗi tuần (2–3 ngày)' },
+      { score: 3, text: 'Thường xuyên (4–5 ngày mỗi tuần)' },
+      { score: 4, text: 'Gần như mỗi ngày (6–7 ngày mỗi tuần)' },
+      { score: 5, text: 'Liên tục suốt ngày, không gián đoạn' },
+    ],
+  },
+  impairment: {
+    label: 'Mức độ ảnh hưởng đến chức năng',
+    options: [
+      {
+        score: 0,
+        text: 'Không ảnh hưởng đến học tập, sinh hoạt hay các mối quan hệ',
+      },
+      { score: 1, text: 'Ảnh hưởng rất nhẹ, hầu như không nhận thấy' },
+      { score: 2, text: 'Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội' },
+      { score: 3, text: 'Ảnh hưởng rõ rệt đến một số hoạt động hàng ngày' },
+      { score: 4, text: 'Ảnh hưởng nghiêm trọng đến nhiều lĩnh vực chức năng' },
+      {
+        score: 5,
+        text: 'Gây suy giảm nghiêm trọng hoặc mất chức năng hoàn toàn',
+      },
+    ],
+  },
+  chronicity: {
+    label: 'Tính kéo dài của triệu chứng (Chronicity)',
+    options: [
+      { score: 0, text: 'Triệu chứng không xuất hiện hoặc chỉ mới xuất hiện' },
+      { score: 1, text: 'Kéo dài dưới 2 tuần' },
+      { score: 2, text: 'Kéo dài 2 tuần đến dưới 2 tháng' },
+      { score: 3, text: 'Kéo dài ≥ 2 tháng, có lúc thuyên giảm' },
+      { score: 4, text: 'Kéo dài liên tục ≥ 6 tháng, không thuyên giảm' },
+      { score: 5, text: 'Kéo dài nhiều năm, ổn định, không cải thiện' },
+    ],
+  },
 }

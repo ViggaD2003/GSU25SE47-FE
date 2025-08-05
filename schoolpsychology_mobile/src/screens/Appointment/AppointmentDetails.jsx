@@ -16,18 +16,25 @@ import { Container } from "../../components";
 import { GlobalStyles } from "../../constants";
 import Loading from "../../components/common/Loading";
 import ConfirmModal from "../../components/common/ConfirmModal";
-import { cancelAppointment } from "@/services/api/AppointmentService";
+import {
+  cancelAppointment,
+  updateAppointmentStatus,
+} from "@/services/api/AppointmentService";
 import CalendarService from "@/services/CalendarService";
 import { LinearGradient } from "expo-linear-gradient";
+import { useAuth } from "../../contexts/AuthContext";
 
 const AppointmentDetails = ({ route, navigation }) => {
   const { appointment } = route.params;
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [selectedReason, setSelectedReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
 
   // Cancel reasons
   const cancelReasons = [
@@ -128,16 +135,16 @@ const AppointmentDetails = ({ route, navigation }) => {
         text: "Chờ xác nhận",
         icon: "time",
       },
-      CANCELLED: {
-        color: "#EF4444",
-        bgColor: "#FEF2F2",
-        text: "Đã hủy",
-        icon: "close-circle",
-      },
-      COMPLETED: {
+      // CANCELLED: {
+      //   color: "#EF4444",
+      //   bgColor: "#FEF2F2",
+      //   text: "Đã hủy",
+      //   icon: "close-circle",
+      // },
+      IN_PROGRESS: {
         color: "#3B82F6",
         bgColor: "#EFF6FF",
-        text: "Hoàn thành",
+        text: "Đang diễn ra",
         icon: "checkmark-done-circle",
       },
     };
@@ -179,15 +186,89 @@ const AppointmentDetails = ({ route, navigation }) => {
     const now = dayjs();
     const startTime = dayjs(appointment.startDateTime);
     const isFuture = startTime.isAfter(now);
-    const canCancelStatus = !["COMPLETED", "CANCELLED"].includes(
+    const canCancelStatus = !["PENDING", "IN_PROGRESS"].includes(
       appointment.status
     );
 
     return isFuture && canCancelStatus;
   };
 
+  const canConfirmOrReject = () => {
+    if (!appointment) return false;
+    return appointment.status === "PENDING";
+  };
+
+  // Determine what booking information to show based on user role and ID
+  const shouldShowBookedFor = () => {
+    // If user is STUDENT, don't show "booked for" person
+    if (user?.role === "STUDENT") {
+      return false;
+    }
+    return true;
+  };
+
+  const shouldShowBookedBy = () => {
+    // If user is PARENT and userId matches bookedBy.id, don't show "booked by" person
+    if (user?.role === "PARENT" && user?.id === appointment.bookedBy?.id) {
+      return false;
+    }
+    return true;
+  };
+
   // Event handlers
   const handleCancelAppointment = () => setShowCancelModal(true);
+
+  const handleConfirmAppointment = () => setShowConfirmModal(true);
+
+  const handleRejectAppointment = () => setShowRejectModal(true);
+
+  const handleConfirmAppointmentAction = async () => {
+    try {
+      setLoading(true);
+      await updateAppointmentStatus(appointment.id, "CONFIRMED");
+
+      Alert.alert("Thành công", "Đã xác nhận lịch hẹn thành công!", [
+        {
+          text: "OK",
+          onPress: () => {
+            setShowConfirmModal(false);
+            navigation.goBack();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      Alert.alert("Lỗi", "Không thể xác nhận lịch hẹn. Vui lòng thử lại sau.", [
+        { text: "OK" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRejectAppointmentAction = async () => {
+    try {
+      setLoading(true);
+      console.log("Rejecting appointment:", appointment.id);
+
+      Alert.alert("Thành công", "Đã từ chối lịch hẹn!", [
+        {
+          text: "OK",
+          onPress: () => {
+            setShowRejectModal(false);
+            navigation.goBack();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error("Error rejecting appointment:", error);
+      Alert.alert("Lỗi", "Không thể từ chối lịch hẹn. Vui lòng thử lại sau.", [
+        { text: "OK" },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleConfirmCancel = async () => {
     try {
@@ -315,8 +396,16 @@ const AppointmentDetails = ({ route, navigation }) => {
     );
   }
 
+  // Check if bookFor and bookBy are the same person
+  const isSamePerson = () => {
+    if (!appointment.bookedFor || !appointment.bookedBy) return false;
+    return appointment.bookedFor.id === appointment.bookedBy.id;
+  };
+
   const statusConfig = getStatusConfig(appointment.status);
-  const hostConfig = getHostTypeConfig(appointment.hostType);
+  const hostConfig = getHostTypeConfig(
+    appointment.hostedBy?.roleName || appointment.slot?.roleName
+  );
 
   return (
     <Container>
@@ -356,7 +445,9 @@ const AppointmentDetails = ({ route, navigation }) => {
 
           <View style={styles.appointmentTitle}>
             <Text style={styles.titleText}>Lịch hẹn với</Text>
-            <Text style={styles.hostNameText}>{appointment.hostName}</Text>
+            <Text style={styles.hostNameText}>
+              {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+            </Text>
           </View>
         </View>
 
@@ -383,7 +474,9 @@ const AppointmentDetails = ({ route, navigation }) => {
               />
             </LinearGradient>
             <View style={styles.hostInfo}>
-              <Text style={styles.hostName}>{appointment.hostName}</Text>
+              <Text style={styles.hostName}>
+                {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+              </Text>
               <Text style={styles.hostType}>{hostConfig.text}</Text>
               <View style={styles.onlineStatus}>
                 <View
@@ -477,49 +570,93 @@ const AppointmentDetails = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* Booking Information */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Ionicons
-              name="people"
-              size={20}
-              color={GlobalStyles.colors.primary}
-            />
-            <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
-          </View>
-
-          <View style={styles.detailsCard}>
-            <View style={styles.detailRow}>
-              <View style={styles.detailIcon}>
-                <Ionicons name="person-outline" size={20} color="#6B7280" />
-              </View>
-              <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Người đặt</Text>
-                <Text style={styles.detailValue}>{appointment.bookByName}</Text>
-              </View>
+        {/* Booking Information - conditionally displayed */}
+        {shouldShowBookedFor() && appointment.bookedFor && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Ionicons
+                name="people"
+                size={20}
+                color={GlobalStyles.colors.primary}
+              />
+              <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
             </View>
 
-            {appointment.bookForName && (
-              <>
-                <View style={styles.divider} />
+            <View style={styles.detailsCard}>
+              <View style={styles.detailRow}>
+                <View style={styles.detailIcon}>
+                  <Ionicons name="person-outline" size={20} color="#6B7280" />
+                </View>
+                <View style={styles.detailContent}>
+                  <Text style={styles.detailLabel}>
+                    {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
+                  </Text>
+                  <Text style={styles.detailValue}>
+                    {isSamePerson()
+                      ? appointment.bookedBy?.fullName
+                      : appointment.bookedFor?.fullName}
+                  </Text>
+                </View>
+              </View>
+
+              {!isSamePerson() &&
+                shouldShowBookedBy() &&
+                appointment.bookedBy && (
+                  <>
+                    <View style={styles.divider} />
+                    <View style={styles.detailRow}>
+                      <View style={styles.detailIcon}>
+                        <Ionicons
+                          name="people-outline"
+                          size={20}
+                          color="#6B7280"
+                        />
+                      </View>
+                      <View style={styles.detailContent}>
+                        <Text style={styles.detailLabel}>Đặt bởi</Text>
+                        <Text style={styles.detailValue}>
+                          {appointment.bookedBy?.fullName}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                )}
+            </View>
+          </View>
+        )}
+
+        {/* Show booked by only if booked for is not shown and we should show booked by */}
+        {!shouldShowBookedFor() &&
+          shouldShowBookedBy() &&
+          appointment.bookedBy && (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons
+                  name="people"
+                  size={20}
+                  color={GlobalStyles.colors.primary}
+                />
+                <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
+              </View>
+
+              <View style={styles.detailsCard}>
                 <View style={styles.detailRow}>
                   <View style={styles.detailIcon}>
                     <Ionicons name="people-outline" size={20} color="#6B7280" />
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Đặt cho</Text>
+                    <Text style={styles.detailLabel}>Đặt bởi</Text>
                     <Text style={styles.detailValue}>
-                      {appointment.bookForName}
+                      {appointment.bookedBy?.fullName}
                     </Text>
                   </View>
                 </View>
-              </>
-            )}
-          </View>
-        </View>
+              </View>
+            </View>
+          )}
 
         {/* Reason */}
-        {appointment.reason && (
+        {appointment.reasonBooking && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons
@@ -531,7 +668,7 @@ const AppointmentDetails = ({ route, navigation }) => {
             </View>
 
             <View style={styles.reasonCard}>
-              <Text style={styles.reasonText}>{appointment.reason}</Text>
+              <Text style={styles.reasonText}>{appointment.reasonBooking}</Text>
             </View>
           </View>
         )}
@@ -550,6 +687,32 @@ const AppointmentDetails = ({ route, navigation }) => {
         </View>
       )}
 
+      {/* Confirm/Reject Buttons for PENDING status */}
+      {canConfirmOrReject() && (
+        <View style={styles.actionContainer}>
+          <View style={styles.actionButtonsRow}>
+            <TouchableOpacity
+              style={styles.rejectButton}
+              onPress={handleRejectAppointment}
+            >
+              <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
+              <Text style={styles.rejectButtonText}>Từ chối</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.confirmButton}
+              onPress={handleConfirmAppointment}
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={20}
+                color="#10B981"
+              />
+              <Text style={styles.confirmButtonText}>Xác nhận</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Modals */}
       <ConfirmModal
         visible={showCancelModal}
@@ -559,6 +722,28 @@ const AppointmentDetails = ({ route, navigation }) => {
         cancelText="Giữ lại"
         onConfirm={handleConfirmCancel}
         onCancel={() => setShowCancelModal(false)}
+        type="danger"
+      />
+
+      <ConfirmModal
+        visible={showConfirmModal}
+        title="Xác nhận lịch hẹn"
+        message="Bạn có chắc chắn muốn xác nhận lịch hẹn này không?"
+        confirmText="Xác nhận"
+        cancelText="Hủy"
+        onConfirm={handleConfirmAppointmentAction}
+        onCancel={() => setShowConfirmModal(false)}
+        type="success"
+      />
+
+      <ConfirmModal
+        visible={showRejectModal}
+        title="Từ chối lịch hẹn"
+        message="Bạn có chắc chắn muốn từ chối lịch hẹn này không?"
+        confirmText="Từ chối"
+        cancelText="Hủy"
+        onConfirm={handleRejectAppointmentAction}
+        onCancel={() => setShowRejectModal(false)}
         type="danger"
       />
 
@@ -854,6 +1039,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
   },
+  actionButtonsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
   cancelButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -867,6 +1057,40 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: "#EF4444",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  rejectButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  rejectButtonText: {
+    color: "#EF4444",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  confirmButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ECFDF5",
+    borderWidth: 1,
+    borderColor: "#D1FAE5",
+    borderRadius: 12,
+    paddingVertical: 16,
+    gap: 8,
+  },
+  confirmButtonText: {
+    color: "#10B981",
     fontSize: 16,
     fontWeight: "600",
   },

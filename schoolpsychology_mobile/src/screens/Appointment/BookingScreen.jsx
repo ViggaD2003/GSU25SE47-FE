@@ -11,11 +11,10 @@ import {
   TextInput,
   Switch,
 } from "react-native";
-import { Container, Loading, Alert as AlertComponent } from "../../components";
+import { Container, Loading } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../contexts";
-import Dropdown from "../../components/common/Dropdown";
-import SlotDayCard from "../../components/common/SlotDayCard";
+import { Dropdown, SlotDayCard } from "../../components";
 import { getSlotsWithHostById } from "../../services/api/SlotService";
 import {
   getAllCounselors,
@@ -24,10 +23,6 @@ import {
 import { Toast } from "../../components";
 import CalendarService from "../../services/CalendarService";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import timezone from "dayjs/plugin/timezone";
-import localeData from "dayjs/plugin/localeData";
-import "dayjs/locale/vi";
 import {
   processAndFilterSlots,
   getAvailableDaysWithTimeValidation,
@@ -35,18 +30,9 @@ import {
   hasAvailableSlots,
 } from "../../utils/slotUtils";
 import { ActivityIndicator } from "react-native-paper";
-import { log } from "console";
 
-// Extend dayjs with plugins
-dayjs.extend(utc);
-dayjs.extend(timezone);
-dayjs.extend(localeData);
-dayjs.locale("vi");
-
-const { width } = Dimensions.get("window");
 const VISIBLE_DAYS = 2;
 const VN_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSS[Z]";
-const LOCALES = "vi-VN";
 
 const BookingScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -61,7 +47,6 @@ const BookingScreen = ({ navigation }) => {
 
   // State for slot selection
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [slots, setSlots] = useState([]);
   const [groupedSlots, setGroupedSlots] = useState({});
   const [loadingSlots, setLoadingSlots] = useState(false);
 
@@ -152,13 +137,13 @@ const BookingScreen = ({ navigation }) => {
 
       // Xác định API call dựa trên role và host type
       if (hostType.value === "teacher") {
+        console.log("user?.teacherId", user);
         response = await getSlotsWithHostById(
           selectedChild?.teacherId || user?.teacherId
         );
       } else if (hostType.value === "counselor" && selectedCounselor) {
         response = await getSlotsWithHostById(selectedCounselor.id);
       } else {
-        setSlots([]);
         setLoadingSlots(false);
         return;
       }
@@ -168,7 +153,6 @@ const BookingScreen = ({ navigation }) => {
       const slotsData = Array.isArray(response)
         ? response
         : response.data || [];
-      setSlots(slotsData.filter((slot) => slot.slotType === "APPOINTMENT"));
 
       // Process and filter slots by date with time validation
       const processedGrouped = processAndFilterSlots(slotsData);
@@ -178,7 +162,6 @@ const BookingScreen = ({ navigation }) => {
       setToastMessage("Không thể tải danh sách lịch hẹn");
       setToastType("error");
       setShowToast(true);
-      setSlots([]);
       setGroupedSlots({});
       setVisibleDays(VISIBLE_DAYS); // Reset to initial state
     } finally {
@@ -197,7 +180,6 @@ const BookingScreen = ({ navigation }) => {
     setHostType(type);
     setSelectedCounselor(null);
     setSelectedSlot(null);
-    setSlots([]);
     setGroupedSlots({});
     setVisibleDays(VISIBLE_DAYS); // Reset to initial state
   };
@@ -206,7 +188,6 @@ const BookingScreen = ({ navigation }) => {
   const handleCounselorSelect = (counselor) => {
     setSelectedCounselor(counselor);
     setSelectedSlot(null);
-    setSlots([]);
     setGroupedSlots({});
     setVisibleDays(VISIBLE_DAYS); // Reset to initial state
   };
@@ -253,6 +234,7 @@ const BookingScreen = ({ navigation }) => {
         ? "Giáo viên chủ nhiệm"
         : selectedCounselor?.name || "Tư vấn viên"
     }
+${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
 • Ngày: ${dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
 • Thời gian: ${
       dayjs(
@@ -292,7 +274,7 @@ const BookingScreen = ({ navigation }) => {
             const bookingData = {
               slotId: selectedSlot.id,
               bookedForId:
-                user?.role === "PARENTS" ? bookedForId : user?.userId,
+                user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
               isOnline: isOnline,
               startDateTime: dayjs(selectedSlot.selectedStartTime).format(
                 VN_FORMAT
@@ -300,7 +282,7 @@ const BookingScreen = ({ navigation }) => {
               endDateTime: dayjs(selectedSlot.selectedEndTime).format(
                 VN_FORMAT
               ),
-              reason: reason || "Không có lý do",
+              reasonBooking: reason || "Không có lý do",
             };
 
             console.log("Booking data:", bookingData);
@@ -405,7 +387,6 @@ const BookingScreen = ({ navigation }) => {
         setHostType(null);
         setSelectedCounselor(null);
         setSelectedSlot(null);
-        setSlots([]);
         setGroupedSlots({});
         setVisibleDays(VISIBLE_DAYS);
         setIsOnline(false);
@@ -416,7 +397,6 @@ const BookingScreen = ({ navigation }) => {
 
         // Reset child selection if no child is pre-selected from global variable
         if (!global.selectedChildForAppointment) {
-          setSelectedChild(null);
           setBookedForId(user?.id || null);
         }
       };
@@ -513,7 +493,6 @@ const BookingScreen = ({ navigation }) => {
                     setHostType(null);
                     setSelectedCounselor(null);
                     setSelectedSlot(null);
-                    setSlots([]);
                     setGroupedSlots({});
                   }}
                 />

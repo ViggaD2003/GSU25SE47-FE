@@ -1,4 +1,36 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+/**
+ * QuestionTabs Component
+ *
+ * Enhanced with dynamic answer generation based on category scoring ranges.
+ *
+ * Features:
+ * - Automatically generates answers based on category's minScore and maxScore
+ * - Provides contextually appropriate answer text using the improved scoring system
+ * - Supports manual editing of generated answers
+ * - Shows current scoring range information
+ * - Regenerates answers when category changes
+ * - Validates question count for limited surveys
+ *
+ * Usage:
+ * The component expects categories to have minScore, maxScore, isLimited, and questionLength properties.
+ *
+ * Example category structure:
+ * {
+ *   id: 2,
+ *   name: "Social",
+ *   code: "SOC",
+ *   description: "Social Behavior",
+ *   isSum: false,
+ *   isLimited: true,
+ *   questionLength: 5,
+ *   severityWeight: 1,
+ *   isActive: true,
+ *   maxScore: 50,
+ *   minScore: 10
+ * }
+ */
+
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Form,
   Input,
@@ -7,299 +39,542 @@ import {
   Select,
   Row,
   Col,
-  Space,
   InputNumber,
   Tabs,
+  Typography,
 } from 'antd'
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
-import { surveyCode as surveyCodeConfig } from '@constants/surveyData'
+import { QUESTION_TYPE } from '../../../constants/enums'
+import { IMPROVED_SCORING_SYSTEM } from '../../../constants/improvedAssessmentScoring'
 
 const { Option } = Select
+const { Text } = Typography
 
 const QuestionTabs = ({
   t,
   fields,
   add,
   remove,
-  surveyCode,
-  resetTabKey,
   selectedCategory,
-  categories,
   messageApi,
 }) => {
   const [activeKey, setActiveKey] = useState()
-  const prevFieldsLength = useRef(0)
-  const isInitialized = useRef(false)
 
-  // Get survey limitations based on current selection
-  const getSurveyLimitations = useMemo(() => {
-    if (!surveyCode || !selectedCategory || !categories)
-      return { isLimited: false, maxQuestions: null }
+  // Function to get current category data
+  const getCurrentCategory = useCallback(() => {
+    if (!selectedCategory) return null
+    return selectedCategory
+  }, [selectedCategory])
 
-    const category = categories.find(cat => cat.id === selectedCategory)
-    if (!category) return { isLimited: false, maxQuestions: null }
+  // Function to validate question count for limited surveys
+  const validateQuestionCount = useCallback((currentCount, categoryData) => {
+    if (!categoryData) return { isValid: true, message: null }
 
-    const categoryCode = category.code
-    const surveyInfo = surveyCodeConfig[categoryCode]?.find(
-      code => code.code === surveyCode
-    )
+    const { isLimited, questionLength, code } = categoryData
 
-    return {
-      isLimited: surveyInfo?.limitedQuestions || false,
-      maxQuestions: surveyInfo?.length || null,
-      surveyInfo,
-    }
-  }, [surveyCode, selectedCategory, categories])
-
-  // Check if current survey code has limited questions and forces required
-  const isLimitedSurvey = surveyCode === 'GAD-7' || surveyCode === 'PHQ-9'
-
-  // Check if add button should be disabled
-  const isAddDisabled =
-    getSurveyLimitations.isLimited &&
-    fields.length >= getSurveyLimitations.maxQuestions
-
-  useEffect(() => {
-    if (!isInitialized.current && fields.length === 0) {
-      addQuestion()
-      isInitialized.current = true
-    }
-  }, [fields.length, add])
-
-  useEffect(() => {
-    if (fields.length > prevFieldsLength.current) {
-      const newKey = fields[fields.length - 1].key.toString()
-      setActiveKey(newKey)
-    }
-    prevFieldsLength.current = fields.length
-  }, [fields])
-
-  useEffect(() => {
-    if (fields.length > 0 && !activeKey) {
-      setActiveKey(fields[0].key.toString())
-    }
-  }, [fields, activeKey])
-
-  // Reset to first tab when resetTabKey changes
-  useEffect(() => {
-    if (resetTabKey && fields.length > 0) {
-      setActiveKey(fields[0].key.toString())
-    }
-  }, [resetTabKey, fields])
-
-  const addQuestion = useCallback(() => {
-    add({
-      required: true, // Always default to required
-      questionType: 'LINKERT_SCALE',
-      answers: [
-        { text: '', score: 0 },
-        { text: '', score: 1 },
-        { text: '', score: 2 },
-        { text: '', score: 3 },
-      ],
-    })
-  }, [add])
-
-  const removeQuestion = targetKey => {
-    const index = fields.findIndex(field => field.key.toString() === targetKey)
-    if (index > -1) {
-      if (activeKey === targetKey) {
-        if (fields.length > 1) {
-          const newIndex = index > 0 ? index - 1 : 0
-          setActiveKey(fields[newIndex].key.toString())
-        } else {
-          setActiveKey(undefined)
+    if (isLimited && questionLength !== null) {
+      if (currentCount > questionLength) {
+        return {
+          isValid: false,
+          message: `This survey type (${code}) is limited to ${questionLength} questions. You currently have ${currentCount} questions.`,
+        }
+      } else if (currentCount < questionLength) {
+        return {
+          isValid: false,
+          message: `This survey type (${code}) requires exactly ${questionLength} questions. You currently have ${currentCount} questions.`,
         }
       }
-      remove(index)
     }
-  }
+
+    return { isValid: true, message: null }
+  }, [])
+
+  // Function to get category scoring range
+  const getCategoryScoringRange = useCallback(() => {
+    const category = getCurrentCategory()
+    if (!category) {
+      return { minScore: 0, maxScore: 5 } // Default range
+    }
+
+    // Use category's minScore and maxScore properties
+    if (category.minScore !== undefined && category.maxScore !== undefined) {
+      return { minScore: category.minScore, maxScore: category.maxScore }
+    }
+
+    // Fallback to default range
+    return { minScore: 0, maxScore: 5 }
+  }, [getCurrentCategory])
+
+  // Function to generate answer text based on score
+  const generateAnswerText = useCallback((score, minScore, maxScore) => {
+    const severityLevels = IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS
+    const frequencyGuidelines =
+      IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.frequency
+    const impairmentGuidelines =
+      IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.impairment
+
+    // Normalize score to 0-5 range for text generation
+    const normalizedScore = Math.round(
+      ((score - minScore) * 5) / (maxScore - minScore)
+    )
+    const clampedScore = Math.max(0, Math.min(5, normalizedScore))
+
+    // Get severity level text
+    const severityText =
+      severityLevels[clampedScore]?.label || `Mức độ ${score}`
+
+    // Get frequency text
+    const frequencyText =
+      frequencyGuidelines[clampedScore] || `Tần suất ${score}`
+
+    // Get impairment text
+    const impairmentText =
+      impairmentGuidelines[clampedScore] || `Ảnh hưởng ${score}`
+
+    // For very small ranges (1-2 points), use simple labels
+    if (maxScore - minScore <= 2) {
+      if (score === minScore) return 'Không có'
+      if (score === maxScore) return 'Có'
+      return `Mức độ ${score}`
+    }
+
+    // For small ranges (3-4 points), use basic severity labels
+    if (maxScore - minScore <= 4) {
+      if (clampedScore <= 1) return 'Thấp'
+      if (clampedScore <= 2) return 'Trung bình thấp'
+      if (clampedScore <= 3) return 'Trung bình'
+      return 'Cao'
+    }
+
+    // For larger ranges, use more detailed text
+    if (clampedScore <= 1) {
+      return `${severityText} - ${frequencyText}`
+    } else if (clampedScore <= 3) {
+      return `${severityText} - ${impairmentText}`
+    } else {
+      return `${severityText} - ${frequencyText}`
+    }
+  }, [])
+
+  // Function to generate answers based on minScore and maxScore
+  const generateAnswers = useCallback(
+    (minScore, maxScore) => {
+      const answers = []
+      const scoreRange = maxScore - minScore + 1
+
+      for (let i = 0; i < scoreRange; i++) {
+        const score = minScore + i
+        const text = generateAnswerText(score, minScore, maxScore)
+        answers.push({ text, score })
+      }
+
+      return answers
+    },
+    [generateAnswerText]
+  )
+
+  // Define addQuestion function before useEffect hooks that depend on it
+  const addQuestion = useCallback(() => {
+    const { minScore, maxScore } = getCategoryScoringRange()
+    const answers = generateAnswers(minScore, maxScore)
+
+    add({
+      isRequired: true, // Always default to required
+      questionType: QUESTION_TYPE.LINKERT_SCALE,
+      answers: answers,
+    })
+  }, [add, getCategoryScoringRange, generateAnswers])
+
+  // Tách logic thành các functions riêng biệt
+  const updateQuestionAnswers = useCallback(
+    answers => {
+      fields.forEach((field, index) => {
+        const form = field.field?.form
+        if (form) {
+          form.setFieldsValue({
+            [`questions[${index}].answers`]: answers,
+          })
+        }
+      })
+    },
+    [fields]
+  )
+
+  const adjustQuestionCount = useCallback(
+    targetCount => {
+      const currentCount = fields.length
+
+      if (currentCount < targetCount) {
+        // Add missing questions
+        const questionsToAdd = targetCount - currentCount
+        for (let i = 0; i < questionsToAdd; i++) {
+          addQuestion()
+        }
+      } else if (currentCount > targetCount) {
+        // Remove excess questions (keep the first ones)
+        const questionsToRemove = currentCount - targetCount
+        for (let i = 0; i < questionsToRemove; i++) {
+          const lastField = fields[fields.length - 1 - i]
+          if (lastField) {
+            remove(lastField.key)
+          }
+        }
+      }
+    },
+    [fields, addQuestion, remove]
+  )
+
+  // Cải thiện useEffect chính
+  useEffect(() => {
+    if (!selectedCategory) return
+
+    try {
+      const category = getCurrentCategory()
+      const { isLimited, questionLength } = category || {}
+
+      // Generate new answers based on category scoring
+      const { minScore, maxScore } = getCategoryScoringRange()
+      const answers = generateAnswers(minScore, maxScore)
+
+      // Update existing questions with new answers
+      if (fields.length > 0) {
+        updateQuestionAnswers(answers)
+      }
+
+      // Handle question count for limited surveys
+      if (isLimited) {
+        adjustQuestionCount(questionLength)
+      } else {
+        // console.log('adjustQuestionCount')
+        adjustQuestionCount(1)
+      }
+    } catch (error) {
+      console.error('Error updating questions for category change:', error)
+      messageApi?.error('Failed to update questions. Please try again.')
+    }
+  }, [selectedCategory]) // Chỉ depend on selectedCategory
+
+  // Watch for new fields being added and set active key to the newest tab
+  useEffect(() => {
+    if (fields.length > 0) {
+      // Set active key to the last (newest) tab
+      const lastField = fields[fields.length - 1]
+      if (lastField) {
+        setActiveKey(lastField.key.toString())
+      }
+    }
+  }, [fields]) // Only depend on fields.length to avoid infinite loops
 
   const onEdit = (targetKey, action) => {
     if (action === 'add') {
-      // Check if adding is disabled due to question limit
-      if (isAddDisabled) {
-        messageApi.warning(
-          `${surveyCode} survey requires exactly ${getSurveyLimitations.maxQuestions} questions. Cannot add more.`
-        )
+      // Get category data for validation
+      const category = getCurrentCategory()
+
+      // Validate before adding
+      const validation = validateQuestionCount(fields.length + 1, category)
+      if (!validation.isValid) {
+        messageApi.warning(validation.message)
         return
       }
+
       addQuestion()
     } else if (action === 'remove') {
-      removeQuestion(targetKey)
+      // Get category data for validation
+      const category = getCurrentCategory()
+
+      // For removal, we need to check if we can remove without violating constraints
+      const newCount = fields.length - 1
+
+      // Always allow removal if we have more than 1 question
+      if (fields.length <= 1) {
+        messageApi.warning('At least one question is required')
+        return
+      }
+
+      // For limited surveys, check if removal would violate the constraint
+      if (category && category.isLimited && category.questionLength !== null) {
+        if (newCount < category.questionLength) {
+          messageApi.warning(
+            `This survey type (${category.code}) requires exactly ${category.questionLength} questions. Cannot remove question.`
+          )
+          return
+        }
+      }
+
+      console.log('Removing tab with key:', targetKey)
+      console.log('Current fields:', fields)
+      console.log('Remove function:', remove)
+
+      // Proceed with removal
+      // Find the field by key and use its name for removal
+      const fieldToRemove = fields.find(
+        field => field.key.toString() === targetKey.toString()
+      )
+      if (fieldToRemove) {
+        console.log('Field to remove:', fieldToRemove)
+        remove(fieldToRemove.name)
+      } else {
+        console.error('Field not found for key:', targetKey)
+        messageApi.error('Failed to remove question. Please try again.')
+      }
+
+      // Set active key to the previous tab if current tab is removed
+      const currentIndex = fields.findIndex(
+        field => field.key.toString() === targetKey.toString()
+      )
+      if (currentIndex > 0) {
+        setActiveKey(fields[currentIndex - 1].key.toString())
+      } else if (fields.length > 1) {
+        setActiveKey(fields[1].key.toString())
+      }
     }
   }
 
-  const items = useMemo(() => {
-    return fields.map(({ key, name, ...restField }, index) => ({
-      label: `${t('surveyManagement.form.question')} ${index + 1}`,
-      key: key.toString(),
-      children: (
-        <div className="px-5">
-          <Row gutter={16} align={'bottom'}>
-            <Col span={16}>
-              <Form.Item
-                {...restField}
-                name={[name, 'text']}
-                label={'Question'}
-                rules={[
-                  {
-                    required: true,
-                    message: 'Question text is required',
-                  },
-                ]}
-              >
-                <Input placeholder="Question Text" />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                {...restField}
-                name={[name, 'required']}
-                valuePropName="checked"
-                initialValue={isLimitedSurvey ? true : undefined}
-              >
-                <Checkbox disabled={isLimitedSurvey}>
-                  Required
-                  {isLimitedSurvey && (
-                    <span
-                      style={{
-                        color: '#666',
-                        fontSize: '12px',
-                        marginLeft: '8px',
-                      }}
-                    >
-                      (Bắt buộc cho {surveyCode})
-                    </span>
-                  )}
-                </Checkbox>
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item
-            {...restField}
-            name={[name, 'description']}
-            label="Description"
-          >
-            <Input placeholder="Question Description" />
-          </Form.Item>
-          <Form.Item
-            {...restField}
-            name={[name, 'questionType']}
-            label="Question Type"
-          >
-            <Select>
-              <Option value="LINKERT_SCALE">Linkert Scale</Option>
-              <Option value="MULTIPLE_CHOICE">Multiple Choice</Option>
-              <Option value="TEXT">Text</Option>
-            </Select>
-          </Form.Item>
-          <>
-            <Form.Item
-              {...restField}
-              hidden
-              name={[name, 'moduleType']}
-              label="Module Type"
-              initialValue="SURVEY"
-            >
-              <Input disabled />
-            </Form.Item>
-          </>
+  const renderQuestionForm = (field, index) => {
+    // Extract key and other properties to avoid spreading key prop
+    const { key, ...fieldProps } = field
 
-          <div>
-            <Form.List name={[name, 'answers']}>
-              {(answerFields, { add: addAnswer, remove: removeAnswer }) => (
-                <>
-                  <Row gutter={16}>
-                    {answerFields.map(
-                      ({
-                        key: answerKey,
-                        name: answerName,
-                        ...restAnswerField
-                      }) => (
-                        <Space
-                          key={answerKey}
-                          style={{
-                            display: 'flex',
-                            marginBottom: 8,
-                            marginLeft: 10,
-                          }}
-                          align="baseline"
-                        >
-                          <Form.Item
-                            {...restAnswerField}
-                            name={[answerName, 'text']}
-                            rules={[
-                              {
-                                required: true,
-                                message: 'Answer text is required',
-                              },
-                            ]}
-                          >
-                            <Input placeholder="Answer Text" />
-                          </Form.Item>
-                          <Form.Item
-                            {...restAnswerField}
-                            name={[answerName, 'score']}
-                            rules={[
-                              {
-                                required: true,
-                                message: 'Score is required',
-                              },
-                            ]}
-                          >
-                            <InputNumber
-                              placeholder="Score"
-                              style={{ width: 50 }}
-                            />
-                          </Form.Item>
-                          <MinusCircleOutlined
-                            style={{ color: 'red' }}
-                            onClick={() => removeAnswer(answerName)}
-                          />
-                        </Space>
+    return (
+      <div key={key} style={{ padding: '16px 0' }}>
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              {...fieldProps}
+              name={[field.name, 'text']}
+              label={`${t('surveyManagement.form.question')} ${index + 1}`}
+              rules={[
+                {
+                  required: true,
+                  message: 'Please enter question text',
+                },
+              ]}
+            >
+              <Input.TextArea
+                rows={2}
+                placeholder="Enter your question here..."
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item
+              {...fieldProps}
+              name={[field.name, 'description']}
+              label="Description (Optional)"
+            >
+              <Input.TextArea
+                rows={2}
+                placeholder="Enter question description..."
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row gutter={16} className="flex items-end">
+          <Col span={12}>
+            <Form.Item
+              {...fieldProps}
+              name={[field.name, 'questionType']}
+              label="Question Type"
+              rules={[
+                {
+                  required: true,
+                  message: 'Please select question type',
+                },
+              ]}
+            >
+              <Select placeholder="Select question type">
+                {Object.values(QUESTION_TYPE).map(type => (
+                  <Option key={type} value={type}>
+                    {t(`surveyManagement.enums.questionType.${type}`)}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              {...fieldProps}
+              name={[field.name, 'isRequired']}
+              valuePropName="checked"
+            >
+              <Checkbox>Required</Checkbox>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* Answers Section */}
+        <Form.List name={[field.name, 'answers']}>
+          {(answerFields, { add: addAnswer, remove: removeAnswer }) => {
+            const { minScore, maxScore } = getCategoryScoringRange()
+            return (
+              <div>
+                <div style={{ marginBottom: 8 }}>
+                  <Text strong>Answers:</Text>
+                  <Text type="secondary" style={{ marginLeft: 8 }}>
+                    (Score range: {minScore} - {maxScore})
+                  </Text>
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      const newScore = maxScore + 1
+                      const newText = generateAnswerText(
+                        newScore,
+                        minScore,
+                        newScore
                       )
-                    )}
-                  </Row>
-                  <Form.Item>
-                    <Button
-                      type="dashed"
-                      onClick={() => addAnswer()}
-                      block
-                      icon={<PlusOutlined />}
-                    >
-                      Add Answer
-                    </Button>
-                  </Form.Item>
-                </>
-              )}
-            </Form.List>
-          </div>
-        </div>
-      ),
-    }))
-  }, [fields, t, isLimitedSurvey, surveyCode])
+                      addAnswer({ text: newText, score: newScore })
+                    }}
+                    icon={<PlusOutlined />}
+                    style={{ marginLeft: 8 }}
+                  >
+                    Add Answer
+                  </Button>
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      const answers = generateAnswers(minScore, maxScore)
+                      // Reset all answers to generated ones
+                      answerFields.forEach((answerField, index) => {
+                        if (answers[index]) {
+                          const form = answerField.field?.form
+                          if (form) {
+                            form.setFieldsValue({
+                              [answerField.name]: answers[index],
+                            })
+                          }
+                        }
+                      })
+                    }}
+                    style={{ marginLeft: 8 }}
+                  >
+                    Regenerate Answers
+                  </Button>
+                </div>
+                {answerFields.map((answerField, _answerIndex) => {
+                  // Extract key and other properties to avoid spreading key prop
+                  const { key, ...answerFieldProps } = answerField
+
+                  return (
+                    <Row gutter={16} key={key} style={{ marginBottom: 8 }}>
+                      <Col span={8}>
+                        <Form.Item
+                          {...answerFieldProps}
+                          name={[answerField.name, 'text']}
+                          rules={[
+                            {
+                              required: true,
+                              message: 'Please enter answer text',
+                            },
+                          ]}
+                        >
+                          <Input placeholder="Answer text" />
+                        </Form.Item>
+                      </Col>
+                      <Col span={6}>
+                        <Form.Item
+                          {...answerFieldProps}
+                          name={[answerField.name, 'score']}
+                          rules={[
+                            {
+                              required: true,
+                              message: 'Please enter score',
+                            },
+                          ]}
+                        >
+                          <InputNumber
+                            placeholder="Score"
+                            min={minScore}
+                            max={maxScore + 10} // Allow some flexibility
+                            style={{ width: '100%' }}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={2}>
+                        <Button
+                          type="text"
+                          danger
+                          icon={<MinusCircleOutlined />}
+                          onClick={() => removeAnswer(answerField.name)}
+                          disabled={answerFields.length <= 1}
+                        />
+                      </Col>
+                    </Row>
+                  )
+                })}
+              </div>
+            )
+          }}
+        </Form.List>
+      </div>
+    )
+  }
 
   return (
     <div>
-      {/* Show limitation warning when approaching or at limit */}
-      {getSurveyLimitations.isLimited && (
-        <div style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              padding: '8px 12px',
-              backgroundColor: isAddDisabled ? '#fff2e8' : '#f6ffed',
-              border: `1px solid ${isAddDisabled ? '#ffbb96' : '#b7eb8f'}`,
-              borderRadius: '6px',
-              fontSize: '13px',
-            }}
-          >
-            <span style={{ color: isAddDisabled ? '#d4380d' : '#389e0d' }}>
-              📋 {surveyCode}: {fields.length}/
-              {getSurveyLimitations.maxQuestions} questions
-              {isAddDisabled && ' (Maximum reached)'}
-            </span>
-          </div>
+      {/* Scoring Information */}
+      {selectedCategory && (
+        <div
+          style={{
+            marginBottom: 16,
+            padding: 12,
+            backgroundColor: '#f6ffed',
+            border: '1px solid #b7eb8f',
+            borderRadius: 6,
+          }}
+        >
+          <Text strong>Scoring System Information:</Text>
+          <br />
+          <Text type="secondary">
+            Current category uses score range:{' '}
+            {getCategoryScoringRange().minScore} -{' '}
+            {getCategoryScoringRange().maxScore}
+            <br />
+            Answers will be automatically generated based on this range. You can
+            manually edit the text and scores as needed.
+          </Text>
+
+          {/* Question Limitations Information */}
+          {(() => {
+            const category = getCurrentCategory()
+            if (!category) return null
+
+            const { isLimited, questionLength, code } = category
+            const validation = validateQuestionCount(fields.length, category)
+
+            if (isLimited && questionLength) {
+              return (
+                <div style={{ marginTop: 8 }}>
+                  <Text
+                    strong
+                    style={{
+                      color: validation.isValid ? '#52c41a' : '#ff4d4f',
+                    }}
+                  >
+                    Question Limitations:
+                  </Text>
+                  <br />
+                  <Text type="secondary">
+                    This survey type ({code}) requires exactly {questionLength}{' '}
+                    questions.
+                    <br />
+                    Current: {fields.length} / {questionLength} questions
+                    {!validation.isValid && (
+                      <Text
+                        type="danger"
+                        style={{ display: 'block', marginTop: 4 }}
+                      >
+                        ⚠️ {validation.message}
+                      </Text>
+                    )}
+                  </Text>
+                </div>
+              )
+            }
+            return null
+          })()}
         </div>
       )}
 
@@ -308,7 +583,22 @@ const QuestionTabs = ({
         onChange={setActiveKey}
         activeKey={activeKey}
         onEdit={onEdit}
-        items={items}
+        items={fields.map((field, index) => {
+          const category = getCurrentCategory()
+          const canRemove =
+            fields.length > 1 &&
+            (!category ||
+              !category.isLimited ||
+              !category.questionLength ||
+              fields.length > category.questionLength)
+
+          return {
+            label: `Question ${index + 1}`,
+            key: field.key.toString(),
+            children: renderQuestionForm(field, index),
+            closable: canRemove,
+          }
+        })}
       />
     </div>
   )

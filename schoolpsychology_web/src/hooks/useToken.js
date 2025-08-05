@@ -19,13 +19,13 @@ export const useToken = () => {
     getUserInfo: () =>
       decodedToken
         ? {
+            ...decodedToken,
             id: decodedToken.userId || decodedToken['user-id'],
-            email: decodedToken.sub || decodedToken.email,
+            email: decodedToken.email || decodedToken.sub,
             name: decodedToken.name || decodedToken.fullName,
             role: decodedToken.role
               ? String(decodedToken.role).toLowerCase()
               : 'user',
-            ...decodedToken,
           }
         : null,
     getExpirationTime: () => tokenInfo?.expirationTime,

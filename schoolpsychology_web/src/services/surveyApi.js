@@ -1,23 +1,37 @@
 import api from './api'
 
 export const surveyAPI = {
-  createSurvey: async surveyData => {
-    const response = await api.post('/api/v1/survey', surveyData)
-    return response.data
-  },
-
   getAllSurveys: async () => {
     const response = await api.get('/api/v1/survey')
     return response.data
   },
 
-  getCategories: async () => {
-    const response = await api.get('/api/v1/categories')
+  getSurveyById: async id => {
+    const response = await api.get(`/api/v1/survey/${id}`)
+    return response.data
+  },
+
+  getSurveyInCase: async () => {
+    const response = await api.get(`/api/v1/survey/get-by-account`)
+    return response.data
+  },
+
+  createSurvey: async surveyData => {
+    const response = await api.post('/api/v1/survey', surveyData)
     return response.data
   },
 
   updateSurvey: async (id, surveyData) => {
     const response = await api.put(`/api/v1/survey/${id}`, surveyData)
+    return response.data
+  },
+
+  removeCaseFromSurvey: async data => {
+    if (!data) return
+    const { surveyId, caseId } = data
+    const response = await api.delete(
+      `/api/v1/survey/${surveyId}/cases/${caseId}`
+    )
     return response.data
   },
 }

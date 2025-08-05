@@ -4,7 +4,7 @@ export const slotAPI = {
   // Get slots by host ID
   getSlots: async hostById => {
     try {
-      const response = await api.get(`/api/v1/slot?hostById=${hostById}`)
+      const response = await api.get(`/api/v1/slots?hostById=${hostById}`)
       return {
         success: true,
         data: response.data,
@@ -21,7 +21,7 @@ export const slotAPI = {
   createSlots: async slots => {
     try {
       // console.log('slots', slots)
-      const response = await api.post('/api/v1/slot', slots)
+      const response = await api.post('/api/v1/slots', slots)
       return {
         success: true,
         data: response.data,

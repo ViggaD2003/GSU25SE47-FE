@@ -1,25 +1,30 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
-import { Toast } from "../../components";
+import { Container, Toast } from "../../components";
 import {
   formatDate,
   getScoreColor,
   getScoreIcon,
   getScoreLevel,
+  getLevelDescription,
+  getInterventionRequired,
+  getSymptomsDescription,
 } from "../../utils/helpers";
+import { getSurveyRecordById } from "@/services/api/SurveyService";
 
 const SurveyResult = ({ route, navigation }) => {
-  const { survey, result, showRecordsButton } = route.params || {};
+  const { result, showRecordsButton, type } = route.params || {};
+  const [surveyRecord, setSurveyRecord] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -35,6 +40,28 @@ const SurveyResult = ({ route, navigation }) => {
   const hideToast = useCallback(() => {
     setToast({ visible: false, message: "", type: "info" });
   }, []);
+
+  const fetchSurveyRecord = async () => {
+    try {
+      setLoading(true);
+      const response = await getSurveyRecordById(result.id);
+      setSurveyRecord(response);
+    } catch (error) {
+      console.log("Lỗi khi lấy kết quả khảo sát:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log("type", type);
+    if (type === "submit") {
+      setSurveyRecord(result);
+      showToast("Đã lưu kết quả vào hồ sơ", "success");
+    } else {
+      fetchSurveyRecord();
+    }
+  }, [type, result]);
 
   const handleBackPress = useCallback(() => {
     if (route.params?.screen === "SurveyTaking") {
@@ -54,18 +81,38 @@ const SurveyResult = ({ route, navigation }) => {
     setShowAllAnswers(!showAllAnswers);
   }, [showAllAnswers, animation]);
 
-  const currentScore = result?.totalScore || 0;
-  const answerRecords = result?.answerRecords || [];
+  const currentScore = surveyRecord?.totalScore || 0;
+  const answerRecords = surveyRecord?.answerRecords || [];
   const hasAnswers = answerRecords.length > 0;
+  const isSkipped = surveyRecord?.isSkipped || false;
 
-  // Calculate summary stats
-  const answeredCount = answerRecords.filter(
-    (record) => !record.skipped
-  ).length;
-  const skippedCount = answerRecords.filter((record) => record.skipped).length;
+  // Calculate summary stats - only for non-skipped surveys
+  const answeredCount = isSkipped
+    ? 0
+    : answerRecords.filter((record) => !record.skipped).length;
+  const skippedCount = isSkipped
+    ? 0
+    : answerRecords.filter((record) => record.skipped).length;
+
+  const levelConfig = surveyRecord?.level;
+
+  if (loading) {
+    return (
+      <Container>
+        <View style={styles.loadingContainer}>
+          <Ionicons
+            name="refresh"
+            size={32}
+            color={GlobalStyles.colors.primary}
+          />
+          <Text style={styles.loadingText}>Đang tải thông tin khảo sát...</Text>
+        </View>
+      </Container>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Container>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
@@ -82,105 +129,217 @@ const SurveyResult = ({ route, navigation }) => {
         {/* Result Card */}
         <View style={styles.resultCard}>
           <View style={styles.resultHeader}>
-            <View style={styles.resultIcon}>
-              <Ionicons name="trophy" size={24} color={getScoreColor(result)} />
+            <View
+              style={[
+                styles.resultIcon,
+                { backgroundColor: isSkipped ? "#F3F4F6" : "#FEF3C7" },
+              ]}
+            >
+              <Ionicons
+                name={isSkipped ? "close-circle" : "trophy"}
+                size={24}
+                color={isSkipped ? "#6B7280" : getScoreColor(levelConfig)}
+              />
             </View>
             <View style={styles.resultInfo}>
-              <Text style={styles.resultTitle}>Kết quả khảo sát</Text>
-              <Text style={styles.resultSubtitle}>
-                {survey?.name || "Khảo sát tâm lý"}
+              <Text style={styles.resultTitle}>
+                {isSkipped ? "Khảo sát đã bỏ qua" : "Kết quả khảo sát"}
               </Text>
+              <Text style={styles.resultSubtitle}>
+                {surveyRecord?.survey?.title || "Khảo sát tâm lý"}
+              </Text>
+              {surveyRecord?.survey?.surveyType && (
+                <Text style={styles.surveyType}>
+                  {surveyRecord.survey.surveyType === "SCREENING"
+                    ? "Sàng lọc"
+                    : surveyRecord.survey.surveyType === "FOLLOWUP"
+                    ? "Theo dõi"
+                    : surveyRecord.survey.surveyType}
+                </Text>
+              )}
             </View>
           </View>
 
           {/* Score Display */}
-          <View style={styles.scoreContainer}>
-            <View
-              style={[
-                styles.scoreCircle,
-                { borderColor: getScoreColor(result) },
-              ]}
-            >
-              <Text
-                style={[styles.scoreText, { color: getScoreColor(result) }]}
+          {!isSkipped && (
+            <View style={styles.scoreContainer}>
+              <View
+                style={[
+                  styles.scoreCircle,
+                  { borderColor: getScoreColor(levelConfig) },
+                ]}
               >
-                {currentScore}
-              </Text>
-              <Text style={styles.scoreLabel}>điểm</Text>
-            </View>
-            <View style={styles.scoreInfo}>
-              <View style={styles.scoreIconContainer}>
-                <Ionicons
-                  name={getScoreIcon(result)}
-                  size={24}
-                  color={getScoreColor(result)}
-                />
+                <Text
+                  style={[
+                    styles.scoreText,
+                    { color: getScoreColor(levelConfig) },
+                  ]}
+                >
+                  {currentScore}
+                </Text>
+                <Text style={styles.scoreLabel}>điểm</Text>
               </View>
-              <Text
-                style={[styles.scoreLevel, { color: getScoreColor(result) }]}
-              >
-                {getScoreLevel(result)}
+              <View style={styles.scoreInfo}>
+                <View style={styles.scoreIconContainer}>
+                  <Ionicons
+                    name={getScoreIcon(levelConfig)}
+                    size={24}
+                    color={getScoreColor(levelConfig)}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.scoreLevel,
+                    { color: getScoreColor(levelConfig) },
+                  ]}
+                >
+                  {getScoreLevel(levelConfig)}
+                </Text>
+                {getLevelDescription(levelConfig) && (
+                  <Text style={styles.scoreDescription}>
+                    {getLevelDescription(levelConfig)}
+                  </Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {/* Skipped Display */}
+          {isSkipped && (
+            <View style={styles.skippedContainer}>
+              <View style={styles.skippedIcon}>
+                <Ionicons name="close-circle" size={48} color="#6B7280" />
+              </View>
+              <Text style={styles.skippedTitle}>Khảo sát đã bỏ qua</Text>
+              <Text style={styles.skippedSubtitle}>
+                Bạn đã chọn bỏ qua khảo sát này
               </Text>
             </View>
-          </View>
+          )}
 
           {/* Completion Info */}
           <View style={styles.completionInfo}>
             <View style={styles.completionItem}>
-              <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+              <Ionicons
+                name={isSkipped ? "close-circle" : "checkmark-circle"}
+                size={20}
+                color={isSkipped ? "#6B7280" : "#10B981"}
+              />
               <Text style={styles.completionText}>
-                Hoàn thành: {formatDate(result?.completedAt || new Date())}
+                {isSkipped ? "Bỏ qua" : "Hoàn thành"}:{" "}
+                {formatDate(surveyRecord?.completedAt || new Date())}
               </Text>
             </View>
-            {/* <View style={styles.completionItem}>
-              <Ionicons name="time" size={20} color="#6B7280" />
-              <Text style={styles.completionText}>
-                Thời gian làm: {result?.estimatedTime || "15 phút"}
-              </Text>
-            </View> */}
-          </View>
-        </View>
-
-        {/* Suggestions */}
-        {result?.noteSuggest && (
-          <View style={styles.suggestionsCard}>
-            <View style={styles.suggestionsHeader}>
-              <Ionicons name="bulb" size={24} color="#F59E0B" />
-              <Text style={styles.suggestionsTitle}>Gợi ý</Text>
-            </View>
-            <Text style={styles.suggestionsText}>{result?.noteSuggest}</Text>
-          </View>
-        )}
-
-        {/* Answer Summary */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <Ionicons name="list" size={24} color="#3B82F6" />
-            <Text style={styles.summaryTitle}>Tóm tắt câu trả lời</Text>
-          </View>
-
-          {/* Summary Stats */}
-          <View style={styles.summaryStats}>
-            <View style={styles.statItem}>
-              <View style={styles.statIcon}>
-                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-              </View>
-              <Text style={styles.statText}>
-                {answeredCount} câu đã trả lời
-              </Text>
-            </View>
-            {skippedCount > 0 && (
-              <View style={styles.statItem}>
-                <View style={styles.statIcon}>
-                  <Ionicons name="close-circle" size={16} color="#EF4444" />
-                </View>
-                <Text style={styles.statText}>{skippedCount} câu bỏ qua</Text>
+            {isSkipped && (
+              <View style={styles.completionItem}>
+                <Ionicons name="information-circle" size={20} color="#6B7280" />
+                <Text style={styles.completionText}>
+                  Không có dữ liệu kết quả để hiển thị
+                </Text>
               </View>
             )}
           </View>
+        </View>
 
-          {/* Toggle Button */}
-          {hasAnswers && (
+        {/* Level Information */}
+        {!isSkipped && levelConfig && (
+          <View style={styles.levelInfoCard}>
+            <View style={styles.levelInfoHeader}>
+              <Ionicons name="information-circle" size={24} color="#3B82F6" />
+              <Text style={styles.levelInfoTitle}>Thông tin mức độ</Text>
+            </View>
+
+            {getLevelDescription(levelConfig) && (
+              <View style={styles.levelInfoItem}>
+                <Text style={styles.levelInfoLabel}>Mô tả:</Text>
+                <Text style={styles.levelInfoText}>
+                  {getLevelDescription(levelConfig)}
+                </Text>
+              </View>
+            )}
+
+            {getSymptomsDescription(levelConfig) && (
+              <View style={styles.levelInfoItem}>
+                <Text style={styles.levelInfoLabel}>Triệu chứng:</Text>
+                <Text style={styles.levelInfoText}>
+                  {getSymptomsDescription(levelConfig)}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Skipped Survey Information */}
+        {isSkipped && (
+          <View style={styles.skippedInfoCard}>
+            <View style={styles.skippedInfoHeader}>
+              <Ionicons name="information-circle" size={24} color="#6B7280" />
+              <Text style={styles.skippedInfoTitle}>Thông tin khảo sát</Text>
+            </View>
+            <View style={styles.skippedInfoItem}>
+              <Text style={styles.skippedInfoLabel}>Trạng thái:</Text>
+              <Text style={styles.skippedInfoText}>Đã bỏ qua khảo sát</Text>
+            </View>
+            <View style={styles.skippedInfoItem}>
+              <Text style={styles.skippedInfoLabel}>Lý do:</Text>
+              <Text style={styles.skippedInfoText}>
+                Bạn đã chọn bỏ qua khảo sát này. Không có dữ liệu kết quả để
+                hiển thị.
+              </Text>
+            </View>
+            {surveyRecord?.survey?.description && (
+              <View style={styles.skippedInfoItem}>
+                <Text style={styles.skippedInfoLabel}>Mô tả khảo sát:</Text>
+                <Text style={styles.skippedInfoText}>
+                  {surveyRecord.survey.description}
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Suggestions */}
+        {!isSkipped && levelConfig && getInterventionRequired(levelConfig) && (
+          <View style={styles.suggestionsCard}>
+            <View style={styles.suggestionsHeader}>
+              <Ionicons name="bulb" size={24} color="#F59E0B" />
+              <Text style={styles.suggestionsTitle}>Gợi ý can thiệp</Text>
+            </View>
+            <Text style={styles.suggestionsText}>
+              {getInterventionRequired(levelConfig)}
+            </Text>
+          </View>
+        )}
+
+        {/* Answer Summary - Only show if not skipped and has answers */}
+        {!isSkipped && hasAnswers && (
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryHeader}>
+              <Ionicons name="list" size={24} color="#3B82F6" />
+              <Text style={styles.summaryTitle}>Tóm tắt câu trả lời</Text>
+            </View>
+
+            {/* Summary Stats */}
+            <View style={styles.summaryStats}>
+              <View style={styles.statItem}>
+                <View style={styles.statIcon}>
+                  <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                </View>
+                <Text style={styles.statText}>
+                  {answeredCount} câu đã trả lời
+                </Text>
+              </View>
+              {skippedCount > 0 && (
+                <View style={styles.statItem}>
+                  <View style={styles.statIcon}>
+                    <Ionicons name="close-circle" size={16} color="#EF4444" />
+                  </View>
+                  <Text style={styles.statText}>{skippedCount} câu bỏ qua</Text>
+                </View>
+              )}
+            </View>
+
+            {/* Toggle Button */}
             <TouchableOpacity
               style={styles.toggleButton}
               onPress={toggleAnswers}
@@ -202,57 +361,63 @@ const SurveyResult = ({ route, navigation }) => {
                 </Text>
               </View>
             </TouchableOpacity>
-          )}
 
-          {/* Answer Details */}
-          <Animated.View
-            style={[
-              styles.answerDetails,
-              {
-                maxHeight: animation.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, 1000],
-                }),
-                opacity: animation,
-              },
-            ]}
-          >
-            {answerRecords?.map((record, index) => (
-              <View key={index} style={styles.answerItem}>
-                <View style={styles.questionInfo}>
-                  <Text style={styles.questionNumber}>Câu {index + 1}</Text>
-                  <Text style={styles.questionText}>
-                    {record.questionResponse?.text || "Câu hỏi"}
-                  </Text>
-                </View>
-                <View style={styles.answerInfo}>
-                  <Text style={styles.answerLabel}>Trả lời:</Text>
-                  <Text style={styles.answerText}>
-                    {record.answerResponse?.text || "Chưa trả lời"}
-                  </Text>
-                </View>
-                {record.skipped && (
-                  <View style={styles.skippedBadge}>
-                    <Text style={styles.skippedText}>Bỏ qua</Text>
+            {/* Answer Details */}
+            <Animated.View
+              style={[
+                styles.answerDetails,
+                {
+                  maxHeight: animation.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [0, 1000],
+                  }),
+                  opacity: animation,
+                },
+              ]}
+            >
+              {answerRecords?.map((record, index) => (
+                <View key={index} style={styles.answerItem}>
+                  <View style={styles.questionInfo}>
+                    <Text style={styles.questionNumber}>Câu {index + 1}</Text>
+                    <Text style={styles.questionText}>
+                      {record.questionResponse?.text || "Câu hỏi"}
+                    </Text>
                   </View>
-                )}
-              </View>
-            ))}
-          </Animated.View>
-        </View>
+                  <View style={styles.answerInfo}>
+                    <Text style={styles.answerLabel}>Trả lời:</Text>
+                    <Text style={styles.answerText}>
+                      {record.answerResponse?.text || "Chưa trả lời"}
+                    </Text>
+                  </View>
+                  {record.skipped && (
+                    <View style={styles.skippedBadge}>
+                      <Text style={styles.skippedText}>Bỏ qua</Text>
+                    </View>
+                  )}
+                </View>
+              ))}
+            </Animated.View>
+          </View>
+        )}
+
+        {/* No Answers Message for Non-Skipped Surveys */}
+        {!isSkipped && !hasAnswers && (
+          <View style={styles.noAnswersCard}>
+            <View style={styles.noAnswersHeader}>
+              <Ionicons name="alert-circle" size={24} color="#F59E0B" />
+              <Text style={styles.noAnswersTitle}>
+                Không có dữ liệu câu trả lời
+              </Text>
+            </View>
+            <Text style={styles.noAnswersText}>
+              Khảo sát này đã hoàn thành nhưng không có dữ liệu câu trả lời để
+              hiển thị.
+            </Text>
+          </View>
+        )}
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          {/* <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => {
-              showToast("Đã lưu kết quả vào hồ sơ", "success");
-            }}
-          >
-            <Ionicons name="save" size={20} color="#fff" />
-            <Text style={styles.primaryButtonText}>Lưu kết quả</Text>
-          </TouchableOpacity> */}
-
           {showRecordsButton && (
             <TouchableOpacity
               style={styles.backToRecordsButton}
@@ -273,15 +438,11 @@ const SurveyResult = ({ route, navigation }) => {
         type={toast.type}
         onHide={hideToast}
       />
-    </SafeAreaView>
+    </Container>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFC",
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -308,6 +469,18 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#6B7280",
+    marginTop: 16,
+    fontWeight: "500",
   },
   resultCard: {
     backgroundColor: "#fff",
@@ -347,6 +520,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6B7280",
     lineHeight: 20,
+    marginBottom: 2,
+  },
+  surveyType: {
+    fontSize: 12,
+    color: "#3B82F6",
+    fontWeight: "500",
   },
   scoreContainer: {
     flexDirection: "row",
@@ -381,8 +560,32 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: 8,
   },
+  scoreDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
   scoreIconContainer: {
     alignSelf: "flex-start",
+  },
+  skippedContainer: {
+    alignItems: "center",
+    marginBottom: 24,
+    paddingVertical: 20,
+  },
+  skippedIcon: {
+    marginBottom: 16,
+  },
+  skippedTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#6B7280",
+    marginBottom: 8,
+  },
+  skippedSubtitle: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    textAlign: "center",
   },
   completionInfo: {
     borderTopWidth: 1,
@@ -398,6 +601,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#374151",
     marginLeft: 12,
+  },
+  levelInfoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  levelInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  levelInfoTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginLeft: 12,
+  },
+  levelInfoItem: {
+    marginBottom: 12,
+  },
+  levelInfoLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 4,
+  },
+  levelInfoText: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
   },
   suggestionsCard: {
     backgroundColor: "#fff",
@@ -426,6 +665,42 @@ const styles = StyleSheet.create({
     color: "#374151",
     lineHeight: 22,
   },
+  skippedInfoCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  skippedInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  skippedInfoTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginLeft: 12,
+  },
+  skippedInfoItem: {
+    marginBottom: 12,
+  },
+  skippedInfoLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 4,
+  },
+  skippedInfoText: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
   summaryCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -447,96 +722,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1A1A1A",
     marginLeft: 12,
-  },
-  answerItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-    paddingVertical: 16,
-  },
-  questionInfo: {
-    marginBottom: 8,
-  },
-  questionNumber: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: GlobalStyles.colors.primary,
-    marginBottom: 4,
-  },
-  questionText: {
-    fontSize: 14,
-    color: "#374151",
-    lineHeight: 20,
-  },
-  answerInfo: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  answerLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-    marginRight: 8,
-  },
-  answerText: {
-    fontSize: 14,
-    color: "#374151",
-    flex: 1,
-    lineHeight: 20,
-  },
-  skippedBadge: {
-    backgroundColor: "#FEF2F2",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    alignSelf: "flex-start",
-    marginTop: 8,
-  },
-  skippedText: {
-    fontSize: 12,
-    color: "#EF4444",
-    fontWeight: "500",
-  },
-  buttonContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    gap: 12,
-  },
-  primaryButton: {
-    backgroundColor: GlobalStyles.colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: GlobalStyles.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-    marginLeft: 8,
-  },
-  backToRecordsButton: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: GlobalStyles.colors.primary,
-  },
-  backToRecordsButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: GlobalStyles.colors.primary,
-    marginLeft: 8,
   },
   summaryStats: {
     flexDirection: "row",
@@ -595,6 +780,103 @@ const styles = StyleSheet.create({
   },
   answerDetails: {
     overflow: "hidden",
+  },
+  answerItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+    paddingVertical: 16,
+  },
+  questionInfo: {
+    marginBottom: 8,
+  },
+  questionNumber: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: GlobalStyles.colors.primary,
+    marginBottom: 4,
+  },
+  questionText: {
+    fontSize: 14,
+    color: "#374151",
+    lineHeight: 20,
+  },
+  answerInfo: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  answerLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#6B7280",
+    marginRight: 8,
+  },
+  answerText: {
+    fontSize: 14,
+    color: "#374151",
+    flex: 1,
+    lineHeight: 20,
+  },
+  skippedBadge: {
+    backgroundColor: "#FEF2F2",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: "flex-start",
+    marginTop: 8,
+  },
+  skippedText: {
+    fontSize: 12,
+    color: "#EF4444",
+    fontWeight: "500",
+  },
+  noAnswersCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  noAnswersHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  noAnswersTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1A1A1A",
+    marginLeft: 12,
+  },
+  noAnswersText: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  buttonContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    gap: 12,
+  },
+  backToRecordsButton: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: GlobalStyles.colors.primary,
+  },
+  backToRecordsButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: GlobalStyles.colors.primary,
+    marginLeft: 8,
   },
 });
 

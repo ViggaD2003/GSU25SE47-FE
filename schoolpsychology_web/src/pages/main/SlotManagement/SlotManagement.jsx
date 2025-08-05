@@ -11,12 +11,15 @@ import {
   Row,
   Col,
   Typography,
+  DatePicker,
+  Space,
+  Tag,
 } from 'antd'
 import {
-  EditOutlined,
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
+  TagOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { fetchSlots, publishSlot } from '../../../store/actions/slotActions'
@@ -27,13 +30,14 @@ import {
   selectPublishLoading,
   clearError,
 } from '../../../store/slices/slotSlice'
-import { getStatusBadgeConfig, getSlotTypeText } from '../../../utils/slotUtils'
+import { getStatusBadgeConfig } from '../../../utils/slotUtils'
 import SlotModal from './SlotModal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
 
 const { Search } = Input
 const { Title, Text } = Typography
+const { RangePicker } = DatePicker
 
 const SlotManagement = () => {
   const { user } = useAuth()
@@ -46,13 +50,14 @@ const SlotManagement = () => {
   const error = useSelector(selectSlotError)
   const publishLoading = useSelector(selectPublishLoading)
 
-  const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
+  const [searchText, setSearchText] = useState('')
+  const [dateRange, setDateRange] = useState(null)
 
   // Fetch slots on component mount
   useEffect(() => {
@@ -83,10 +88,16 @@ const SlotManagement = () => {
     return slots
       .filter(slot => {
         const matchesSearch =
-          slot?.slotName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
+          slot?.fullName?.toLowerCase()?.includes(searchText.toLowerCase()) ??
           false
 
-        return matchesSearch
+        const matchesDateRange =
+          !dateRange || !dateRange.length
+            ? true
+            : dayjs(slot.startDateTime).isAfter(dateRange[0].startOf('day')) &&
+              dayjs(slot.startDateTime).isBefore(dateRange[1].endOf('day'))
+
+        return matchesSearch && matchesDateRange
       })
       .sort((a, b) => {
         // Sort by status priority first
@@ -103,7 +114,7 @@ const SlotManagement = () => {
           dayjs(a.startDateTime || 0).unix()
         )
       })
-  }, [slots, searchText])
+  }, [slots, searchText, dateRange])
 
   // Update pagination
   useEffect(() => {
@@ -112,6 +123,12 @@ const SlotManagement = () => {
       total: filteredSlots.length,
     }))
   }, [filteredSlots.length])
+
+  // Handle search
+  const handleSearch = value => {
+    setSearchText(value)
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }
 
   // Get paginated data
   const paginatedSlots = useMemo(() => {
@@ -130,12 +147,6 @@ const SlotManagement = () => {
     }))
   }
 
-  // Handle search
-  const handleSearch = value => {
-    setSearchText(value)
-    setPagination(prev => ({ ...prev, current: 1 }))
-  }
-
   // Handle refresh
   const handleRefresh = () => {
     if (user) {
@@ -143,15 +154,16 @@ const SlotManagement = () => {
     }
   }
 
+  // Handle date range change
+  const handleDateRangeChange = dates => {
+    setDateRange(dates)
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }
+
   // Get status badge color
   const getStatusBadge = status => {
     const statusInfo = getStatusBadgeConfig(status, t)
     return <Badge color={statusInfo.color} text={statusInfo.text} />
-  }
-
-  // Get type text
-  const getTypeText = type => {
-    return getSlotTypeText(type, t)
   }
 
   const handlePublish = async record => {
@@ -169,12 +181,6 @@ const SlotManagement = () => {
   // Table columns
   const columns = [
     {
-      title: t('slotManagement.table.slotName'),
-      dataIndex: 'slotName',
-      key: 'slotName',
-      hidden: true,
-    },
-    {
       title: t('slotManagement.table.fullName'),
       dataIndex: 'fullName',
       key: 'fullName',
@@ -182,16 +188,28 @@ const SlotManagement = () => {
         // This would need to be enhanced with actual user data
         return `${fullName}`
       },
-      sorter: (a, b) => (a.fullName || '').localeCompare(b.fullName || ''),
       hidden: user?.role !== 'manager',
     },
     {
       title: t('slotManagement.table.hostedBy'),
       dataIndex: 'roleName',
       key: 'roleName',
-      render: roleName => {
-        // This would need to be enhanced with actual user data
-        return `${roleName}`
+      render: (roleName, record) => {
+        return (
+          <Space direction="vertical" size={2}>
+            <Text strong>{record.fullName}</Text>
+
+            {record.roleName === 'TEACHER' ? (
+              <Tag color="blue" className="text-xs">
+                {roleName}
+              </Tag>
+            ) : (
+              <Tag color="purple" className="text-xs">
+                {roleName}
+              </Tag>
+            )}
+          </Space>
+        )
       },
       filters: [
         {
@@ -205,21 +223,6 @@ const SlotManagement = () => {
       ],
       onFilter: (value, record) => record.roleName === value,
       hidden: user?.role !== 'manager',
-    },
-    {
-      title: t('slotManagement.table.type'),
-      dataIndex: 'slotType',
-      key: 'slotType',
-      render: slotType => getTypeText(slotType),
-      width: user?.role !== 'manager' ? 170 : 150,
-      filters: [
-        {
-          text: t('slotManagement.typeOptions.appointment'),
-          value: 'APPOINTMENT',
-        },
-        { text: t('slotManagement.typeOptions.program'), value: 'PROGRAM' },
-      ],
-      onFilter: (value, record) => record.slotType === value,
     },
     {
       title: t('slotManagement.table.date'),
@@ -303,24 +306,39 @@ const SlotManagement = () => {
           >
             {t('slotManagement.refresh')}
           </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setIsModalVisible(true)}
-          >
-            {t('slotManagement.addSlot')}
-          </Button>
+          {user?.role !== 'manager' && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setIsModalVisible(true)}
+            >
+              {t('slotManagement.addSlot')}
+            </Button>
+          )}
         </div>
       </div>
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
         <Row gutter={[16, 16]} className="mb-4">
+          {user?.role === 'manager' && (
+            <Col xs={24} sm={12} md={8} lg={6}>
+              <Search
+                placeholder={t('slotManagement.search')}
+                allowClear
+                onSearch={handleSearch}
+                onChange={e => setSearchText(e.target.value)}
+                prefix={<SearchOutlined />}
+              />
+            </Col>
+          )}
           <Col xs={24} sm={12} md={8} lg={6}>
-            <Search
-              placeholder={t('slotManagement.search')}
+            <RangePicker
+              className="w-full"
+              onChange={handleDateRangeChange}
+              placeholder={[
+                t('slotManagement.startDate'),
+                t('slotManagement.endDate'),
+              ]}
               allowClear
-              onSearch={handleSearch}
-              onChange={e => setSearchText(e.target.value)}
-              prefix={<SearchOutlined />}
             />
           </Col>
         </Row>
@@ -339,7 +357,7 @@ const SlotManagement = () => {
               `${range[0]}-${range[1]} of ${total} items`,
           }}
           onChange={handleTableChange}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 900 }}
         />
       </Card>
 

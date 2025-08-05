@@ -1,6 +1,7 @@
 import api from "./axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentUser } from "../auth/AuthService";
+import { surveyRecords, surveys } from "@/constants";
 
 export const getPublishedSurveys = async () => {
   try {
@@ -12,15 +13,61 @@ export const getPublishedSurveys = async () => {
   }
 };
 
-//Get survey records
-export const getSurveyRecords = async () => {
+//Get survey by surveyId
+export const getSurveyById = async (surveyId) => {
   try {
+    const response = await api.get(`/api/v1/survey/${surveyId}`);
+    const data = response.data;
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
+    throw error;
+  }
+};
+
+//Get survey records by account ID with pagination and filters
+export const getSurveyRecordsByAccount = async (accountId, params = {}) => {
+  try {
+    const {
+      page = 1,
+      size = 2,
+      surveyType = "",
+      field = "completedAt",
+      direction = "desc",
+    } = params;
+
+    console.log("Params:", params);
+
+    const queryParams = new URLSearchParams();
+    queryParams.append("page", page);
+    queryParams.append("size", size);
+    queryParams.append("field", field);
+    queryParams.append("direction", direction);
+
+    if (surveyType) {
+      queryParams.append("surveyType", surveyType);
+    }
+
+    console.log("queryParams:", queryParams.toString());
+
     const response = await api.get(
-      "/api/v1/survey-records?field=completedAt&direction=desc"
+      `/api/v1/survey-records/accounts/${accountId}?${queryParams.toString()}`
     );
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu khảo sát:", error);
+    console.error("Lỗi khi lấy dữ liệu khảo sát theo account:", error);
+    throw error;
+  }
+};
+
+//Get survey record by surveyRecordId
+export const getSurveyRecordById = async (surveyRecordId) => {
+  try {
+    const response = await api.get(`/api/v1/survey-records/${surveyRecordId}`);
+    const data = response.data;
+    return data;
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
     throw error;
   }
 };
@@ -36,26 +83,16 @@ export const postSurveyResult = async (result) => {
   }
 };
 
-// Get survey result by surveyRecordId
-export const getSurveyResult = async (surveyRecordId) => {
-  try {
-    const response = await api.get(`/api/v1/survey-records/${surveyRecordId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi lấy kết quả khảo sát:", error);
-    throw error;
-  }
-};
-
-//Get survey by surveyId
-export const getSurveyDetail = async (surveyId) => {
-  try {
-    const response = await api.get(`/api/v1/survey/${surveyId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
-    throw error;
-  }
+// Skip survey
+export const skipSurvey = async (surveyId) => {
+  const requestBody = {
+    surveyId,
+    isSkipped: true,
+    totalScore: 0,
+    answerRecordRequests: [],
+  };
+  const response = await api.post(`/api/v1/survey-records`, requestBody);
+  return response.data;
 };
 
 // Save survey progress with user info

@@ -35,3 +35,6 @@ export { default as ProgramRecordScreen } from "./Program/ProgramRecord";
 
 // Record screens./Program/ProgramRecord
 export { default as RecordScreen } from "./Record/Record";
+
+// Dashboard screens
+export { default as DashboardScreen } from "./Dashboard/Dashboard";

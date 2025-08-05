@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Modal,
   Typography,
-  Divider,
   List,
   Tag,
   Space,
@@ -14,549 +13,1652 @@ import {
   Switch,
   DatePicker,
   Select,
+  InputNumber,
+  Row,
+  Col,
+  Spin,
+  Alert,
+  Tooltip,
+  Statistic,
+  Divider,
+  Checkbox,
+  Collapse,
 } from 'antd'
+import {
+  EditOutlined,
+  SaveOutlined,
+  CalendarOutlined,
+  FileTextOutlined,
+  QuestionCircleOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined,
+  InfoCircleOutlined,
+  BookOutlined,
+  ReloadOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+  LockOutlined,
+  CloseOutlined,
+} from '@ant-design/icons'
 import { surveyAPI } from '../../../services/surveyApi'
+import {
+  SURVEY_STATUS,
+  SURVEY_TYPE,
+  TARGET_SCOPE,
+  GRADE_LEVEL,
+  RECURRING_CYCLE,
+  QUESTION_TYPE,
+  getStatusColor,
+} from '../../../constants/enums'
 import dayjs from 'dayjs'
+import { addCaseToSurvey, getCases } from '@/store/actions'
+import { useSelector } from 'react-redux'
+
+const { Title, Text, Paragraph } = Typography
+const { TextArea } = Input
+const { Option } = Select
+
+const InfoCard = React.memo(
+  ({ title, value, icon, color = '#1890ff', loading = false }) => (
+    <Card size="small" loading={loading}>
+      <Statistic
+        title={
+          <Space>
+            {icon}
+            <Text type="secondary">{title}</Text>
+          </Space>
+        }
+        value={value}
+        valueStyle={{ color }}
+      />
+    </Card>
+  )
+)
+
+const AnswerCard = React.memo(({ answer, index, t }) => {
+  return (
+    <Card
+      size="small"
+      style={{
+        marginBottom: 8,
+        borderRadius: 8,
+      }}
+      styles={{ body: { padding: '12px 16px' } }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div style={{ flex: 1 }}>
+          <div
+            style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#f0f0f0',
+                justifyContent: 'center',
+                marginRight: 12,
+                color: '#262626',
+                fontSize: 12,
+                fontWeight: 'bold',
+              }}
+            >
+              {index + 1}
+            </div>
+            <Text strong style={{ fontSize: 14, color: '#262626' }}>
+              {answer.text}
+            </Text>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div
+            style={{
+              padding: '4px 12px',
+              borderRadius: 16,
+              color: '#262626',
+              backgroundColor: '#f0f0f0',
+              fontSize: 12,
+              fontWeight: 'bold',
+              minWidth: 40,
+              textAlign: 'center',
+            }}
+          >
+            {t('surveyManagement.detail.score')}: {answer.score}
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+})
+
+const QuestionCard = React.memo(
+  ({ question, index, t, canEdit, editMode, onStatusChange }) => (
+    <Card
+      style={{
+        marginBottom: 16,
+        width: '100%',
+        borderRadius: 12,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        border: '1px solid #f0f0f0',
+      }}
+      title={
+        <Space styles={{ item: { marginBottom: 10, marginTop: 6 } }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: '50%',
+              backgroundColor: '#1890ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 'bold',
+            }}
+          >
+            {index + 1}
+          </div>
+          <div>
+            <Text strong style={{ fontSize: 16, color: '#262626' }}>
+              {t('surveyManagement.detail.question')} {index + 1}
+            </Text>
+            <div style={{ marginTop: 4 }}>
+              <Tag color={!question.required ? 'green' : 'orange'} size="small">
+                {question.required
+                  ? t('common.required')
+                  : t('common.optional')}
+              </Tag>
+              <Tag color="blue" size="small" style={{ marginLeft: 8 }}>
+                {t(
+                  `surveyManagement.enums.questionType.${question.questionType}`
+                )}
+              </Tag>
+              {editMode && canEdit && (
+                <Tag
+                  color={question.isActive ? 'green' : 'red'}
+                  size="small"
+                  style={{ marginLeft: 8 }}
+                >
+                  {question.isActive
+                    ? t('common.active')
+                    : t('common.inactive')}
+                </Tag>
+              )}
+            </div>
+          </div>
+          {editMode && canEdit && (
+            <div style={{ marginLeft: 'auto' }}>
+              <Switch
+                checked={question.isActive !== false}
+                onChange={checked =>
+                  onStatusChange(question.questionId || question.id, checked)
+                }
+                size="small"
+                checkedChildren={t('common.active')}
+                unCheckedChildren={t('common.inactive')}
+              />
+            </div>
+          )}
+        </Space>
+      }
+      styles={{ body: { padding: '20px 24px' } }}
+    >
+      <div style={{ marginBottom: 16 }}>
+        <Text
+          strong
+          style={{ fontSize: 15, lineHeight: 1.6, color: '#262626' }}
+        >
+          {question.text}
+        </Text>
+        {question.description && (
+          <Paragraph
+            type="secondary"
+            style={{
+              marginTop: 8,
+              marginBottom: 0,
+              fontSize: 13,
+              lineHeight: 1.5,
+              color: '#8c8c8c',
+            }}
+          >
+            {question.description}
+          </Paragraph>
+        )}
+      </div>
+
+      {question.answers && question.answers.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: 16,
+              padding: '12px 16px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: 8,
+              border: '1px solid #e9ecef',
+            }}
+          >
+            <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
+            <Text strong style={{ color: '#262626', fontSize: 14 }}>
+              {t('surveyManagement.detail.answers')} ({question.answers.length})
+            </Text>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {question.answers.map((answer, answerIndex) => (
+              <AnswerCard
+                key={answerIndex}
+                answer={answer}
+                index={answerIndex}
+                t={t}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+)
 
 const SurveyDetailModal = ({
   t,
   visible,
-  survey,
+  surveyId,
   onClose,
   onUpdated,
   messageApi,
+  userRole,
+  dispatch,
 }) => {
   const [form] = Form.useForm()
   const [editMode, setEditMode] = useState(false)
   const [formValue, setFormValue] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(false)
+  const [survey, setSurvey] = useState(null)
+  const [error, setError] = useState(null)
+  const [newQuestions, setNewQuestions] = useState([])
+  const [updatedQuestions, setUpdatedQuestions] = useState([])
+  const [showAddCase, setShowAddCase] = useState(false)
+  const [addedCases, setAddedCases] = useState([])
+  const [removedCases, setRemovedCases] = useState([])
+  const [selectedRemovedCases, setSelectedRemovedCases] = useState([])
+  const [selectedAddedCases, setSelectedAddedCases] = useState([])
+  const { cases, loading: casesLoading } = useSelector(state => state.case)
 
-  const recurringOptions = [
-    {
-      value: 'NONE',
-      label: t('surveyManagement.detail.recurringOptions.none'),
-    },
-    {
-      value: 'WEEKLY',
-      label: t('surveyManagement.detail.recurringOptions.weekly'),
-    },
-    {
-      value: 'MONTHLY',
-      label: t('surveyManagement.detail.recurringOptions.monthly'),
-    },
-  ]
-
-  // Helper function to normalize recurring cycle values
-  const normalizeRecurringCycle = cycle => {
-    if (!cycle) return 'NONE'
-    return cycle.toUpperCase()
-  }
-
-  // Helper function to get display label for recurring cycle
-  const getRecurringCycleLabel = cycle => {
-    const normalizedCycle = normalizeRecurringCycle(cycle)
-    const option = recurringOptions.find(opt => opt.value === normalizedCycle)
-    return option?.label || cycle
-  }
-
+  // Fetch survey details when modal opens
   useEffect(() => {
-    if (visible && survey) {
-      const normalizedCycle = normalizeRecurringCycle(survey.recurringCycle)
-      const initialValues = {
-        ...survey,
-        startDate: survey.startDate ? dayjs(survey.startDate) : null,
-        endDate: survey.endDate ? dayjs(survey.endDate) : null,
-        questions: survey.questions || [],
-        recurringCycle: normalizedCycle,
-        isRecurring: normalizedCycle !== 'NONE',
+    if (visible && surveyId) {
+      fetchSurveyDetails()
+    }
+  }, [visible, surveyId])
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setSurvey(null)
+      setError(null)
+      setEditMode(false)
+      setFormValue(null)
+      setNewQuestions([])
+      setUpdatedQuestions([])
+      setShowAddCase(false)
+      if (editMode) {
+        form.resetFields()
+      }
+    }
+  }, [visible, form, editMode])
+
+  // Fetch survey details by ID
+  const fetchSurveyDetails = useCallback(async () => {
+    if (!surveyId) return
+
+    try {
+      setFetching(true)
+      setError(null)
+      const response = await surveyAPI.getSurveyById(surveyId)
+
+      const data = {
+        ...response,
+        targetGrade: response.targetGrade.map(grade => grade.targetLevel),
       }
 
+      setSurvey(data)
+
+      // Prepare form values
+      const normalizedCycle = normalizeRecurringCycle(response.recurringCycle)
+      const initialValues = {
+        ...response,
+        startDate: response.startDate ? dayjs(response.startDate) : null,
+        endDate: response.endDate ? dayjs(response.endDate) : null,
+        questions: response.questions || [],
+        recurringCycle: normalizedCycle,
+        isRecurring: normalizedCycle !== RECURRING_CYCLE.NONE,
+      }
       setFormValue(initialValues)
-      form.setFieldsValue(initialValues)
-      setEditMode(false)
+      if (editMode) {
+        form.setFieldsValue(initialValues)
+      }
+    } catch {
+      const errorMessage = t('surveyManagement.detail.messages.fetchError')
+      setError(errorMessage)
+      messageApi.error(errorMessage)
+    } finally {
+      setFetching(false)
     }
-  }, [visible, survey, form])
+  }, [visible, surveyId, t, messageApi, form])
 
-  if (!survey || !formValue) return null
+  // Helper functions
+  const normalizeRecurringCycle = useCallback(cycle => {
+    if (!cycle) return RECURRING_CYCLE.NONE
+    return cycle.toUpperCase()
+  }, [])
 
-  // Check if dates can be edited based on status
-  const canEditDates = ['DRAFT', 'ARCHIVED'].includes(
-    formValue.status?.toUpperCase()
+  const getRecurringCycleLabel = useCallback(
+    cycle => {
+      const normalizedCycle = normalizeRecurringCycle(cycle)
+      return (
+        t(`surveyManagement.enums.recurringCycle.${normalizedCycle}`) || cycle
+      )
+    },
+    [normalizeRecurringCycle, t]
   )
 
-  // Calculate max end date based on recurring cycle
-  const getMaxEndDate = () => {
-    if (
-      !formValue.startDate ||
-      !formValue.recurringCycle ||
-      formValue.recurringCycle === 'NONE'
-    )
-      return null
+  const formatDate = useCallback(date => {
+    return date ? dayjs(date).format('DD/MM/YYYY') : '-'
+  }, [])
 
-    const startDate = dayjs(formValue.startDate)
-    switch (formValue.recurringCycle) {
-      case 'WEEKLY':
-        return startDate.add(7, 'day')
-      case 'MONTHLY':
-        return startDate.add(30, 'day')
-      default:
-        return null // No restriction for 'NONE'
-    }
-  }
+  // Check if field is editable based on survey status
+  const isFieldEditable = useCallback(
+    fieldName => {
+      if (!survey) return false
 
-  const handleEdit = () => {
-    setEditMode(true)
-    form.setFieldsValue(formValue)
-  }
-
-  const handleCancelEdit = () => {
-    setEditMode(false)
-    // Reset to original survey values
-    const normalizedCycle = normalizeRecurringCycle(survey.recurringCycle)
-    const resetValues = {
-      ...survey,
-      startDate: survey.startDate ? dayjs(survey.startDate) : null,
-      endDate: survey.endDate ? dayjs(survey.endDate) : null,
-      questions: survey.questions || [],
-      recurringCycle: normalizedCycle,
-      isRecurring: normalizedCycle !== 'NONE',
-    }
-    setFormValue(resetValues)
-    form.setFieldsValue(resetValues)
-  }
-
-  const handleFormChange = (changedFields, _allFields) => {
-    // Get current form values
-    const currentFormValues = form.getFieldsValue()
-
-    // Merge with existing formValue to preserve unchanged fields
-    const newFormValue = { ...formValue, ...currentFormValues }
-
-    // Handle isRecurring logic based on recurringCycle
-    if (changedFields.recurringCycle !== undefined) {
-      const recurringCycle = changedFields.recurringCycle
-      newFormValue.isRecurring =
-        recurringCycle !== 'NONE' &&
-        recurringCycle !== null &&
-        recurringCycle !== undefined
-
-      // Auto-adjust end date if recurring cycle changes and exceeds limit
-      if (newFormValue.startDate && newFormValue.endDate) {
-        const startDate = dayjs(newFormValue.startDate)
-        let maxEndDate = null
-
-        switch (recurringCycle) {
-          case 'WEEKLY':
-            maxEndDate = startDate.add(7, 'day')
-            break
-          case 'MONTHLY':
-            maxEndDate = startDate.add(30, 'day')
-            break
-          default:
-            maxEndDate = null
-        }
-
-        if (maxEndDate && dayjs(newFormValue.endDate).isAfter(maxEndDate)) {
-          newFormValue.endDate = maxEndDate
-          form.setFieldValue('endDate', maxEndDate)
-        }
+      switch (survey.status) {
+        case SURVEY_STATUS.PUBLISHED:
+          return fieldName === 'status'
+        case SURVEY_STATUS.DRAFT:
+          return [
+            'title',
+            'description',
+            'isRequired',
+            'isRecurring',
+            'recurringCycle',
+            'surveyType',
+            'targetScope',
+            'targetGrade',
+            'startDate',
+            'endDate',
+            'categoryId',
+            'questions',
+          ].includes(fieldName)
+        case SURVEY_STATUS.ARCHIVED:
+          return [
+            'isRecurring',
+            'isRequired',
+            'startDate',
+            'endDate',
+            'recurringCycle',
+          ].includes(fieldName)
+        default:
+          return false
       }
+    },
+    [survey]
+  )
 
-      // Update the form field without triggering another change event
-      form.setFieldValue('isRecurring', newFormValue.isRecurring)
+  // Check if questions can be edited
+  const canEditQuestions = useCallback(() => {
+    if (!survey) return false
+    return (
+      survey.status === SURVEY_STATUS.DRAFT ||
+      survey.status === SURVEY_STATUS.ARCHIVED
+    )
+  }, [survey])
+
+  // Check if can add new questions
+  const canAddQuestions = useCallback(() => {
+    if (!survey) return false
+    return (
+      survey.status === SURVEY_STATUS.DRAFT ||
+      survey.status === SURVEY_STATUS.ARCHIVED
+    )
+  }, [survey])
+
+  // Memoized computed values
+  const surveyStats = useMemo(() => {
+    if (!survey) return null
+
+    return {
+      totalQuestions: survey.questions?.length || 0,
+      requiredQuestions: survey.questions?.filter(q => q.required).length || 0,
+      totalAnswers:
+        survey.questions?.reduce(
+          (sum, q) => sum + (q.answers?.length || 0),
+          0
+        ) || 0,
     }
+  }, [survey])
 
-    // Update formValue state to preserve all data
-    setFormValue(newFormValue)
-  }
+  // Event handlers
+  const handleEdit = useCallback(() => {
+    setEditMode(true)
+  }, [])
 
-  const handleUpdate = async () => {
+  const handleCancel = useCallback(() => {
+    setEditMode(false)
+    setNewQuestions([])
+    setUpdatedQuestions([])
+    if (formValue && editMode) {
+      form.setFieldsValue(formValue)
+    }
+  }, [formValue, form, editMode])
+
+  const handleSave = useCallback(async () => {
     try {
+      if (!editMode) return
       setLoading(true)
-
-      // Validate form
       const values = await form.validateFields()
 
-      // Check if any values have actually changed
-      let hasChanges = false
-      Object.keys(values).forEach(key => {
-        if (key === 'startDate' || key === 'endDate') {
-          const formattedValue = values[key]
-            ? values[key].format('YYYY-MM-DD')
-            : null
-          const originalValue = survey[key]
-            ? dayjs(survey[key]).format('YYYY-MM-DD')
-            : null
-          if (formattedValue !== originalValue) {
-            hasChanges = true
-          }
-        } else if (key === 'recurringCycle') {
-          const apiValue = values[key] === 'NONE' ? null : values[key]
-          const originalValue = survey[key] || null
-          if (apiValue !== originalValue) {
-            hasChanges = true
-          }
-        } else if (key !== 'questions' && values[key] !== survey[key]) {
-          hasChanges = true
+      // Validate date range
+      if (values.startDate && values.endDate) {
+        if (values.startDate.isAfter(values.endDate)) {
+          messageApi.error(t('surveyManagement.form.dateRangeError'))
+          return
         }
-      })
-
-      // If no changes, don't make API call
-      if (!hasChanges) {
-        messageApi.info(t('surveyManagement.detail.messages.noChanges'))
-        setEditMode(false)
-        setLoading(false)
-        return
       }
 
-      // Prepare full payload as required by API
-      const payload = {
-        name: values.name || survey.name,
-        description: values.description || survey.description,
-        isRequired:
-          values.isRequired !== undefined
-            ? values.isRequired
-            : survey.isRequired,
-        isRecurring: values.recurringCycle !== 'NONE',
-        recurringCycle:
-          values.recurringCycle === 'NONE'
-            ? 'NONE'
-            : values.recurringCycle || survey.recurringCycle,
-        surveyCode: values.surveyCode || survey.surveyCode,
-        startDate: values.startDate
-          ? values.startDate.format('YYYY-MM-DD')
-          : survey.startDate,
-        endDate: values.endDate
-          ? values.endDate.format('YYYY-MM-DD')
-          : survey.endDate,
-        questions:
-          survey.questions?.map(q => ({
+      // Prepare payload based on survey status
+      let payload = {}
+
+      if (survey.status === SURVEY_STATUS.PUBLISHED) {
+        // Only status can be updated
+        payload = {
+          surveyId: survey.surveyId,
+          status: values.status,
+        }
+      } else if (survey.status === SURVEY_STATUS.DRAFT) {
+        // All fields can be updated
+        payload = {
+          surveyId: survey.surveyId,
+          title: values.title,
+          description: values.description,
+          isRequired: values.isRequired,
+          isRecurring: values.recurringCycle !== RECURRING_CYCLE.NONE,
+          recurringCycle: values.recurringCycle,
+          round: values.round,
+          surveyType: values.surveyType,
+          status: values.status,
+          targetScope: values.targetScope,
+          targetGrade: values.targetGrade,
+          startDate: values.startDate
+            ? values.startDate.format('YYYY-MM-DD')
+            : null,
+          endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : null,
+          categoryId: values.categoryId || survey.category?.id,
+          questions:
+            values.questions?.map(q => ({
+              text: q.text,
+              description: q.description,
+              questionType: q.questionType,
+              answers:
+                q.answers?.map(a => ({
+                  score: a.score,
+                  text: a.text,
+                })) || [],
+              isRequired: q.required,
+            })) || [],
+        }
+      } else if (survey.status === SURVEY_STATUS.ARCHIVED) {
+        // Limited fields can be updated
+        payload = {
+          surveyId: survey.surveyId,
+          isRequired: values.isRequired,
+          isRecurring: values.recurringCycle !== RECURRING_CYCLE.NONE,
+          recurringCycle: values.recurringCycle,
+          startDate: values.startDate
+            ? values.startDate.format('YYYY-MM-DD')
+            : null,
+          endDate: values.endDate ? values.endDate.format('YYYY-MM-DD') : null,
+          updateQuestion: updatedQuestions.map(q => ({
+            questionId: q.questionId,
+            isActive: q.isActive,
+          })),
+          newQuestions: newQuestions.map(q => ({
             text: q.text,
             description: q.description,
             questionType: q.questionType,
-            moduleType: q.moduleType,
-            categoryId: q.category?.id || q.categoryId,
+            moduleType: 'SURVEY',
             answers:
               q.answers?.map(a => ({
                 score: a.score,
                 text: a.text,
               })) || [],
             required: q.required,
-          })) || [],
+          })),
+        }
       }
 
-      console.log('Update payload:', payload)
-
-      await surveyAPI.updateSurvey(survey.id || survey.surveyId, payload)
+      await surveyAPI.updateSurvey(survey.surveyId, payload)
 
       messageApi.success(t('surveyManagement.detail.messages.updateSuccess'))
       setEditMode(false)
+      setNewQuestions([])
+      setUpdatedQuestions([])
       onUpdated()
+
+      // Refresh survey data
+      fetchSurveyDetails()
     } catch (err) {
       if (err.errorFields) {
-        // Form validation errors - already displayed by form
-        return
+        return // Form validation errors - already displayed by form
       }
 
-      let msg = t('surveyManagement.detail.messages.updateError')
-
-      if (err?.response?.data) {
-        if (typeof err.response.data === 'string') {
-          msg = err.response.data
-        } else if (typeof err.response.data === 'object') {
-          msg = Object.values(err.response.data).join(', ')
-        }
-      } else if (err?.message) {
-        msg = err.message
-      }
-
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        t('surveyManagement.detail.messages.updateError')
       messageApi.error(msg)
-      console.error('Update error:', err)
     } finally {
       setLoading(false)
     }
+  }, [
+    form,
+    survey,
+    messageApi,
+    t,
+    onUpdated,
+    fetchSurveyDetails,
+    newQuestions,
+    updatedQuestions,
+    editMode,
+  ])
+
+  const handleRefresh = useCallback(() => {
+    fetchSurveyDetails()
+  }, [fetchSurveyDetails])
+
+  const handleQuestionStatusChange = useCallback((questionId, isActive) => {
+    setUpdatedQuestions(prev => {
+      const existing = prev.find(q => q.questionId === questionId)
+      if (existing) {
+        return prev.map(q =>
+          q.questionId === questionId ? { ...q, isActive } : q
+        )
+      } else {
+        return [...prev, { questionId, isActive }]
+      }
+    })
+  }, [])
+
+  const handleAddQuestion = useCallback(() => {
+    const newQuestion = {
+      id: `new_${Date.now()}`,
+      text: '',
+      description: '',
+      questionType: 'LINKERT_SCALE',
+      required: false,
+      answers: [],
+      isNew: true,
+    }
+    setNewQuestions(prev => [...prev, newQuestion])
+  }, [])
+
+  const handleRemoveNewQuestion = useCallback(questionId => {
+    setNewQuestions(prev => prev.filter(q => q.id !== questionId))
+  }, [])
+
+  const fetchCases = useCallback(() => {
+    if (!survey?.category?.id) return
+    if (userRole !== 'counselor') return
+    const params = {
+      categoryId: survey?.category?.id,
+      statusCase: ['IN_PROGRESS'],
+      surveyId: survey?.surveyId || surveyId,
+    }
+    dispatch(getCases(params))
+  }, [survey, dispatch, userRole, surveyId])
+
+  useEffect(() => {
+    if (!survey) return
+    if (cases.length > 0) {
+      setAddedCases(cases.filter(c => c.isAddSurvey))
+      setRemovedCases(cases.filter(c => !c.isAddSurvey))
+    }
+  }, [survey, cases])
+
+  // Render functions
+  const renderHeader = () => (
+    <div style={{ marginBottom: 24 }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: 16,
+        }}
+      >
+        <div>
+          <Title level={3} style={{ margin: 0 }}>
+            {survey?.title || t('surveyManagement.detail.loading')}
+          </Title>
+          {survey?.description && (
+            <Paragraph type="secondary" style={{ margin: '8px 0 0 0' }}>
+              {survey.description}
+            </Paragraph>
+          )}
+        </div>
+        <Space>
+          <Tooltip title={t('surveyManagement.detail.refresh')}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={fetching}
+              size="small"
+            />
+          </Tooltip>
+          {!editMode && (
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={handleEdit}
+              size="small"
+              disabled={!survey}
+            >
+              {t('surveyManagement.detail.edit')}
+            </Button>
+          )}
+        </Space>
+      </div>
+
+      {/* Survey Status and Progress */}
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <InfoCard
+            title={t('surveyManagement.detail.status')}
+            value={t(`surveyManagement.enums.surveyStatus.${survey?.status}`)}
+            icon={<CheckCircleOutlined />}
+            color={getStatusColor(survey?.status)}
+            loading={fetching}
+          />
+        </Col>
+        <Col span={8}>
+          <InfoCard
+            title={t('surveyManagement.detail.totalQuestions')}
+            value={surveyStats?.totalQuestions || 0}
+            icon={<QuestionCircleOutlined />}
+            color="#1890ff"
+            loading={fetching}
+          />
+        </Col>
+        <Col span={8}>
+          <InfoCard
+            title={t('surveyManagement.detail.requiredQuestions')}
+            value={surveyStats?.requiredQuestions || 0}
+            icon={<ExclamationCircleOutlined />}
+            color="#52c41a"
+            loading={fetching}
+          />
+        </Col>
+      </Row>
+
+      {/* Status-based editing info */}
+      {survey && (
+        <Alert
+          message={
+            <Space>
+              {survey.status === SURVEY_STATUS.PUBLISHED && (
+                <>
+                  <LockOutlined />
+                  <Text strong>
+                    {t('surveyManagement.detail.publishedEditInfo')}
+                  </Text>
+                </>
+              )}
+              {survey.status === SURVEY_STATUS.DRAFT && (
+                <>
+                  <EditOutlined />
+                  <Text strong>
+                    {t('surveyManagement.detail.draftEditInfo')}
+                  </Text>
+                </>
+              )}
+              {survey.status === SURVEY_STATUS.ARCHIVED && (
+                <>
+                  <InfoCircleOutlined />
+                  <Text strong>
+                    {t('surveyManagement.detail.archivedEditInfo')}
+                  </Text>
+                </>
+              )}
+            </Space>
+          }
+          type={
+            survey.status === SURVEY_STATUS.PUBLISHED
+              ? 'warning'
+              : survey.status === SURVEY_STATUS.DRAFT
+                ? 'info'
+                : 'default'
+          }
+          showIcon={false}
+          style={{ marginBottom: 16 }}
+        />
+      )}
+    </div>
+  )
+
+  const renderSurveyInfo = () => (
+    <Card
+      title={
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Space>
+            <InfoCircleOutlined />
+            <Text strong>{t('surveyManagement.detail.basicInfo')}</Text>
+          </Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setShowAddCase(true)
+              fetchCases()
+            }}
+            style={{ marginLeft: 'auto' }}
+            loading={casesLoading}
+            hidden={
+              userRole !== 'counselor' ||
+              showAddCase ||
+              survey?.status === SURVEY_STATUS.ARCHIVED
+            }
+          >
+            {t('surveyManagement.table.action.addCase')}
+          </Button>
+        </div>
+      }
+      style={{ marginBottom: 16 }}
+    >
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12}>
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label={t('surveyManagement.detail.activeRange')}>
+              <Space>
+                <CalendarOutlined />
+                <Text>
+                  {formatDate(survey?.startDate)} -{' '}
+                  {formatDate(survey?.endDate)}
+                </Text>
+              </Space>
+            </Descriptions.Item>
+
+            <Descriptions.Item label={t('surveyManagement.detail.targetScope')}>
+              <Space>
+                <Tag color={getStatusColor(survey?.targetScope)}>
+                  {t(
+                    `surveyManagement.enums.targetScope.${survey?.targetScope}`
+                  )}
+                </Tag>
+                {survey?.targetScope === TARGET_SCOPE.GRADE &&
+                  survey?.targetGrade.length > 0 &&
+                  survey?.targetGrade.map(grade => (
+                    <Tag color={getStatusColor(grade)} key={grade}>
+                      {t(`surveyManagement.enums.gradeLevel.${grade}`)}
+                    </Tag>
+                  ))}
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('surveyManagement.detail.surveyType')}>
+              <Tag color={getStatusColor(survey?.surveyType)}>
+                {t(`surveyManagement.enums.surveyType.${survey?.surveyType}`)}
+              </Tag>
+            </Descriptions.Item>
+          </Descriptions>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Descriptions column={1} size="small">
+            <Descriptions.Item label={t('surveyManagement.detail.category')}>
+              <Tag color="blue" icon={<BookOutlined />}>
+                {survey?.category?.name} ({survey?.category?.code})
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('surveyManagement.detail.required')}>
+              <Tag color={!survey?.isRequired ? 'green' : 'orange'}>
+                {!survey?.isRequired
+                  ? t('common.optional')
+                  : t('common.required')}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item
+              label={t('surveyManagement.detail.recurringCycle')}
+            >
+              <Tag color={getStatusColor(survey?.recurringCycle)}>
+                {getRecurringCycleLabel(survey?.recurringCycle)}
+              </Tag>
+            </Descriptions.Item>
+          </Descriptions>
+        </Col>
+      </Row>
+    </Card>
+  )
+
+  const renderQuestions = () => (
+    <Card
+      title={
+        <Space>
+          <QuestionCircleOutlined />
+          <Text strong>{t('surveyManagement.detail.questionsList')}</Text>
+          <Tag color="blue">
+            {survey?.questions?.length || 0}{' '}
+            {t('surveyManagement.detail.questions')}
+          </Tag>
+          {canAddQuestions() && editMode && (
+            <Button
+              type="dashed"
+              icon={<PlusOutlined />}
+              size="small"
+              onClick={handleAddQuestion}
+            >
+              {t('surveyManagement.detail.addQuestion')}
+            </Button>
+          )}
+        </Space>
+      }
+      styles={{
+        body: {
+          width: '100%',
+        },
+      }}
+    >
+      {survey?.questions && survey.questions.length > 0 ? (
+        <List
+          style={{ width: '100%' }}
+          dataSource={survey.questions}
+          renderItem={(question, index) => (
+            <List.Item style={{ padding: '8px 0', width: '100%' }}>
+              <QuestionCard
+                question={question}
+                index={index}
+                t={t}
+                canEdit={canEditQuestions()}
+                editMode={editMode}
+                onStatusChange={handleQuestionStatusChange}
+              />
+            </List.Item>
+          )}
+        />
+      ) : (
+        <div style={{ textAlign: 'center', padding: '40px 0' }}>
+          <QuestionCircleOutlined
+            style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }}
+          />
+          <Text type="secondary">
+            {t('surveyManagement.detail.noQuestions')}
+          </Text>
+        </div>
+      )}
+
+      {/* New Questions */}
+      {newQuestions.length > 0 && (
+        <>
+          <Divider>{t('surveyManagement.detail.newQuestions')}</Divider>
+          <List
+            style={{ width: '100%' }}
+            dataSource={newQuestions}
+            renderItem={(question, index) => (
+              <List.Item style={{ padding: '8px 0', width: '100%' }}>
+                <Card
+                  style={{
+                    marginBottom: 16,
+                    width: '100%',
+                    borderRadius: 12,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    border: '2px dashed #1890ff',
+                    backgroundColor: '#f6ffed',
+                  }}
+                  title={
+                    <Space>
+                      <div
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: '50%',
+                          backgroundColor: '#52c41a',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {survey?.questions?.length + index + 1}
+                      </div>
+                      <Text strong style={{ fontSize: 16, color: '#52c41a' }}>
+                        {t('surveyManagement.detail.newQuestion')} {index + 1}
+                      </Text>
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        size="small"
+                        onClick={() => handleRemoveNewQuestion(question.id)}
+                      />
+                    </Space>
+                  }
+                  styles={{ body: { padding: '20px 24px' } }}
+                >
+                  <Form form={form} layout="vertical">
+                    <Form.Item
+                      name={['newQuestions', question.id, 'text']}
+                      label={t('surveyManagement.detail.questionText')}
+                      rules={[
+                        {
+                          required: true,
+                          message: t(
+                            'surveyManagement.form.questionTextRequired'
+                          ),
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      name={['newQuestions', question.id, 'description']}
+                      label={t('surveyManagement.detail.questionDescription')}
+                    >
+                      <TextArea rows={2} />
+                    </Form.Item>
+                    <Row gutter={16}>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['newQuestions', question.id, 'questionType']}
+                          label={t('surveyManagement.detail.questionType')}
+                          rules={[{ required: true }]}
+                        >
+                          <Select>
+                            {Object.values(QUESTION_TYPE).map(type => (
+                              <Option key={type} value={type}>
+                                {t(
+                                  `surveyManagement.enums.questionType.${type}`
+                                )}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      </Col>
+                      <Col span={12}>
+                        <Form.Item
+                          name={['newQuestions', question.id, 'required']}
+                          label={t('surveyManagement.detail.required')}
+                          valuePropName="checked"
+                        >
+                          <Switch />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Form>
+                </Card>
+              </List.Item>
+            )}
+          />
+        </>
+      )}
+    </Card>
+  )
+
+  const renderEditForm = () => (
+    <Form form={form} layout="vertical">
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name="title"
+            label={t('surveyManagement.detail.title')}
+            rules={[
+              {
+                required: true,
+                message: t('surveyManagement.form.titleRequired'),
+              },
+            ]}
+          >
+            <Input disabled={!isFieldEditable('title')} />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="surveyType"
+            label={t('surveyManagement.detail.surveyType')}
+            rules={[
+              {
+                required: true,
+                message: t('surveyManagement.form.surveyTypeRequired'),
+              },
+            ]}
+          >
+            <Select disabled={!isFieldEditable('surveyType')}>
+              {Object.values(SURVEY_TYPE).map(type => (
+                <Option key={type} value={type}>
+                  {t(`surveyManagement.enums.surveyType.${type}`)}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name="targetScope"
+            label={t('surveyManagement.detail.targetScope')}
+            rules={[
+              {
+                required: true,
+                message: t('surveyManagement.form.targetScopeRequired'),
+              },
+            ]}
+          >
+            <Select disabled={!isFieldEditable('targetScope')}>
+              {Object.values(TARGET_SCOPE).map(scope => (
+                <Option key={scope} value={scope}>
+                  {t(`surveyManagement.enums.targetScope.${scope}`)}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="targetGrade"
+            label={t('surveyManagement.detail.targetGrade')}
+          >
+            <Select disabled={!isFieldEditable('targetGrade')}>
+              {Object.values(GRADE_LEVEL).map(grade => (
+                <Option key={grade} value={grade}>
+                  {t(`surveyManagement.enums.gradeLevel.${grade}`)}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={16}>
+          <Form.Item
+            name="status"
+            label={t('surveyManagement.detail.status')}
+            rules={[{ required: true }]}
+          >
+            <Select disabled={!isFieldEditable('status')}>
+              <Option key={'ARCHIVED'} value={'ARCHIVED'}>
+                {t(`surveyManagement.enums.surveyStatus.ARCHIVED`)}
+              </Option>
+            </Select>
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name="isRequired"
+            label={t('surveyManagement.detail.required')}
+            valuePropName="checked"
+          >
+            <Switch disabled={!isFieldEditable('isRequired')} />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Form.Item
+        name="description"
+        label={t('surveyManagement.detail.description')}
+      >
+        <TextArea rows={3} disabled={!isFieldEditable('description')} />
+      </Form.Item>
+
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name="startDate"
+            label={t('surveyManagement.detail.startDate')}
+            rules={[
+              {
+                required: true,
+                message: t('surveyManagement.form.startDateRequired'),
+              },
+            ]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              disabled={!isFieldEditable('startDate')}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={12}>
+          <Form.Item
+            name="endDate"
+            label={t('surveyManagement.detail.endDate')}
+            rules={[
+              {
+                required: true,
+                message: t('surveyManagement.form.endDateRequired'),
+              },
+            ]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              disabled={!isFieldEditable('endDate')}
+            />
+          </Form.Item>
+        </Col>
+      </Row>
+
+      <Row gutter={16}>
+        <Col span={12}>
+          <Form.Item
+            name="recurringCycle"
+            label={t('surveyManagement.detail.recurringCycle')}
+          >
+            <Select disabled={!isFieldEditable('recurringCycle')}>
+              {Object.values(RECURRING_CYCLE).map(cycle => (
+                <Option key={cycle} value={cycle}>
+                  {t(`surveyManagement.enums.recurringCycle.${cycle}`)}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Col>
+      </Row>
+    </Form>
+  )
+
+  const handleCaseSelection = (caseId, type) => {
+    // console.log('handleCaseSelection')
+
+    // console.log('caseId', caseId)
+    // console.log('type', type)
+    if (type === 'removed') {
+      setSelectedAddedCases(prev => {
+        if (prev.includes(caseId)) {
+          return prev.filter(id => id !== caseId)
+        }
+        return [...prev, caseId]
+      })
+    } else {
+      setSelectedRemovedCases(prev => {
+        if (prev.includes(caseId)) {
+          return prev.filter(id => id !== caseId)
+        }
+        return [...prev, caseId]
+      })
+    }
   }
 
-  const disabledEndDate = current => {
-    if (!formValue.startDate) return current && current < dayjs().startOf('day')
+  const handleSelectAll = (checked, type) => {
+    // console.log('selectAll')
 
-    const maxEndDate = getMaxEndDate()
-    if (maxEndDate) {
-      return (
-        current &&
-        (current < dayjs(formValue.startDate) || current > maxEndDate)
-      )
+    // console.log('checked', checked)
+    // console.log('type', type)
+
+    if (checked) {
+      if (type === 'removed') {
+        setSelectedAddedCases(addedCases.map(c => c.id))
+      } else {
+        setSelectedRemovedCases(removedCases.map(c => c.id))
+      }
+    } else {
+      if (type === 'removed') {
+        setSelectedAddedCases([])
+      } else {
+        setSelectedRemovedCases([])
+      }
+    }
+  }
+
+  const handleAddCase = () => {
+    const params = {
+      surveyId: survey?.surveyId || survey?.id || surveyId,
+      caseIds: selectedAddedCases,
     }
 
-    return current && current < dayjs(formValue.startDate)
+    dispatch(addCaseToSurvey(params))
   }
 
-  // Validation rules
-  const validationRules = {
-    description: [
-      {
-        required: true,
-        message: t('surveyManagement.detail.validation.descriptionRequired'),
-      },
-    ],
-    startDate: [
-      {
-        required: true,
-        message: t('surveyManagement.detail.validation.startDateRequired'),
-      },
-      {
-        validator: (_, value) => {
-          if (value && dayjs(value).isBefore(dayjs(), 'day')) {
-            return Promise.reject(
-              new Error(t('surveyManagement.detail.validation.startDateFuture'))
-            )
+  const handleRemoveCase = async caseId => {
+    try {
+      await surveyAPI.removeCaseFromSurvey({
+        surveyId: survey?.surveyId || survey?.id || surveyId,
+        caseId: caseId,
+      })
+      messageApi.success(t('surveyManagement.messages.removeCaseSuccess'))
+      fetchSurveyDetails() // Refresh the survey details
+    } catch {
+      messageApi.error(t('surveyManagement.messages.removeCaseError'))
+    }
+  }
+
+  const renderAddedCaseList = () => (
+    <div>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Checkbox
+          indeterminate={
+            selectedAddedCases.length > 0 &&
+            selectedAddedCases.length < addedCases.length
           }
-          return Promise.resolve()
-        },
-      },
-      {
-        validator: (_, value) => {
-          const endDate = form.getFieldValue('endDate')
-          if (value && endDate && dayjs(value).isAfter(dayjs(endDate))) {
-            return Promise.reject(
-              new Error(
-                t('surveyManagement.detail.validation.startDateBeforeEnd')
-              )
-            )
+          checked={
+            addedCases.length > 0 &&
+            selectedAddedCases.length === addedCases.length
           }
-          return Promise.resolve()
-        },
-      },
-    ],
-    endDate: [
-      {
-        required: true,
-        message: t('surveyManagement.detail.validation.endDateRequired'),
-      },
-    ],
-    recurringCycle: [
-      {
-        validator: (_, value) => {
-          const isRecurring = form.getFieldValue('isRecurring')
-          if (isRecurring && (!value || value === 'NONE')) {
-            return Promise.reject(
-              new Error(
-                t('surveyManagement.detail.validation.recurringCycleRequired')
-              )
-            )
+          onChange={e => handleSelectAll(e.target.checked, 'removed')}
+          disabled={addedCases.length === 0}
+        >
+          {t('common.selectAll')}
+        </Checkbox>
+        <Button
+          type="primary"
+          disabled={selectedAddedCases.length === 0}
+          onClick={handleRemoveCase}
+        >
+          {t('common.remove')} ({selectedAddedCases.length})
+        </Button>
+      </div>
+      <List
+        dataSource={addedCases}
+        renderItem={item => (
+          <List.Item
+            style={{
+              padding: '12px',
+              marginBottom: '8px',
+              background: '#fff',
+              borderRadius: '8px',
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                }}
+              >
+                <Checkbox
+                  checked={selectedAddedCases.includes(item.id)}
+                  onChange={() => handleCaseSelection(item.id, 'removed')}
+                />
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {item.title}
+                    </Typography.Title>
+                    <Space>
+                      <Tag
+                        color={
+                          item.priority === 'HIGH'
+                            ? 'red'
+                            : item.priority === 'MEDIUM'
+                              ? 'orange'
+                              : 'green'
+                        }
+                      >
+                        {item.priority}
+                      </Tag>
+                    </Space>
+                  </div>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Student:
+                      </Typography.Text>
+                      <div>{item.student.fullName}</div>
+                    </Col>
+
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Current Level:
+                      </Typography.Text>
+                      <div>{item.currentLevel.label}</div>
+                    </Col>
+                  </Row>
+
+                  {item.description && (
+                    <Typography.Paragraph
+                      type="secondary"
+                      ellipsis={{ rows: 2 }}
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {item.description}
+                    </Typography.Paragraph>
+                  )}
+                </div>
+              </div>
+            </div>
+          </List.Item>
+        )}
+      />
+    </div>
+  )
+
+  const renderRemovedCaseList = () => (
+    <div>
+      <div
+        style={{
+          marginBottom: 16,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <Checkbox
+          indeterminate={
+            selectedRemovedCases.length > 0 &&
+            selectedRemovedCases.length < removedCases.length
           }
-          return Promise.resolve()
-        },
-      },
-    ],
+          checked={
+            removedCases.length > 0 &&
+            selectedRemovedCases.length === removedCases.length
+          }
+          onChange={e => handleSelectAll(e.target.checked, 'added')}
+          disabled={removedCases.length === 0}
+        >
+          {t('common.selectAll')}
+        </Checkbox>
+        <Button
+          type="primary"
+          disabled={selectedRemovedCases.length === 0}
+          onClick={handleAddCase}
+        >
+          {t('common.add')} ({selectedRemovedCases.length})
+        </Button>
+      </div>
+      <List
+        dataSource={removedCases}
+        renderItem={item => (
+          <List.Item
+            style={{
+              padding: '12px',
+              marginBottom: '8px',
+              background: '#fff',
+              borderRadius: '8px',
+              border: '1px solid #f0f0f0',
+            }}
+          >
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                }}
+              >
+                <Checkbox
+                  checked={selectedRemovedCases.includes(item.id)}
+                  onChange={() => handleCaseSelection(item.id, 'added')}
+                />
+                <div style={{ flex: 1 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px',
+                    }}
+                  >
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {item.title}
+                    </Typography.Title>
+                    <Space>
+                      <Tag
+                        color={
+                          item.priority === 'HIGH'
+                            ? 'red'
+                            : item.priority === 'MEDIUM'
+                              ? 'orange'
+                              : 'green'
+                        }
+                      >
+                        {item.priority}
+                      </Tag>
+                    </Space>
+                  </div>
+
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Student:
+                      </Typography.Text>
+                      <div>{item.student.fullName}</div>
+                    </Col>
+
+                    <Col span={12}>
+                      <Typography.Text type="secondary">
+                        Current Level:
+                      </Typography.Text>
+                      <div>{item.currentLevel.label}</div>
+                    </Col>
+                  </Row>
+
+                  {item.description && (
+                    <Typography.Paragraph
+                      type="secondary"
+                      ellipsis={{ rows: 2 }}
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {item.description}
+                    </Typography.Paragraph>
+                  )}
+                </div>
+              </div>
+            </div>
+          </List.Item>
+        )}
+      />
+    </div>
+  )
+
+  const itemsCasesCollapse = [
+    {
+      key: '1',
+      label:
+        t('surveyManagement.table.action.addedCases') +
+        ' (' +
+        (addedCases.length ?? 0) +
+        ')',
+      children: renderAddedCaseList(),
+    },
+    {
+      key: '2',
+      label:
+        t('surveyManagement.table.action.removedCases') +
+        ' (' +
+        (removedCases.length ?? 0) +
+        ')',
+      children: renderRemovedCaseList(),
+    },
+  ]
+
+  // Main render
+  if (error) {
+    return (
+      <Modal
+        title={t('surveyManagement.detail.title')}
+        open={visible}
+        onCancel={onClose}
+        footer={[
+          <Button key="close" danger onClick={onClose}>
+            {t('common.close')}
+          </Button>,
+          <Button key="retry" type="primary" onClick={fetchSurveyDetails}>
+            {t('common.retry')}
+          </Button>,
+        ]}
+        width={1000}
+      >
+        <Alert
+          message={t('surveyManagement.detail.errorTitle')}
+          description={error}
+          type="error"
+          showIcon
+          action={
+            <Button size="small" danger onClick={fetchSurveyDetails}>
+              {t('common.retry')}
+            </Button>
+          }
+        />
+      </Modal>
+    )
   }
 
   return (
     <Modal
+      title={
+        <Space>
+          <FileTextOutlined />
+          {t('surveyManagement.detail.title')}
+        </Space>
+      }
       open={visible}
-      title={<span style={{ fontWeight: 600 }}>{formValue.name}</span>}
       onCancel={onClose}
-      footer={null}
-      width={1000}
-      style={{ top: '5%' }}
-    >
-      <div className="flex flex-col h-[80vh]">
-        <Form form={form} layout="vertical" onValuesChange={handleFormChange}>
-          <div>
-            <Descriptions column={2} bordered size="small">
-              <Descriptions.Item
-                label={t('surveyManagement.detail.description')}
-                span={2}
-              >
-                {editMode ? (
-                  <Form.Item
-                    name="description"
-                    rules={validationRules.description}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Input.TextArea rows={2} />
-                  </Form.Item>
-                ) : (
-                  formValue.description
-                )}
-              </Descriptions.Item>
-
-              <Descriptions.Item
-                label={t('surveyManagement.detail.status')}
-                span={1}
-              >
-                <Tag
-                  color={
-                    formValue.status === 'PUBLISHED'
-                      ? 'green'
-                      : formValue.status === 'COMPLETED'
-                        ? 'blue'
-                        : formValue.status === 'DRAFT'
-                          ? 'orange'
-                          : 'red'
-                  }
-                >
-                  {formValue.status}
-                </Tag>
-              </Descriptions.Item>
-
-              <Descriptions.Item
-                label={t('surveyManagement.detail.required')}
-                span={1}
-              >
-                {editMode ? (
-                  <Form.Item
-                    name="isRequired"
-                    valuePropName="checked"
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Switch
-                      checkedChildren={t('common.yes')}
-                      unCheckedChildren={t('common.no')}
-                    />
-                  </Form.Item>
-                ) : formValue.isRequired ? (
-                  t('common.yes')
-                ) : (
-                  t('common.no')
-                )}
-              </Descriptions.Item>
-
-              <Descriptions.Item
-                label={t('surveyManagement.detail.startDate')}
-                span={1}
-              >
-                {editMode && canEditDates ? (
-                  <Form.Item
-                    name="startDate"
-                    rules={validationRules.startDate}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <DatePicker
-                      format="YYYY-MM-DD"
-                      disabledDate={current =>
-                        current && current < dayjs().startOf('day')
-                      }
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                ) : formValue.startDate ? (
-                  dayjs(formValue.startDate).format('YYYY-MM-DD')
-                ) : (
-                  ''
-                )}
-              </Descriptions.Item>
-
-              <Descriptions.Item
-                label={t('surveyManagement.detail.endDate')}
-                span={1}
-              >
-                {editMode && canEditDates ? (
-                  <Form.Item
-                    name="endDate"
-                    rules={validationRules.endDate}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <DatePicker
-                      format="YYYY-MM-DD"
-                      disabledDate={disabledEndDate}
-                      style={{ width: '100%' }}
-                    />
-                  </Form.Item>
-                ) : formValue.endDate ? (
-                  dayjs(formValue.endDate).format('YYYY-MM-DD')
-                ) : (
-                  ''
-                )}
-              </Descriptions.Item>
-
-              <Descriptions.Item
-                label={t('surveyManagement.detail.recurringCycle')}
-                span={2}
-              >
-                {editMode ? (
-                  <Form.Item
-                    name="recurringCycle"
-                    rules={validationRules.recurringCycle}
-                    style={{ marginBottom: 0 }}
-                  >
-                    <Select
-                      options={recurringOptions}
-                      placeholder={t(
-                        'surveyManagement.form.recurringCyclePlaceholder'
-                      )}
-                      style={{ width: 200 }}
-                      allowClear
-                    />
-                  </Form.Item>
-                ) : formValue.isRecurring &&
-                  formValue.recurringCycle &&
-                  formValue.recurringCycle !== 'NONE' ? (
-                  getRecurringCycleLabel(formValue.recurringCycle)
-                ) : (
-                  t('common.no')
-                )}
-              </Descriptions.Item>
-            </Descriptions>
-
-            <Divider orientation="left" style={{ fontWeight: 600 }}>
-              {t('surveyManagement.detail.questionsList')}
-            </Divider>
-          </div>
-        </Form>
-
-        <div className="h-full" style={{ overflowY: 'auto', marginBottom: 16 }}>
-          <List
-            dataSource={formValue.questions}
-            renderItem={(q, qIdx) => (
-              <Card
-                key={q.questionId || qIdx}
-                style={{ marginBottom: 16, borderRadius: 8 }}
-                type="inner"
-                title={<Typography.Text>{q.text}</Typography.Text>}
-                extra={<Tag>{q.category?.name || ''}</Tag>}
-              >
-                <Typography.Text type="secondary">
-                  {q.description}
-                </Typography.Text>
-                <div style={{ marginTop: 8 }}>
-                  <List
-                    size="small"
-                    dataSource={q.answers}
-                    renderItem={(a, _aIdx) => (
-                      <List.Item style={{ paddingLeft: 16 }}>
-                        <Space>
-                          <Tag color="blue">{a.score}</Tag>
-                          {a.text}
-                        </Space>
-                      </List.Item>
-                    )}
-                  />
-                </div>
-              </Card>
-            )}
-          />
-        </div>
-
-        <div style={{ textAlign: 'right' }}>
-          {!editMode ? (
-            <Button type="primary" onClick={handleEdit}>
-              {t('surveyManagement.detail.edit')}
-            </Button>
-          ) : (
-            <>
-              <Button onClick={handleCancelEdit} style={{ marginRight: 8 }}>
+      footer={
+        editMode
+          ? [
+              <Button key="cancel" danger onClick={handleCancel}>
                 {t('surveyManagement.detail.cancel')}
-              </Button>
-              <Button type="primary" onClick={handleUpdate} loading={loading}>
-                {t('surveyManagement.detail.update')}
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
+              </Button>,
+              <Button
+                key="save"
+                type="primary"
+                icon={<SaveOutlined />}
+                onClick={handleSave}
+                loading={loading}
+              >
+                {t('surveyManagement.detail.save')}
+              </Button>,
+            ]
+          : [
+              <Button key="close" danger onClick={onClose}>
+                {t('common.close')}
+              </Button>,
+            ]
+      }
+      width={1300}
+      style={{ top: 20 }}
+      styles={{
+        body: {
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingRight: 14,
+        },
+      }}
+    >
+      <Spin spinning={fetching} tip={t('surveyManagement.detail.loading')}>
+        {survey ? (
+          <div>
+            {renderHeader()}
+            {editMode ? (
+              renderEditForm()
+            ) : (
+              <Row gutter={16}>
+                <Col
+                  span={showAddCase && userRole === 'counselor' ? 14 : 24}
+                  style={{
+                    width: showAddCase ? '50%' : '100%',
+                    transition: 'all 0.3s ease-in-out',
+                    paddingRight: showAddCase ? '8px' : '0',
+                  }}
+                >
+                  {renderSurveyInfo()}
+                  {renderQuestions()}
+                </Col>
+                {userRole === 'counselor' && (
+                  <Col
+                    span={10}
+                    style={{
+                      opacity: showAddCase ? 1 : 0,
+                      transform: `translateX(${showAddCase ? '0' : '100%'})`,
+                      transition: 'all 0.3s ease-in-out',
+                      visibility: showAddCase ? 'visible' : 'hidden',
+                      height: '100%',
+                    }}
+                  >
+                    <div>
+                      <Card
+                        title={
+                          <Space>
+                            <Text strong>
+                              {t('surveyManagement.table.action.cases')}
+                            </Text>
+                          </Space>
+                        }
+                        extra={
+                          <Button
+                            type="text"
+                            icon={<CloseOutlined />}
+                            onClick={() => setShowAddCase(false)}
+                          />
+                        }
+                        style={{ marginBottom: 16 }}
+                      >
+                        {Array.isArray(cases) && cases.length > 0 ? (
+                          <>
+                            <Collapse items={itemsCasesCollapse} />
+                          </>
+                        ) : (
+                          <div
+                            style={{ textAlign: 'center', padding: '40px 0' }}
+                          >
+                            <FileTextOutlined
+                              style={{
+                                fontSize: 48,
+                                color: '#d9d9d9',
+                                marginBottom: 16,
+                              }}
+                            />
+                            <Text type="secondary">
+                              {t('surveyManagement.detail.noCase')}
+                            </Text>
+                          </div>
+                        )}
+                      </Card>
+                    </div>
+                  </Col>
+                )}
+              </Row>
+            )}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <FileTextOutlined
+              style={{ fontSize: 48, color: '#d9d9d9', marginBottom: 16 }}
+            />
+            <Text type="secondary">{t('surveyManagement.detail.noData')}</Text>
+          </div>
+        )}
+      </Spin>
     </Modal>
   )
 }
 
-export default SurveyDetailModal
+export default React.memo(SurveyDetailModal)

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
-import { Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { api } from "../../services";
 import { useAuth } from "../../contexts";
@@ -23,10 +22,6 @@ export default function ProfileScreen() {
       // Still logout locally even if API call fails
       await logout();
     }
-  };
-
-  const handleBackPress = () => {
-    navigation.goBack();
   };
 
   const onRefresh = useCallback(async () => {
