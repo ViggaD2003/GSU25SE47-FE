@@ -111,12 +111,16 @@ const CaseManagement = createLazyComponent(
   () => import('@/pages/main/CaseManagement/CaseManagement'),
   'CaseManagement'
 )
+const CaseDetails = createLazyComponent(
+  () => import('@/pages/main/CaseManagement/Details'),
+  'CaseDetails'
+)
 const ProgramManagement = createLazyComponent(
   () => import('@/pages/main/ProgramManagement/ProgramManagement'),
   'ProgramManagement'
 )
 const ProgramDetails = createLazyComponent(
-  () => import('@/pages/main/ProgramManagement/ProgramDetails'),
+  () => import('@/pages/main/ProgramManagement/Details'),
   'ProgramDetails'
 )
 const SlotManagement = createLazyComponent(
@@ -150,6 +154,7 @@ const AppRouter = () => {
     AppointmentDetails,
     ClassManagement,
     CategoryManagement,
+    CaseDetails,
   }
 
   return (

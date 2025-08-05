@@ -82,7 +82,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
         isRequired: false,
         isRecurring: false,
         recurringCycle: RECURRING_CYCLE.WEEKLY,
-        surveyType: SURVEY_TYPE.SCREENING,
+        surveyType: getSurveyTypePermissions(userRole)[0],
         targetScope: TARGET_SCOPE.ALL,
         targetGrade: null,
         startDate: null,
@@ -92,7 +92,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
 
       form.setFieldsValue({ ...defaultFields, ...fieldsToSet })
     },
-    [form]
+    [form, userRole]
   )
 
   const handleCategoryChange = useCallback(
@@ -130,7 +130,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
           targetGrade: [],
         })
       } else {
-        form.setFieldsValue({ targetScope: 'NONE', targetGrade: [] })
+        form.setFieldsValue({ targetScope: TARGET_SCOPE.NONE, targetGrade: [] })
       }
     },
     [form]
@@ -236,7 +236,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
               }}
             >
               <Title level={5} style={{ marginBottom: '16px' }}>
-                Survey Information
+                {t('surveyManagement.form.surveyInformation')}
               </Title>
 
               {/* Category */}
@@ -267,6 +267,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
               <Form.Item
                 name="surveyType"
                 label={t('surveyManagement.form.surveyType')}
+                initialValue={getSurveyTypePermissions(userRole)[0]}
                 rules={[
                   {
                     required: true,

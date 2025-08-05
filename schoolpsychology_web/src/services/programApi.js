@@ -7,12 +7,30 @@ export const programAPI = {
   },
 
   getProgramById: async programId => {
-    const response = await api.get(`/api/v1/support-programs/${programId}`)
-    return response.data
+    if (!programId) return null
+    try {
+      const response = await api.get(`/api/v1/support-programs/${programId}`)
+      return response.data
+    } catch (error) {
+      console.error('Get program by id error:', error)
+      throw error
+    }
   },
 
-  createProgram: async programData => {
-    const response = await api.post('/api/v1/support-programs', programData)
+  createProgram: async requestData => {
+    const { thumbnail, request } = requestData
+    const formData = new FormData()
+    formData.append('thumbnail', thumbnail)
+    formData.append(
+      'request',
+      new Blob([JSON.stringify(request)], {
+        type: 'application/json',
+      })
+    )
+    console.log(formData)
+    const response = await api.post('/api/v1/support-programs', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return response.data
   },
 
@@ -27,5 +45,22 @@ export const programAPI = {
   deleteProgram: async programId => {
     const response = await api.delete(`/api/v1/support-programs/${programId}`)
     return response.data
+  },
+
+  uploadThumbnail: async thumbnail => {
+    try {
+      console.log('thumbnail', thumbnail)
+
+      const formData = new FormData()
+      formData.append('image', thumbnail) // Thêm file vào FormData
+      const response = await api.post('/api/v1/upload-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      console.log(response.data)
+      return response.data
+    } catch (error) {
+      console.error('Upload error:', error)
+      throw error // Ném lỗi để component Upload xử lý trạng thái 'error'
+    }
   },
 }

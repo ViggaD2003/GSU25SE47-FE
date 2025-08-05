@@ -18,7 +18,8 @@ export const getProgramById = createAsyncThunk(
   'program/getProgramById',
   async (programId, { rejectWithValue }) => {
     try {
-      return await programAPI.getProgramById(programId)
+      const response = await programAPI.getProgramById(programId)
+      return response
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message)
     }
