@@ -141,6 +141,58 @@ export const logoutUser = createAsyncThunk(
   }
 )
 
+// Async thunk for Google OAuth login
+export const loginWithGoogleToken = createAsyncThunk(
+  'auth/loginWithGoogleToken',
+  async (token, { dispatch, rejectWithValue }) => {
+    try {
+      if (!token) {
+        throw new Error('No authentication token provided')
+      }
+
+      // Decode token để lấy thông tin user
+      const decodedToken = decodeJWT(token)
+      if (!decodedToken) {
+        throw new Error('Invalid authentication token')
+      }
+
+      // Tạo object user từ decoded token
+      const user = {
+        ...decodedToken,
+        id: decodedToken?.userId || decodedToken['user-id'] || 1,
+        fullName: decodedToken?.name || decodedToken?.fullName || 'Google User',
+        email: decodedToken?.email || decodedToken?.sub || '',
+        role: decodedToken?.role
+          ? String(decodedToken.role).toLowerCase()
+          : null,
+      }
+
+      // Kiểm tra quyền truy cập
+      const authorizedRoles = ['manager', 'teacher', 'counselor']
+      if (!authorizedRoles.includes(user.role?.toLowerCase())) {
+        throw new Error(
+          `Your role (${user.role || 'undefined'}) is not authorized to access this application. Only managers, teachers, and counselors are allowed.`
+        )
+      }
+
+      // Tạo auth data object
+      const authData = { user, token }
+
+      // Lưu vào localStorage
+      localStorage.setItem('token', token)
+      localStorage.setItem('auth', JSON.stringify(authData))
+
+      // Dispatch loginSuccess để cập nhật Redux state
+      dispatch(loginSuccess(authData))
+
+      return authData
+    } catch (error) {
+      dispatch(loginFailure())
+      return rejectWithValue(error.message || 'Google authentication failed')
+    }
+  }
+)
+
 // Initialize auth from localStorage
 export const initializeAuthFromStorage = createAsyncThunk(
   'auth/initializeAuthFromStorage',

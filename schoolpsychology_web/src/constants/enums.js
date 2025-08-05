@@ -37,7 +37,7 @@ export const QUESTION_TYPE = {
 }
 
 export const SURVEY_TYPE_PERMISSIONS = {
-  manager: ['SCREENING', 'PROGRAM'],
+  manager: ['SCREENING'],
   counselor: ['FOLLOWUP'],
 }
 

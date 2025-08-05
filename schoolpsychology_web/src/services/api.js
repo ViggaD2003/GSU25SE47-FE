@@ -32,17 +32,76 @@ const processQueue = (error, token = null) => {
   failedQueue = []
 }
 
+// Centralized token refresh logic
+const handleTokenRefresh = async (showNotification = true) => {
+  // Prevent multiple refresh attempts
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject })
+    })
+  }
+
+  isRefreshing = true
+
+  try {
+    console.log('Attempting to refresh token...')
+
+    // Use Redux action to refresh token
+    const result = await store.dispatch(refreshTokenAction()).unwrap()
+
+    if (result?.token) {
+      api.defaults.headers.common.Authorization = `Bearer ${result.token}`
+
+      processQueue(null, result.token)
+
+      if (showNotification) {
+        notificationService.success({
+          message: 'Token refreshed successfully',
+          description: 'Your session has been extended',
+          duration: 2,
+        })
+      }
+
+      console.log('Token refreshed successfully')
+      return result.token
+    } else {
+      throw new Error('Token refresh failed')
+    }
+  } catch (refreshError) {
+    processQueue(refreshError, null)
+
+    if (showNotification) {
+      notificationService.error({
+        message: 'Session expired',
+        description: 'Please login again',
+        duration: 3,
+      })
+    }
+
+    console.log('Token refresh failed, logging out user')
+    store.dispatch(logoutUser())
+    throw refreshError
+  } finally {
+    isRefreshing = false
+  }
+}
+
 // Request interceptor
 api.interceptors.request.use(
-  config => {
+  async config => {
     // Add auth token or other headers here if needed
     const token = localStorage.getItem('token')
     if (token) {
       // Check if token is expired before making the request
       if (isTokenExpired(token)) {
-        console.log('Token is expired, logging out user')
-        store.dispatch(logoutUser())
-        return Promise.reject(new Error('Token expired'))
+        try {
+          // Use centralized refresh logic (no notification for request interceptor)
+          const newToken = await handleTokenRefresh(false)
+          config.headers.Authorization = `Bearer ${newToken}`
+          return config
+        } catch (refreshError) {
+          return Promise.reject(refreshError)
+        }
       }
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -82,52 +141,15 @@ api.interceptors.response.use(
       !originalRequest._retry &&
       !excludedPaths?.some(path => originalRequest.url.includes(path))
     ) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject })
-        })
-          .then(token => {
-            originalRequest.headers.Authorization = `Bearer ${token}`
-            return api(originalRequest)
-          })
-          .catch(err => {
-            return Promise.reject(err)
-          })
-      }
-
       originalRequest._retry = true
-      isRefreshing = true
 
       try {
-        // Use Redux action to refresh token
-        const result = await store.dispatch(refreshTokenAction()).unwrap()
-
-        if (result?.token) {
-          api.defaults.headers.common.Authorization = `Bearer ${result.token}`
-          originalRequest.headers.Authorization = `Bearer ${result.token}`
-
-          processQueue(null, result.token)
-          notificationService.success({
-            message: 'Token refreshed successfully',
-            description: 'Your session has been extended',
-            duration: 2,
-          })
-          return api(originalRequest)
-        } else {
-          throw new Error('Token refresh failed')
-        }
+        // Use centralized refresh logic (with notification for response interceptor)
+        const newToken = await handleTokenRefresh(true)
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return api(originalRequest)
       } catch (refreshError) {
-        processQueue(refreshError, null)
-        notificationService.error({
-          message: 'Session expired',
-          description: 'Please login again',
-          duration: 3,
-        })
-        // Dispatch logout action for 401 errors
-        store.dispatch(logoutUser())
         return Promise.reject(refreshError)
-      } finally {
-        isRefreshing = false
       }
     }
 
@@ -139,24 +161,19 @@ api.interceptors.response.use(
       originalRequest._retryFor403 = true
 
       try {
-        // Try to refresh token first
-        const result = await store.dispatch(refreshTokenAction()).unwrap()
+        // Try to refresh token first (no standard notification)
+        const newToken = await handleTokenRefresh(false)
 
-        if (result?.token) {
-          api.defaults.headers.common.Authorization = `Bearer ${result.token}`
-          originalRequest.headers.Authorization = `Bearer ${result.token}`
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
 
-          notificationService.info({
-            message: 'Session refreshed',
-            description: 'Retrying your request with updated permissions',
-            duration: 2,
-          })
+        notificationService.info({
+          message: 'Session refreshed',
+          description: 'Retrying your request with updated permissions',
+          duration: 2,
+        })
 
-          // Retry the original request with new token
-          return api(originalRequest)
-        } else {
-          throw new Error('Token refresh failed')
-        }
+        // Retry the original request with new token
+        return api(originalRequest)
       } catch (refreshError) {
         console.error('Token refresh failed for 403 error:', refreshError)
 
