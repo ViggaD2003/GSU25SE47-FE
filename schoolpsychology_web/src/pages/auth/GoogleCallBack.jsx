@@ -91,7 +91,6 @@ const GoogleCallBack = () => {
           })
 
           logout()
-          setTimeout(() => navigate('/login'), 2000)
           return
         }
 
@@ -104,18 +103,6 @@ const GoogleCallBack = () => {
 
         // Sử dụng loginSuccess từ Redux store để cập nhật state
         dispatch(loginSuccess(authData))
-
-        // Hiển thị thông báo thành công
-        showNotificationOnce('success', {
-          message: 'Login Successful',
-          description: `Welcome back, ${user.fullName}! You have successfully logged in via Google.`,
-          duration: 3,
-        })
-
-        // Redirect đến dashboard
-        setTimeout(() => {
-          navigate('/dashboard', { replace: true })
-        }, 1500)
       } catch (error) {
         console.error('Error processing Google callback:', error)
         showNotificationOnce('error', {
@@ -124,8 +111,6 @@ const GoogleCallBack = () => {
             'An unexpected error occurred while processing your login. Please try again.',
           duration: 4,
         })
-
-        setTimeout(() => navigate('/login'), 3000)
       }
     }
 
