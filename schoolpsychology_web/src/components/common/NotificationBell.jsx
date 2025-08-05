@@ -12,32 +12,21 @@ const NotificationBell = () => {
   const { isDarkMode } = useTheme()
   const [dropdownVisible, setDropdownVisible] = useState(false)
 
-  const {
-    notifications,
-    getUnreadCount,
-    markNotificationAsRead,
-    clearNotifications,
-  } = useWebSocket()
+  const { getUnreadCount, getRecentNotifications } = useWebSocket()
 
   const unreadCount = getUnreadCount()
+  const recentNotifications = getRecentNotifications(10) // Lấy 10 thông báo gần nhất
 
-  const handleNotificationClick = useCallback(
-    notification => {
-      if (!notification.read) {
-        markNotificationAsRead(notification.id)
-      }
-      // Xử lý click vào thông báo (có thể navigate đến trang liên quan)
-      console.log('Clicked notification:', notification)
-    },
-    [markNotificationAsRead]
-  )
+  const handleNotificationClick = useCallback(notification => {
+    // Xử lý click vào thông báo (có thể navigate đến trang liên quan)
+    console.log('Clicked notification:', notification)
+  }, [])
 
-  const handleClearAll = useCallback(() => {
-    clearNotifications()
-    setDropdownVisible(false)
-  }, [clearNotifications])
+  // const handleClearAll = useCallback(() => {
+  //   setDropdownVisible(false)
+  // }, [])
 
-  const notificationItems = notifications.map((notification, index) => ({
+  const notificationItems = recentNotifications.map((notification, index) => ({
     key: notification.id || index,
     label: (
       <div
@@ -100,9 +89,9 @@ const NotificationBell = () => {
                 strong
                 className={isDarkMode ? 'text-white' : 'text-gray-900'}
               >
-                {t('notification.title')} ({notifications.length})
+                {t('notification.title')} ({recentNotifications.length})
               </Text>
-              <Space>
+              {/* <Space>
                 <Button
                   size="small"
                   type="text"
@@ -110,7 +99,7 @@ const NotificationBell = () => {
                   onClick={handleClearAll}
                   className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}
                 />
-              </Space>
+              </Space> */}
             </div>
           </div>
         ),
@@ -122,7 +111,7 @@ const NotificationBell = () => {
       // Notifications list
       ...notificationItems,
       // Empty state
-      ...(notifications.length === 0
+      ...(recentNotifications.length === 0
         ? [
             {
               key: 'empty',

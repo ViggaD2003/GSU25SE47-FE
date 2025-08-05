@@ -424,8 +424,7 @@ const ProgramManagement = () => {
       <Suspense fallback={null}>
         <ProgramModal
           visible={isModalVisible}
-          onCancel={handleCloseModal}
-          onRefresh={handleRefresh}
+          onCancel={() => setIsModalVisible(false)}
           onOk={handleSave}
           categories={categories}
           counselors={counselors}

@@ -1580,7 +1580,7 @@ const SurveyDetailModal = ({
             {editMode ? (
               renderEditForm()
             ) : (
-              <Row gutter={16}>
+              <Row>
                 <Col
                   span={showAddCase && userRole === 'counselor' ? 14 : 24}
                   style={{
@@ -1594,13 +1594,12 @@ const SurveyDetailModal = ({
                 </Col>
                 {userRole === 'counselor' && (
                   <Col
-                    span={10}
+                    span={showAddCase ? 10 : 0}
                     style={{
                       opacity: showAddCase ? 1 : 0,
                       transform: `translateX(${showAddCase ? '0' : '100%'})`,
                       transition: 'all 0.3s ease-in-out',
                       visibility: showAddCase ? 'visible' : 'hidden',
-                      height: '100%',
                     }}
                   >
                     <div>
@@ -1619,7 +1618,7 @@ const SurveyDetailModal = ({
                             onClick={() => setShowAddCase(false)}
                           />
                         }
-                        style={{ marginBottom: 16 }}
+                        // style={{ marginBottom: 16 }}
                       >
                         {Array.isArray(cases) && cases.length > 0 ? (
                           <>

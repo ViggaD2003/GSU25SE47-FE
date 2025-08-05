@@ -275,6 +275,20 @@ export const WebSocketProvider = ({ children }) => {
     return notifications.filter(notification => !notification.read).length
   }, [notifications])
 
+  const getRecentNotifications = useCallback(
+    (limit = 10) => {
+      // Sắp xếp notifications theo thời gian tạo (mới nhất trước) và lấy số lượng giới hạn
+      return notifications
+        .sort((a, b) => {
+          const timeA = new Date(a.createdAt || a.updatedAt || 0)
+          const timeB = new Date(b.createdAt || b.updatedAt || 0)
+          return timeB - timeA
+        })
+        .slice(0, limit)
+    },
+    [notifications]
+  )
+
   // Memoize context value để tránh re-render không cần thiết
   const contextValue = useMemo(
     () => ({
@@ -287,6 +301,7 @@ export const WebSocketProvider = ({ children }) => {
       clearNotifications,
       markNotificationAsRead,
       getUnreadCount,
+      getRecentNotifications,
       setNotifications,
     }),
     [
@@ -298,6 +313,7 @@ export const WebSocketProvider = ({ children }) => {
       clearNotifications,
       markNotificationAsRead,
       getUnreadCount,
+      getRecentNotifications,
     ]
   )
 

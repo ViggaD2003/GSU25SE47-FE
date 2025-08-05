@@ -198,52 +198,6 @@ const ProgramModal = ({
     onCancel()
   }
 
-  const handleCreateSession = async () => {
-    try {
-      setSessionLoading(true)
-      const values = await sessionForm.validateFields()
-
-      const sessionData = {
-        supportProgramId: selectedProgram?.id,
-        topic: values.topic,
-        description: values.sessionDescription,
-        status: 'UPCOMING',
-        date: values.sessionDate.format('YYYY-MM-DD'),
-        createSlotRequest: {
-          slotName: values.slotName,
-          startDateTime: dayjs(values.startDateTime).format(
-            'YYYY-MM-DDTHH:mm:ss'
-          ),
-          endDateTime: dayjs(values.endDateTime).format('YYYY-MM-DDTHH:mm:ss'),
-          status: 'PUBLISHED',
-          hostById: values.hostBy,
-          type: 'PROGRAM',
-        },
-      }
-
-      await programAPI.postProgramSession(sessionData)
-      message.success(t('programManagement.form.sessionCreatedSuccess'))
-      sessionForm.resetFields()
-      setSessionDate(null)
-
-      // Refresh sessions list
-      try {
-        const sessionsData = await programAPI.getProgramSessions(
-          selectedProgram.id
-        )
-        setProgramSessions(sessionsData.data || [])
-        onRefresh()
-      } catch (error) {
-        console.error('Error refreshing sessions:', error)
-      }
-    } catch (error) {
-      console.error('Error creating session:', error)
-      message.error(t('programManagement.form.sessionCreatedError'))
-    } finally {
-      setSessionLoading(false)
-    }
-  }
-
   const getModalTitle = () => {
     const title = t('programManagement.modal.addTitle')
 
@@ -378,12 +332,12 @@ const ProgramModal = ({
       }
       width={1200}
       className={isDarkMode ? 'dark-modal' : ''}
-      style={{ top: '5%' }}
+      style={{ top: '5%', paddingBottom: '10px' }}
       styles={{
         body: { maxHeight: '70vh' },
       }}
     >
-      <Row style={{ height: 'calc(100vh - 200px)' }}>
+      <Row style={{ height: 'calc(100vh - 250px)' }}>
         <Col
           span={12}
           style={{ height: '100%', overflowY: 'auto', paddingRight: '12px' }}
