@@ -3,30 +3,17 @@ import { Form, Input, Button } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import useMessage from 'antd/es/message/useMessage'
 import { useAuth } from '@/contexts/AuthContext'
 
 const Login = () => {
   const { login } = useAuth()
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
-  const [messageApi, contextHolder] = useMessage()
 
   const onFinish = async values => {
     setLoading(true)
-
-    try {
-      const result = await login(values.email, values.password)
-      if (result.success) {
-        messageApi.success(t('auth.messages.loginSuccess'))
-      } else {
-        messageApi.error(t(`auth.messages.invalidCredentials`))
-      }
-    } catch {
-      messageApi.error(t('auth.messages.loginFailed'))
-    } finally {
-      setLoading(false)
-    }
+    await login(values.email, values.password)
+    setLoading(false)
   }
 
   const handleSubmit = e => {
@@ -35,7 +22,6 @@ const Login = () => {
 
   return (
     <>
-      {contextHolder}
       <div className="flex flex-col">
         <div className="w-full md:w-5/6 flex flex-col gap-10">
           {/* Login Card */}

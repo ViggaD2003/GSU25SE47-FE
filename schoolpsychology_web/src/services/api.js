@@ -1,7 +1,11 @@
 import axios from 'axios'
 import { store } from '../store'
-import { logoutUser } from '../store/actions/authActions'
+import {
+  logoutUser,
+  refreshToken as refreshTokenAction,
+} from '../store/actions/authActions'
 import { isTokenExpired } from '../utils'
+import notificationService from './notificationService'
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -95,23 +99,30 @@ api.interceptors.response.use(
       isRefreshing = true
 
       try {
-        // Import authAPI dynamically to avoid circular dependency
-        const { authAPI } = await import('./authApi')
-        const response = await authAPI.refreshToken()
+        // Use Redux action to refresh token
+        const result = await store.dispatch(refreshTokenAction()).unwrap()
 
-        if (response.success && response.data?.token) {
-          const newToken = response.data.token
-          localStorage.setItem('token', newToken)
-          api.defaults.headers.common.Authorization = `Bearer ${newToken}`
-          originalRequest.headers.Authorization = `Bearer ${newToken}`
+        if (result?.token) {
+          api.defaults.headers.common.Authorization = `Bearer ${result.token}`
+          originalRequest.headers.Authorization = `Bearer ${result.token}`
 
-          processQueue(null, newToken)
+          processQueue(null, result.token)
+          notificationService.success({
+            message: 'Token refreshed successfully',
+            description: 'Your session has been extended',
+            duration: 2,
+          })
           return api(originalRequest)
         } else {
           throw new Error('Token refresh failed')
         }
       } catch (refreshError) {
         processQueue(refreshError, null)
+        notificationService.error({
+          message: 'Session expired',
+          description: 'Please login again',
+          duration: 3,
+        })
         // Dispatch logout action for 401 errors
         store.dispatch(logoutUser())
         return Promise.reject(refreshError)
@@ -121,13 +132,53 @@ api.interceptors.response.use(
     }
 
     // Handle 403 (Forbidden) - insufficient permissions
-    if (error.response?.status === 403) {
-      console.error('Access forbidden: Insufficient permissions')
-      // Dispatch logout action for 403 errors
-      store.dispatch(logoutUser())
-      return Promise.reject(
-        new Error('Access forbidden: Insufficient permissions')
+    if (error.response?.status === 403 && !originalRequest._retryFor403) {
+      console.log(
+        '403 error, attempting token refresh before showing AccessFail'
       )
+      originalRequest._retryFor403 = true
+
+      try {
+        // Try to refresh token first
+        const result = await store.dispatch(refreshTokenAction()).unwrap()
+
+        if (result?.token) {
+          api.defaults.headers.common.Authorization = `Bearer ${result.token}`
+          originalRequest.headers.Authorization = `Bearer ${result.token}`
+
+          notificationService.info({
+            message: 'Session refreshed',
+            description: 'Retrying your request with updated permissions',
+            duration: 2,
+          })
+
+          // Retry the original request with new token
+          return api(originalRequest)
+        } else {
+          throw new Error('Token refresh failed')
+        }
+      } catch (refreshError) {
+        console.error('Token refresh failed for 403 error:', refreshError)
+
+        // Show AccessFail page instead of immediate logout
+        notificationService.error({
+          message: 'Access Denied',
+          description:
+            'You do not have permission to access this resource. Redirecting to access denied page.',
+          duration: 4,
+        })
+
+        // Redirect to AccessFail page
+        const currentPath = window.location.pathname
+        if (currentPath !== '/access-fail') {
+          window.history.pushState(null, '', '/access-fail')
+          window.dispatchEvent(new PopStateEvent('popstate'))
+        }
+
+        return Promise.reject(
+          new Error('Access forbidden: Insufficient permissions')
+        )
+      }
     }
 
     // Handle other errors

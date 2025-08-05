@@ -1,5 +1,5 @@
 import React from 'react'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App as AntdApp } from 'antd'
 import { Provider } from 'react-redux'
 import { ThemeProvider, useTheme } from './contexts/ThemeContext'
 import { LanguageProvider } from './contexts/LanguageContext'
@@ -10,6 +10,7 @@ import { WebSocketProvider } from './contexts/WebSocketContext'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import NotificationProvider from './contexts/NotificationProvider'
 
 // Extend dayjs with timezone plugins
 dayjs.extend(utc)
@@ -21,11 +22,22 @@ dayjs.tz.setDefault('Asia/Ho_Chi_Minh')
 // Create a separate component that uses the theme hook inside ThemeProvider
 const AppContent = () => {
   const { antdTheme } = useTheme()
+  const notiConfig = {
+    placement: 'topRight',
+    bottom: 50,
+    duration: 3,
+    rtl: true,
+    showProgress: true,
+  }
 
   return (
     <LanguageProvider>
-      <ConfigProvider theme={antdTheme}>
-        <AppRouter />
+      <ConfigProvider theme={antdTheme} notification={notiConfig}>
+        <AntdApp>
+          <NotificationProvider>
+            <AppRouter />
+          </NotificationProvider>
+        </AntdApp>
       </ConfigProvider>
     </LanguageProvider>
   )

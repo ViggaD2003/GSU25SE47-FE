@@ -139,6 +139,10 @@ const CategoryManagement = createLazyComponent(
   () => import('@/pages/main/CategoryManagement/CategoryManagement'),
   'CategoryManagement'
 )
+const AccessFail = createLazyComponent(
+  () => import('@/pages/AccessFail'),
+  'AccessFail'
+)
 
 const AppRouter = () => {
   const elementMap = {
@@ -175,6 +179,9 @@ const AppRouter = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="login-success" element={<GoogleCallBack />} />
         </Route>
+
+        {/* Access Fail route - accessible without authentication */}
+        <Route path="/access-fail" element={<AccessFail />} />
 
         {/* Protected routes */}
         <Route

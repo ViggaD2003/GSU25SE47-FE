@@ -73,8 +73,11 @@ const LayoutComponent = () => {
   }, [notifications, lastNotificationCount, t, messageApi])
 
   const handleLogout = useCallback(() => {
-    logout()
-    navigate('/login')
+    try {
+      logout()
+    } catch (error) {
+      console.log('error', error)
+    }
   }, [logout, navigate])
 
   const userMenuItems = useMemo(

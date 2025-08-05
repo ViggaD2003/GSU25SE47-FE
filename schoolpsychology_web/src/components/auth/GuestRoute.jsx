@@ -23,7 +23,7 @@ const GuestRoute = ({ children }) => {
 
   // Only redirect if user is authenticated and this is NOT restored from storage (i.e., fresh login)
   if (isAuthenticated && !isRestoredFromStorage) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to={'/dashboard'} replace />
   }
 
   return children

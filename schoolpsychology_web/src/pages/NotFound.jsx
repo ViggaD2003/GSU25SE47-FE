@@ -15,7 +15,7 @@ const NotFound = () => {
     if (isAuthenticated) {
       navigate('/dashboard')
     } else {
-      navigate('/login')
+      navigate('/login', { replace: true })
     }
   }
 
