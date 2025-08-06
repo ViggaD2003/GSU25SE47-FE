@@ -6,6 +6,7 @@ import { api } from "../../services";
 import { useAuth } from "../../contexts";
 import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
+import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 
 export default function ProfileScreen() {
   const [profile, setProfile] = useState({});
@@ -60,15 +61,10 @@ export default function ProfileScreen() {
   return (
     <Container>
       {/* Header */}
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Profile</Text>
-          <Text style={styles.headerSubtitle}>
-            Manage your account and preferences
-          </Text>
-        </View>
-      </View>
+      <HeaderWithTab
+        title="Profile"
+        subtitle="Manage your account and preferences"
+      />
 
       <View style={{ paddingHorizontal: 20 }}>
         <View style={styles.card}>
@@ -149,27 +145,6 @@ function MenuItem({ icon, label, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-  },
-  headerContent: {
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#181A3D",
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-  },
   card: {
     marginTop: 20,
     backgroundColor: "#fff",

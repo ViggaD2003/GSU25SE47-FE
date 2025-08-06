@@ -132,7 +132,7 @@ export const WebSocketProvider = ({ children }) => {
       // Cleanup trước khi tạo kết nối mới
       safeCleanup()
 
-      const socket = new WebSocket('ws://localhost:8080/ws')
+      const socket = new WebSocket('ws://spmss-api.ocgi.space/ws')
       socketRef.current = socket
 
       const stompClient = Stomp.over(socket)

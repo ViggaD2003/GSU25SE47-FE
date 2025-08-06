@@ -8,6 +8,7 @@ import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { GlobalStyles } from "../../constants";
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
+import { NotificationBadge } from "@/components/common";
 
 // const isLargeDevice = width >= 414;
 
@@ -34,21 +35,19 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
           </View>
         </View>
+
         {/* Right side - Actions */}
-        {/* <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate("Profile")}
-          >
-            <View style={styles.notificationContainer}>
-              <Ionicons name="settings-outline" size={24} color="#374151" />
-            </View>
-          </TouchableOpacity>
-        </View> */}
+        <View style={styles.actionsSection}>
+          <NotificationBadge
+            onPress={() => navigation.navigate("Notification")}
+            size={24}
+            iconColor="#A7A7A7FF"
+          />
+        </View>
       </View>
 
       {/* Content */}
-      <View style={{ paddingBottom: 50 }}>
+      <View style={{ paddingBottom: 50, flex: 1 }}>
         {user.role === "STUDENT" ? (
           <StudentHome
             user={user}
@@ -99,9 +98,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   avatarPlaceholder: {
     width: 40,
@@ -113,20 +112,20 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
   },
   userInfo: {
     flex: 1,
   },
   greetingText: {
-    fontSize: 12,
+    fontSize: 14,
     color: "#6B7280",
     fontWeight: "400",
     marginBottom: 2,
   },
   nameText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: "#111827",
   },
@@ -134,36 +133,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#F9FAFB",
-  },
-  notificationContainer: {
-    position: "relative",
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#EF4444",
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  notificationBadgeText: {
-    fontSize: 10,
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  screenHeaderTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#111827",
+    marginRight: 10,
   },
 });

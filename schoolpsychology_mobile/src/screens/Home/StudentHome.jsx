@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,15 +11,12 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import Loading from "../../components/common/Loading";
-import SurveyCard from "../../components/common/SurveyCard";
-import AppointmentCard from "../../components/common/AppointmentCard";
-import { getPublishedSurveys } from "../../services/api/SurveyService";
 import {
   getActiveAppointments,
   getAppointmentHistory,
 } from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
-import { log } from "console";
+import { Entypo } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -39,11 +36,31 @@ export default function StudentHome({
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState("survey");
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMoreData, setHasMoreData] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const isEnableSurvey = user?.isEnableSurvey;
+
+  const actionItems = useMemo(
+    () => [
+      {
+        title: "Booking",
+        icon: "calendar",
+        onPress: () => navigation.navigate("Appointment"),
+      },
+      {
+        title: "History",
+        icon: "back-in-time",
+        onPress: () => navigation.navigate("AppointmentHistory"),
+      },
+      {
+        title: "Doc & Blog",
+        icon: "book",
+        onPress: () => navigation.navigate("Blog"),
+      },
+    ],
+    []
+  );
 
   // Function to load more data
   const loadMoreData = useCallback(() => {
@@ -73,89 +90,13 @@ export default function StudentHome({
     setDisplayedData([]);
   }, []);
 
-  const fetchSurveys = async () => {
-    try {
-      const response = await getPublishedSurveys();
-      const surveyData = Array.isArray(response) ? response : [];
-      // Filter only published surveys and sort by creation date (newest first)
-      const filteredSurveys = surveyData.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      setAllData(filteredSurveys);
-
-      // Load first page
-      const firstPageData = filteredSurveys.slice(0, PAGE_SIZE);
-      setDisplayedData(firstPageData);
-      setCurrentPage(2); // Next page will be 2
-      setHasMoreData(filteredSurveys.length > PAGE_SIZE);
-    } catch (error) {
-      console.error("Lỗi khi tải surveys:", error);
-      setAllData([]);
-      resetPagination();
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  console.log("allData", allData);
-
-  const fetchAppointments = async () => {
-    try {
-      const response = await getActiveAppointments(user?.userId || user?.id);
-      const appointmentData = Array.isArray(response) ? response : [];
-      // Sort appointments by date (newest first)
-      const sortedAppointments = appointmentData.sort(
-        (a, b) => new Date(a.startDateTime) - new Date(b.startDateTime)
-      );
-
-      setAllData(sortedAppointments);
-      // console.log("sortedAppointments", sortedAppointments);
-      // Load first page
-      const firstPageData = sortedAppointments.slice(0, PAGE_SIZE);
-      setDisplayedData(firstPageData);
-      setCurrentPage(2); // Next page will be 2
-      setHasMoreData(sortedAppointments.length > PAGE_SIZE);
-    } catch (error) {
-      console.error("Lỗi khi tải appointments:", error);
-      setAllData([]);
-      resetPagination();
-    } finally {
-      setRefreshing(false);
-      setLoading(false);
-    }
-  };
-
-  const fetchPrograms = async () => {
-    try {
-      setAllData([]);
-      setDisplayedData([]);
-      setHasMoreData(false);
-    } catch (error) {
-      console.error("Lỗi khi tải programs:", error);
-      setAllData([]);
-      resetPagination();
-    } finally {
-      setRefreshing(false);
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = async (type = activeTab) => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    await loadTabData(type);
-  };
-
-  // Function to handle tab change with immediate scroll
-  const handleTabChange = async (type) => {
-    // Update state and fetch data
-    await loadTabData(type);
+    await loadData();
   };
 
   // Centralized function to load tab data
-  const loadTabData = async (type) => {
-    setActiveTab(type);
+  const loadData = async () => {
     setLoading(true);
     // Reset pagination at the start of loading new tab data
     setCurrentPage(1);
@@ -163,43 +104,17 @@ export default function StudentHome({
     setDisplayedData([]);
 
     try {
-      switch (type) {
-        case "survey":
-          if (isEnableSurvey) {
-            await fetchSurveys();
-          }
-          break;
-        case "appointment":
-          await fetchAppointments();
-          break;
-        case "program":
-          await fetchPrograms();
-          break;
-        default:
-          if (isEnableSurvey) {
-            await fetchSurveys();
-          }
-          break;
-      }
+      console.log("loadData");
     } catch (error) {
-      console.error(`Error loading ${type} data:`, error);
+      console.error(`Error loading data:`, error);
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      const initialTab = isEnableSurvey ? "survey" : "appointment";
-      loadTabData(initialTab);
+      loadData();
     }, [navigation, isEnableSurvey])
   );
-
-  const handleAppointmentPress = (appointment) => {
-    // Pass only the appointment ID to avoid circular reference issues
-    navigation.navigate("Appointment", {
-      screen: "AppointmentDetails",
-      params: { appointment: appointment },
-    });
-  };
 
   return (
     <ScrollView
@@ -231,10 +146,15 @@ export default function StudentHome({
 
       {/* Featured Programs */}
       <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Programs</Text>
-          <TouchableOpacity style={styles.sectionLinkContainer}>
-            <Text style={styles.sectionLink}>View All</Text>
+        <View style={styles.headerContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Featured Programs</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.viewAllContainer}
+            onPress={() => navigation.navigate("FeaturedPrograms")}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.featuredCard}>
@@ -265,208 +185,57 @@ export default function StudentHome({
           <Text style={styles.sectionTitle}>Quick Actions</Text>
         </View>
         <View style={styles.connectRow}>
-          <TouchableOpacity
-            style={styles.connectBox}
-            onPress={() => navigation.navigate("Blog")}
-          >
-            <View style={styles.connectIconContainer}>
-              <Text style={styles.connectIcon}>📚</Text>
-            </View>
-            <Text style={styles.connectTitle}>Doc & Blog</Text>
-            <Text style={styles.connectDesc}>
-              Khám phá kiến thức và chia sẻ từ chuyên gia
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.connectBox}
-            onPress={() => navigation.navigate("Appointment")}
-          >
-            <View style={styles.connectIconContainer}>
-              <Text style={styles.connectIcon}>📅</Text>
-            </View>
-            <Text style={styles.connectTitle}>Đặt lịch tư vấn</Text>
-            <Text style={styles.connectDesc}>
-              Hẹn gặp chuyên gia tâm lý để được hỗ trợ
-            </Text>
-          </TouchableOpacity>
+          {actionItems.map((item) => (
+            <TouchableOpacity
+              style={styles.connectBox}
+              onPress={() => item.onPress}
+            >
+              <Entypo name={item.icon} size={24} color="#438455FF" />
+              <Text style={styles.connectTitle}>{item.title}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
-      {/* My Events */}
+      {/* Plan for today */}
       <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>My Events</Text>
-          {activeTab === "survey" && allData.length > 0 && (
-            <View style={styles.surveyCountContainer}>
-              <Text style={styles.surveyCountText}>
-                {allData.length} {allData.length === 1 ? "survey" : "surveys"}
+        <View style={styles.headerContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Plan for today</Text>
+            <View style={styles.planCountContainer}>
+              <Text style={styles.planCountText}>
+                {displayedData.length}{" "}
+                {displayedData.length === 1 || displayedData.length === 0
+                  ? "plan"
+                  : "plans"}
               </Text>
             </View>
-          )}
-        </View>
-        <View style={styles.eventTabsContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.eventTabsScrollContent}
-            bounces={false}
+          </View>
+          <TouchableOpacity
+            style={styles.viewAllContainer}
+            onPress={() => navigation.navigate("PlanForToday")}
           >
-            {isEnableSurvey && (
-              <TouchableOpacity
-                style={
-                  activeTab === "survey"
-                    ? styles.eventTabActive
-                    : styles.eventTab
-                }
-                onPress={() => handleTabChange("survey")}
-              >
-                <Text
-                  style={
-                    activeTab === "survey"
-                      ? styles.eventTabTextActive
-                      : styles.eventTabText
-                  }
-                >
-                  Survey
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={
-                activeTab === "appointment"
-                  ? styles.eventTabActive
-                  : styles.eventTab
-              }
-              onPress={() => handleTabChange("appointment")}
-            >
-              <Text
-                style={
-                  activeTab === "appointment"
-                    ? styles.eventTabTextActive
-                    : styles.eventTabText
-                }
-              >
-                Appointments
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={
-                activeTab === "program"
-                  ? styles.eventTabActive
-                  : styles.eventTab
-              }
-              onPress={() => handleTabChange("program")}
-            >
-              <Text
-                style={
-                  activeTab === "program"
-                    ? styles.eventTabTextActive
-                    : styles.eventTabText
-                }
-              >
-                Support Programs
-              </Text>
-            </TouchableOpacity>
-          </ScrollView>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.requiredEventContainer}>
-          {loading ? (
-            <Loading
-              text={
-                activeTab === "survey"
-                  ? "Đang tải khảo sát..."
-                  : activeTab === "appointment"
-                  ? "Đang tải lịch hẹn..."
-                  : "Đang tải chương trình..."
-              }
-              style={{ height: "100%" }}
-            />
-          ) : displayedData.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>
-                {activeTab === "survey"
-                  ? "📋"
-                  : activeTab === "appointment"
-                  ? "📅"
-                  : "🎯"}
-              </Text>
-              <Text style={styles.emptyText}>
-                {activeTab === "survey"
-                  ? "Không có khảo sát nào hiện tại"
-                  : activeTab === "appointment"
-                  ? "Chưa có lịch hẹn nào"
-                  : "Không có chương trình nào"}
-              </Text>
-              {activeTab === "survey" && (
-                <Text style={styles.emptySubText}>
-                  Các khảo sát mới sẽ xuất hiện ở đây khi có sẵn
-                </Text>
-              )}
-              {activeTab === "appointment" && (
-                <Text style={styles.emptySubText}>
-                  Các lịch hẹn mới sẽ xuất hiện ở đây khi có sẵn
-                </Text>
-              )}
-              {activeTab === "program" && (
-                <Text style={styles.emptySubText}>
-                  Các chương trình hỗ trợ mới sẽ xuất hiện ở đây khi có sẵn
-                </Text>
-              )}
-            </View>
-          ) : isEnableSurvey && activeTab === "survey" ? (
-            <>
-              {displayedData.map((survey, index) => (
-                <SurveyCard
-                  survey={survey}
-                  key={survey.surveyId || index}
-                  navigation={navigation}
-                  onRefresh={onRefresh}
-                  setShowToast={setShowToast}
-                  setToastMessage={setToastMessage}
-                  setToastType={setToastType}
-                />
+        {displayedData.length > 0 ? (
+          <>
+            <ScrollView
+              style={styles.planContainer}
+              showsVerticalScrollIndicator={true}
+            >
+              {displayedData.map((item) => (
+                <View style={styles.planItem}>
+                  <Text style={styles.planTitle}>{item.title}</Text>
+                </View>
               ))}
-              {hasMoreData && (
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={loadMoreData}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? (
-                    <Loading text="Loading more..." />
-                  ) : (
-                    <Text style={styles.loadMoreText}>Load More</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </>
-          ) : activeTab === "appointment" ? (
-            <>
-              {displayedData.map((appointment, index) => (
-                <AppointmentCard
-                  appointment={appointment}
-                  key={appointment.id || index}
-                  onPress={() => handleAppointmentPress(appointment)}
-                />
-              ))}
-              {hasMoreData && (
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={loadMoreData}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? (
-                    <Loading text="Loading more..." />
-                  ) : (
-                    <Text style={styles.loadMoreText}>Load More</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </>
-          ) : null}
-        </View>
+            </ScrollView>
+          </>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No plan for today</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );
@@ -476,6 +245,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingTop: 13,
     paddingHorizontal: 24,
+    flex: 1,
   },
   alertSection: {
     marginTop: 20,
@@ -514,40 +284,40 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   sectionContainer: {
-    marginBottom: 32,
+    marginBottom: 30,
+    gap: 10,
+  },
+  headerContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
+    alignItems: "flex-end",
+    gap: 10,
   },
   sectionTitle: {
-    fontSize: isSmallDevice ? 20 : isMediumDevice ? 22 : 24,
+    fontSize: isSmallDevice ? 16 : isMediumDevice ? 18 : 20,
     fontWeight: "700",
     color: "#1A1A1A",
   },
-  sectionLinkContainer: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: "#F1F5F9",
-    borderRadius: 8,
+  planCountContainer: {},
+  planCountText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#5D5D5D",
   },
-  sectionLink: {
-    color: "#3B82F6",
-    fontWeight: "600",
-    fontSize: 14,
+  viewAllContainer: {
+    borderRadius: 10,
+    padding: 10,
   },
-  surveyCountContainer: {
-    backgroundColor: "#E0F2FE",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  surveyCountText: {
-    color: "#0EA5E9",
-    fontWeight: "600",
-    fontSize: 13,
+  viewAllText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#438455FF",
   },
   featuredCard: {
     borderRadius: 24,
@@ -600,119 +370,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     borderRadius: 20,
     alignItems: "center",
-    padding: isSmallDevice ? 20 : 24,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  connectIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#E0F2FE",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 16,
-  },
-  connectIcon: {
-    fontSize: isSmallDevice ? 28 : 32,
-  },
-  connectTitle: {
-    fontSize: isSmallDevice ? 17 : 18,
-    fontWeight: "700",
-    color: "#1A1A1A",
-    marginBottom: 8,
-    textAlign: "center",
-  },
-  connectDesc: {
-    color: "#64748B",
-    textAlign: "center",
-    fontSize: isSmallDevice ? 14 : 15,
-    lineHeight: 20,
-  },
-  eventTabsContainer: {
-    marginBottom: 25,
-    // backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    minWidth: "100%",
-    // paddingRight: 10,
-  },
-  eventTabsScrollContent: {
-    // paddingRight: 10,
+    padding: 10,
     gap: 10,
-    justifyContent: "space-between",
-  },
-  eventTab: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    paddingVertical: isSmallDevice ? 14 : 16,
-    paddingHorizontal: isSmallDevice ? 18 : 20,
-    marginHorizontal: 2,
-    minWidth: isSmallDevice ? 120 : 140,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  eventTabActive: {
-    backgroundColor: "#059669",
-    borderRadius: 16,
-    paddingVertical: isSmallDevice ? 14 : 16,
-    paddingHorizontal: isSmallDevice ? 18 : 20,
-    marginHorizontal: 2,
-    minWidth: isSmallDevice ? 120 : 140,
-    alignItems: "center",
-    shadowColor: "#059669",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  eventTabText: {
-    color: "#64748B",
-    fontWeight: "600",
-    fontSize: isSmallDevice ? 13 : 14,
-    textAlign: "center",
-  },
-  eventTabTextActive: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: isSmallDevice ? 13 : 14,
-    textAlign: "center",
-  },
-  requiredEventContainer: {
-    paddingBottom: 30,
-    minHeight: 300,
   },
   emptyContainer: {
-    flex: 1,
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
-  },
-  emptyIcon: {
-    fontSize: 56,
-    marginBottom: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 30,
   },
   emptyText: {
     color: "#9CA3AF",
     fontSize: 17,
     fontWeight: "500",
-  },
-  emptySubText: {
-    color: "#9CA3AF",
-    fontSize: 14,
-    fontWeight: "400",
-    textAlign: "center",
-    marginTop: 8,
-    paddingHorizontal: 20,
   },
   loadMoreButton: {
     backgroundColor: "#F3F4F6",

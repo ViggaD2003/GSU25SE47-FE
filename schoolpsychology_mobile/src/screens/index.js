@@ -38,3 +38,6 @@ export { default as RecordScreen } from "./Record/Record";
 
 // Dashboard screens
 export { default as DashboardScreen } from "./Dashboard/Dashboard";
+
+// Notification screens
+export { default as NotificationScreen } from "./Notification/NotificationScreen";

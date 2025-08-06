@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Container } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
 import { log } from "console";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 export default function BlogScreen() {
   const [blogs, setBlogs] = useState([]);
@@ -52,13 +53,7 @@ export default function BlogScreen() {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Blog</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab title="Blog" onBackPress={handleBackPress} />
 
       <FlatList
         data={blogs}
@@ -72,34 +67,6 @@ export default function BlogScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  backButton: {
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#F1F5F9",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1A1A1A",
-  },
-  headerSpacer: {
-    width: 40,
-  },
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",

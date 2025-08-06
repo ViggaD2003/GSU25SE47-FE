@@ -22,6 +22,7 @@ import {
   RecordScreen,
   AppointmentRecordDetailScreen,
   DashboardScreen,
+  NotificationScreen,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -29,6 +30,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Text } from "react-native-paper";
+import { NotificationBadge } from "../components";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -197,6 +199,19 @@ export default function MainTabs() {
   const CustomHeader = (props) => (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
+      {/* <View style={styles.headerContent}>
+        <View style={styles.headerLeft} />
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>{props.route.name}</Text>
+        </View>
+        <View style={styles.headerRight}>
+          <NotificationBadge
+            onPress={() => navigation.navigate("Notification")}
+            size={24}
+            iconColor="#20734C"
+          />
+        </View>
+      </View> */}
     </View>
   );
 
@@ -205,7 +220,7 @@ export default function MainTabs() {
       screenOptions={{ headerShown: false, gestureEnabled: false }}
     >
       <Stack.Screen name="MainBottomTabs" component={BottomTabs} />
-      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Record" component={RecordScreen} />
       <Stack.Screen name="Survey" component={SurveyStack} />
@@ -226,6 +241,31 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: "#FFFFFF",
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerCenter: {
+    flex: 2,
+    alignItems: "center",
+  },
+  headerRight: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#20734C",
   },
   tabBarStyle: {
     backgroundColor: "#FFFFFF",

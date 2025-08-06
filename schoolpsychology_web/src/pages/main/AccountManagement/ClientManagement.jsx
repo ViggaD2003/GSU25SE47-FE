@@ -262,6 +262,11 @@ const ClientManagement = () => {
       if (isCreateCase) {
         await dispatch(createCase(requestData)).unwrap()
         messageApi.success(t('clientManagement.messages.createCaseSuccess'))
+        // sendMessage({
+        //   title: 'New Case',
+        //   content: 'New case has been created by ' + user.fullName,
+        //   username: 'danhkvtse172932@fpt.edu.vn',
+        // })
         setIsCreateCase(false)
       } else {
         messageApi.success(

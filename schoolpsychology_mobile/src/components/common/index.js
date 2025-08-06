@@ -8,6 +8,7 @@ export { default as FilterSortModal } from "./FilterSortModal";
 export { default as LazyLoader } from "./LazyLoader";
 export { default as Loading } from "./Loading";
 export { default as LogoutToast } from "./LogoutToast";
+export { default as NotificationBadge } from "./NotificationBadge";
 export { default as SlotDayCard } from "./SlotDayCard";
 export { default as SurveyCard } from "./SurveyCard";
 export { default as SurveyRecordCard } from "./SurveyRecordCard";
