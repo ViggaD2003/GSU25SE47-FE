@@ -4,6 +4,7 @@ import { Container } from "../../components";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 export default function ProgramRecord() {
   const navigation = useNavigation();
@@ -15,13 +16,7 @@ export default function ProgramRecord() {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#181A3D" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Program Record</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab title="Program Record" onBackPress={handleBackPress} />
 
       {/* Content */}
       <View style={styles.content}>

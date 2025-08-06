@@ -17,6 +17,7 @@ import {
 } from "../../hooks/useNotifications";
 import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import NotificationCountDebug from "@/components/common/NotificationCountDebug";
 
 const NotificationScreen = ({ navigation }) => {
   const {
@@ -25,8 +26,10 @@ const NotificationScreen = ({ navigation }) => {
     loading,
     refreshing,
     hasMore,
+    hasInitialFetch, // Add this to track initial fetch status
     fetchNotifications,
     refresh,
+    refreshAllNotifications, // Add new refresh function
     loadMore,
     markAsRead,
     markAllAsRead,
@@ -37,17 +40,41 @@ const NotificationScreen = ({ navigation }) => {
 
   // Handle pull to refresh
   const handleRefresh = useCallback(() => {
+    console.log("NotificationScreen: Manual refresh triggered");
     refresh().catch((error) => {
       Alert.alert("Lỗi", "Không thể tải thông báo. Vui lòng thử lại.");
     });
   }, [refresh]);
 
+  // Handle manual refresh button
+  const handleManualRefresh = useCallback(() => {
+    console.log("NotificationScreen: Manual refresh button pressed");
+    if (refreshing) {
+      console.log("NotificationScreen: Already refreshing, skipping");
+      return;
+    }
+
+    // Use refreshAllNotifications for more aggressive refresh
+    refreshAllNotifications().catch((error) => {
+      console.error("NotificationScreen: Manual refresh failed:", error);
+      Alert.alert("Lỗi", "Không thể tải thông báo. Vui lòng thử lại.");
+    });
+  }, [refreshAllNotifications, refreshing]);
+
   // Handle load more
   const handleLoadMore = useCallback(() => {
+    if (!hasInitialFetch) {
+      console.log(
+        "NotificationScreen: Skipping load more - initial fetch not completed"
+      );
+      return;
+    }
+
+    console.log("NotificationScreen: Loading more notifications");
     loadMore().catch((error) => {
       console.error("Error loading more notifications:", error);
     });
-  }, [loadMore]);
+  }, [loadMore, hasInitialFetch]);
 
   // Mark notification as read
   const handleMarkAsRead = useCallback(
@@ -119,10 +146,22 @@ const NotificationScreen = ({ navigation }) => {
   // Focus effect to refresh data when screen is focused
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications(1, true).catch((error) => {
-        console.error("Error fetching notifications on focus:", error);
-      });
-    }, [fetchNotifications])
+      console.log(
+        "NotificationScreen: Screen focused, hasInitialFetch:",
+        hasInitialFetch
+      );
+
+      if (!hasInitialFetch) {
+        console.log("NotificationScreen: Triggering initial fetch");
+        fetchNotifications(1, true).catch((error) => {
+          console.error("Error fetching notifications on focus:", error);
+        });
+      } else {
+        console.log(
+          "NotificationScreen: Initial fetch already completed, using WebSocket for updates"
+        );
+      }
+    }, [fetchNotifications, hasInitialFetch])
   );
 
   // Render notification item
@@ -201,31 +240,6 @@ const NotificationScreen = ({ navigation }) => {
     []
   );
 
-  // Render header
-  const renderHeader = useCallback(
-    () => (
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Thông báo</Text>
-        <View style={styles.headerActions}>
-          {unreadCount > 0 && (
-            <TouchableOpacity
-              style={styles.markAllButton}
-              onPress={handleMarkAllAsRead}
-            >
-              <Text style={styles.markAllText}>Đánh dấu đã đọc</Text>
-            </TouchableOpacity>
-          )}
-          {unreadCount > 0 && (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    ),
-    [unreadCount, handleMarkAllAsRead]
-  );
-
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -240,7 +254,24 @@ const NotificationScreen = ({ navigation }) => {
       <HeaderWithoutTab
         title="Notification"
         onBackPress={() => navigation.goBack()}
+        showRefreshButton={true}
+        onRefresh={handleManualRefresh}
+        refreshing={refreshing}
       />
+
+      {/* Refresh Status Info */}
+      {refreshing && (
+        <View style={styles.refreshStatusContainer}>
+          <ActivityIndicator size="small" color="#007AFF" />
+          <Text style={styles.refreshStatusText}>
+            Đang tải lại thông báo...
+          </Text>
+        </View>
+      )}
+
+      {/* Debug Component */}
+      <NotificationCountDebug />
+
       <FlatList
         data={notifications}
         renderItem={renderNotificationItem}
@@ -432,6 +463,21 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     color: "#6c757d",
+  },
+  refreshStatusContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    backgroundColor: "#f8f9fa",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  refreshStatusText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: "#6c757d",
+    fontWeight: "500",
   },
 });
 

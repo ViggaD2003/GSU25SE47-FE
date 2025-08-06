@@ -22,6 +22,7 @@ export const useNotifications = () => {
     registerNotificationHandler,
     scheduleNotification,
     clearNotificationCount,
+    setNotificationCount, // Add this to sync with RealTimeContext
   } = useRealTime();
 
   const [notifications, setNotifications] = useState([]);
@@ -30,21 +31,9 @@ export const useNotifications = () => {
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [hasInitialFetch, setHasInitialFetch] = useState(false); // Track if initial fetch completed
 
   const registeredHandlersRef = useRef(new Set());
-
-  // Memoized notification data with computed properties
-  const notificationData = useMemo(() => {
-    return notifications.map((notification) => ({
-      ...notification,
-      timeAgo: getTimeAgo(notification.createdAt),
-      isNew: !notification.isRead,
-      typeIcon: getNotificationIcon(notification.notificationType),
-      typeColor: getNotificationColor(notification.notificationType),
-      // Add notification_type based on notificationType
-      notification_type: getNotificationType(notification.notificationType),
-    }));
-  }, [notifications]);
 
   // Get time ago string using native JavaScript
   const getTimeAgo = useCallback((dateString) => {
@@ -122,6 +111,25 @@ export const useNotifications = () => {
     }
   }, []);
 
+  // Memoized notification data with computed properties
+  const notificationData = useMemo(() => {
+    return notifications.map((notification) => ({
+      ...notification,
+      timeAgo: getTimeAgo(notification.createdAt),
+      isNew: !notification.isRead,
+      typeIcon: getNotificationIcon(notification.notificationType),
+      typeColor: getNotificationColor(notification.notificationType),
+      // Add notification_type based on notificationType
+      notification_type: getNotificationType(notification.notificationType),
+    }));
+  }, [
+    notifications,
+    getTimeAgo,
+    getNotificationIcon,
+    getNotificationColor,
+    getNotificationType,
+  ]);
+
   // Send message with automatic retry (from useRealTimeFeatures)
   const sendMessageWithRetry = useCallback(
     async (messageOptions, maxRetries = 3) => {
@@ -197,18 +205,23 @@ export const useNotifications = () => {
   const fetchNotifications = useCallback(
     async (pageNum = 1, isRefresh = false) => {
       try {
-        if (!user?.id) return;
+        if (!user?.userId || !user?.id) return;
 
         setLoading(true);
         const response = await NotificationAPI.getAllNotifications(
-          user.id,
+          user.id || user.accountId || user.userId,
           pageNum
         );
+        // console.log("response", response);
         const newNotifications = response.data || response || [];
 
-        if (isRefresh) {
+        if (isRefresh || pageNum === 1) {
           setNotifications(newNotifications);
           setPage(1);
+          setHasInitialFetch(true); // Mark initial fetch as completed
+          console.log(
+            "useNotifications: Initial fetch completed, switching to WebSocket-only mode"
+          );
         } else {
           setNotifications((prev) =>
             pageNum === 1 ? newNotifications : [...prev, ...newNotifications]
@@ -216,7 +229,17 @@ export const useNotifications = () => {
         }
 
         setHasMore(newNotifications.length > 0);
-        setUnreadCount(newNotifications.filter((n) => !n.isRead).length);
+        const unreadCount = newNotifications.filter((n) => !n.isRead).length;
+        setUnreadCount(unreadCount);
+
+        // Sync with RealTimeContext notification count
+        if (setNotificationCount) {
+          setNotificationCount(unreadCount);
+          console.log(
+            "useNotifications: Syncing notification count with RealTimeContext:",
+            unreadCount
+          );
+        }
       } catch (error) {
         console.error("Error fetching notifications:", error);
         throw error;
@@ -225,14 +248,27 @@ export const useNotifications = () => {
         setRefreshing(false);
       }
     },
-    [user?.id]
+    [user, setNotificationCount]
   );
 
-  // Refresh notifications
+  // Refresh notifications - Get all notifications from API
   const refresh = useCallback(() => {
+    console.log(
+      "useNotifications: Starting manual refresh - fetching all notifications"
+    );
     setRefreshing(true);
+    setHasInitialFetch(false); // Reset to force fresh fetch
     return fetchNotifications(1, true);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, setNotificationCount]);
+
+  // Force refresh all notifications (alternative method)
+  const refreshAllNotifications = useCallback(() => {
+    console.log("useNotifications: Force refreshing all notifications");
+    setRefreshing(true);
+    setHasInitialFetch(false);
+    setNotifications([]); // Clear current notifications
+    return fetchNotifications(1, true);
+  }, [fetchNotifications, setNotificationCount]);
 
   // Load more notifications
   const loadMore = useCallback(() => {
@@ -241,7 +277,14 @@ export const useNotifications = () => {
       setPage(nextPage);
       return fetchNotifications(nextPage);
     }
-  }, [loading, hasMore, refreshing, page, fetchNotifications]);
+  }, [
+    loading,
+    hasMore,
+    refreshing,
+    page,
+    fetchNotifications,
+    setNotificationCount,
+  ]);
 
   // Mark notification as read
   const markAsRead = useCallback(
@@ -256,7 +299,20 @@ export const useNotifications = () => {
           )
         );
 
-        setUnreadCount((prev) => Math.max(0, prev - 1));
+        setUnreadCount((prev) => {
+          const newUnreadCount = Math.max(0, prev - 1);
+
+          // Sync with RealTimeContext
+          if (setNotificationCount) {
+            setNotificationCount(newUnreadCount);
+            console.log(
+              "useNotifications: Updated notification count after mark as read:",
+              newUnreadCount
+            );
+          }
+
+          return newUnreadCount;
+        });
 
         // Send to server via WebSocket
         if (isWebSocketConnected) {
@@ -274,7 +330,12 @@ export const useNotifications = () => {
         throw error;
       }
     },
-    [isWebSocketConnected, sendMessageWithRetry, user?.fullName]
+    [
+      isWebSocketConnected,
+      sendMessageWithRetry,
+      user?.fullName,
+      setNotificationCount,
+    ]
   );
 
   // Mark all notifications as read
@@ -287,11 +348,19 @@ export const useNotifications = () => {
 
       setUnreadCount(0);
 
+      // Sync with RealTimeContext
+      if (setNotificationCount) {
+        setNotificationCount(0);
+        console.log(
+          "useNotifications: Cleared notification count after mark all as read"
+        );
+      }
+
       // Send to server via WebSocket
       if (isWebSocketConnected) {
         sendMessageWithRetry({
           type: "notifications_all_read",
-          payload: { userId: user?.id },
+          payload: { userId: user?.id || user?.userId },
           destination: "/app/notifications/read-all",
           title: "All Notifications Read",
           content: "All notifications marked as read",
@@ -302,13 +371,40 @@ export const useNotifications = () => {
       console.error("Error marking all notifications as read:", error);
       throw error;
     }
-  }, [isWebSocketConnected, sendMessageWithRetry, user?.id, user?.fullName]);
+  }, [isWebSocketConnected, sendMessageWithRetry, user, setNotificationCount]);
 
   // Handle new notification from WebSocket
-  const handleNewNotification = useCallback((notification) => {
-    setNotifications((prev) => [notification, ...prev]);
-    setUnreadCount((prev) => prev + 1);
-  }, []);
+  const handleNewNotification = useCallback(
+    (notification) => {
+      if (!hasInitialFetch) {
+        console.log(
+          "useNotifications: Skipping WebSocket notification - initial fetch not completed yet"
+        );
+        return;
+      }
+
+      console.log(
+        "useNotifications: Adding new notification via WebSocket:",
+        notification
+      );
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => {
+        const newUnreadCount = prev + 1;
+
+        // Sync with RealTimeContext
+        if (setNotificationCount) {
+          setNotificationCount(newUnreadCount);
+          console.log(
+            "useNotifications: Updated notification count after WebSocket notification:",
+            newUnreadCount
+          );
+        }
+
+        return newUnreadCount;
+      });
+    },
+    [hasInitialFetch, setNotificationCount]
+  );
 
   // Business logic methods (from useRealTimeFeatures)
   const sendAppointmentUpdate = useCallback(
@@ -412,7 +508,11 @@ export const useNotifications = () => {
 
   // Subscribe to real-time notifications
   useEffect(() => {
-    if (isWebSocketConnected && user?.id) {
+    if (isWebSocketConnected && (user?.userId || user?.id) && hasInitialFetch) {
+      console.log(
+        "useNotifications: Subscribing to WebSocket notifications after initial fetch"
+      );
+
       const unsubscribe = registerMessageHandlerWithCleanup(
         "new_notification",
         handleNewNotification
@@ -421,7 +521,7 @@ export const useNotifications = () => {
       // Subscribe to notifications
       sendMessageWithRetry({
         type: "subscribe_notifications",
-        payload: { userId: user.id },
+        payload: { userId: user.id || user.userId },
         destination: "/app/notifications/subscribe",
         title: "Subscribe to Notifications",
         content: "Subscribing to real-time notifications",
@@ -429,11 +529,18 @@ export const useNotifications = () => {
       });
 
       return unsubscribe;
+    } else if (
+      isWebSocketConnected &&
+      (user?.id || user?.userId) &&
+      !hasInitialFetch
+    ) {
+      console.log(
+        "useNotifications: WebSocket connected but waiting for initial fetch to complete"
+      );
     }
   }, [
     isWebSocketConnected,
-    user?.id,
-    user?.fullName,
+    user.hasInitialFetch,
     registerMessageHandlerWithCleanup,
     sendMessageWithRetry,
     handleNewNotification,
@@ -453,10 +560,12 @@ export const useNotifications = () => {
     loading,
     refreshing,
     hasMore,
+    hasInitialFetch, // Add this to track initial fetch status
 
     // Actions
     fetchNotifications,
     refresh,
+    refreshAllNotifications, // Add new refresh function
     loadMore,
     markAsRead,
     markAllAsRead,

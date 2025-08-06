@@ -1,17 +1,26 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useRealTime } from "../../contexts/RealTimeContext";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRealTime } from "../../contexts/RealTimeContext";
+import { Badge } from "react-native-paper";
 
 const NotificationBadge = ({
-  onPress,
-  size = 24,
-  showCount = true,
-  style = {},
   iconName = "notifications",
-  iconColor = "#007AFF",
+  size = 24,
+  iconColor = "#000",
+  showCount = true,
+  style,
+  onPress,
 }) => {
   const { notificationCount } = useRealTime();
+
+  // Add logging to track notification count changes
+  React.useEffect(() => {
+    console.log(
+      "NotificationBadge: Notification count updated:",
+      notificationCount
+    );
+  }, [notificationCount]);
 
   if (notificationCount === 0) {
     return (
@@ -33,11 +42,13 @@ const NotificationBadge = ({
     >
       <Ionicons name={iconName} size={size} color={iconColor} />
       {showCount && (
-        <View style={[styles.badge, { minWidth: size * 0.8 }]}>
-          <Text style={[styles.badgeText, { fontSize: size * 0.4 }]}>
+        <Badge style={styles.badge} size={18}>
+          <Text
+            style={[styles.badgeText, { fontSize: size * 0.4, color: "#fff" }]}
+          >
             {notificationCount > 99 ? "99+" : notificationCount}
           </Text>
-        </View>
+        </Badge>
       )}
     </TouchableOpacity>
   );
@@ -53,12 +64,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: "#dc3545",
+    backgroundColor: "#F93246FF",
     borderRadius: 12,
-    minHeight: 16,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
   },
   badgeText: {
     color: "#fff",

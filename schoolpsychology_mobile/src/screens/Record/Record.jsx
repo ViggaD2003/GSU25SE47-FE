@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { Container } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const Record = () => {
   const navigation = useNavigation();
@@ -22,14 +23,10 @@ const Record = () => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Records</Text>
-          <Text style={styles.headerSubtitle}>
-            Access your academic and health records
-          </Text>
-        </View>
-      </View>
+      <HeaderWithoutTab
+        title="History"
+        onBackPress={() => navigation.goBack()}
+      />
 
       {/* Content */}
       <View style={styles.content}>

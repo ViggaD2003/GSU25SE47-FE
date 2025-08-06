@@ -17,6 +17,7 @@ import {
 } from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
 import { Entypo } from "@expo/vector-icons";
+import useNotifications from "@/hooks/useNotifications";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -41,25 +42,39 @@ export default function StudentHome({
   const [loadingMore, setLoadingMore] = useState(false);
   const isEnableSurvey = user?.isEnableSurvey;
 
+  const { refreshAllNotifications } = useNotifications();
+
   const actionItems = useMemo(
     () => [
       {
         title: "Booking",
+        key: "booking",
         icon: "calendar",
-        onPress: () => navigation.navigate("Appointment"),
-      },
-      {
-        title: "History",
-        icon: "back-in-time",
-        onPress: () => navigation.navigate("AppointmentHistory"),
+        onPress: () => {
+          console.log("StudentHome: Navigating to Appointment");
+          navigation.navigate("Appointment");
+        },
       },
       {
         title: "Doc & Blog",
+        key: "doc-blog",
         icon: "book",
-        onPress: () => navigation.navigate("Blog"),
+        onPress: () => {
+          console.log("StudentHome: Navigating to Blog");
+          navigation.navigate("Blog");
+        },
+      },
+      {
+        title: "History",
+        key: "history",
+        icon: "back-in-time",
+        onPress: () => {
+          console.log("StudentHome: Navigating to Record");
+          navigation.navigate("Record");
+        },
       },
     ],
-    []
+    [navigation]
   );
 
   // Function to load more data
@@ -93,6 +108,7 @@ export default function StudentHome({
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
+    await refreshAllNotifications();
   };
 
   // Centralized function to load tab data
@@ -107,6 +123,8 @@ export default function StudentHome({
       console.log("loadData");
     } catch (error) {
       console.error(`Error loading data:`, error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -152,7 +170,10 @@ export default function StudentHome({
           </View>
           <TouchableOpacity
             style={styles.viewAllContainer}
-            onPress={() => navigation.navigate("FeaturedPrograms")}
+            onPress={() => {
+              console.log("StudentHome: Navigating to Program");
+              navigation.navigate("Program");
+            }}
           >
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>
@@ -187,8 +208,9 @@ export default function StudentHome({
         <View style={styles.connectRow}>
           {actionItems.map((item) => (
             <TouchableOpacity
+              key={item.key}
               style={styles.connectBox}
-              onPress={() => item.onPress}
+              onPress={item.onPress}
             >
               <Entypo name={item.icon} size={24} color="#438455FF" />
               <Text style={styles.connectTitle}>{item.title}</Text>
@@ -213,7 +235,12 @@ export default function StudentHome({
           </View>
           <TouchableOpacity
             style={styles.viewAllContainer}
-            onPress={() => navigation.navigate("PlanForToday")}
+            onPress={() => {
+              console.log(
+                "StudentHome: Navigating to Record from Plan section"
+              );
+              navigation.navigate("Record");
+            }}
           >
             <Text style={styles.viewAllText}>View All</Text>
           </TouchableOpacity>

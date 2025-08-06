@@ -31,7 +31,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Good morning</Text>
+            <Text style={styles.greetingText}>Welcome back,</Text>
             <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
           </View>
         </View>

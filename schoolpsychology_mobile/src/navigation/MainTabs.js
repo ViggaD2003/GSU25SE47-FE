@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import {
@@ -29,8 +29,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { Text } from "react-native-paper";
-import { NotificationBadge } from "../components";
+import useNotifications from "@/hooks/useNotifications";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -38,6 +37,11 @@ const Tab = createBottomTabNavigator();
 export default function MainTabs() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { fetchNotifications } = useNotifications();
+
+  useEffect(() => {
+    fetchNotifications(1, true);
+  }, []);
 
   const BottomTabs = () => {
     return (
@@ -105,13 +109,6 @@ export default function MainTabs() {
           }}
         />
         <Tab.Screen
-          name="RecordMain"
-          component={RecordScreen}
-          options={{
-            title: "Records",
-          }}
-        />
-        <Tab.Screen
           name="ProfileMain"
           component={ProfileScreen}
           options={{
@@ -160,7 +157,10 @@ export default function MainTabs() {
 
   const AppointmentStack = () => {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="Appointment"
+        screenOptions={{ headerShown: false }}
+      >
         <Stack.Screen name="Appointment" component={BookingScreen} />
         <Stack.Screen name="StatusScreen" component={StatusScreen} />
         <Stack.Screen

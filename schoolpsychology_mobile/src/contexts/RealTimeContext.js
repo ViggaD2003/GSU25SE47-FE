@@ -75,7 +75,12 @@ export const RealTimeProvider = ({ children }) => {
       setIsWebSocketConnected(status === "connected");
 
       if (status === "connected") {
-        setNotificationCount(0);
+        console.log(
+          "RealTimeContext: WebSocket connected, notification count will be managed by initial fetch"
+        );
+        // Don't reset notification count here - let the initial fetch handle it
+        // setNotificationCount(0);
+
         // Clear any pending reconnect timeout
         if (reconnectTimeoutRef.current) {
           clearTimeout(reconnectTimeoutRef.current);
@@ -129,7 +134,14 @@ export const RealTimeProvider = ({ children }) => {
   const handleNotificationMessage = useCallback((payload) => {
     const { title, body, data, type } = payload;
 
-    setNotificationCount((prev) => prev + 1);
+    console.log("RealTimeContext: Received notification via WebSocket:", {
+      title,
+      body,
+      type,
+    });
+
+    // Don't increment count here - let useNotifications handle it
+    // setNotificationCount((prev) => prev + 1);
 
     notificationService.scheduleLocalNotification({
       title,
@@ -154,7 +166,8 @@ export const RealTimeProvider = ({ children }) => {
       },
     });
 
-    setNotificationCount((prev) => prev + 1);
+    // Don't increment count here - let useNotifications handle it
+    // setNotificationCount((prev) => prev + 1);
   }, []);
 
   // Handle survey reminders
@@ -172,7 +185,8 @@ export const RealTimeProvider = ({ children }) => {
       },
     });
 
-    setNotificationCount((prev) => prev + 1);
+    // Don't increment count here - let useNotifications handle it
+    // setNotificationCount((prev) => prev + 1);
   }, []);
 
   // Handle case updates
@@ -190,7 +204,8 @@ export const RealTimeProvider = ({ children }) => {
       },
     });
 
-    setNotificationCount((prev) => prev + 1);
+    // Don't increment count here - let useNotifications handle it
+    // setNotificationCount((prev) => prev + 1);
   }, []);
 
   // Handle notification received (from expo-notifications)
@@ -300,9 +315,18 @@ export const RealTimeProvider = ({ children }) => {
     setNotificationCount(0);
   }, []);
 
+  // Reset notification count on app start
+  const resetNotificationCount = useCallback(() => {
+    console.log("RealTimeContext: Resetting notification count on app start");
+    setNotificationCount(0);
+  }, []);
+
   // Initialize services on mount
   useEffect(() => {
     const initializeServices = async () => {
+      // Reset notification count on app start
+      resetNotificationCount();
+
       await initializeNotifications();
       await initializeWebSocket();
     };
@@ -347,6 +371,7 @@ export const RealTimeProvider = ({ children }) => {
     initializeNotifications,
     handleWebSocketConnectionChange,
     handleWebSocketMessage,
+    resetNotificationCount,
   ]);
 
   const value = {
@@ -360,10 +385,12 @@ export const RealTimeProvider = ({ children }) => {
     // Notifications
     isNotificationInitialized,
     notificationCount,
+    setNotificationCount, // Add this to allow external updates
     scheduleNotification,
     registerNotificationHandler,
     getPushToken,
     clearNotificationCount,
+    resetNotificationCount,
 
     // Navigation
     setNavigationRef,
