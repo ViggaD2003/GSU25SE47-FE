@@ -5,6 +5,9 @@ import {
   performLogout,
 } from "../services/auth/tokenManager";
 import { AUTH_ERRORS } from "../constants";
+import { useRealTime } from "../contexts/RealTimeContext";
+import { useAuth } from "../contexts/AuthContext";
+import NotificationAPI from "../services/api/NotificationService";
 
 /**
  * Custom hook for handling authentication errors
@@ -254,4 +257,110 @@ export const useApiCall = (handleTokenError) => {
   );
 
   return { makeApiCall };
+};
+
+/**
+ * Custom hook for handling notifications
+ */
+export const useNotifications = () => {
+  const { user } = useAuth();
+  const { notificationCount, clearNotificationCount } = useRealTime();
+
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const data = await NotificationAPI.getAllNotifications(user.id);
+
+      if (data && Array.isArray(data)) {
+        setNotifications(data);
+        setTotalCount(data.length);
+        setUnreadCount(data.filter((n) => !n.isRead).length);
+      }
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+      setError(err.message || "Failed to fetch notifications");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
+  // Mark notification as read
+  const markAsRead = useCallback(
+    async (notificationId) => {
+      try {
+        // Update local state immediately for better UX
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n.id === notificationId ? { ...n, isRead: true } : n
+          )
+        );
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+
+        // TODO: Add API call to mark as read on server
+        // await NotificationAPI.markAsRead(notificationId);
+      } catch (err) {
+        console.error("Error marking notification as read:", err);
+        // Revert local state on error
+        fetchNotifications();
+      }
+    },
+    [fetchNotifications]
+  );
+
+  // Mark all notifications as read
+  const markAllAsRead = useCallback(async () => {
+    try {
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+      clearNotificationCount();
+
+      // TODO: Add API call to mark all as read on server
+      // await NotificationAPI.markAllAsRead();
+    } catch (err) {
+      console.error("Error marking all notifications as read:", err);
+      fetchNotifications();
+    }
+  }, [clearNotificationCount, fetchNotifications]);
+
+  // Refresh notifications
+  const refreshNotifications = useCallback(async () => {
+    await fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Auto-fetch notifications when user changes
+  useEffect(() => {
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user?.id, fetchNotifications]);
+
+  // Update unread count when notificationCount changes from RealTimeContext
+  useEffect(() => {
+    if (notificationCount > 0) {
+      setUnreadCount((prev) => prev + notificationCount);
+    }
+  }, [notificationCount]);
+
+  return {
+    notifications,
+    isLoading,
+    error,
+    unreadCount,
+    totalCount,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    refreshNotifications,
+  };
 };

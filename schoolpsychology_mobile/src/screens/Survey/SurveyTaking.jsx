@@ -20,6 +20,7 @@ import {
   postSurveyResult,
   saveSurveyProgress,
 } from "../../services/api/SurveyService";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey } = route.params || {};
@@ -527,13 +528,7 @@ const SurveyTaking = ({ route, navigation }) => {
       />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Làm khảo sát</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab title={"Làm khảo sát"} onBackPress={handleBackPress} />
 
       <ScrollView
         style={styles.scrollView}

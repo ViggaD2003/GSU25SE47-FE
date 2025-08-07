@@ -17,6 +17,7 @@ import { AssessmentScoreChart } from "../../components/charts";
 import { getAppointmentById } from "@/services/api/AppointmentService";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 dayjs.locale("vi");
 
@@ -242,18 +243,10 @@ ${
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chi tiết hồ sơ</Text>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <Ionicons name="share-outline" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-      </View>
+      <HeaderWithoutTab
+        title={"Chi tiết hồ sơ"}
+        onBackPress={() => navigation.goBack()}
+      />
 
       <ScrollView
         style={styles.content}

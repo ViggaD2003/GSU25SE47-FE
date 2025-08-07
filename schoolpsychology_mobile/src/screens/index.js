@@ -15,6 +15,7 @@ export { default as ProfileScreen } from "./Profile/ProfileScreen";
 export { default as ChangePasswordScreen } from "./Profile/ChangePassword";
 export { default as MyChildrenScreen } from "./Profile/MyChildren";
 export { default as UpdateProfileScreen } from "./Profile/UpdateProfile";
+export { default as NotificationSettingsScreen } from "./Profile/NotificationSettings";
 
 // Blog screens
 export { default as BlogScreen } from "./Blog/BlogScreen";
@@ -41,3 +42,11 @@ export { default as DashboardScreen } from "./Dashboard/Dashboard";
 
 // Notification screens
 export { default as NotificationScreen } from "./Notification/NotificationScreen";
+
+// Event screens
+export { default as EventScreen } from "./Event/EventScreen";
+export { default as EventList } from "./Event/EventList";
+
+// Case screens
+export { default as ClosedCases } from "./Case/ClosedCases";
+export { default as CaseDetails } from "./Case/CaseDetails";

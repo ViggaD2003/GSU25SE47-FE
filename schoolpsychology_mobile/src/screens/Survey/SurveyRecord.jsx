@@ -23,6 +23,7 @@ import { getSurveyRecordsByAccount } from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../contexts";
 import { filterSurveyTypes } from "../../utils/helpers";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const PAGE_SIZE = 2; // Number of records to fetch per page
 
@@ -385,18 +386,15 @@ const SurveyRecord = ({ navigation }) => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={() => setShowFilterModal(true)}
-        >
-          <Ionicons name="filter" size={20} color="#3B82F6" />
-        </TouchableOpacity>
-      </View>
+      <HeaderWithoutTab
+        title={"Lịch sử khảo sát"}
+        onBackPress={handleBackPress}
+        rightComponent={
+          <TouchableOpacity onPress={() => setShowFilterModal(true)}>
+            <Ionicons name="filter" size={20} color="#3B82F6" />
+          </TouchableOpacity>
+        }
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -441,7 +439,12 @@ const SurveyRecord = ({ navigation }) => {
               </Text>
               <TouchableOpacity
                 style={styles.emptyButton}
-                onPress={() => navigation.navigate("MainBottomTabs")}
+                onPress={() =>
+                  navigation.navigate("Event", {
+                    screen: "EventList",
+                    params: { type: "SURVEY" },
+                  })
+                }
               >
                 <Ionicons
                   name="add-circle"

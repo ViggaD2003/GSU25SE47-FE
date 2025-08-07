@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { getPastAppointments } from "@/services/api/AppointmentService";
 import { useAuth } from "@/contexts";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 dayjs.locale("vi");
 
@@ -362,16 +363,10 @@ const AppointmentRecord = () => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Hồ sơ tư vấn</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={"Lịch sử tư vấn"}
+        onBackPress={() => navigation.goBack()}
+      />
 
       {/* Content */}
       {loading ? (

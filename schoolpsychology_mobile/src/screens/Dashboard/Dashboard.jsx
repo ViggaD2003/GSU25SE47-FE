@@ -1,19 +1,16 @@
 import { Container } from "@/components";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
+import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 
 const DashboardScreen = () => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>Dashboard</Text>
-          <Text style={styles.headerSubtitle}>
-            Access key metrics and recent updates in one view
-          </Text>
-        </View>
-      </View>
+      <HeaderWithTab
+        title="Dashboard"
+        subtitle="Access key metrics and recent updates in one view"
+      />
 
       {/* Content */}
       <View style={styles.content}></View>

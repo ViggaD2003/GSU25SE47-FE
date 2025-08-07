@@ -7,6 +7,7 @@ const HeaderWithoutTab = ({
   showRefreshButton = false,
   onRefresh,
   refreshing,
+  rightComponent,
 }) => {
   return (
     <View style={styles.headerContainer}>
@@ -34,6 +35,7 @@ const HeaderWithoutTab = ({
           />
         </TouchableOpacity>
       )}
+      {rightComponent && rightComponent}
     </View>
   );
 };
@@ -66,8 +68,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F5F9",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "600",
     color: "#1A1A1A",
   },
   headerSpacer: {

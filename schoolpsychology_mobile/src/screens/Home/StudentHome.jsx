@@ -17,7 +17,7 @@ import {
 } from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
 import { Entypo } from "@expo/vector-icons";
-import useNotifications from "@/hooks/useNotifications";
+import { useNotifications } from "../../utils/hooks";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -42,7 +42,7 @@ export default function StudentHome({
   const [loadingMore, setLoadingMore] = useState(false);
   const isEnableSurvey = user?.isEnableSurvey;
 
-  const { refreshAllNotifications } = useNotifications();
+  const { fetchNotifications } = useNotifications();
 
   const actionItems = useMemo(
     () => [
@@ -51,8 +51,9 @@ export default function StudentHome({
         key: "booking",
         icon: "calendar",
         onPress: () => {
-          console.log("StudentHome: Navigating to Appointment");
-          navigation.navigate("Appointment");
+          navigation.navigate("Appointment", {
+            screen: "Appointment",
+          });
         },
       },
       {
@@ -60,8 +61,9 @@ export default function StudentHome({
         key: "doc-blog",
         icon: "book",
         onPress: () => {
-          console.log("StudentHome: Navigating to Blog");
-          navigation.navigate("Blog");
+          navigation.navigate("Blog", {
+            screen: "Blog",
+          });
         },
       },
       {
@@ -69,8 +71,9 @@ export default function StudentHome({
         key: "history",
         icon: "back-in-time",
         onPress: () => {
-          console.log("StudentHome: Navigating to Record");
-          navigation.navigate("Record");
+          navigation.navigate("Record", {
+            screen: "Record",
+          });
         },
       },
     ],
@@ -108,7 +111,7 @@ export default function StudentHome({
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
-    await refreshAllNotifications();
+    await fetchNotifications();
   };
 
   // Centralized function to load tab data
@@ -131,6 +134,7 @@ export default function StudentHome({
   useFocusEffect(
     useCallback(() => {
       loadData();
+      fetchNotifications();
     }, [navigation, isEnableSurvey])
   );
 
@@ -220,7 +224,7 @@ export default function StudentHome({
       </View>
 
       {/* Plan for today */}
-      <View style={styles.sectionContainer}>
+      <View style={[styles.sectionContainer]}>
         <View style={styles.headerContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Plan for today</Text>
@@ -239,7 +243,9 @@ export default function StudentHome({
               console.log(
                 "StudentHome: Navigating to Record from Plan section"
               );
-              navigation.navigate("Record");
+              navigation.navigate("MainBottomTabs", {
+                screen: "EventMain",
+              });
             }}
           >
             <Text style={styles.viewAllText}>View All</Text>
@@ -252,7 +258,7 @@ export default function StudentHome({
               showsVerticalScrollIndicator={true}
             >
               {displayedData.map((item) => (
-                <View style={styles.planItem}>
+                <View style={styles.planItem} key={item.id}>
                   <Text style={styles.planTitle}>{item.title}</Text>
                 </View>
               ))}
@@ -272,7 +278,6 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingTop: 13,
     paddingHorizontal: 24,
-    flex: 1,
   },
   alertSection: {
     marginTop: 20,

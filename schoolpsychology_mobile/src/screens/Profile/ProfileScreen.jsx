@@ -113,6 +113,15 @@ export default function ProfileScreen() {
                     navigation.navigate("Profile", { screen: "CalendarAccess" })
                   }
                 />
+                <MenuItem
+                  icon="notifications-outline"
+                  label="Notification Settings"
+                  onPress={() =>
+                    navigation.navigate("Profile", {
+                      screen: "NotificationSettings",
+                    })
+                  }
+                />
               </View>
             )}
             <MenuItem icon="help-circle-outline" label="Need Help?" />

@@ -19,6 +19,7 @@ import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 import calendarService from "../../services/CalendarService";
 import { getAppointmentHistory } from "@/services/api/AppointmentService";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 export default function CalendarAccess() {
   const [calendarPermission, setCalendarPermission] = useState(false);
@@ -315,13 +316,10 @@ export default function CalendarAccess() {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Calendar Access</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={"Quản lý lịch hẹn"}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* Permission Status */}

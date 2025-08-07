@@ -1,3 +1,4 @@
+import * as encoding from "text-encoding";
 import { StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import AuthStack from "./src/navigation/AuthStack";
@@ -15,15 +16,22 @@ import { PaperProvider } from "react-native-paper";
 import { PermissionProvider } from "./src/contexts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { TextEncoder, TextDecoder } from "text-encoding";
+
+// Extend global with TextEncoder and TextDecoder
+if (typeof global.TextEncoder === "undefined") {
+  global.TextEncoder = TextEncoder;
+}
+if (typeof global.TextDecoder === "undefined") {
+  global.TextDecoder = TextDecoder;
+}
 
 // Extend dayjs with utc plugin only
 dayjs.extend(utc);
 
 function RootNavigation() {
   const { user, loading, registerLogoutCallback, logout } = useAuth();
-  const { setNavigationRef } = useRealTime();
   const logoutCallbackRef = useRef(null);
-  const navigationRef = useRef(null);
 
   // Create a stable logout callback function
   const handleLogout = useCallback(async () => {
@@ -40,11 +48,6 @@ function RootNavigation() {
   const handleLogoutNotification = useCallback(() => {
     console.log("Logout callback triggered from App.js");
   }, []);
-
-  // Set navigation ref for RealTimeProvider
-  const onReady = useCallback(() => {
-    setNavigationRef(navigationRef.current);
-  }, [setNavigationRef]);
 
   useEffect(() => {
     // Register logout callback only once
@@ -68,7 +71,7 @@ function RootNavigation() {
 
   if (loading) return null; // hoặc loading indicator
   return (
-    <NavigationContainer ref={navigationRef} onReady={onReady}>
+    <NavigationContainer>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       {user ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>

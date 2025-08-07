@@ -17,6 +17,7 @@ import {
 } from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const { width } = Dimensions.get("window");
 
@@ -193,13 +194,10 @@ const SurveyInfo = ({ route, navigation }) => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Thông tin khảo sát</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={"Thông tin khảo sát"}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         style={styles.scrollView}

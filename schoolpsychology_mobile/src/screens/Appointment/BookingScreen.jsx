@@ -30,6 +30,7 @@ import {
   hasAvailableSlots,
 } from "../../utils/slotUtils";
 import { ActivityIndicator } from "react-native-paper";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const VISIBLE_DAYS = 2;
 const VN_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSS[Z]";
@@ -457,13 +458,10 @@ ${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Đặt lịch tư vấn</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={"Đặt lịch tư vấn"}
+        onBackPress={handleBackPress}
+      />
 
       {/* Content */}
       <ScrollView

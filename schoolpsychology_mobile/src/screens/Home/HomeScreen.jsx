@@ -47,7 +47,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* Content */}
-      <View style={{ paddingBottom: 50, flex: 1 }}>
+      <View style={{ flex: 1 }}>
         {user.role === "STUDENT" ? (
           <StudentHome
             user={user}

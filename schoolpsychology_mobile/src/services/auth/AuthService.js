@@ -50,6 +50,7 @@ export const login = async (email, password) => {
       accessToken,
       user: {
         ...decoded,
+        accessToken,
         token: accessToken,
         userId: decoded["user-id"],
         id: decoded["user-id"],
@@ -106,6 +107,7 @@ export const getCurrentUser = async () => {
     return {
       ...decoded,
       token,
+      accessToken: token,
       role: decoded.role,
       userId: decoded["user-id"],
       id: decoded["user-id"],

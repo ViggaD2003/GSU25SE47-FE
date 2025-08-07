@@ -15,6 +15,7 @@ import { Container } from "../../components";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { api } from "../../services";
 import { useAuth } from "../../contexts";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 export default function UpdateProfile({ route }) {
   const navigation = useNavigation();
@@ -189,13 +190,10 @@ export default function UpdateProfile({ route }) {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Cập nhật thông tin</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={"Cập nhật thông tin"}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         style={styles.container}

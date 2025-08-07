@@ -10,6 +10,7 @@ export { default as SlotDayCard } from "./common/SlotDayCard";
 export { default as FilterSortModal } from "./common/FilterSortModal";
 export { default as SurveyRecordCard } from "./common/SurveyRecordCard";
 export { default as LazyLoader } from "./common/LazyLoader";
+export { default as WebSocketDebug } from "./common/WebSocketDebug";
 
 // UI components
 export { default as Container } from "./ui/Container";

@@ -6,7 +6,7 @@ const NotificationAPI = {
     try {
       const response = await api.get(`/api/v1/noti/${accountId}`);
 
-      console.log("NotificationAPI: Notifications retrieved successfully");
+      // console.log("NotificationAPI: Notifications retrieved successfully");
       return response.data;
     } catch (error) {
       console.error("NotificationAPI: Error getting notifications:", error);

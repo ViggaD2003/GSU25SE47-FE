@@ -23,13 +23,18 @@ import {
   AppointmentRecordDetailScreen,
   DashboardScreen,
   NotificationScreen,
+  EventScreen,
+  EventList,
+  CaseDetails,
+  NotificationSettingsScreen,
+  ClosedCases,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import useNotifications from "@/hooks/useNotifications";
+import { useNotifications } from "../utils/hooks";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -37,11 +42,12 @@ const Tab = createBottomTabNavigator();
 export default function MainTabs() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { fetchNotifications } = useNotifications();
+  // Hook mới không cần fetchNotifications vì đã tự động subscribe
+  // const { fetchNotifications } = useNotifications();
 
-  useEffect(() => {
-    fetchNotifications(1, true);
-  }, []);
+  // useEffect(() => {
+  //   fetchNotifications(1, true);
+  // }, []);
 
   const BottomTabs = () => {
     return (
@@ -60,8 +66,8 @@ export default function MainTabs() {
               iconName = focused ? "home" : "home-outline";
             } else if (route.name === "Dashboard") {
               iconName = focused ? "stats-chart" : "stats-chart-outline";
-            } else if (route.name === "RecordMain") {
-              iconName = focused ? "folder" : "folder-outline";
+            } else if (route.name === "CaseMain") {
+              iconName = focused ? "document-text" : "document-text-outline";
             } else if (route.name === "ProfileMain") {
               iconName = focused ? "person" : "person-outline";
             }
@@ -90,22 +96,15 @@ export default function MainTabs() {
           }}
         />
         <Tab.Screen
-          name="AppointmentMain"
-          component={BookingScreen}
+          name="CaseMain"
+          component={CaseDetails}
+          initialParams={{
+            from: "tab",
+            headerTitle: "Trường hợp hiện tại",
+            emptyTitle: "Hiện tại bạn chưa có trường hợp nào",
+          }}
           options={{
-            tabBarShowLabel: false,
-            tabBarLabelStyle: { display: "none" },
-            tabBarStyle: [styles.tabBarStyle, styles.appointmentTabStyle],
-            tabBarButton: () => (
-              <TouchableOpacity
-                style={styles.appointmentTabContainer}
-                onPress={() => navigation.navigate("Appointment")}
-              >
-                <View style={styles.appointmentTabButton}>
-                  <Ionicons name="calendar-outline" size={36} color="#FFFFFF" />
-                </View>
-              </TouchableOpacity>
-            ),
+            title: "Case",
           }}
         />
         <Tab.Screen
@@ -151,6 +150,10 @@ export default function MainTabs() {
         <Stack.Screen name="MyChildren" component={MyChildrenScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="CalendarAccess" component={CalendarAccess} />
+        <Stack.Screen
+          name="NotificationSettings"
+          component={NotificationSettingsScreen}
+        />
       </Stack.Navigator>
     );
   };
@@ -196,22 +199,26 @@ export default function MainTabs() {
     );
   };
 
+  const EventStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="EventList" component={EventList} />
+      </Stack.Navigator>
+    );
+  };
+
+  const CaseStack = () => {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="ClosedCases" component={ClosedCases} />
+        <Stack.Screen name="CaseDetails" component={CaseDetails} />
+      </Stack.Navigator>
+    );
+  };
+
   const CustomHeader = (props) => (
     <View style={[styles.headerContainer, { paddingTop: insets.top }]}>
       <StatusBar style="dark" backgroundColor="#FFFFFF" />
-      {/* <View style={styles.headerContent}>
-        <View style={styles.headerLeft} />
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{props.route.name}</Text>
-        </View>
-        <View style={styles.headerRight}>
-          <NotificationBadge
-            onPress={() => navigation.navigate("Notification")}
-            size={24}
-            iconColor="#20734C"
-          />
-        </View>
-      </View> */}
     </View>
   );
 
@@ -222,6 +229,8 @@ export default function MainTabs() {
       <Stack.Screen name="MainBottomTabs" component={BottomTabs} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Event" component={EventStack} />
+      <Stack.Screen name="Case" component={CaseStack} />
       <Stack.Screen name="Record" component={RecordScreen} />
       <Stack.Screen name="Survey" component={SurveyStack} />
       <Stack.Screen name="Appointment" component={AppointmentStack} />
@@ -289,33 +298,5 @@ const styles = StyleSheet.create({
   },
   tabBarItemStyle: {
     paddingVertical: 8,
-  },
-  appointmentTabContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: -20,
-  },
-  appointmentTabButton: {
-    backgroundColor: "#20734C",
-    width: 70,
-    height: 70,
-    borderRadius: "50%",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#20734C",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  appointmentTabItem: {
-    // paddingVertical: 8,
-  },
-  appointmentTabStyle: {
-    // Additional styles for appointment tab if needed
   },
 });

@@ -12,6 +12,7 @@ import {
 import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { useNavigation } from "@react-navigation/native";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -92,13 +93,7 @@ export default function MyChildren({ route }) {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1F2937" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Con của tôi</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab title={"Con của tôi"} onBackPress={handleBackPress} />
 
       {loading ? (
         <View style={styles.loadingContainer}>

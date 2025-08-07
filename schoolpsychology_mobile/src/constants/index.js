@@ -84,11 +84,23 @@ export const APP_CONFIG = {
   API_BASE_URL: "https://spmss-api.ocgi.space",
   // ANDROID_API_URL: "http://10.0.2.2:8080",
   ANDROID_API_URL: "https://spmss-api.ocgi.space",
+
   // WebSocket configuration
-  WEBSOCKET_URL: "wss://spmss-api.ocgi.space/ws",
+  WEBSOCKET_URL: "ws://spmss-api.ocgi.space/ws", // Changed to wss:// for secure connection
   WEBSOCKET_RECONNECT_INTERVAL: 5000, // 5 seconds
   WEBSOCKET_HEARTBEAT_INTERVAL: 30000, // 30 seconds
-  WEBSOCKET_MAX_RECONNECT_ATTEMPTS: 5,
+  WEBSOCKET_MAX_RECONNECT_ATTEMPTS: 10, // Increased for better reliability
+
+  // Alternative WebSocket URLs for testing
+  WEBSOCKET_URLS: {
+    SECURE: "wss://spmss-api.ocgi.space/ws",
+    INSECURE: "ws://spmss-api.ocgi.space/ws",
+    SECURE_PORT_8443: "wss://spmss-api.ocgi.space:8443/ws",
+    INSECURE_PORT_8080: "ws://spmss-api.ocgi.space:8080/ws",
+  },
+
+  // Expo configuration
+  EXPO_PROJECT_ID: "your-expo-project-id", // Replace with your actual Expo project ID
 };
 
 // Main constants

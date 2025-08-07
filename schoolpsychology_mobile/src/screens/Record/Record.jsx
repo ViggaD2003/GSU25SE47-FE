@@ -20,6 +20,10 @@ const Record = () => {
     navigation.navigate("Program", { screen: "ProgramRecord" });
   };
 
+  const navigateToClosedCases = () => {
+    navigation.navigate("Case", { screen: "ClosedCases" });
+  };
+
   return (
     <Container>
       {/* Header */}
@@ -96,6 +100,34 @@ const Record = () => {
               <Text style={styles.cardTitle}>Completed Programs</Text>
               <Text style={styles.cardDescription}>
                 Monitor your participation in support programs and activities
+              </Text>
+            </View>
+            <View style={styles.cardArrow}>
+              <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+            </View>
+          </TouchableOpacity>
+
+          {/* Closed Cases Card */}
+          <TouchableOpacity
+            style={[styles.recordCard, styles.closedCasesCard]}
+            onPress={navigateToClosedCases}
+            activeOpacity={0.7}
+          >
+            <View style={styles.iconContainer}>
+              <View
+                style={[styles.iconBackground, { backgroundColor: "#FFE5E5" }]}
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={32}
+                  color="#FF6A6A"
+                />
+              </View>
+            </View>
+            <View style={styles.cardContent}>
+              <Text style={styles.cardTitle}>Closed Cases</Text>
+              <Text style={styles.cardDescription}>
+                View your closed cases and their details
               </Text>
             </View>
             <View style={styles.cardArrow}>
@@ -194,6 +226,10 @@ const styles = StyleSheet.create({
   programCard: {
     borderLeftWidth: 4,
     borderLeftColor: "#2E7D32",
+  },
+  closedCasesCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#FD4C4CFF",
   },
 });
 

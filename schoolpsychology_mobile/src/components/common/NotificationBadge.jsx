@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRealTime } from "../../contexts/RealTimeContext";
 import { Badge } from "react-native-paper";
+import { useNotifications } from "../../utils/hooks";
 
 const NotificationBadge = ({
   iconName = "notifications",
@@ -12,17 +13,14 @@ const NotificationBadge = ({
   style,
   onPress,
 }) => {
-  const { notificationCount } = useRealTime();
+  const { unreadCount } = useNotifications();
 
   // Add logging to track notification count changes
-  React.useEffect(() => {
-    console.log(
-      "NotificationBadge: Notification count updated:",
-      notificationCount
-    );
-  }, [notificationCount]);
+  //   React.useEffect(() => {
+  //     console.log("NotificationBadge: Notification count updated:", unreadCount);
+  //   }, [unreadCount]);
 
-  if (notificationCount === 0) {
+  if (unreadCount === 0) {
     return (
       <TouchableOpacity
         style={[styles.container, style]}
@@ -46,7 +44,7 @@ const NotificationBadge = ({
           <Text
             style={[styles.badgeText, { fontSize: size * 0.4, color: "#fff" }]}
           >
-            {notificationCount > 99 ? "99+" : notificationCount}
+            {unreadCount > 99 ? "99+" : unreadCount}
           </Text>
         </Badge>
       )}

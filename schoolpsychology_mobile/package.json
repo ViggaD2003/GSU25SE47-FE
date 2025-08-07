@@ -32,6 +32,7 @@
     "lodash": "^4.17.21",
     "metro": "^0.82.4",
     "metro-resolver": "^0.82.4",
+    "net": "^1.0.2",
     "qrcode": "^1.5.4",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -43,7 +44,9 @@
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "~4.11.1",
     "react-native-toast-message": "^2.3.1",
-    "react-native-web": "^0.20.0"
+    "react-native-web": "^0.20.0",
+    "react-native-websocket": "^1.0.2",
+    "text-encoding": "^0.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

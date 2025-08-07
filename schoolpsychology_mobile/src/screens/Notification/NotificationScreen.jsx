@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,70 +11,45 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
-import {
-  useNotifications,
-  NOTIFICATION_TYPES,
-} from "../../hooks/useNotifications";
+import { useNotifications } from "../../utils/hooks";
 import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
-import NotificationCountDebug from "@/components/common/NotificationCountDebug";
+import { useRealTime } from "@/contexts/RealTimeContext";
+import WebSocketDebug from "@/components/common/WebSocketDebug";
 
 const NotificationScreen = ({ navigation }) => {
   const {
     notifications,
-    unreadCount,
-    loading,
-    refreshing,
-    hasMore,
-    hasInitialFetch, // Add this to track initial fetch status
-    fetchNotifications,
-    refresh,
-    refreshAllNotifications, // Add new refresh function
-    loadMore,
+    isLoading,
+    error,
     markAsRead,
     markAllAsRead,
-    getNotificationIcon,
-    getNotificationType,
-    NOTIFICATION_TYPES,
+    refreshNotifications,
+    unreadCount,
+    totalCount,
   } = useNotifications();
 
   // Handle pull to refresh
-  const handleRefresh = useCallback(() => {
-    console.log("NotificationScreen: Manual refresh triggered");
-    refresh().catch((error) => {
-      Alert.alert("Lỗi", "Không thể tải thông báo. Vui lòng thử lại.");
-    });
-  }, [refresh]);
+  const handleRefresh = useCallback(async () => {
+    console.log("🔄 NotificationScreen: Manual refresh triggered");
+    try {
+      await refreshNotifications();
+    } catch (error) {
+      console.error("❌ NotificationScreen: Refresh failed:", error);
+      Alert.alert("Error", "Failed to refresh notifications");
+    }
+  }, [refreshNotifications]);
 
   // Handle manual refresh button
-  const handleManualRefresh = useCallback(() => {
-    console.log("NotificationScreen: Manual refresh button pressed");
-    if (refreshing) {
-      console.log("NotificationScreen: Already refreshing, skipping");
-      return;
+  const handleManualRefresh = useCallback(async () => {
+    console.log("🔄 NotificationScreen: Manual refresh button pressed");
+    try {
+      await refreshNotifications();
+    } catch (error) {
+      console.error("❌ NotificationScreen: Manual refresh failed:", error);
+      Alert.alert("Error", "Failed to refresh notifications");
     }
-
-    // Use refreshAllNotifications for more aggressive refresh
-    refreshAllNotifications().catch((error) => {
-      console.error("NotificationScreen: Manual refresh failed:", error);
-      Alert.alert("Lỗi", "Không thể tải thông báo. Vui lòng thử lại.");
-    });
-  }, [refreshAllNotifications, refreshing]);
-
-  // Handle load more
-  const handleLoadMore = useCallback(() => {
-    if (!hasInitialFetch) {
-      console.log(
-        "NotificationScreen: Skipping load more - initial fetch not completed"
-      );
-      return;
-    }
-
-    console.log("NotificationScreen: Loading more notifications");
-    loadMore().catch((error) => {
-      console.error("Error loading more notifications:", error);
-    });
-  }, [loadMore, hasInitialFetch]);
+  }, [refreshNotifications]);
 
   // Mark notification as read
   const handleMarkAsRead = useCallback(
@@ -82,7 +57,11 @@ const NotificationScreen = ({ navigation }) => {
       try {
         await markAsRead(notificationId);
       } catch (error) {
-        console.error("Error marking notification as read:", error);
+        console.error(
+          "❌ NotificationScreen: Error marking notification as read:",
+          error
+        );
+        Alert.alert("Error", "Failed to mark notification as read");
       }
     },
     [markAsRead]
@@ -90,141 +69,152 @@ const NotificationScreen = ({ navigation }) => {
 
   // Handle notification tap
   const handleNotificationPress = useCallback(
-    (notification) => {
-      // Mark as read if not already read
-      if (!notification.isRead) {
-        handleMarkAsRead(notification.id);
-      }
+    async (notification) => {
+      console.log("📱 NotificationScreen: Notification pressed:", {
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+      });
 
-      // Navigate based on notification_type
-      switch (notification.notification_type) {
-        case NOTIFICATION_TYPES.CASE:
-          navigation.navigate("CaseDetails", {
-            caseId: notification.relatedEntityId,
-          });
-          break;
-        case NOTIFICATION_TYPES.APPOINTMENT:
-          navigation.navigate("AppointmentDetails", {
-            appointmentId: notification.relatedEntityId,
-          });
-          break;
-        case NOTIFICATION_TYPES.SURVEY:
-          navigation.navigate("SurveyTaking", {
-            surveyId: notification.relatedEntityId,
-          });
-          break;
-        case NOTIFICATION_TYPES.PROGRAM:
-          navigation.navigate("ProgramDetails", {
-            programId: notification.relatedEntityId,
-          });
-          break;
-        case NOTIFICATION_TYPES.MESSAGE:
-          // Handle message notifications
-          console.log("Message notification:", notification);
-          break;
-        default:
-          // Handle other notification types
-          console.log(
-            "Unknown notification type:",
-            notification.notification_type
-          );
-          break;
+      try {
+        // Mark as read if not already read
+        if (!notification.isRead) {
+          await handleMarkAsRead(notification.id);
+        }
+
+        // Navigate based on type
+        switch (notification.type) {
+          case "case":
+            navigation.navigate("CaseDetails", {
+              caseId: notification.relatedEntityId || notification.caseId,
+            });
+            break;
+          case "appointment":
+            navigation.navigate("AppointmentDetails", {
+              appointmentId:
+                notification.relatedEntityId || notification.appointmentId,
+            });
+            break;
+          case "survey":
+            navigation.navigate("SurveyTaking", {
+              surveyId: notification.relatedEntityId || notification.surveyId,
+            });
+            break;
+          case "program":
+            navigation.navigate("ProgramDetails", {
+              programId: notification.relatedEntityId || notification.programId,
+            });
+            break;
+          case "message":
+            console.log("💬 Message notification:", notification);
+            Alert.alert("Message", notification.content || notification.body);
+            break;
+          case "general":
+            console.log("📢 General notification:", notification);
+            Alert.alert(
+              "Notification",
+              notification.content || notification.body
+            );
+            break;
+          default:
+            console.log("❓ Unknown notification type:", notification.type);
+            Alert.alert(
+              "Notification",
+              notification.content || notification.body
+            );
+            break;
+        }
+      } catch (error) {
+        console.error(
+          "❌ NotificationScreen: Error handling notification press:",
+          error
+        );
+        Alert.alert("Error", "Failed to process notification");
       }
     },
-    [handleMarkAsRead, navigation, NOTIFICATION_TYPES]
-  );
-
-  // Handle mark all as read
-  const handleMarkAllAsRead = useCallback(async () => {
-    try {
-      await markAllAsRead();
-    } catch (error) {
-      Alert.alert("Lỗi", "Không thể đánh dấu tất cả đã đọc.");
-    }
-  }, [markAllAsRead]);
-
-  // Focus effect to refresh data when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      console.log(
-        "NotificationScreen: Screen focused, hasInitialFetch:",
-        hasInitialFetch
-      );
-
-      if (!hasInitialFetch) {
-        console.log("NotificationScreen: Triggering initial fetch");
-        fetchNotifications(1, true).catch((error) => {
-          console.error("Error fetching notifications on focus:", error);
-        });
-      } else {
-        console.log(
-          "NotificationScreen: Initial fetch already completed, using WebSocket for updates"
-        );
-      }
-    }, [fetchNotifications, hasInitialFetch])
+    [handleMarkAsRead, navigation]
   );
 
   // Render notification item
   const renderNotificationItem = useCallback(
     ({ item }) => (
       <TouchableOpacity
-        style={[styles.notificationItem, item.isNew && styles.unreadItem]}
+        style={[styles.notificationItem, !item.isRead && styles.unreadItem]}
         onPress={() => handleNotificationPress(item)}
         activeOpacity={0.7}
       >
         <View style={styles.notificationContent}>
           <View style={styles.notificationHeader}>
-            <Text style={[styles.title, item.isNew && styles.unreadTitle]}>
+            <Text style={[styles.title, !item.isRead && styles.unreadTitle]}>
               {item.title}
             </Text>
-            {item.isNew && <View style={styles.unreadDot} />}
+            {!item.isRead && <View style={styles.unreadDot} />}
           </View>
 
           <Text style={styles.content} numberOfLines={2}>
-            {item.content}
+            {item.body || item.content}
           </Text>
 
           <View style={styles.notificationFooter}>
-            <Text style={styles.timeAgo}>{item.timeAgo}</Text>
+            <Text style={styles.timeAgo}>
+              {new Date(item.createdAt).toLocaleString()}
+            </Text>
             <View style={styles.typeContainer}>
               <MaterialIcons
-                name={getNotificationIcon(item.notificationType)}
+                name={item.typeIcon || getNotificationIcon(item.type)}
                 size={16}
                 color="#666"
               />
               <Text style={styles.typeText}>
-                {getNotificationTypeLabel(item.notification_type)}
+                {getNotificationTypeLabel(item.type)}
               </Text>
             </View>
           </View>
         </View>
       </TouchableOpacity>
     ),
-    [handleNotificationPress, getNotificationIcon]
+    [handleNotificationPress]
   );
 
+  // Get notification icon
+  const getNotificationIcon = useCallback((type) => {
+    switch (type) {
+      case "appointment":
+        return "event";
+      case "survey":
+        return "assignment";
+      case "program":
+        return "school";
+      case "case":
+        return "folder";
+      case "message":
+        return "message";
+      case "general":
+        return "notifications";
+      default:
+        return "notifications";
+    }
+  }, []);
+
   // Get notification type label
-  const getNotificationTypeLabel = useCallback(
-    (notificationType) => {
-      switch (notificationType) {
-        case NOTIFICATION_TYPES.APPOINTMENT:
-          return "Lịch hẹn";
-        case NOTIFICATION_TYPES.SURVEY:
-          return "Khảo sát";
-        case NOTIFICATION_TYPES.PROGRAM:
-          return "Chương trình";
-        case NOTIFICATION_TYPES.CASE:
-          return "Hồ sơ";
-        case NOTIFICATION_TYPES.MESSAGE:
-          return "Tin nhắn";
-        case NOTIFICATION_TYPES.SYSTEM:
-          return "Hệ thống";
-        default:
-          return "Thông báo";
-      }
-    },
-    [NOTIFICATION_TYPES]
-  );
+  const getNotificationTypeLabel = useCallback((type) => {
+    switch (type) {
+      case "appointment":
+        return "Lịch hẹn";
+      case "survey":
+        return "Khảo sát";
+      case "program":
+        return "Chương trình";
+      case "case":
+        return "Hồ sơ";
+      case "message":
+        return "Tin nhắn";
+      case "general":
+        return "Thông báo chung";
+      default:
+        return "Thông báo";
+    }
+  }, []);
 
   // Render empty state
   const renderEmptyState = useCallback(
@@ -240,67 +230,150 @@ const NotificationScreen = ({ navigation }) => {
     []
   );
 
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Đang tải thông báo...</Text>
+  // Render error state
+  const renderErrorState = useCallback(
+    () => (
+      <View style={styles.errorContainer}>
+        <MaterialIcons name="error-outline" size={64} color="#ff6b6b" />
+        <Text style={styles.errorTitle}>Lỗi tải thông báo</Text>
+        <Text style={styles.errorSubtitle}>
+          {error || "Đã xảy ra lỗi khi tải thông báo"}
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
+          <Text style={styles.retryButtonText}>Thử lại</Text>
+        </TouchableOpacity>
       </View>
+    ),
+    [error, handleRefresh]
+  );
+
+  // Memoize the refreshControl
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={isLoading}
+        onRefresh={handleRefresh}
+        colors={["#007AFF"]}
+        tintColor="#007AFF"
+        progressBackgroundColor="#ffffff"
+        size="large"
+      />
+    ),
+    [isLoading, handleRefresh]
+  );
+
+  // Memoize the getItemLayout function
+  const getItemLayout = useMemo(
+    () => (data, index) => ({
+      length: 100, // Approximate height of each item
+      offset: 100 * index,
+      index,
+    }),
+    []
+  );
+
+  // Create unique key extractor
+  const keyExtractor = useMemo(
+    () => (item, index) => {
+      if (item.id) {
+        return `notification-${item.id}`;
+      }
+      // Fallback for items without ID
+      return `notification-fallback-${index}-${item.createdAt || Date.now()}`;
+    },
+    []
+  );
+
+  // Memoize contentContainerStyle
+  const contentContainerStyle = useMemo(
+    () => [styles.listContainer, notifications.length === 0 && { flex: 1 }],
+    [notifications.length]
+  );
+
+  // Show loading screen only for initial load
+  if (isLoading && notifications.length === 0) {
+    return (
+      <Container>
+        <HeaderWithoutTab
+          title="Thông báo"
+          onBackPress={() => navigation.goBack()}
+          showRefreshButton={false}
+        />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Đang tải thông báo...</Text>
+          <Text style={styles.loadingSubtext}>Vui lòng chờ trong giây lát</Text>
+        </View>
+      </Container>
+    );
+  }
+
+  // Show error state
+  if (error && notifications.length === 0) {
+    return (
+      <Container>
+        <HeaderWithoutTab
+          title="Thông báo"
+          onBackPress={() => navigation.goBack()}
+          showRefreshButton={true}
+          onRefresh={handleManualRefresh}
+          refreshing={false}
+        />
+        {renderErrorState()}
+      </Container>
     );
   }
 
   return (
     <Container>
       <HeaderWithoutTab
-        title="Notification"
+        title={`Thông báo ${unreadCount > 0 ? `(${unreadCount})` : ""}`}
         onBackPress={() => navigation.goBack()}
         showRefreshButton={true}
         onRefresh={handleManualRefresh}
-        refreshing={refreshing}
+        refreshing={isLoading}
       />
 
-      {/* Refresh Status Info */}
-      {refreshing && (
-        <View style={styles.refreshStatusContainer}>
-          <ActivityIndicator size="small" color="#007AFF" />
-          <Text style={styles.refreshStatusText}>
-            Đang tải lại thông báo...
+      {/* Connection Status Indicator */}
+      {/* <View style={styles.connectionStatusContainer}>
+        <View style={styles.connectionStatusRow}>
+          <View
+            style={[
+              styles.connectionDot,
+              { backgroundColor: isWebSocketConnected ? "#28a745" : "#dc3545" },
+            ]}
+          />
+          <Text style={styles.connectionStatusText}>
+            {isWebSocketConnected ? "Kết nối thời gian thực" : "Không kết nối"}
           </Text>
         </View>
-      )}
-
-      {/* Debug Component */}
-      <NotificationCountDebug />
+        <Text style={styles.connectionStatusDetail}>
+          {totalCount} thông báo • {unreadCount} chưa đọc
+        </Text>
+      </View> */}
 
       <FlatList
         data={notifications}
         renderItem={renderNotificationItem}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            colors={["#007AFF"]}
-            tintColor="#007AFF"
-          />
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={contentContainerStyle}
+        refreshControl={refreshControl}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={10}
         initialNumToRender={10}
+        getItemLayout={getItemLayout}
+        updateCellsBatchingPeriod={50}
+        disableVirtualization={false}
+        onError={(error) => {
+          console.error("❌ FlatList error:", error);
+        }}
       />
 
-      {loading && !refreshing && hasMore && (
-        <View style={styles.loadMoreContainer}>
-          <ActivityIndicator size="small" color="#007AFF" />
-          <Text style={styles.loadMoreText}>Đang tải thêm...</Text>
-        </View>
-      )}
+      {/* WebSocket Debug Component - Only in development */}
+      <WebSocketDebug />
     </Container>
   );
 };
@@ -350,6 +423,34 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
     fontWeight: "bold",
+  },
+  connectionStatusContainer: {
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e9ecef",
+  },
+  connectionStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 2,
+  },
+  connectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  connectionStatusText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#495057",
+  },
+  connectionStatusDetail: {
+    fontSize: 10,
+    color: "#6c757d",
+    marginLeft: 16,
   },
   listContainer: {
     flexGrow: 1,
@@ -443,6 +544,53 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 40,
   },
+  connectionWarning: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#fff3cd",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ffeaa7",
+  },
+  connectionWarningText: {
+    marginLeft: 8,
+    fontSize: 12,
+    color: "#856404",
+    fontWeight: "500",
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#dc3545",
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: "#6c757d",
+    textAlign: "center",
+    paddingHorizontal: 40,
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   loadingContainer: {
     flex: 1,
     alignItems: "center",
@@ -453,32 +601,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6c757d",
   },
-  loadMoreContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-  },
-  loadMoreText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#6c757d",
-  },
-  refreshStatusContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    backgroundColor: "#f8f9fa",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
-  },
-  refreshStatusText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: "#6c757d",
-    fontWeight: "500",
+  loadingSubtext: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#adb5bd",
   },
 });
 
-export default NotificationScreen;
+export default React.memo(NotificationScreen);

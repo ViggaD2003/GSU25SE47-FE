@@ -20,6 +20,7 @@ import {
   getSymptomsDescription,
 } from "../../utils/helpers";
 import { getSurveyRecordById } from "@/services/api/SurveyService";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const SurveyResult = ({ route, navigation }) => {
   const { result, showRecordsButton, type } = route.params || {};
@@ -114,13 +115,10 @@ const SurveyResult = ({ route, navigation }) => {
   return (
     <Container>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-          <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Kết quả khảo sát</Text>
-        <View style={styles.headerSpacer} />
-      </View>
+      <HeaderWithoutTab
+        title={isSkipped ? "Khảo sát đã bỏ qua" : "Kết quả khảo sát"}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         style={styles.scrollView}

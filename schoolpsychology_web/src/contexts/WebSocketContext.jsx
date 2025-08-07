@@ -186,6 +186,7 @@ export const WebSocketProvider = ({ children }) => {
       destination = '/app/send',
       title = 'Hello from client!',
       username = 'teacher@school.com',
+      notificationType = 'SURVEY',
       content = `${userRef.current?.fullName || 'User'} sent you a message`,
     }) => {
       if (!isConnectionReady()) {
@@ -197,6 +198,7 @@ export const WebSocketProvider = ({ children }) => {
         const body = {
           title,
           content,
+          notificationType,
           username,
         }
         stompClientRef.current.send(destination, {}, JSON.stringify(body))
