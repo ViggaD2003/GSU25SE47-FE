@@ -12,8 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { Container } from "../../components";
 import { WeekCalendar, EventCard } from "../../components/common";
-import HeaderWithTab from "../../components/ui/header/HeaderWithTab";
-import EventService from "../../services/api/EventService";
+import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 // Mock data - replace with actual API call
 // When ready to integrate with API:
@@ -250,7 +249,7 @@ const EventScreen = ({ navigation }) => {
           break;
         case "Survey":
           navigation.navigate("Survey", {
-            screen: "SurveyTaking",
+            screen: "SurveyInfo",
             params: { surveyId: event.relatedId },
           });
           break;
@@ -263,6 +262,14 @@ const EventScreen = ({ navigation }) => {
         default:
           console.log("Unknown event source:", event.source);
       }
+    },
+    [navigation]
+  );
+
+  // Handle quick actions press
+  const handlePress = useCallback(
+    (type) => {
+      navigation.navigate("EventList", { type });
     },
     [navigation]
   );
@@ -288,10 +295,8 @@ const EventScreen = ({ navigation }) => {
 
   return (
     <Container>
-      <HeaderWithTab
+      <HeaderWithoutTab
         title="Sự kiện"
-        subtitle="Lịch trình và hoạt động"
-        showBackButton
         onBackPress={() => navigation.goBack()}
       />
 
@@ -363,14 +368,7 @@ const EventScreen = ({ navigation }) => {
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() =>
-                navigation.navigate("Event", {
-                  screen: "EventList",
-                  params: {
-                    type: "APPOINTMENT",
-                  },
-                })
-              }
+              onPress={() => handlePress("APPOINTMENT")}
             >
               <View style={[styles.actionIcon, { backgroundColor: "#E3F2FD" }]}>
                 <Ionicons name="calendar" size={24} color="#007AFF" />
@@ -380,14 +378,7 @@ const EventScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() =>
-                navigation.navigate("Event", {
-                  screen: "EventList",
-                  params: {
-                    type: "SURVEY",
-                  },
-                })
-              }
+              onPress={() => handlePress("SURVEY")}
             >
               <View style={[styles.actionIcon, { backgroundColor: "#FFF3E0" }]}>
                 <Ionicons name="clipboard" size={24} color="#FF9500" />
@@ -397,14 +388,7 @@ const EventScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.actionButton}
-              onPress={() =>
-                navigation.navigate("Event", {
-                  screen: "EventList",
-                  params: {
-                    type: "PROGRAM",
-                  },
-                })
-              }
+              onPress={() => handlePress("PROGRAM")}
             >
               <View style={[styles.actionIcon, { backgroundColor: "#E8F5E8" }]}>
                 <Ionicons name="school" size={24} color="#34C759" />

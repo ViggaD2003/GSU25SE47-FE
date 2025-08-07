@@ -201,7 +201,11 @@ export default function MainTabs() {
 
   const EventStack = () => {
     return (
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator
+        initialRouteName="Event"
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Event" component={EventScreen} />
         <Stack.Screen name="EventList" component={EventList} />
       </Stack.Navigator>
     );

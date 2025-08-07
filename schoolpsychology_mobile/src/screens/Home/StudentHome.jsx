@@ -243,8 +243,8 @@ export default function StudentHome({
               console.log(
                 "StudentHome: Navigating to Record from Plan section"
               );
-              navigation.navigate("MainBottomTabs", {
-                screen: "EventMain",
+              navigation.navigate("Event", {
+                screen: "Event",
               });
             }}
           >

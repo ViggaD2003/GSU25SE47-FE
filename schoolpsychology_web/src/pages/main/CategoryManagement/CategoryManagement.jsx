@@ -210,12 +210,8 @@ const CategoryManagement = () => {
         }
         setIsModalVisible(false)
         fetchCategories()
-      } catch (error) {
-        console.error('Failed to save category:', error)
-        const errorMsg = isEdit
-          ? t('categoryManagement.messages.editError')
-          : t('categoryManagement.messages.addError')
-        messageApi.error(errorMsg)
+      } catch {
+        throw new Error('Failed to save category')
       }
     },
     [isEdit, messageApi, t, fetchCategories]

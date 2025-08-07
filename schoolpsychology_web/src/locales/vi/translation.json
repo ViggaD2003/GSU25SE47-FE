@@ -1428,9 +1428,9 @@
       "levelTypeRequired": "Vui lòng chọn loại cấp độ",
       "levelTypes": {
         "low": "Thấp",
-        "medium": "Trung bình",
-        "high": "Cao",
-        "critical": "Nghiêm trọng"
+        "medium": "Vừa phải",
+        "high": "Nghiêm trọng",
+        "critical": "Nguy kịch"
       },
       "noLevels": "Chưa có cấp độ nào",
       "scoreRange": "Thang điểm",

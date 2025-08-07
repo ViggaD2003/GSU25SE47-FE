@@ -1425,8 +1425,8 @@
       "levelTypeRequired": "Please select level type",
       "levelTypes": {
         "low": "Low",
-        "medium": "Medium",
-        "high": "High",
+        "medium": "Moderate",
+        "high": "Severe",
         "critical": "Critical"
       },
       "noLevels": "No levels yet",
