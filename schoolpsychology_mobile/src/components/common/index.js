@@ -18,3 +18,4 @@ export { default as WeekCalendar } from "./WeekCalendar";
 export { default as WebSocketDebug } from "./WebSocketDebug";
 export { default as LevelBadge } from "./LevelBadge";
 export { default as LevelCard } from "./LevelCard";
+export { default as ProgramCard } from "./ProgramCard";

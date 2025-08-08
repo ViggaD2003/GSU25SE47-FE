@@ -4,22 +4,23 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 
 const EventCard = ({ event, onPress }) => {
+  console.log("event", event);
   // Get source icon and color
   const getSourceInfo = (source) => {
     switch (source) {
-      case "Appointment":
+      case "APPOINTMENT":
         return {
           icon: "calendar",
           color: "#007AFF",
           label: "Lịch hẹn",
         };
-      case "Survey":
+      case "SURVEY":
         return {
           icon: "clipboard",
           color: "#FF9500",
           label: "Khảo sát",
         };
-      case "Program":
+      case "PROGRAM":
         return {
           icon: "school",
           color: "#34C759",
@@ -37,20 +38,38 @@ const EventCard = ({ event, onPress }) => {
   // Get status info
   const getStatusInfo = (status) => {
     switch (status) {
-      case "upcoming":
+      //survey
+      case "PUBLISHED":
         return {
-          label: "Sắp tới",
-          color: "#007AFF",
-        };
-      case "completed":
-        return {
-          label: "Hoàn thành",
+          label: "Đã xuất bản",
           color: "#34C759",
         };
-      case "cancelled":
+      //appointment
+      case "CONFIRMED":
         return {
-          label: "Đã hủy",
-          color: "#FF3B30",
+          label: "Đã xác nhận",
+          color: "#34C759",
+        };
+      case "PENDING":
+        return {
+          label: "Chờ xác nhận",
+          color: "#FF9500",
+        };
+      case "IN_PROGRESS":
+        return {
+          label: "Đang diễn ra",
+          color: "#007AFF",
+        };
+      //program
+      case "ACTIVE":
+        return {
+          label: "Hoạt động",
+          color: "#34C759",
+        };
+      case "ON_GOING":
+        return {
+          label: "Đang diễn ra",
+          color: "#007AFF",
         };
       default:
         return {

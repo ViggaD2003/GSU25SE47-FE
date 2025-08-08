@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,12 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import Loading from "../../components/common/Loading";
-import {
-  getActiveAppointments,
-  getAppointmentHistory,
-} from "../../services/api/AppointmentService";
 import { Alert } from "../../components";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNotifications } from "../../utils/hooks";
+import EventService from "@/services/api/EventService";
+import { fetchAllRecommendedPrograms } from "@/services/api/ProgramService";
+import dayjs from "dayjs";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -33,13 +32,12 @@ export default function StudentHome({
   setToastMessage,
   setToastType,
 }) {
-  const [allData, setAllData] = useState([]); // Store all data
+  const [todayPlans, setTodayPlans] = useState([]); // Store all data
+  const [recommandedPrograms, setRecommandedPrograms] = useState([]);
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [hasMoreData, setHasMoreData] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const isEnableSurvey = user?.isEnableSurvey;
 
   const { fetchNotifications } = useNotifications();
@@ -74,33 +72,53 @@ export default function StudentHome({
     [navigation]
   );
 
-  // Function to load more data
-  const loadMoreData = useCallback(() => {
-    if (!hasMoreData || loadingMore) return;
+  const fetchRecommandedPrograms = async () => {
+    try {
+      const response = await fetchAllRecommendedPrograms(user.id);
+      setRecommandedPrograms(response);
+    } catch (error) {
+      console.error(`Error loading recommended programs:`, error);
+      setRecommandedPrograms([]);
+    }
+  };
 
-    setLoadingMore(true);
+  const getTodayPlans = async () => {
+    try {
+      if (!user?.id) {
+        console.warn("User ID not available");
+        setTodayPlans([]);
+        setDisplayedData([]);
+        return;
+      }
 
-    const startIndex = (currentPage - 1) * PAGE_SIZE;
+      const today = dayjs().format("YYYY-MM-DD");
+      const params = {
+        startDate: today,
+        endDate: today,
+      };
+      const response = await EventService.getEvents(user.id, params);
+      setTodayPlans(response || []);
+      // Update displayed data with pagination
+      const initialData = (response || []).slice(0, PAGE_SIZE);
+      setDisplayedData(initialData);
+    } catch (error) {
+      console.error(`Error loading today's plans:`, error);
+      setTodayPlans([]);
+      setDisplayedData([]);
+    }
+  };
+
+  const loadMorePlans = () => {
+    const nextPage = currentPage + 1;
+    const startIndex = (nextPage - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
-    const newData = allData.slice(startIndex, endIndex);
-    // console.log("newData", newData);
+    const newData = todayPlans.slice(startIndex, endIndex);
+
     if (newData.length > 0) {
       setDisplayedData((prev) => [...prev, ...newData]);
-      setCurrentPage((prev) => prev + 1);
-      setHasMoreData(endIndex < allData.length);
-    } else {
-      setHasMoreData(false);
+      setCurrentPage(nextPage);
     }
-
-    setLoadingMore(false);
-  }, [allData, currentPage, hasMoreData, loadingMore]);
-
-  // Function to reset pagination
-  const resetPagination = useCallback(() => {
-    setCurrentPage(1);
-    setHasMoreData(true);
-    setDisplayedData([]);
-  }, []);
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -113,14 +131,14 @@ export default function StudentHome({
     setLoading(true);
     // Reset pagination at the start of loading new tab data
     setCurrentPage(1);
-    setHasMoreData(true);
     setDisplayedData([]);
 
     try {
-      console.log("loadData");
+      await Promise.all([getTodayPlans(), fetchRecommandedPrograms()]);
     } catch (error) {
       console.error(`Error loading data:`, error);
     } finally {
+      setLoading(false);
       setRefreshing(false);
     }
   };
@@ -129,8 +147,47 @@ export default function StudentHome({
     useCallback(() => {
       loadData();
       fetchNotifications();
-    }, [navigation, isEnableSurvey])
+    }, [])
   );
+
+  const getEventIcon = (eventType) => {
+    switch (eventType?.toLowerCase()) {
+      case "appointment":
+        return "calendar";
+      case "survey":
+        return "clipboard";
+      case "program":
+        return "school";
+      default:
+        return "event";
+    }
+  };
+
+  const getEventColor = (eventType) => {
+    switch (eventType?.toLowerCase()) {
+      case "appointment":
+        return "#3B82F6";
+      case "survey":
+        return "#10B981";
+      case "program":
+        return "#F59E0B";
+      default:
+        return "#6B7280";
+    }
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+    try {
+      return dayjs(timeString).format("HH:mm");
+    } catch {
+      return timeString;
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <ScrollView
@@ -153,50 +210,6 @@ export default function StudentHome({
           showCloseButton={false}
         />
       )}
-      {/* <Alert
-        type="error"
-        title="Cảnh báo mức độ căng thẳng cao"
-        description="Dựa trên các đánh giá gần đây, chúng tôi khuyến nghị bạn nên thực hiện các biện pháp để quản lý mức độ căng thẳng."
-        showCloseButton={false}
-      /> */}
-
-      {/* Featured Programs */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.headerContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Featured Programs</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.viewAllContainer}
-            onPress={() => {
-              console.log("StudentHome: Navigating to Program");
-              navigation.navigate("Program");
-            }}
-          >
-            <Text style={styles.viewAllText}>View All</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.featuredCard}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2",
-            }}
-            style={styles.featuredImg}
-            resizeMode="cover"
-          />
-          <View style={styles.featuredOverlay}>
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTag}>SUPPORT PROGRAM</Text>
-              <Text style={styles.featuredTitle}>
-                Career Development Workshop
-              </Text>
-              <Text style={styles.featuredTime}>
-                May 25, 2025 • 13:00 - 15:30
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
 
       {/* Quick Actions */}
       <View style={styles.sectionContainer}>
@@ -210,11 +223,222 @@ export default function StudentHome({
               style={styles.connectBox}
               onPress={item.onPress}
             >
-              <Entypo name={item.icon} size={24} color="#438455FF" />
+              <View style={styles.iconContainer}>
+                <Entypo name={item.icon} size={24} color="#438455FF" />
+              </View>
               <Text style={styles.connectTitle}>{item.title}</Text>
             </TouchableOpacity>
           ))}
         </View>
+      </View>
+
+      {/* Recommended Programs */}
+      <View style={styles.sectionContainer}>
+        <View style={styles.headerContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recommended Programs</Text>
+            <View style={styles.programCountContainer}>
+              <Text style={styles.programCountText}>
+                {recommandedPrograms.length} available
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.viewAllContainer}
+            onPress={() => {
+              navigation.navigate("Program");
+            }}
+          >
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+
+        {recommandedPrograms.length > 0 ? (
+          <>
+            {/* Featured Program Banner */}
+            <View style={styles.featuredProgramBanner}>
+              <View style={styles.bannerContent}>
+                <View style={styles.bannerHeader}>
+                  <View style={styles.bannerIconContainer}>
+                    <MaterialIcons name="star" size={20} color="#F59E0B" />
+                  </View>
+                  <View style={styles.bannerBadge}>
+                    <Text style={styles.bannerBadgeText}>Featured</Text>
+                  </View>
+                </View>
+                <Text style={styles.bannerTitle} numberOfLines={2}>
+                  {recommandedPrograms[0]?.title ||
+                    "Career Development Workshop"}
+                </Text>
+                <Text style={styles.bannerDescription} numberOfLines={2}>
+                  {recommandedPrograms[0]?.description ||
+                    "Enhance your professional skills with our comprehensive workshop"}
+                </Text>
+                <View style={styles.bannerFooter}>
+                  <View style={styles.bannerStats}>
+                    <View style={styles.statItem}>
+                      <Ionicons
+                        name="people-outline"
+                        size={14}
+                        color="#6B7280"
+                      />
+                      <Text style={styles.statText}>
+                        {recommandedPrograms[0]?.participants ?? 0} enrolled
+                      </Text>
+                    </View>
+                    <View style={styles.statItem}>
+                      <Ionicons name="time-outline" size={14} color="#6B7280" />
+                      <Text style={styles.statText}>
+                        {dayjs(recommandedPrograms[0]?.startDate).format(
+                          "DD/MM/YYYY"
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.bannerButton}
+                    onPress={() => {
+                      navigation.navigate("Program", {
+                        screen: "ProgramDetail",
+                        params: {
+                          programId: recommandedPrograms[0]?.id,
+                        },
+                      });
+                    }}
+                  >
+                    <Text style={styles.bannerButtonText}>Learn More</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.bannerImageContainer}>
+                <View style={styles.bannerImagePlaceholder}>
+                  <MaterialIcons name="school" size={32} color="#F59E0B" />
+                </View>
+              </View>
+            </View>
+
+            {/* Program Cards */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.programScrollContainer}
+            >
+              {recommandedPrograms.slice(1, 4).map((program, index) => (
+                <TouchableOpacity
+                  key={program.id || index}
+                  style={styles.programCard}
+                  onPress={() => {
+                    navigation.navigate("Program", {
+                      screen: "ProgramDetail",
+                      params: {
+                        programId: program.id,
+                      },
+                    });
+                  }}
+                >
+                  <View style={styles.programHeader}>
+                    <View style={styles.programIconContainer}>
+                      <MaterialIcons name="school" size={20} color="#F59E0B" />
+                    </View>
+                    <View style={styles.programStatus}>
+                      <Text style={styles.programStatusText}>Active</Text>
+                    </View>
+                  </View>
+
+                  {/* Category Badge */}
+                  <View style={styles.categoryBadge}>
+                    <Text style={styles.categoryText}>
+                      {program.category?.name || "Professional"}
+                    </Text>
+                  </View>
+
+                  <Text style={styles.programTitle} numberOfLines={2}>
+                    {program.title || program.name || "Untitled Program"}
+                  </Text>
+                  <Text style={styles.programDescription} numberOfLines={2}>
+                    {program.description || "No description available"}
+                  </Text>
+
+                  {/* Progress Bar */}
+                  <View style={styles.progressContainer}>
+                    <View style={styles.progressBar}>
+                      <View
+                        style={[
+                          styles.progressFill,
+                          { width: `${(program.participants ?? 0) * 100}%` },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.progressText}>Participants</Text>
+                  </View>
+
+                  <View style={styles.programFooter}>
+                    <View style={styles.programDuration}>
+                      <Ionicons name="time-outline" size={14} color="#6B7280" />
+                      <Text style={styles.programDurationText}>
+                        {program.duration || "Flexible"}
+                      </Text>
+                    </View>
+                    {/* <TouchableOpacity
+                      style={styles.joinButton}
+                      onPress={() => {
+                        joinProgram(program.id);
+                      }}
+                    >
+                      <Text style={styles.joinButtonText}>Join</Text>
+                    </TouchableOpacity> */}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {/* Quick Stats */}
+            {/* <View style={styles.programStats}>
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialIcons name="trending-up" size={20} color="#10B981" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>85%</Text>
+                  <Text style={styles.statLabel}>Success Rate</Text>
+                </View>
+              </View>
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialIcons name="group" size={20} color="#3B82F6" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>150+</Text>
+                  <Text style={styles.statLabel}>Students</Text>
+                </View>
+              </View>
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <MaterialIcons name="schedule" size={20} color="#F59E0B" />
+                </View>
+                <View style={styles.statContent}>
+                  <Text style={styles.statNumber}>24/7</Text>
+                  <Text style={styles.statLabel}>Support</Text>
+                </View>
+              </View>
+            </View> */}
+          </>
+        ) : (
+          <View style={styles.programEmptyContainer}>
+            <View style={styles.programEmptyIconContainer}>
+              <MaterialIcons name="school" size={48} color="#9CA3AF" />
+            </View>
+            <Text style={styles.programEmptyText}>No programs available</Text>
+            <Text style={styles.programEmptySubText}>
+              Check back later for new learning opportunities and programs.
+            </Text>
+            <TouchableOpacity style={styles.programEmptyButton}>
+              <Text style={styles.programEmptyButtonText}>
+                Browse All Programs
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* Plan for today */}
@@ -224,8 +448,8 @@ export default function StudentHome({
             <Text style={styles.sectionTitle}>Plan for today</Text>
             <View style={styles.planCountContainer}>
               <Text style={styles.planCountText}>
-                {displayedData.length}{" "}
-                {displayedData.length === 1 || displayedData.length === 0
+                {todayPlans.length}{" "}
+                {todayPlans.length === 1 || todayPlans.length === 0
                   ? "plan"
                   : "plans"}
               </Text>
@@ -245,20 +469,81 @@ export default function StudentHome({
         </View>
         {displayedData.length > 0 ? (
           <>
-            <ScrollView
-              style={styles.planContainer}
-              showsVerticalScrollIndicator={true}
-            >
-              {displayedData.map((item) => (
-                <View style={styles.planItem} key={item.id}>
-                  <Text style={styles.planTitle}>{item.title}</Text>
-                </View>
+            <View style={styles.planContainer}>
+              {displayedData.map((item, index) => (
+                <TouchableOpacity
+                  key={item.id || index}
+                  style={styles.planItem}
+                  onPress={() => {
+                    // Navigate to event details
+                    console.log("Navigate to event:", item.id);
+                  }}
+                >
+                  <View style={styles.planItemHeader}>
+                    <View style={styles.planIconContainer}>
+                      <MaterialIcons
+                        name={getEventIcon(item.type)}
+                        size={20}
+                        color={getEventColor(item.type)}
+                      />
+                    </View>
+                    <View style={styles.planInfo}>
+                      <Text style={styles.planTitle} numberOfLines={2}>
+                        {item.title}
+                      </Text>
+                      {item.description && (
+                        <Text style={styles.planDescription} numberOfLines={2}>
+                          {item.description}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={styles.planTimeContainer}>
+                      {item.time && (
+                        <Text style={styles.planTime}>
+                          {formatTime(item.time)}
+                        </Text>
+                      )}
+                      <MaterialIcons
+                        name="chevron-right"
+                        size={20}
+                        color="#9CA3AF"
+                      />
+                    </View>
+                  </View>
+                  {item.location && (
+                    <View style={styles.planLocation}>
+                      <Ionicons
+                        name="location-outline"
+                        size={14}
+                        color="#6B7280"
+                      />
+                      <Text style={styles.planLocationText}>
+                        {item.location}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               ))}
-            </ScrollView>
+            </View>
+            {displayedData.length < todayPlans.length && (
+              <TouchableOpacity
+                style={styles.loadMoreButton}
+                onPress={loadMorePlans}
+              >
+                <Ionicons name="add-circle-outline" size={20} color="#374151" />
+                <Text style={styles.loadMoreText}>Load More Plans</Text>
+              </TouchableOpacity>
+            )}
           </>
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No plan for today</Text>
+            <View style={styles.emptyIconContainer}>
+              <MaterialIcons name="event-busy" size={48} color="#9CA3AF" />
+            </View>
+            <Text style={styles.emptyText}>No plans for today</Text>
+            <Text style={styles.emptySubText}>
+              You're all caught up! Check back later for new activities.
+            </Text>
           </View>
         )}
       </View>
@@ -334,6 +619,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#5D5D5D",
   },
+  programCountContainer: {},
+  programCountText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#10B981",
+  },
   viewAllContainer: {
     borderRadius: 10,
     padding: 10,
@@ -342,48 +633,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     color: "#438455FF",
-  },
-  featuredCard: {
-    borderRadius: 24,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 10,
-  },
-  featuredImg: {
-    width: "100%",
-    height: isSmallDevice ? 180 : isMediumDevice ? 200 : 220,
-  },
-  featuredOverlay: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
-  },
-  featuredContent: {
-    padding: isSmallDevice ? 20 : 24,
-  },
-  featuredTag: {
-    color: "#FBBF24",
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 6,
-    letterSpacing: 0.8,
-  },
-  featuredTitle: {
-    color: "#fff",
-    fontSize: isSmallDevice ? 18 : isMediumDevice ? 20 : 22,
-    fontWeight: "700",
-    marginBottom: 6,
-    lineHeight: isSmallDevice ? 22 : isMediumDevice ? 24 : 26,
-  },
-  featuredTime: {
-    color: "#E5E7EB",
-    fontSize: isSmallDevice ? 13 : 14,
-    fontWeight: "500",
   },
   connectRow: {
     flexDirection: "row",
@@ -396,8 +645,171 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    padding: 10,
-    gap: 10,
+    padding: 16,
+    gap: 12,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#F0F9FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  connectTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "center",
+  },
+  // Program Styles
+  programScrollContainer: {
+    paddingRight: 24,
+  },
+  programCard: {
+    width: 280,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  programHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  programIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FEF3C7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  programStatus: {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  programStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#065F46",
+  },
+  programTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  programDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  programFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  programDuration: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  programDurationText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  joinButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  joinButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  // Plan Styles
+  planContainer: {
+    gap: 12,
+  },
+  planItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  planItemHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  planIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  planInfo: {
+    flex: 1,
+  },
+  planTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  planDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  planTimeContainer: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  planTime: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "600",
+  },
+  planLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  planLocationText: {
+    fontSize: 13,
+    color: "#6B7280",
   },
   emptyContainer: {
     backgroundColor: "#F8FAFC",
@@ -406,12 +818,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    padding: 30,
+    padding: 40,
+  },
+  emptyIconContainer: {
+    marginBottom: 16,
   },
   emptyText: {
     color: "#9CA3AF",
-    fontSize: 17,
-    fontWeight: "500",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  emptySubText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
   loadMoreButton: {
     backgroundColor: "#F3F4F6",
@@ -422,10 +844,216 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    flexDirection: "row",
+    gap: 8,
   },
   loadMoreText: {
     color: "#374151",
     fontSize: 16,
+    fontWeight: "600",
+  },
+  // New styles for Recommended Programs section
+  featuredProgramBanner: {
+    flexDirection: "row",
+    backgroundColor: "#FEF3C7",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    alignItems: "center",
+    gap: 16,
+  },
+  bannerContent: {
+    flex: 1,
+  },
+  bannerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  bannerIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFFBEB",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerBadge: {
+    backgroundColor: "#FDE68A",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  bannerBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#92400E",
+  },
+  bannerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
+    lineHeight: 24,
+  },
+  bannerDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  bannerFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+  },
+  bannerStats: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  statText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  bannerButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  bannerButtonText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  bannerImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#FDE68A",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFFBEB",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  categoryBadge: {
+    backgroundColor: "#E0F2FE",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  categoryText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1E40AF",
+  },
+  progressContainer: {
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#10B981",
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    color: "#6B7280",
+    textAlign: "right",
+    marginTop: 4,
+  },
+  programStats: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  statCard: {
+    alignItems: "center",
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E0F2FE",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  statContent: {
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+  },
+  // Program Empty State Styles
+  programEmptyContainer: {
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 40,
+    marginTop: 10,
+  },
+  programEmptyIconContainer: {
+    marginBottom: 16,
+  },
+  programEmptyText: {
+    color: "#9CA3AF",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  programEmptySubText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  programEmptyButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  programEmptyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
     fontWeight: "600",
   },
 });

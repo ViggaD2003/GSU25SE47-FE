@@ -320,7 +320,8 @@ const createBookingData = (
   isOnline,
   reason,
   user,
-  selectedChild
+  selectedChild,
+  hostType
 ) => ({
   slotId: selectedSlot.id,
   bookedForId: user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
@@ -328,6 +329,7 @@ const createBookingData = (
   startDateTime: dayjs(selectedSlot.selectedStartTime).format(VN_FORMAT),
   endDateTime: dayjs(selectedSlot.selectedEndTime).format(VN_FORMAT),
   reasonBooking: reason || "Không có lý do",
+  hostType: hostType,
 });
 
 const createConfirmationMessage = (
@@ -490,7 +492,8 @@ const BookingScreen = ({ navigation }) => {
               bookingState.isOnline,
               bookingState.reason,
               user,
-              bookingState.selectedChild
+              bookingState.selectedChild,
+              bookingState.hostType.value
             );
 
             console.log("bookingData", bookingData);

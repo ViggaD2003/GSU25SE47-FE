@@ -1,0 +1,77 @@
+import api from "./axios";
+
+// Get all recommended programs
+export const fetchAllRecommendedPrograms = async (studentId) => {
+  try {
+    if (!studentId) {
+      throw new Error("Student ID is required");
+    }
+    const response = await api.get(
+      `/api/v1/support-programs/recommend?studentId=${studentId}`
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error("Error fetching recommended programs:", error);
+    throw error;
+  }
+};
+
+// Get program details by ID
+export const fetchProgramDetails = async (programId) => {
+  try {
+    if (!programId) {
+      throw new Error("Program ID is required");
+    }
+    const response = await api.get(`/api/v1/support-programs/${programId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching program details:", error);
+    throw error;
+  }
+};
+
+// Join a program
+export const joinProgram = async (programId) => {
+  try {
+    if (!programId) {
+      throw new Error("Program ID is required");
+    }
+    const response = await api.post(
+      `/api/v1/support-programs/participants/register?programId=${programId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error joining program:", error);
+    throw error;
+  }
+};
+
+// Leave a program
+export const leaveProgram = async (programId) => {
+  try {
+    if (!programId) {
+      throw new Error("Program ID is required");
+    }
+    const response = await api.delete(
+      `/api/v1/support-programs/participants/unregister?programId=${programId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error leaving program:", error);
+    throw error;
+  }
+};
+
+//save program survey result
+export const saveProgramSurveyResult = async (surveyResult) => {
+  try {
+    const response = await api.post(
+      `/api/v1/support-programs/save-survey-record`,
+      surveyResult
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error saving program survey result:", error);
+    throw error;
+  }
+};

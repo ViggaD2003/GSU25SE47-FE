@@ -28,6 +28,8 @@ import {
   CaseDetails,
   NotificationSettingsScreen,
   ClosedCases,
+  ProgramListScreen,
+  ProgramDetailScreen,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -192,6 +194,8 @@ export default function MainTabs() {
   const ProgramStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Program" component={ProgramListScreen} />
+        <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
         <Stack.Screen name="ProgramRecord" component={ProgramRecordScreen} />
       </Stack.Navigator>
     );

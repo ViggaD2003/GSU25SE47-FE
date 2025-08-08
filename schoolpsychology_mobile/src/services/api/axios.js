@@ -120,50 +120,50 @@ api.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized - try to refresh token
-    if (status === 401 && !originalRequest._retry && !isExcludedPath) {
-      originalRequest._retry = true;
+    // if (status === 401 && !originalRequest._retry && !isExcludedPath) {
+    //   originalRequest._retry = true;
 
-      try {
-        // Check if logout is already in progress
-        if (isLogoutInProgress()) {
-          console.log("Logout in progress, skipping token refresh");
-          return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-        }
+    //   try {
+    //     // Check if logout is already in progress
+    //     if (isLogoutInProgress()) {
+    //       console.log("Logout in progress, skipping token refresh");
+    //       return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+    //     }
 
-        console.log("Attempting to refresh token due to 401 error");
-        // Try to refresh the token
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          console.log("Token refresh successful, retrying original request");
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
+    //     console.log("Attempting to refresh token due to 401 error");
+    //     // Try to refresh the token
+    //     const newToken = await refreshAccessToken();
+    //     if (newToken) {
+    //       console.log("Token refresh successful, retrying original request");
+    //       // Retry the original request with new token
+    //       originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    //       return api(originalRequest);
+    //     }
+    //   } catch (refreshError) {
+    //     console.error("Token refresh failed:", refreshError);
 
-        // Refresh failed, ensure tokens are cleared and logout user
-        try {
-          console.log("Clearing tokens and logging out due to refresh failure");
+    //     // Refresh failed, ensure tokens are cleared and logout user
+    //     try {
+    //       console.log("Clearing tokens and logging out due to refresh failure");
 
-          // Use force logout to ensure cleanup
-          await forceLogout();
-        } catch (logoutError) {
-          console.error("Logout error during refresh failure:", logoutError);
-          // Try one more time with basic logout
-          try {
-            await performLogout(true);
-          } catch (finalError) {
-            console.error("Final logout attempt failed:", finalError);
-          }
-        }
+    //       // Use force logout to ensure cleanup
+    //       await forceLogout();
+    //     } catch (logoutError) {
+    //       console.error("Logout error during refresh failure:", logoutError);
+    //       // Try one more time with basic logout
+    //       try {
+    //         await performLogout(true);
+    //       } catch (finalError) {
+    //         console.error("Final logout attempt failed:", finalError);
+    //       }
+    //     }
 
-        // Call logout callback if available
-        triggerLogoutCallback();
+    //     // Call logout callback if available
+    //     triggerLogoutCallback();
 
-        return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-      }
-    }
+    //     return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+    //   }
+    // }
 
     // Handle 403 Forbidden - logout user
     if (status === 403) {

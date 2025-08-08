@@ -13,97 +13,27 @@ import { GlobalStyles } from "../../constants";
 import { Container } from "../../components";
 import { WeekCalendar, EventCard } from "../../components/common";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
-
-// Mock data - replace with actual API call
-// When ready to integrate with API:
-// 1. Import AuthContext to get currentUser
-// 2. Uncomment the EventService.getEventsForWeek call in loadEventsForWeek
-// 3. Remove mock data and use response from API
-// 4. Add error handling for API failures
-const mockEvents = [
-  {
-    id: 1,
-    relatedId: "apt_001",
-    title: "Tư vấn tâm lý học đường",
-    source: "Appointment",
-    from_case: false,
-    date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // Tomorrow
-    time: "09:00",
-    status: "upcoming",
-    location: "Phòng tư vấn 101",
-  },
-  {
-    id: 2,
-    relatedId: "survey_001",
-    title: "Khảo sát đánh giá tâm lý",
-    source: "Survey",
-    from_case: true,
-    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // Day after tomorrow
-    time: "14:30",
-    status: "upcoming",
-  },
-  {
-    id: 3,
-    relatedId: "prog_001",
-    title: "Chương trình hỗ trợ học tập",
-    source: "Program",
-    from_case: false,
-    date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 3 days from now
-    time: "10:00",
-    status: "upcoming",
-    location: "Thư viện trường",
-  },
-  {
-    id: 4,
-    relatedId: "apt_002",
-    title: "Theo dõi tiến độ",
-    source: "Appointment",
-    from_case: true,
-    date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 4 days from now
-    time: "15:00",
-    status: "upcoming",
-  },
-  {
-    id: 5,
-    relatedId: "survey_002",
-    title: "Đánh giá kết quả điều trị",
-    source: "Survey",
-    from_case: false,
-    date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 5 days from now
-    time: "11:00",
-    status: "upcoming",
-  },
-  {
-    id: 6,
-    relatedId: "prog_002",
-    title: "Workshop kỹ năng sống",
-    source: "Program",
-    from_case: false,
-    date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split("T")[0], // 6 days from now
-    time: "13:00",
-    status: "upcoming",
-    location: "Hội trường A",
-  },
-];
+import EventService from "@/services/api/EventService";
+import { useAuth } from "@/contexts";
+import dayjs from "dayjs";
 
 const EventScreen = ({ navigation }) => {
+  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const fetchAllEvents = async () => {
+    const response = await EventService.getEvents(user.id, currentWeekIndex);
+    console.log("response", response);
+    // setEvents(response.data || response.events || []);
+  };
+
+  useEffect(() => {
+    fetchAllEvents();
+  }, []);
 
   // Filter events by selected date
   const filteredEvents = useMemo(() => {
@@ -140,6 +70,7 @@ const EventScreen = ({ navigation }) => {
   const loadEventsForWeek = useCallback(
     async (weekIndex) => {
       try {
+        if (!user.id) return;
         setLoading(true);
 
         // Get date range for the week
@@ -148,30 +79,15 @@ const EventScreen = ({ navigation }) => {
         console.log(
           `Loading events for week ${weekIndex}: ${startDate} to ${endDate}`
         );
-
-        // TODO: Replace with actual API call when ready
-        // const response = await EventService.getEventsForWeek({
-        //   weekIndex,
-        //   userId: currentUser.id, // Get from AuthContext
-        //   filters: {
-        //     // Add any additional filters here
-        //     // source: 'Appointment',
-        //     // from_case: false,
-        //     // status: 'upcoming'
-        //   }
-        // });
-        // setEvents(response.data || response.events || []);
-
-        // For now, simulate API call with delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // For demo, filter mock data based on date range
-        const filteredMockEvents = mockEvents.filter((event) => {
-          const eventDate = event.date;
-          return eventDate >= startDate && eventDate <= endDate;
+        const data = await EventService.getEvents(user.id, {
+          startDate:
+            weekIndex === 0
+              ? dayjs().format("YYYY-MM-DD")
+              : dayjs(startDate).format("YYYY-MM-DD"),
+          endDate: dayjs(endDate).format("YYYY-MM-DD"),
         });
 
-        setEvents(filteredMockEvents);
+        setEvents(data || []);
       } catch (error) {
         console.error("Error loading events for week:", error);
         setEvents([]);
@@ -353,7 +269,7 @@ const EventScreen = ({ navigation }) => {
             <View style={styles.eventsList}>
               {filteredEvents.map((event) => (
                 <EventCard
-                  key={event.id}
+                  key={event.source + "_" + event.relatedId}
                   event={event}
                   onPress={handleEventPress}
                 />

@@ -17,9 +17,9 @@ const StatisticsCard = ({
   const getTrendIcon = () => {
     switch (trend) {
       case "up":
-        return "arrow-up";
+        return "trending-up";
       case "down":
-        return "arrow-down";
+        return "trending-down";
       default:
         return null;
     }
@@ -28,7 +28,7 @@ const StatisticsCard = ({
   const getTrendColor = () => {
     switch (trend) {
       case "up":
-        return "#22C55E";
+        return "#10B981";
       case "down":
         return "#EF4444";
       default:
@@ -44,7 +44,8 @@ const StatisticsCard = ({
           value: styles.smallValue,
           title: styles.smallTitle,
           subtitle: styles.smallSubtitle,
-          iconSize: 18,
+          iconSize: 20,
+          iconContainerSize: 44,
         };
       case "large":
         return {
@@ -52,7 +53,8 @@ const StatisticsCard = ({
           value: styles.largeValue,
           title: styles.largeTitle,
           subtitle: styles.largeSubtitle,
-          iconSize: 24,
+          iconSize: 28,
+          iconContainerSize: 56,
         };
       default:
         return {
@@ -60,7 +62,8 @@ const StatisticsCard = ({
           value: styles.mediumValue,
           title: styles.mediumTitle,
           subtitle: styles.mediumSubtitle,
-          iconSize: 20,
+          iconSize: 24,
+          iconContainerSize: 50,
         };
     }
   };
@@ -69,15 +72,46 @@ const StatisticsCard = ({
 
   return (
     <View style={[styles.container, sizeStyles.container, { backgroundColor }]}>
-      {/* Top section - Icon & Title */}
-      <View style={styles.topSection}>
-        <View style={styles.titleRow}>
-          <Text style={[styles.title, sizeStyles.title]}>{title}</Text>
+      {/* Content */}
+      <View style={styles.content}>
+        {/* Header section */}
+        <View style={styles.headerSection}>
+          <View style={styles.titleContainer}>
+            <Text style={[styles.title, sizeStyles.title]}>{title}</Text>
+            {trend && (
+              <View style={styles.trendContainer}>
+                <View
+                  style={[
+                    styles.trendBadge,
+                    { backgroundColor: `${getTrendColor()}15` },
+                  ]}
+                >
+                  <Ionicons
+                    name={getTrendIcon()}
+                    size={14}
+                    color={getTrendColor()}
+                  />
+                  {percentage !== undefined && (
+                    <Text
+                      style={[styles.trendText, { color: getTrendColor() }]}
+                    >
+                      {Math.abs(percentage)}%
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+          </View>
+
           {icon && (
             <View
               style={[
                 styles.iconContainer,
-                { backgroundColor: `${iconColor}10` },
+                {
+                  width: sizeStyles.iconContainerSize,
+                  height: sizeStyles.iconContainerSize,
+                  backgroundColor: `${iconColor}15`,
+                },
               ]}
             >
               <Ionicons
@@ -88,196 +122,189 @@ const StatisticsCard = ({
             </View>
           )}
         </View>
-      </View>
 
-      {/* Value section */}
-      <View style={styles.valueSection}>
-        <View style={styles.valueRow}>
+        {/* Value section */}
+        <View style={styles.valueSection}>
           <Text style={[styles.value, sizeStyles.value, { color: valueColor }]}>
             {value}
           </Text>
-          {trend && (
-            <View style={styles.trendBadge}>
-              <Ionicons
-                name={getTrendIcon()}
-                size={14}
-                color={getTrendColor()}
-              />
-              {percentage !== undefined && (
-                <Text style={[styles.trendText, { color: getTrendColor() }]}>
-                  {Math.abs(percentage)}%
-                </Text>
-              )}
-            </View>
-          )}
         </View>
 
-        {/* Progress indicator */}
-        {/* <View style={styles.progressContainer}>
+        {/* Progress bar */}
+        <View style={styles.progressContainer}>
           <View
-            style={[styles.progressBar, { backgroundColor: `${valueColor}20` }]}
+            style={[
+              styles.progressTrack,
+              { backgroundColor: `${valueColor}15` },
+            ]}
           >
             <View
               style={[
                 styles.progressFill,
                 {
-                  backgroundColor: valueColor,
                   width: `${Math.min(Math.max(parseInt(value) || 0, 0), 100)}%`,
+                  backgroundColor: valueColor,
                 },
               ]}
             />
           </View>
-        </View> */}
-      </View>
-
-      {/* Subtitle */}
-      {subtitle && (
-        <View style={styles.subtitleSection}>
-          <Text style={[styles.subtitle, sizeStyles.subtitle]}>{subtitle}</Text>
         </View>
-      )}
+
+        {/* Subtitle */}
+        {subtitle && (
+          <View style={styles.subtitleSection}>
+            <Text style={[styles.subtitle, sizeStyles.subtitle]}>
+              {subtitle}
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    minWidth: 150,
-    borderRadius: 16,
+    minWidth: 160,
+    borderRadius: 24,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
     borderWidth: 1,
-    borderColor: "#F8FAFC",
+    borderColor: "rgba(0, 0, 0, 0.05)",
+    position: "relative",
+    overflow: "hidden",
   },
-  topSection: {
-    marginBottom: 16,
+  content: {
+    padding: 5,
+    position: "relative",
+    zIndex: 1,
   },
-  titleRow: {
+  headerSection: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
+    marginBottom: 20,
   },
-  iconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+  titleContainer: {
+    flex: 1,
+    marginRight: 16,
   },
-  valueSection: {
-    marginBottom: 12,
-  },
-  valueRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
+  title: {
+    color: "#FFF",
+    fontWeight: "700",
     marginBottom: 8,
+  },
+  trendContainer: {
+    alignSelf: "flex-start",
   },
   trendBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   trendText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
+  },
+  iconContainer: {
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  valueSection: {
+    marginBottom: 16,
+  },
+  value: {
+    fontWeight: "900",
+    letterSpacing: -1.5,
   },
   progressContainer: {
-    marginTop: 4,
+    marginBottom: 12,
   },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
     overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   progressFill: {
     height: "100%",
-    borderRadius: 2,
+    borderRadius: 4,
   },
   subtitleSection: {
     marginTop: 4,
   },
+  subtitle: {
+    color: "#6B7280",
+    fontWeight: "500",
+    lineHeight: 18,
+  },
 
   // Small size styles
   smallContainer: {
-    padding: 16,
+    padding: 20,
     flex: 1,
   },
   smallValue: {
-    fontSize: 28,
-    fontWeight: "700",
-    letterSpacing: -0.5,
+    fontSize: 36,
   },
   smallTitle: {
-    fontSize: 13,
-    color: "#64748B",
-    fontWeight: "500",
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 20,
   },
   smallSubtitle: {
-    fontSize: 11,
-    color: "#94A3B8",
-    fontWeight: "400",
-    lineHeight: 14,
+    fontSize: 13,
   },
 
   // Medium size styles
   mediumContainer: {
-    padding: 20,
+    padding: 24,
     flex: 1,
   },
   mediumValue: {
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: -0.75,
+    fontSize: 42,
   },
   mediumTitle: {
-    fontSize: 14,
-    color: "#64748B",
-    fontWeight: "500",
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 22,
   },
   mediumSubtitle: {
-    fontSize: 12,
-    color: "#94A3B8",
-    fontWeight: "400",
-    lineHeight: 16,
+    fontSize: 14,
   },
 
   // Large size styles
   largeContainer: {
-    padding: 24,
+    padding: 28,
   },
   largeValue: {
-    fontSize: 40,
-    fontWeight: "700",
-    letterSpacing: -1,
+    fontSize: 48,
   },
   largeTitle: {
-    fontSize: 15,
-    color: "#64748B",
-    fontWeight: "500",
-    lineHeight: 20,
+    fontSize: 17,
+    lineHeight: 24,
   },
   largeSubtitle: {
-    fontSize: 13,
-    color: "#94A3B8",
-    fontWeight: "400",
-    lineHeight: 18,
-  },
-
-  title: {
-    flex: 1,
-    marginRight: 8,
-  },
-  value: {
-    flex: 1,
-  },
-  subtitle: {
-    lineHeight: 16,
+    fontSize: 15,
   },
 });
 
