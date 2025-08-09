@@ -16,8 +16,10 @@ import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import EventService from "@/services/api/EventService";
 import { useAuth } from "@/contexts";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 const EventScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -25,19 +27,11 @@ const EventScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const fetchAllEvents = async () => {
-    const response = await EventService.getEvents(user.id, currentWeekIndex);
-    console.log("response", response);
-    // setEvents(response.data || response.events || []);
-  };
-
-  useEffect(() => {
-    fetchAllEvents();
-  }, []);
+  // Remove incorrect initial fetch that passed an invalid params shape
 
   // Filter events by selected date
   const filteredEvents = useMemo(() => {
-    const selectedDateStr = selectedDate.toISOString().split("T")[0];
+    const selectedDateStr = dayjs(selectedDate).format("YYYY-MM-DD");
     return events.filter((event) => event.date === selectedDateStr);
   }, [events, selectedDate]);
 
@@ -46,7 +40,7 @@ const EventScreen = ({ navigation }) => {
     const today = new Date();
     const startOfWeek = new Date(today);
 
-    // Calculate start of current week (Monday)
+    // Calculate start of current week (Monday) in local time
     const dayOfWeek = today.getDay();
     const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     startOfWeek.setDate(today.getDate() - daysToSubtract);
@@ -59,8 +53,8 @@ const EventScreen = ({ navigation }) => {
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
     return {
-      startDate: startOfWeek.toISOString().split("T")[0],
-      endDate: endOfWeek.toISOString().split("T")[0],
+      startDate: dayjs(startOfWeek).format("YYYY-MM-DD"),
+      endDate: dayjs(endOfWeek).format("YYYY-MM-DD"),
       startOfWeek,
       endOfWeek,
     };
@@ -69,22 +63,26 @@ const EventScreen = ({ navigation }) => {
   // Load events data for specific week
   const loadEventsForWeek = useCallback(
     async (weekIndex) => {
+      setLoading(true);
       try {
-        if (!user.id) return;
-        setLoading(true);
+        if (!user?.id) {
+          setEvents([]);
+          return;
+        }
 
         // Get date range for the week
         const { startDate, endDate } = getWeekDateRange(weekIndex);
 
+        const effectiveStartDate =
+          weekIndex === 0 ? dayjs().format("YYYY-MM-DD") : startDate;
+
         console.log(
-          `Loading events for week ${weekIndex}: ${startDate} to ${endDate}`
+          `Loading events for week ${weekIndex}: ${effectiveStartDate} to ${endDate}`
         );
+
         const data = await EventService.getEvents(user.id, {
-          startDate:
-            weekIndex === 0
-              ? dayjs().format("YYYY-MM-DD")
-              : dayjs(startDate).format("YYYY-MM-DD"),
-          endDate: dayjs(endDate).format("YYYY-MM-DD"),
+          startDate: effectiveStartDate,
+          endDate,
         });
 
         setEvents(data || []);
@@ -95,7 +93,7 @@ const EventScreen = ({ navigation }) => {
         setLoading(false);
       }
     },
-    [getWeekDateRange]
+    [getWeekDateRange, user?.id]
   );
 
   // Load events data (for backward compatibility)
@@ -212,7 +210,7 @@ const EventScreen = ({ navigation }) => {
   return (
     <Container>
       <HeaderWithoutTab
-        title="Sự kiện"
+        title={t("events.title")}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -236,7 +234,7 @@ const EventScreen = ({ navigation }) => {
         <View style={styles.eventsContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>
-              {selectedDate.toLocaleDateString("vi-VN", {
+              {selectedDate.toLocaleDateString(undefined, {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
@@ -246,7 +244,7 @@ const EventScreen = ({ navigation }) => {
             {filteredEvents.length > 0 && (
               <View style={styles.eventCount}>
                 <Text style={styles.eventCountText}>
-                  {filteredEvents.length} sự kiện
+                  {t("events.count", { count: filteredEvents.length })}
                 </Text>
               </View>
             )}
@@ -255,14 +253,14 @@ const EventScreen = ({ navigation }) => {
           {loading ? (
             <View style={styles.loadingContainer}>
               <Ionicons name="hourglass-outline" size={32} color="#8E8E93" />
-              <Text style={styles.loadingText}>Đang tải...</Text>
+              <Text style={styles.loadingText}>{t("events.loading")}</Text>
             </View>
           ) : filteredEvents.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="calendar-outline" size={48} color="#8E8E93" />
-              <Text style={styles.emptyText}>Không có sự kiện nào</Text>
+              <Text style={styles.emptyText}>{t("events.noEvents")}</Text>
               <Text style={styles.emptySubtext}>
-                Chọn ngày khác để xem các sự kiện
+                {t("events.selectAnotherDate")}
               </Text>
             </View>
           ) : (
@@ -280,7 +278,7 @@ const EventScreen = ({ navigation }) => {
 
         {/* Quick Actions */}
         <View style={styles.quickActions}>
-          <Text style={styles.quickActionsTitle}>Lịch trình</Text>
+          <Text style={styles.quickActionsTitle}>{t("events.schedule")}</Text>
           <View style={styles.actionsGrid}>
             <TouchableOpacity
               style={styles.actionButton}
@@ -289,7 +287,7 @@ const EventScreen = ({ navigation }) => {
               <View style={[styles.actionIcon, { backgroundColor: "#E3F2FD" }]}>
                 <Ionicons name="calendar" size={24} color="#007AFF" />
               </View>
-              <Text style={styles.actionText}>Cuộc hẹn</Text>
+              <Text style={styles.actionText}>{t("events.appointment")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -299,7 +297,7 @@ const EventScreen = ({ navigation }) => {
               <View style={[styles.actionIcon, { backgroundColor: "#FFF3E0" }]}>
                 <Ionicons name="clipboard" size={24} color="#FF9500" />
               </View>
-              <Text style={styles.actionText}>Khảo sát</Text>
+              <Text style={styles.actionText}>{t("events.survey")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -309,7 +307,7 @@ const EventScreen = ({ navigation }) => {
               <View style={[styles.actionIcon, { backgroundColor: "#E8F5E8" }]}>
                 <Ionicons name="school" size={24} color="#34C759" />
               </View>
-              <Text style={styles.actionText}>Chương trình</Text>
+              <Text style={styles.actionText}>{t("events.program")}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -341,7 +339,7 @@ const styles = StyleSheet.create({
     color: "#1C1C1E",
   },
   eventCount: {
-    backgroundColor: `${GlobalStyles.colors.primary}33`,
+    backgroundColor: `${GlobalStyles.colors.primary}15`,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,

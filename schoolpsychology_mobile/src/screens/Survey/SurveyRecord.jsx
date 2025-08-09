@@ -24,11 +24,13 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useAuth } from "../../contexts";
 import { filterSurveyTypes } from "../../utils/helpers";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 const PAGE_SIZE = 2; // Number of records to fetch per page
 
 const SurveyRecord = ({ navigation }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [surveyRecords, setSurveyRecords] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -628,12 +630,12 @@ const SurveyRecord = ({ navigation }) => {
           <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Lịch sử khảo sát</Text>
+          <Text style={styles.headerTitle}>{t("survey.record.title")}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+          <Text style={styles.loadingText}>{t("survey.record.loading")}</Text>
         </View>
       </Container>
     );
@@ -643,7 +645,7 @@ const SurveyRecord = ({ navigation }) => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title={"Lịch sử khảo sát"}
+        title={t("survey.record.title")}
         onBackPress={handleBackPress}
         rightComponent={
           <TouchableOpacity onPress={() => setShowFilterModal(true)}>
@@ -695,9 +697,11 @@ const SurveyRecord = ({ navigation }) => {
                   color="#9CA3AF"
                 />
               </View>
-              <Text style={styles.emptyTitle}>Chưa có kết quả khảo sát</Text>
+              <Text style={styles.emptyTitle}>
+                {t("survey.record.emptyTitle")}
+              </Text>
               <Text style={styles.emptySubtitle}>
-                Hoàn thành khảo sát đầu tiên để xem kết quả tại đây
+                {t("survey.record.emptySubtitle")}
               </Text>
               <TouchableOpacity
                 style={styles.emptyButton}
@@ -714,7 +718,9 @@ const SurveyRecord = ({ navigation }) => {
                   color="#fff"
                   style={{ marginRight: 8 }}
                 />
-                <Text style={styles.emptyButtonText}>Đi đến khảo sát</Text>
+                <Text style={styles.emptyButtonText}>
+                  {t("survey.record.goToSurvey")}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -735,7 +741,9 @@ const SurveyRecord = ({ navigation }) => {
                   ) : (
                     <>
                       <Text style={styles.loadMoreText}>
-                        Xem thêm ({totalElements - surveyRecords.length})
+                        {t("survey.record.loadMore", {
+                          count: totalElements - surveyRecords.length,
+                        })}
                       </Text>
                       <Ionicons name="chevron-down" size={16} color="#fff" />
                     </>

@@ -25,8 +25,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../contexts/AuthContext";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useServerErrorHandler } from "../../utils/hooks";
+import { useTranslation } from "react-i18next";
 
 const AppointmentDetails = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { appointment } = route.params;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -132,13 +134,13 @@ const AppointmentDetails = ({ route, navigation }) => {
       CONFIRMED: {
         color: "#10B981",
         bgColor: "#ECFDF5",
-        text: "Đã xác nhận",
+        text: t("appointment.status.confirmed"),
         icon: "checkmark-circle",
       },
       PENDING: {
         color: "#F59E0B",
         bgColor: "#FFFBEB",
-        text: "Chờ xác nhận",
+        text: t("appointment.status.pending"),
         icon: "time",
       },
       // CANCELLED: {
@@ -150,7 +152,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       IN_PROGRESS: {
         color: "#3B82F6",
         bgColor: "#EFF6FF",
-        text: "Đang diễn ra",
+        text: t("appointment.status.inProgress"),
         icon: "checkmark-done-circle",
       },
     };
@@ -167,12 +169,12 @@ const AppointmentDetails = ({ route, navigation }) => {
   const getHostTypeConfig = (hostType) => {
     const configs = {
       TEACHER: {
-        text: "Giáo viên",
+        text: t("appointment.host.teacher"),
         icon: "school-outline",
         color: "#8B5CF6",
       },
       COUNSELOR: {
-        text: "Tư vấn viên",
+        text: t("appointment.host.counselor"),
         icon: "person-outline",
         color: "#06B6D4",
       },
@@ -417,7 +419,7 @@ const AppointmentDetails = ({ route, navigation }) => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title={"Chi tiết lịch hẹn"}
+        title={t("appointment.details.title")}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -459,7 +461,9 @@ const AppointmentDetails = ({ route, navigation }) => {
               size={20}
               color={GlobalStyles.colors.primary}
             />
-            <Text style={styles.sectionTitle}>Thông tin người hẹn</Text>
+            <Text style={styles.sectionTitle}>
+              {t("appointment.details.hostInfo")}
+            </Text>
           </View>
 
           <View style={styles.hostCard}>
@@ -505,7 +509,9 @@ const AppointmentDetails = ({ route, navigation }) => {
               size={20}
               color={GlobalStyles.colors.primary}
             />
-            <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
+            <Text style={styles.sectionTitle}>
+              {t("appointment.details.appointmentInfo")}
+            </Text>
           </View>
 
           <View style={styles.detailsCard}>
@@ -514,7 +520,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 <Ionicons name="calendar-outline" size={20} color="#6B7280" />
               </View>
               <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Ngày hẹn</Text>
+                <Text style={styles.detailLabel}>
+                  {t("appointment.labels.date")}
+                </Text>
                 <Text style={styles.detailValue}>
                   {formatDate(appointment.startDateTime)}
                 </Text>
@@ -531,18 +539,20 @@ const AppointmentDetails = ({ route, navigation }) => {
                 <Ionicons name="time-outline" size={20} color="#6B7280" />
               </View>
               <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Thời gian</Text>
+                <Text style={styles.detailLabel}>
+                  {t("appointment.labels.time")}
+                </Text>
                 <Text style={styles.detailValue}>
                   {formatDateTime(appointment.startDateTime)} -{" "}
                   {formatDateTime(appointment.endDateTime)}
                 </Text>
                 <Text style={styles.detailSubtext}>
-                  Kéo dài{" "}
-                  {dayjs(appointment.endDateTime).diff(
-                    dayjs(appointment.startDateTime),
-                    "minute"
-                  )}{" "}
-                  phút
+                  {t("appointment.labels.durationMinutes", {
+                    minutes: dayjs(appointment.endDateTime).diff(
+                      dayjs(appointment.startDateTime),
+                      "minute"
+                    ),
+                  })}
                 </Text>
               </View>
             </View>
@@ -559,7 +569,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                     />
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Địa điểm</Text>
+                    <Text style={styles.detailLabel}>
+                      {t("appointment.labels.location")}
+                    </Text>
                     <Text style={styles.detailValue}>
                       {appointment.location}
                     </Text>
@@ -579,7 +591,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 size={20}
                 color={GlobalStyles.colors.primary}
               />
-              <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
+              <Text style={styles.sectionTitle}>
+                {t("appointment.details.bookingInfo")}
+              </Text>
             </View>
 
             <View style={styles.detailsCard}>
@@ -589,7 +603,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>
-                    {isSamePerson() ? "Người đặt lịch" : "Đặt cho"}
+                    {isSamePerson()
+                      ? t("appointment.labels.bookedBy")
+                      : t("appointment.labels.bookedFor")}
                   </Text>
                   <Text style={styles.detailValue}>
                     {isSamePerson()
@@ -613,7 +629,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                         />
                       </View>
                       <View style={styles.detailContent}>
-                        <Text style={styles.detailLabel}>Đặt bởi</Text>
+                        <Text style={styles.detailLabel}>
+                          {t("appointment.labels.bookedBy")}
+                        </Text>
                         <Text style={styles.detailValue}>
                           {appointment.bookedBy?.fullName}
                         </Text>
@@ -664,7 +682,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 size={20}
                 color={GlobalStyles.colors.primary}
               />
-              <Text style={styles.sectionTitle}>Lý do hẹn</Text>
+              <Text style={styles.sectionTitle}>
+                {t("appointment.labels.reason")}
+              </Text>
             </View>
 
             <View style={styles.reasonCard}>
@@ -679,14 +699,16 @@ const AppointmentDetails = ({ route, navigation }) => {
         <View style={styles.warningCard}>
           <View style={styles.warningHeader}>
             <Ionicons name="warning" size={24} color="#F59E0B" />
-            <Text style={styles.warningTitle}>Không thể hủy lịch hẹn</Text>
+            <Text style={styles.warningTitle}>
+              {t("appointment.cannotCancel.title")}
+            </Text>
           </View>
           <Text style={styles.warningText}>
             {appointment.status === "PENDING"
-              ? "Lịch hẹn đang chờ xác nhận, không thể hủy."
+              ? t("appointment.cannotCancel.pending")
               : appointment.status === "CONFIRMED"
-              ? "Lịch hẹn gần thời gian bắt đầu, không thể hủy."
-              : "Lịch hẹn đã diễn ra hoặc quá gần thời gian bắt đầu, không thể hủy."}
+              ? t("appointment.cannotCancel.confirmed")
+              : t("appointment.cannotCancel.default")}
           </Text>
         </View>
       )}
@@ -699,7 +721,9 @@ const AppointmentDetails = ({ route, navigation }) => {
             onPress={handleCancelAppointment}
           >
             <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
-            <Text style={styles.cancelButtonText}>Hủy lịch hẹn</Text>
+            <Text style={styles.cancelButtonText}>
+              {t("appointment.actions.cancel")}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -713,7 +737,9 @@ const AppointmentDetails = ({ route, navigation }) => {
               onPress={handleRejectAppointment}
             >
               <Ionicons name="close-circle-outline" size={20} color="#EF4444" />
-              <Text style={styles.rejectButtonText}>Từ chối</Text>
+              <Text style={styles.rejectButtonText}>
+                {t("appointment.actions.reject")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.confirmButton}
@@ -724,7 +750,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 size={20}
                 color="#10B981"
               />
-              <Text style={styles.confirmButtonText}>Xác nhận</Text>
+              <Text style={styles.confirmButtonText}>
+                {t("appointment.actions.confirm")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -733,10 +761,10 @@ const AppointmentDetails = ({ route, navigation }) => {
       {/* Modals */}
       <ConfirmModal
         visible={showCancelModal}
-        title="Hủy lịch hẹn"
-        message={`Bạn có chắc chắn muốn hủy lịch hẹn này không? Hành động này không thể hoàn tác.\n\n*Lưu ý: Nếu lịch hẹn đã được đồng bộ với lịch của bạn, sự kiện cũng sẽ được xóa khỏi lịch.`}
-        confirmText="Hủy lịch hẹn"
-        cancelText="Giữ lại"
+        title={t("appointment.confirmModal.cancel.title")}
+        message={t("appointment.confirmModal.cancel.message")}
+        confirmText={t("appointment.confirmModal.cancel.confirmText")}
+        cancelText={t("appointment.confirmModal.cancel.cancelTextKeep")}
         onConfirm={handleConfirmCancel}
         onCancel={() => setShowCancelModal(false)}
         type="danger"
@@ -744,10 +772,10 @@ const AppointmentDetails = ({ route, navigation }) => {
 
       <ConfirmModal
         visible={showConfirmModal}
-        title="Xác nhận lịch hẹn"
-        message="Bạn có chắc chắn muốn xác nhận lịch hẹn này không?"
-        confirmText="Xác nhận"
-        cancelText="Hủy"
+        title={t("appointment.confirmModal.confirm.title")}
+        message={t("appointment.confirmModal.confirm.message")}
+        confirmText={t("appointment.confirmModal.confirm.confirmText")}
+        cancelText={t("appointment.confirmModal.confirm.cancelText")}
         onConfirm={handleConfirmAppointmentAction}
         onCancel={() => setShowConfirmModal(false)}
         type="success"
@@ -755,10 +783,10 @@ const AppointmentDetails = ({ route, navigation }) => {
 
       <ConfirmModal
         visible={showRejectModal}
-        title="Từ chối lịch hẹn"
-        message="Bạn có chắc chắn muốn từ chối lịch hẹn này không?"
-        confirmText="Từ chối"
-        cancelText="Hủy"
+        title={t("appointment.actions.reject")}
+        message={t("appointment.confirmModal.reject.message")}
+        confirmText={t("appointment.actions.reject")}
+        cancelText={t("common.cancel")}
         onConfirm={handleRejectAppointmentAction}
         onCancel={() => setShowRejectModal(false)}
         type="danger"
@@ -773,7 +801,9 @@ const AppointmentDetails = ({ route, navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.reasonModal}>
             <View style={styles.reasonModalHeader}>
-              <Text style={styles.reasonModalTitle}>Chọn lý do hủy hẹn</Text>
+              <Text style={styles.reasonModalTitle}>
+                {t("appointment.reasonModal.title")}
+              </Text>
               <TouchableOpacity
                 onPress={() => setShowReasonModal(false)}
                 style={styles.closeButton}
@@ -813,10 +843,12 @@ const AppointmentDetails = ({ route, navigation }) => {
 
             {selectedReason === "Khác" && (
               <View style={styles.customReasonContainer}>
-                <Text style={styles.customReasonLabel}>Nhập lý do khác:</Text>
+                <Text style={styles.customReasonLabel}>
+                  {t("appointment.reasonModal.otherLabel")}
+                </Text>
                 <TextInput
                   style={styles.customReasonInput}
-                  placeholder="Nhập lý do hủy hẹn..."
+                  placeholder={t("appointment.reasonModal.placeholder")}
                   value={customReason}
                   onChangeText={setCustomReason}
                   multiline
@@ -830,7 +862,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                 style={styles.reasonCancelButton}
                 onPress={() => setShowReasonModal(false)}
               >
-                <Text style={styles.reasonCancelButtonText}>Hủy</Text>
+                <Text style={styles.reasonCancelButtonText}>
+                  {t("common.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
@@ -845,7 +879,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                   (selectedReason === "Khác" && !customReason.trim())
                 }
               >
-                <Text style={styles.reasonSubmitButtonText}>Xác nhận</Text>
+                <Text style={styles.reasonSubmitButtonText}>
+                  {t("common.confirm")}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

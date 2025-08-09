@@ -9,9 +9,16 @@
     "expo-ngrok": "node expo-ngrok.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "dev-client": "expo start --dev-client",
+    "eas-configure": "eas build:configure",
+    "build-android-dev": "eas build -p android --profile development",
+    "build-ios-dev": "eas build -p ios --profile development"
   },
   "dependencies": {
+    "expo-localization": "^15.0.3",
+    "i18next": "^23.12.1",
+    "react-i18next": "^15.1.4",
     "@expo/metro-runtime": "~5.0.4",
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "^2.1.2",

@@ -4,7 +4,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 
 const EventCard = ({ event, onPress }) => {
-  console.log("event", event);
   // Get source icon and color
   const getSourceInfo = (source) => {
     switch (source) {

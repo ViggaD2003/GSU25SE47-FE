@@ -11,9 +11,12 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import { useRealTime } from "@/contexts/RealTimeContext";
 
 const NotificationSettings = ({ navigation }) => {
+  const { t } = useTranslation();
   const {
     isConnected,
     connect,
@@ -248,8 +251,13 @@ const NotificationSettings = ({ navigation }) => {
   return (
     <Container>
       <HeaderWithoutTab
-        title="Cài đặt thông báo"
+        title={t("profile.notificationSettings")}
         onBackPress={() => navigation.goBack()}
+        rightComponent={
+          <View style={{ marginLeft: "auto" }}>
+            <LanguageSwitcher />
+          </View>
+        }
       />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

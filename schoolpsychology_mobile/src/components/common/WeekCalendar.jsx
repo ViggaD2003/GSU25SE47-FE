@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
+import dayjs from "dayjs";
 
 const WeekCalendar = ({
   selectedDate,
@@ -79,7 +80,7 @@ const WeekCalendar = ({
   // Get event count for a specific date
   const getEventCount = useCallback(
     (date) => {
-      const dateStr = date.toISOString().split("T")[0];
+      const dateStr = dayjs(date).format("YYYY-MM-DD");
       const isPast = isPastDate(date);
 
       if (isPast) return 0;

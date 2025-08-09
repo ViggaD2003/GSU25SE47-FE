@@ -18,11 +18,13 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 
 const SurveyInfo = ({ route, navigation }) => {
   const { surveyId, progressSaved } = route.params || {};
+  const { t } = useTranslation();
   const [survey, setSurvey] = useState(null);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ const SurveyInfo = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Lỗi khi lấy thông tin khảo sát:", error);
-      showToast("Không thể tải thông tin khảo sát", "error");
+      showToast(t("survey.info.loadError"), "error");
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ const SurveyInfo = ({ route, navigation }) => {
 
       // Hiển thị thông báo nếu vừa lưu tiến độ
       if (progressSaved) {
-        showToast("Tiến độ đã được lưu thành công!", "success");
+        showToast(t("survey.info.progressSaved"), "success");
         // Xóa thông tin progressSaved để tránh hiển thị lại
         navigation.setParams({ progressSaved: undefined });
       }
@@ -160,7 +162,7 @@ const SurveyInfo = ({ route, navigation }) => {
             size={32}
             color={GlobalStyles.colors.primary}
           />
-          <Text style={styles.loadingText}>Đang tải thông tin khảo sát...</Text>
+          <Text style={styles.loadingText}>{t("survey.info.loading")}</Text>
         </View>
       </Container>
     );
@@ -171,9 +173,9 @@ const SurveyInfo = ({ route, navigation }) => {
       <Container>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={32} color="#EF4444" />
-          <Text style={styles.errorText}>Không thể tải thông tin khảo sát</Text>
+          <Text style={styles.errorText}>{t("survey.info.loadError")}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchSurvey}>
-            <Text style={styles.retryButtonText}>Thử lại</Text>
+            <Text style={styles.retryButtonText}>{t("survey.info.retry")}</Text>
           </TouchableOpacity>
         </View>
       </Container>
@@ -184,7 +186,7 @@ const SurveyInfo = ({ route, navigation }) => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title={"Thông tin khảo sát"}
+        title={t("survey.info.title")}
         onBackPress={handleBackPress}
       />
 
@@ -231,7 +233,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 </View> */}
               </View>
               <Text style={styles.surveySubtitle}>
-                {survey.description || "Khảo sát tâm lý học sinh"}
+                {survey.description || ""}
               </Text>
             </View>
           </View>
@@ -242,7 +244,9 @@ const SurveyInfo = ({ route, navigation }) => {
           <View style={styles.categoryCard}>
             <View style={styles.categoryHeader}>
               <Ionicons name="folder-outline" size={20} color="#6B7280" />
-              <Text style={styles.categoryTitle}>Danh mục</Text>
+              <Text style={styles.categoryTitle}>
+                {t("survey.info.category")}
+              </Text>
             </View>
             <View style={styles.categoryContent}>
               <Text style={styles.categoryName}>{survey.category.name}</Text>
@@ -255,12 +259,14 @@ const SurveyInfo = ({ route, navigation }) => {
 
         {/* Survey Details */}
         <View style={styles.detailsCard}>
-          <Text style={styles.sectionTitle}>Thông tin chi tiết</Text>
+          <Text style={styles.sectionTitle}>{t("survey.info.details")}</Text>
 
           <View style={styles.detailsGrid}>
             <View style={styles.detailItem}>
               <Ionicons name="help-circle-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailLabel}>Số câu hỏi</Text>
+              <Text style={styles.detailLabel}>
+                {t("survey.info.questions")}
+              </Text>
               <Text style={styles.detailValue}>
                 {survey.questions?.length || 0} câu
               </Text>
@@ -268,13 +274,15 @@ const SurveyInfo = ({ route, navigation }) => {
 
             <View style={styles.detailItem}>
               <Ionicons name="time-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailLabel}>Thời gian ước tính</Text>
+              <Text style={styles.detailLabel}>
+                {t("survey.info.estimatedTime")}
+              </Text>
               <Text style={styles.detailValue}>15-20 phút</Text>
             </View>
 
             <View style={styles.detailItem}>
               <Ionicons name="people-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailLabel}>Đối tượng</Text>
+              <Text style={styles.detailLabel}>{t("survey.info.target")}</Text>
               <Text style={styles.detailValue}>
                 {getTargetScopeText(survey.targetScope)}
               </Text>
@@ -282,7 +290,9 @@ const SurveyInfo = ({ route, navigation }) => {
 
             <View style={styles.detailItem}>
               <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-              <Text style={styles.detailLabel}>Ngày tạo</Text>
+              <Text style={styles.detailLabel}>
+                {t("survey.info.createdAt")}
+              </Text>
               <Text style={styles.detailValue}>
                 {formatDate(survey.createdAt)}
               </Text>
@@ -292,11 +302,11 @@ const SurveyInfo = ({ route, navigation }) => {
 
         {/* Date Range */}
         <View style={styles.dateRangeCard}>
-          <Text style={styles.sectionTitle}>Thời gian thực hiện</Text>
+          <Text style={styles.sectionTitle}>{t("survey.info.dateRange")}</Text>
           <View style={styles.dateRangeContent}>
             <View style={styles.dateItem}>
               <Ionicons name="play-circle-outline" size={20} color="#10B981" />
-              <Text style={styles.dateLabel}>Bắt đầu</Text>
+              <Text style={styles.dateLabel}>{t("survey.info.startDate")}</Text>
               <Text style={styles.dateValue}>
                 {formatDate(survey.startDate)}
               </Text>
@@ -304,7 +314,7 @@ const SurveyInfo = ({ route, navigation }) => {
             <View style={styles.dateDivider} />
             <View style={styles.dateItem}>
               <Ionicons name="stop-circle-outline" size={20} color="#EF4444" />
-              <Text style={styles.dateLabel}>Kết thúc</Text>
+              <Text style={styles.dateLabel}>{t("survey.info.endDate")}</Text>
               <Text style={styles.dateValue}>{formatDate(survey.endDate)}</Text>
             </View>
           </View>
@@ -313,7 +323,7 @@ const SurveyInfo = ({ route, navigation }) => {
         {/* Target Grades */}
         {survey.targetGrade && survey.targetGrade.length > 0 && (
           <View style={styles.targetGradesCard}>
-            <Text style={styles.sectionTitle}>Khối lớp áp dụng</Text>
+            <Text style={styles.sectionTitle}>{t("survey.info.grades")}</Text>
             <View style={styles.gradesContainer}>
               {survey.targetGrade.map((grade, index) => (
                 <View key={index} style={styles.gradeBadge}>
@@ -331,10 +341,11 @@ const SurveyInfo = ({ route, navigation }) => {
           <View style={styles.progressInfo}>
             <Ionicons name="information-circle" size={24} color="#3B82F6" />
             <View style={styles.progressContent}>
-              <Text style={styles.progressTitle}>Tiến độ đã lưu</Text>
+              <Text style={styles.progressTitle}>
+                {t("survey.info.savedProgress.title")}
+              </Text>
               <Text style={styles.progressText}>
-                Bạn có tiến độ đã lưu trước đó. Nhấn "Tiếp tục" để làm tiếp bài
-                khảo sát của bạn.
+                {t("survey.info.savedProgress.text")}
               </Text>
             </View>
           </View>
@@ -342,14 +353,16 @@ const SurveyInfo = ({ route, navigation }) => {
 
         {/* Instructions */}
         <View style={styles.instructionsCard}>
-          <Text style={styles.sectionTitle}>Hướng dẫn thực hiện</Text>
+          <Text style={styles.sectionTitle}>
+            {t("survey.info.instructions.title")}
+          </Text>
           <View style={styles.instructionsList}>
             <View style={styles.instructionItem}>
               <View style={styles.instructionNumber}>
                 <Text style={styles.instructionNumberText}>1</Text>
               </View>
               <Text style={styles.instructionText}>
-                Đọc kỹ từng câu hỏi trước khi trả lời
+                {t("survey.info.instructions.step1")}
               </Text>
             </View>
             <View style={styles.instructionItem}>
@@ -357,7 +370,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 <Text style={styles.instructionNumberText}>2</Text>
               </View>
               <Text style={styles.instructionText}>
-                Chọn câu trả lời phù hợp nhất với tình huống của bạn
+                {t("survey.info.instructions.step2")}
               </Text>
             </View>
             <View style={styles.instructionItem}>
@@ -365,7 +378,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 <Text style={styles.instructionNumberText}>3</Text>
               </View>
               <Text style={styles.instructionText}>
-                Bạn có thể lưu tiến độ và tiếp tục sau
+                {t("survey.info.instructions.step3")}
               </Text>
             </View>
             <View style={styles.instructionItem}>
@@ -373,7 +386,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 <Text style={styles.instructionNumberText}>4</Text>
               </View>
               <Text style={styles.instructionText}>
-                Trả lời thành thật để có kết quả chính xác nhất
+                {t("survey.info.instructions.step4")}
               </Text>
             </View>
           </View>
@@ -392,7 +405,9 @@ const SurveyInfo = ({ route, navigation }) => {
               color="#fff"
             />
             <Text style={styles.startButtonText}>
-              {hasSavedProgress ? "Tiếp tục khảo sát" : "Bắt đầu khảo sát"}
+              {hasSavedProgress
+                ? t("survey.info.continue")
+                : t("survey.info.start")}
             </Text>
           </TouchableOpacity>
         </View>

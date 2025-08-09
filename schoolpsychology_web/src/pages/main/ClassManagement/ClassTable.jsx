@@ -1,10 +1,11 @@
 import React from 'react'
-import { Table, Button, Tag, Space, Typography } from 'antd'
+import { Table, Button, Tag, Space, Typography, Tooltip } from 'antd'
 import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
   BookOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
@@ -19,6 +20,7 @@ const ClassTable = ({
   onView,
   // onEdit,
   // onDelete,
+  onEnroll,
 }) => {
   const { t } = useTranslation()
 
@@ -102,6 +104,17 @@ const ClassTable = ({
             size="small"
             className="text-blue-500 hover:text-blue-700"
           />
+          {onEnroll && (
+            <Tooltip title={t('classManagement.enroll')}>
+              <Button
+                icon={<UserAddOutlined />}
+                onClick={() => onEnroll(record)}
+                type="text"
+                size="small"
+                className="text-green-600 hover:text-green-700"
+              />
+            </Tooltip>
+          )}
           {/* <Button
             icon={<EditOutlined />}
             onClick={() => onEdit(record)}
@@ -122,6 +135,8 @@ const ClassTable = ({
     },
   ]
 
+  const isSmallScreen = typeof window !== 'undefined' && window.innerWidth < 640
+
   return (
     <Table
       rowKey="codeClass"
@@ -130,7 +145,7 @@ const ClassTable = ({
       loading={loading}
       pagination={pagination}
       onChange={onChange}
-      scroll={{ x: 1200, y: 400 }}
+      scroll={{ x: 1200, ...(isSmallScreen ? {} : { y: 400 }) }}
       size="middle"
       className="class-table"
       rowClassName="hover:bg-gray-50"

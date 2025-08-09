@@ -11,8 +11,10 @@ import { getBlogById } from "../../services/api/BlogService";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
+import { useTranslation } from "react-i18next";
 
 export default function BlogDetails({ navigation }) {
+  const { t } = useTranslation();
   const route = useRoute();
   const { blogId } = route.params;
   const [blog, setBlog] = useState(null);
@@ -32,7 +34,7 @@ export default function BlogDetails({ navigation }) {
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Chi tiết bài viết</Text>
+        <Text style={styles.headerTitle}>{t("blog.detailsTitle")}</Text>
         <View style={styles.headerSpacer} />
       </View>
       <ScrollView

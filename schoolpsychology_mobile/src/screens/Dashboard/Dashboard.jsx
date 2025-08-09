@@ -1,15 +1,17 @@
 import { Container } from "@/components";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
+import { useTranslation } from "react-i18next";
 import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 
 const DashboardScreen = () => {
+  const { t } = useTranslation();
   return (
     <Container>
       {/* Header */}
       <HeaderWithTab
-        title="Dashboard"
-        subtitle="Access key metrics and recent updates in one view"
+        title={t("tabs.dashboard")}
+        subtitle={t("dashboard.mobileSubtitle")}
       />
 
       {/* Content */}

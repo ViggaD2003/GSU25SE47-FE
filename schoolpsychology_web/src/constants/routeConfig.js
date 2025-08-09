@@ -5,6 +5,7 @@ import {
   TeamOutlined,
   HeartOutlined,
   CalendarOutlined,
+  SettingOutlined,
 } from '@ant-design/icons'
 
 export const ROUTE_CONFIG = [
@@ -166,20 +167,15 @@ export const ROUTE_CONFIG = [
     labelKey: 'navigation.caseManagement',
     allowedRoles: ['manager'],
     element: 'CaseManagement',
-    // children: [
-    //   {
-    //     key: '/case-management',
-    //     labelKey: 'navigation.caseManagement',
-    //     allowedRoles: ['manager'],
-    //     element: 'CaseManagement',
-    //   },
-    //   {
-    //     key: '/case-assign',
-    //     labelKey: 'navigation.caseAssign',
-    //     allowedRoles: ['manager'],
-    //     element: 'CaseAssign',
-    //   },
-    // ],
+  },
+
+  // System Config (System Config) - Manager
+  {
+    key: '/system-config',
+    icon: SettingOutlined,
+    labelKey: 'navigation.systemConfig',
+    allowedRoles: ['manager'],
+    element: 'SystemConfigManagement',
   },
 
   // {

@@ -37,6 +37,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useNotifications } from "../utils/hooks";
+import { useTranslation } from "react-i18next";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -44,6 +45,7 @@ const Tab = createBottomTabNavigator();
 export default function MainTabs() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   // Hook mới không cần fetchNotifications vì đã tự động subscribe
   // const { fetchNotifications } = useNotifications();
 
@@ -87,14 +89,14 @@ export default function MainTabs() {
           name="Home"
           component={HomeScreen}
           options={{
-            title: "Home",
+            title: t("tabs.home"),
           }}
         />
         <Tab.Screen
           name="Dashboard"
           component={DashboardScreen}
           options={{
-            title: "Dashboard",
+            title: t("tabs.dashboard"),
           }}
         />
         <Tab.Screen
@@ -102,19 +104,19 @@ export default function MainTabs() {
           component={CaseDetails}
           initialParams={{
             from: "tab",
-            headerTitle: "Follow-up",
-            subTitle: "Follow up your case and get the best result",
-            emptyTitle: "You don't have any case to follow up",
+            headerTitle: t("case.followUp"),
+            subTitle: t("case.followUpSubtitle"),
+            emptyTitle: t("case.empty"),
           }}
           options={{
-            title: "Case",
+            title: t("tabs.case"),
           }}
         />
         <Tab.Screen
           name="ProfileMain"
           component={ProfileScreen}
           options={{
-            title: "Profile",
+            title: t("tabs.profile"),
           }}
         />
       </Tab.Navigator>

@@ -31,6 +31,7 @@ import {
 import { ActivityIndicator } from "react-native-paper";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useServerErrorHandler } from "../../utils/hooks";
+import { useTranslation } from "react-i18next";
 
 // Constants
 const VISIBLE_DAYS = 2;
@@ -145,7 +146,8 @@ const useSlotsManagement = (
   selectedCounselor,
   selectedBookedFor,
   showToastMessage,
-  setSelectedSlot
+  setSelectedSlot,
+  t
 ) => {
   const [groupedSlots, setGroupedSlots] = useState({});
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -189,7 +191,7 @@ const useSlotsManagement = (
       setGroupedSlots(processedGrouped);
     } catch (error) {
       console.error("Lỗi khi tải danh sách slot:", error);
-      showToastMessage("Không thể tải danh sách lịch hẹn", "error");
+      showToastMessage(t("common.errorLoadData"), "error");
       setGroupedSlots({});
       setVisibleDays(VISIBLE_DAYS);
     } finally {
@@ -201,6 +203,7 @@ const useSlotsManagement = (
     selectedBookedFor?.teacherId,
     showToastMessage,
     setSelectedSlot,
+    t,
   ]);
 
   const loadMoreDays = useCallback(async () => {
@@ -231,7 +234,7 @@ const useSlotsManagement = (
 };
 
 // Custom hook for counselors management
-const useCounselorsManagement = (hostType, showToastMessage) => {
+const useCounselorsManagement = (hostType, showToastMessage, t) => {
   const [counselors, setCounselors] = useState([]);
   const [loadingCounselors, setLoadingCounselors] = useState(false);
 
@@ -257,12 +260,12 @@ const useCounselorsManagement = (hostType, showToastMessage) => {
       return mappedCounselors[0]; // Return first counselor for auto-selection
     } catch (error) {
       console.error("Lỗi khi tải danh sách tư vấn viên:", error);
-      showToastMessage("Không thể tải danh sách tư vấn viên", "error");
+      showToastMessage(t("common.errorLoadData"), "error");
       return null;
     } finally {
       setLoadingCounselors(false);
     }
-  }, [hostType, showToastMessage]);
+  }, [hostType, showToastMessage, t]);
 
   return {
     counselors,
@@ -377,6 +380,7 @@ ${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
 // Main component
 const BookingScreen = ({ navigation }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   // Custom hooks
   const toast = useToast();
@@ -386,11 +390,13 @@ const BookingScreen = ({ navigation }) => {
     bookingState.selectedCounselor,
     bookingState.selectedBookedFor,
     toast.showToastMessage,
-    bookingState.setSelectedSlot
+    bookingState.setSelectedSlot,
+    t
   );
   const counselorsManagement = useCounselorsManagement(
     bookingState.hostType,
-    toast.showToastMessage
+    toast.showToastMessage,
+    t
   );
   const calendarManagement = useCalendarManagement();
   const { handleServerError, showToast, toastMessage, toastType, hideToast } =
@@ -404,13 +410,17 @@ const BookingScreen = ({ navigation }) => {
     () => [
       {
         id: "teacher",
-        label: "Giáo viên chủ nhiệm",
+        label: t("appointment.host.teacher"),
         value: "TEACHER",
         disabled: !bookingState.selectedBookedFor?.teacherId,
       },
-      { id: "counselor", label: "Tư vấn viên", value: "COUNSELOR" },
+      {
+        id: "counselor",
+        label: t("appointment.host.counselor"),
+        value: "COUNSELOR",
+      },
     ],
-    [bookingState.selectedBookedFor?.teacherId]
+    [bookingState.selectedBookedFor?.teacherId, t]
   );
 
   const canBook = bookingState.selectedSlot && !bookingLoading;
@@ -419,7 +429,7 @@ const BookingScreen = ({ navigation }) => {
   const handleHostTypeSelect = useCallback(
     async (type) => {
       if (type.disabled) {
-        toast.showToastMessage("Tùy chọn này không khả dụng", "warning");
+        toast.showToastMessage(t("common.notAvailable"), "warning");
         return;
       }
       bookingState.setHostType(type);
@@ -466,7 +476,10 @@ const BookingScreen = ({ navigation }) => {
 
   const handleBooking = useCallback(async () => {
     if (!bookingState.selectedSlot) {
-      toast.showToastMessage("Vui lòng chọn một lịch hẹn", "warning");
+      toast.showToastMessage(
+        t("appointment.booking.selectSlotFirst"),
+        "warning"
+      );
       return;
     }
 
@@ -480,10 +493,10 @@ const BookingScreen = ({ navigation }) => {
       calendarManagement.calendarSettings
     );
 
-    Alert.alert("Xác nhận đặt lịch", confirmationMessage, [
-      { text: "Hủy", style: "destructive" },
+    Alert.alert(t("appointment.booking.title"), confirmationMessage, [
+      { text: t("common.cancel"), style: "destructive" },
       {
-        text: "Đặt lịch",
+        text: t("appointment.booking.submit"),
         onPress: async () => {
           setBookingLoading(true);
           try {
@@ -673,15 +686,16 @@ const BookingScreen = ({ navigation }) => {
       <View style={styles.warningCard}>
         <View style={styles.warningHeader}>
           <Ionicons name="warning" size={24} color="#F59E0B" />
-          <Text style={styles.warningTitle}>Thông báo quan trọng</Text>
+          <Text style={styles.warningTitle}>
+            {t("appointment.booking.warning.title")}
+          </Text>
         </View>
         <Text style={styles.warningText}>
-          Học sinh này chưa được phân công giáo viên chủ nhiệm. Vui lòng chọn tư
-          vấn viên để đặt lịch hẹn.
+          {t("appointment.booking.warning.noTeacher")}
         </Text>
       </View>
     );
-  }, [bookingState.selectedBookedFor?.teacherId]);
+  }, [bookingState.selectedBookedFor?.teacherId, t]);
 
   const renderChildSelection = useCallback(() => {
     if (
@@ -777,8 +791,8 @@ const BookingScreen = ({ navigation }) => {
     return (
       <View style={styles.section}>
         <Dropdown
-          label="Chọn tư vấn viên"
-          placeholder="Chọn tư vấn viên"
+          label={t("appointment.booking.selectCounselor")}
+          placeholder={t("appointment.booking.selectCounselor")}
           data={counselorsManagement.counselors}
           value={bookingState.selectedCounselor?.id}
           key={bookingState.selectedCounselor?.id}
@@ -871,9 +885,9 @@ const BookingScreen = ({ navigation }) => {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
-            Lịch hẹn khả dụng
+            {t("appointment.booking.slots.title")}
             {loadingSlots && (
-              <Text style={styles.loadingText}> (Đang tải...)</Text>
+              <Text style={styles.loadingText}> ({t("common.loading")})</Text>
             )}
           </Text>
           {hasSlots && (
@@ -886,13 +900,15 @@ const BookingScreen = ({ navigation }) => {
         </View>
 
         {loadingSlots ? (
-          <Loading text="Đang tải lịch hẹn..." />
+          <Loading text={t("appointment.booking.loadingSlots")} />
         ) : !hasAvailableSlots(groupedSlots) ? (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyText}>Không có lịch hẹn khả dụng</Text>
+            <Text style={styles.emptyText}>
+              {t("appointment.booking.slots.empty.title")}
+            </Text>
             <Text style={styles.emptySubtext}>
-              Vui lòng thử lại sau hoặc liên hệ để được hỗ trợ
+              {t("appointment.booking.slots.empty.subtitle")}
             </Text>
           </View>
         ) : (
@@ -914,7 +930,7 @@ const BookingScreen = ({ navigation }) => {
                 disabled={loadingMoreDays}
               >
                 {loadingMoreDays ? (
-                  <Loading text="Đang tải thêm ngày..." />
+                  <Loading text={t("appointment.booking.loadingMoreDays")} />
                 ) : (
                   <>
                     <Ionicons
@@ -923,8 +939,9 @@ const BookingScreen = ({ navigation }) => {
                       color="#3B82F6"
                     />
                     <Text style={styles.loadMoreDaysText}>
-                      Tải thêm {Math.min(2, availableDays.length - visibleDays)}{" "}
-                      ngày
+                      {t("appointment.booking.loadMoreDays", {
+                        count: Math.min(2, availableDays.length - visibleDays),
+                      })}
                     </Text>
                   </>
                 )}
@@ -933,11 +950,15 @@ const BookingScreen = ({ navigation }) => {
 
             <View style={styles.daysInfoContainer}>
               <Text style={styles.daysInfoText}>
-                Hiển thị {Math.min(visibleDays, availableDays.length)} trong
-                tổng số {availableDays.length} ngày khả dụng
+                {t("appointment.booking.daysInfo", {
+                  shown: Math.min(visibleDays, availableDays.length),
+                  total: availableDays.length,
+                })}
               </Text>
               {visibleDays < availableDays.length && (
-                <Text style={styles.lazyLoadHint}>Nhấn nút để xem thêm</Text>
+                <Text style={styles.lazyLoadHint}>
+                  {t("appointment.booking.lazyLoadHint")}
+                </Text>
               )}
             </View>
           </View>
@@ -973,21 +994,29 @@ const BookingScreen = ({ navigation }) => {
 
     return (
       <View style={styles.summarySection}>
-        <Text style={styles.summaryTitle}>Thông tin lịch hẹn</Text>
+        <Text style={styles.summaryTitle}>
+          {t("appointment.details.appointmentInfo")}
+        </Text>
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
             <Ionicons name="person-outline" size={20} color="#6B7280" />
-            <Text style={styles.summaryLabel}>Người tư vấn:</Text>
+            <Text style={styles.summaryLabel}>
+              {t("appointment.host.counselor")}:
+            </Text>
             <Text style={styles.summaryValue}>{counselorName}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-            <Text style={styles.summaryLabel}>Ngày:</Text>
+            <Text style={styles.summaryLabel}>
+              {t("appointment.labels.date")}:
+            </Text>
             <Text style={styles.summaryValue}>{date}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Ionicons name="time-outline" size={20} color="#6B7280" />
-            <Text style={styles.summaryLabel}>Thời gian:</Text>
+            <Text style={styles.summaryLabel}>
+              {t("appointment.labels.time")}:
+            </Text>
             <Text style={styles.summaryValue}>
               {startTime} - {endTime}
             </Text>
@@ -998,7 +1027,9 @@ const BookingScreen = ({ navigation }) => {
               size={20}
               color="#6B7280"
             />
-            <Text style={styles.summaryLabel}>Hình thức:</Text>
+            <Text style={styles.summaryLabel}>
+              {t("appointment.booking.form.mode")}:
+            </Text>
             <Text style={styles.summaryValue}>
               {isOnline ? "Trực tuyến" : "Trực tiếp"}
             </Text>
@@ -1010,7 +1041,9 @@ const BookingScreen = ({ navigation }) => {
                 size={20}
                 color="#6B7280"
               />
-              <Text style={styles.summaryLabel}>Lý do:</Text>
+              <Text style={styles.summaryLabel}>
+                {t("appointment.labels.reason")}:
+              </Text>
               <Text style={styles.summaryValue}>{reason}</Text>
             </View>
           )}
@@ -1036,21 +1069,24 @@ const BookingScreen = ({ navigation }) => {
       <View style={[styles.section, { marginBottom: 5 }]}>
         <View style={styles.sectionHeader}>
           <Ionicons name="calendar-outline" size={20} color="#3B82F6" />
-          <Text style={styles.sectionTitle}>Đồng bộ lịch</Text>
+          <Text style={styles.sectionTitle}>
+            {t("appointment.calendarSync.title")}
+          </Text>
         </View>
         <View style={styles.calendarInfoContainer}>
           <View style={styles.calendarInfoRow}>
             <Ionicons name="checkmark-circle" size={16} color="#059669" />
             <Text style={styles.calendarInfoText}>
-              Lịch hẹn sẽ được thêm vào calendar của bạn
+              {t("appointment.calendarSync.enabled")}
             </Text>
           </View>
           {calendarSettings.reminderEnabled && (
             <View style={styles.calendarInfoRow}>
               <Ionicons name="alarm" size={16} color="#F59E0B" />
               <Text style={styles.calendarInfoText}>
-                Nhắc nhở {formatReminderTime(calendarSettings.reminderTime)}{" "}
-                trước
+                {t("appointment.calendarSync.reminderBefore", {
+                  time: formatReminderTime(calendarSettings.reminderTime),
+                })}
               </Text>
             </View>
           )}
@@ -1061,7 +1097,10 @@ const BookingScreen = ({ navigation }) => {
 
   return (
     <Container>
-      <HeaderWithoutTab title="Đặt lịch tư vấn" onBackPress={handleBackPress} />
+      <HeaderWithoutTab
+        title={t("appointment.booking.title")}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         style={styles.content}

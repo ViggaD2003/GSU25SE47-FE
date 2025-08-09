@@ -26,7 +26,7 @@ import {
   getClassById,
   getClassesByCode,
 } from '../../../store/actions/classActions'
-import { clearError } from '../../../store/slices/classSlice'
+import { clearError, updatePagination } from '../../../store/slices/classSlice'
 import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
@@ -234,11 +234,13 @@ const ClientManagement = () => {
   }, [dispatch, user?.classId, user?.role, selectedClassCode])
 
   const handleTableChange = useCallback(
-    _pag => {
-      // For now, just reload data since we're not implementing server-side pagination
-      loadData()
+    pag => {
+      // Controlled pagination: update current page and page size in the store
+      dispatch(
+        updatePagination({ current: pag.current, pageSize: pag.pageSize })
+      )
     },
-    [loadData]
+    [dispatch]
   )
 
   const handleSearch = value => {
@@ -247,12 +249,6 @@ const ClientManagement = () => {
 
   const handleView = record => {
     setSelectedUser(record)
-    setIsEdit(false)
-    setIsModalVisible(true)
-  }
-
-  const handleAdd = () => {
-    setSelectedUser(null)
     setIsEdit(false)
     setIsModalVisible(true)
   }
@@ -341,15 +337,6 @@ const ClientManagement = () => {
             >
               {t('clientManagement.refresh')}
             </Button>
-            {user?.role === 'manager' && (
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-              >
-                {t('clientManagement.addUser')}
-              </Button>
-            )}
           </div>
         </div>
 
@@ -427,7 +414,7 @@ const ClientManagement = () => {
             user={user}
             data={filteredStudents}
             loading={loading}
-            pagination={pagination}
+            pagination={{ ...pagination, total: filteredStudents.length }}
             onChange={handleTableChange}
             onView={handleView}
             onCreateCase={handleCreateCase}

@@ -84,7 +84,7 @@ const NotFound = createLazyComponent(
 )
 const Login = createLazyComponent(() => import('../pages/auth/Login'), 'Login')
 const Dashboard = createLazyComponent(
-  () => import('../pages/main/Dashboard'),
+  () => import('../pages/main/DashboardHome'),
   'Dashboard'
 )
 const ForgotPassword = createLazyComponent(
@@ -127,6 +127,10 @@ const SlotManagement = createLazyComponent(
   () => import('@/pages/main/SlotManagement/SlotManagement'),
   'SlotManagement'
 )
+const SystemConfigManagement = createLazyComponent(
+  () => import('@/pages/main/SystemConfigManagement'),
+  'SystemConfigManagement'
+)
 const AppointmentDetails = createLazyComponent(
   () => import('@/pages/main/AppointmentManagement/AppointmentDetails'),
   'AppointmentDetails'
@@ -155,6 +159,7 @@ const AppRouter = () => {
     ProgramManagement,
     ProgramDetails,
     SlotManagement,
+    SystemConfigManagement,
     AppointmentDetails,
     ClassManagement,
     CategoryManagement,

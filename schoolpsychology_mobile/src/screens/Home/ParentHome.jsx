@@ -22,6 +22,7 @@ import {
 } from "../../components";
 import AssessmentScoreChart from "../../components/charts/AssessmentScoreChart";
 import { ParentDashboardService } from "../../services";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -33,6 +34,7 @@ export default function ParentHome({
   setToastMessage,
   setToastType,
 }) {
+  const { t } = useTranslation();
   const [selectedChild, setSelectedChild] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,7 +80,7 @@ export default function ParentHome({
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-        <Text style={styles.loadingText}>Đang tải thông tin người dùng...</Text>
+        <Text style={styles.loadingText}>{t('parentHome.loadingUser')}</Text>
       </View>
     );
   }
@@ -120,9 +122,9 @@ export default function ParentHome({
       });
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-      setError("Có lỗi xảy ra khi tải dữ liệu");
+      setError(t('common.errorLoadData'));
       setShowToast(true);
-      setToastMessage("Có lỗi xảy ra khi tải dữ liệu");
+      setToastMessage(t('common.errorLoadData'));
       setToastType("error");
     } finally {
       setLoading(false);
@@ -265,7 +267,7 @@ export default function ParentHome({
 
     return (
       <View style={styles.childSelectionContainer}>
-        <Text style={styles.childSelectionTitle}>Chọn con</Text>
+        <Text style={styles.childSelectionTitle}>{t('parentHome.childSelection.title')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -320,12 +322,12 @@ export default function ParentHome({
             </Text>
             <Text style={styles.selectedChildStatus}>
               {selectedChild.isEnable ? (
-                <Text style={styles.selectedChildStatusActive}>
-                  Đang nhận bài khảo sát
-                </Text>
+                 <Text style={styles.selectedChildStatusActive}>
+                   {t('parentHome.child.status.active')}
+                 </Text>
               ) : (
                 <Text style={styles.selectedChildStatusInactive}>
-                  Đã ngưng nhận bài khảo sát
+                  {t('parentHome.child.status.inactive')}
                 </Text>
               )}
             </Text>
@@ -374,10 +376,10 @@ export default function ParentHome({
                 <Ionicons name="calendar" size={22} color="#FFFFFF" />
               </View>
               <View style={styles.bookingTextContainer}>
-                <Text style={styles.bookingTitle}>Đặt lịch tư vấn</Text>
+                <Text style={styles.bookingTitle}>{t('parentHome.booking.title')}</Text>
                 <View style={{ gap: 4 }}>
                   <Text style={styles.bookingSubtitle}>
-                    Hẹn gặp chuyên gia tâm lý cho
+                    {t('parentHome.booking.subtitle')}
                   </Text>
                   <Text style={styles.bookingChildName}>
                     {selectedChild.fullName}
@@ -400,14 +402,14 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title="Thống kê tổng quan"
-          subtitle="Dữ liệu 30 ngày gần nhất"
+          title={t('parentHome.stats.title')}
+          subtitle={t('parentHome.stats.subtitle')}
           showViewAll={false}
         />
 
         <View style={styles.statisticsGrid}>
           <StatisticsCard
-            title="Bài khảo sát"
+            title={t('parentHome.stats.completedSurveys.title')}
             value={statistics.completedSurveys || 0}
             change={statistics.completedSurveys > 0 ? "+12%" : "0%"}
             changeType={
@@ -415,25 +417,25 @@ export default function ParentHome({
             }
             icon="document-text"
             color="#3B82F6"
-            subtitle="Đã hoàn thành"
+            subtitle={t('parentHome.stats.completedSurveys.subtitle')}
             trend={statistics.completedSurveys > 0 ? "up" : "neutral"}
             percentage={statistics.completedSurveys > 0 ? 12 : 0}
             size="small"
           />
           <StatisticsCard
-            title="Điểm trung bình"
+            title={t('parentHome.stats.averageScore.title')}
             value={statistics.averageScore || 0}
             change={statistics.averageScore > 0 ? "+2.1" : "0"}
             changeType={statistics.averageScore > 0 ? "positive" : "neutral"}
             icon="trending-up"
             color="#10B981"
-            subtitle="Trên 10"
+            subtitle={t('parentHome.stats.averageScore.subtitle')}
             trend={statistics.averageScore > 0 ? "up" : "neutral"}
             percentage={statistics.averageScore > 0 ? 21 : 0}
             size="small"
           />
           <StatisticsCard
-            title="Lịch hẹn"
+            title={t('parentHome.stats.appointments.title')}
             value={statistics.activeAppointments || 0}
             change={statistics.activeAppointments > 0 ? "+3" : "0"}
             changeType={
@@ -441,19 +443,19 @@ export default function ParentHome({
             }
             icon="calendar"
             color="#F59E0B"
-            subtitle="Đã lên lịch"
+            subtitle={t('parentHome.stats.appointments.subtitle')}
             trend={statistics.activeAppointments > 0 ? "up" : "neutral"}
             percentage={statistics.activeAppointments > 0 ? 15 : 0}
             size="small"
           />
           <StatisticsCard
-            title="Chương trình hỗ trợ"
+            title={t('parentHome.stats.programs.title')}
             value={statistics.activePrograms || 0}
             change={statistics.activePrograms > 0 ? "+1" : "0"}
             changeType={statistics.activePrograms > 0 ? "positive" : "neutral"}
             icon="heart"
             color="#EF4444"
-            subtitle="Đang tham gia"
+            subtitle={t('parentHome.stats.programs.subtitle')}
             trend={statistics.activePrograms > 0 ? "up" : "neutral"}
             percentage={statistics.activePrograms > 0 ? 8 : 0}
             size="small"
@@ -498,8 +500,8 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title="Đánh giá chi tiết"
-          subtitle="Kết quả khảo sát gần nhất"
+          title={t('parentHome.assessment.title')}
+          subtitle={t('parentHome.assessment.subtitle')}
           showViewAll={false}
         />
         <AssessmentScoreChart
@@ -516,8 +518,8 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title="Bài khảo sát gần đây"
-          subtitle={`${surveyRecords.length} bài khảo sát`}
+          title={t('parentHome.surveys.title')}
+          subtitle={t('parentHome.surveys.subtitle', { count: surveyRecords.length })}
           onViewAll={handleViewAllSurveys}
         />
 
@@ -541,9 +543,9 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>Chưa có bài khảo sát</Text>
+            <Text style={styles.emptyTitle}>{t('parentHome.surveys.emptyTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              Con của bạn chưa hoàn thành bài khảo sát nào
+              {t('parentHome.surveys.emptySubtitle')}
             </Text>
           </View>
         )}
@@ -557,8 +559,8 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title="Lịch hẹn gần đây"
-          subtitle={`${appointmentRecords.length} lịch hẹn`}
+          title={t('parentHome.appointments.title')}
+          subtitle={t('parentHome.appointments.subtitle', { count: appointmentRecords.length })}
           onViewAll={handleViewAllAppointments}
         />
 
@@ -581,9 +583,9 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>Chưa có lịch hẹn</Text>
+            <Text style={styles.emptyTitle}>{t('parentHome.appointments.emptyTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              Chưa có lịch hẹn nào được lên lịch
+              {t('parentHome.appointments.emptySubtitle')}
             </Text>
           </View>
         )}
@@ -597,8 +599,8 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title="Chương trình hỗ trợ"
-          subtitle={`${supportProgramRecords.length} chương trình`}
+          title={t('parentHome.programs.title')}
+          subtitle={t('parentHome.programs.subtitle', { count: supportProgramRecords.length })}
           onViewAll={handleViewAllSupportPrograms}
         />
 
@@ -621,9 +623,9 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>Chưa có chương trình hỗ trợ</Text>
+            <Text style={styles.emptyTitle}>{t('parentHome.programs.emptyTitle')}</Text>
             <Text style={styles.emptySubtitle}>
-              Chưa có chương trình hỗ trợ nào được đề xuất
+              {t('parentHome.programs.emptySubtitle')}
             </Text>
           </View>
         )}
@@ -650,18 +652,18 @@ export default function ParentHome({
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+          <Text style={styles.loadingText}>{t('common.loading')}</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-          <Text style={styles.errorTitle}>Có lỗi xảy ra</Text>
+          <Text style={styles.errorTitle}>{t('common.errorTitle')}</Text>
           <Text style={styles.errorSubtitle}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={loadDashboardData}
           >
-            <Text style={styles.retryButtonText}>Thử lại</Text>
+            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
           </TouchableOpacity>
         </View>
       ) : selectedChild ? (
@@ -692,9 +694,9 @@ export default function ParentHome({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>Chưa chọn con</Text>
+          <Text style={styles.emptyTitle}>{t('parentHome.noChild.title')}</Text>
           <Text style={styles.emptySubtitle}>
-            Vui lòng chọn một con để xem thông tin chi tiết
+            {t('parentHome.noChild.subtitle')}
           </Text>
         </View>
       )}

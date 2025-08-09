@@ -16,8 +16,10 @@ import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useRealTime } from "@/contexts/RealTimeContext";
 import WebSocketDebug from "@/components/common/WebSocketDebug";
+import { useTranslation } from 'react-i18next';
 
 const NotificationScreen = ({ navigation }) => {
+  const { t } = useTranslation();
   const {
     notifications,
     isLoading,
@@ -36,7 +38,7 @@ const NotificationScreen = ({ navigation }) => {
       await refreshNotifications();
     } catch (error) {
       console.error("❌ NotificationScreen: Refresh failed:", error);
-      Alert.alert("Error", "Failed to refresh notifications");
+      Alert.alert(t('common.errorTitle'), t('notifications.refreshFailed'));
     }
   }, [refreshNotifications]);
 
@@ -47,7 +49,7 @@ const NotificationScreen = ({ navigation }) => {
       await refreshNotifications();
     } catch (error) {
       console.error("❌ NotificationScreen: Manual refresh failed:", error);
-      Alert.alert("Error", "Failed to refresh notifications");
+      Alert.alert(t('common.errorTitle'), t('notifications.refreshFailed'));
     }
   }, [refreshNotifications]);
 
@@ -61,7 +63,7 @@ const NotificationScreen = ({ navigation }) => {
           "❌ NotificationScreen: Error marking notification as read:",
           error
         );
-        Alert.alert("Error", "Failed to mark notification as read");
+        Alert.alert(t('common.errorTitle'), t('notifications.markReadFailed'));
       }
     },
     [markAsRead]
@@ -107,19 +109,19 @@ const NotificationScreen = ({ navigation }) => {
             break;
           case "message":
             console.log("💬 Message notification:", notification);
-            Alert.alert("Message", notification.content || notification.body);
+            Alert.alert(t('notifications.messageTitle'), notification.content || notification.body);
             break;
           case "general":
             console.log("📢 General notification:", notification);
             Alert.alert(
-              "Notification",
+              t('notifications.generalTitle'),
               notification.content || notification.body
             );
             break;
           default:
             console.log("❓ Unknown notification type:", notification.type);
             Alert.alert(
-              "Notification",
+              t('notifications.generalTitle'),
               notification.content || notification.body
             );
             break;
@@ -129,7 +131,7 @@ const NotificationScreen = ({ navigation }) => {
           "❌ NotificationScreen: Error handling notification press:",
           error
         );
-        Alert.alert("Error", "Failed to process notification");
+        Alert.alert(t('common.errorTitle'), t('notifications.processFailed'));
       }
     },
     [handleMarkAsRead, navigation]
@@ -200,19 +202,19 @@ const NotificationScreen = ({ navigation }) => {
   const getNotificationTypeLabel = useCallback((type) => {
     switch (type) {
       case "appointment":
-        return "Lịch hẹn";
+        return t('notifications.types.appointment');
       case "survey":
-        return "Khảo sát";
+        return t('notifications.types.survey');
       case "program":
-        return "Chương trình";
+        return t('notifications.types.program');
       case "case":
-        return "Hồ sơ";
+        return t('notifications.types.case');
       case "message":
-        return "Tin nhắn";
+        return t('notifications.types.message');
       case "general":
-        return "Thông báo chung";
+        return t('notifications.types.general');
       default:
-        return "Thông báo";
+        return t('notifications.types.notification');
     }
   }, []);
 

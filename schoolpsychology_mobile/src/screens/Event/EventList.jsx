@@ -7,10 +7,12 @@ import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import { StyleSheet, View, FlatList, Text, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 const EventList = ({ route, navigation }) => {
   const { user } = useAuth();
   const { type } = route.params;
+  const { t } = useTranslation();
 
   // Safety check for navigation
   if (!navigation) {
@@ -50,7 +52,7 @@ const EventList = ({ route, navigation }) => {
       }
     } catch (err) {
       console.error("Error fetching events:", err);
-      setError("Có lỗi xảy ra khi tải dữ liệu");
+      setError(t("common.errorLoadData"));
       setEvents([]);
     } finally {
       setLoading(false);
@@ -100,29 +102,29 @@ const EventList = ({ route, navigation }) => {
         case "APPOINTMENT":
           return {
             icon: "event-busy",
-            title: "Không có cuộc hẹn nào",
-            subtitle: "Bạn chưa có cuộc hẹn nào được lên lịch",
+            title: t("eventList.empty.appointment.title"),
+            subtitle: t("eventList.empty.appointment.subtitle"),
             color: "#FF6B6B",
           };
         case "SURVEY":
           return {
             icon: "quiz",
-            title: "Không có khảo sát nào",
-            subtitle: "Hiện tại chưa có khảo sát nào dành cho bạn",
+            title: t("eventList.empty.survey.title"),
+            subtitle: t("eventList.empty.survey.subtitle"),
             color: "#4ECDC4",
           };
         case "PROGRAM":
           return {
             icon: "school",
-            title: "Không có chương trình nào",
-            subtitle: "Chưa có chương trình nào được tạo",
+            title: t("eventList.empty.program.title"),
+            subtitle: t("eventList.empty.program.subtitle"),
             color: "#45B7D1",
           };
         default:
           return {
             icon: "inbox",
-            title: "Không có dữ liệu",
-            subtitle: "Không tìm thấy dữ liệu nào",
+            title: t("eventList.empty.default.title"),
+            subtitle: t("eventList.empty.default.subtitle"),
             color: "#96CEB4",
           };
       }
@@ -155,11 +157,11 @@ const EventList = ({ route, navigation }) => {
   const getTitle = () => {
     switch (type) {
       case "APPOINTMENT":
-        return "Cuộc hẹn";
+        return t("events.appointment");
       case "SURVEY":
-        return "Khảo sát";
+        return t("events.survey");
       case "PROGRAM":
-        return "Chương trình";
+        return t("events.program");
       default:
         return type;
     }

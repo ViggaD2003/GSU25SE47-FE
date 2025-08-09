@@ -9,10 +9,12 @@ import { GlobalStyles } from "../../constants";
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { NotificationBadge } from "@/components/common";
+import { useTranslation } from "react-i18next";
 
 // const isLargeDevice = width >= 414;
 
 export default function HomeScreen({ navigation }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -31,7 +33,7 @@ export default function HomeScreen({ navigation }) {
             </View>
           </View>
           <View style={styles.userInfo}>
-            <Text style={styles.greetingText}>Welcome back,</Text>
+            <Text style={styles.greetingText}>{t("home.welcomeBack")}</Text>
             <Text style={styles.nameText}>{user?.fullName || "User"}</Text>
           </View>
         </View>

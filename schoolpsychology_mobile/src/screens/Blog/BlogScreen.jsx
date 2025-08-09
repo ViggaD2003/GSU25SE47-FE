@@ -13,10 +13,12 @@ import { Container } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
 import { log } from "console";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 export default function BlogScreen() {
   const [blogs, setBlogs] = useState([]);
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     getBlogs().then(setBlogs);
@@ -53,7 +55,7 @@ export default function BlogScreen() {
   return (
     <Container>
       {/* Header */}
-      <HeaderWithoutTab title="Blog" onBackPress={handleBackPress} />
+      <HeaderWithoutTab title={t("blog.title")} onBackPress={handleBackPress} />
 
       <FlatList
         data={blogs}

@@ -29,11 +29,12 @@
     "studentManagement": "Học sinh theo lớp",
     "myClass": "Lớp của tôi",
     "myStudent": "Danh sách học sinh",
-    "caseManagement": "Ca tư vấn",
-    "caseAssign": "Ca chỉ định",
-    "assignedCases": "Ca phụ trách",
-    "observedCases": "Ca quan sát",
+    "caseManagement": "Trường hợp cần theo dõi",
+    "caseAssign": "Chỉ định tư vấn viên",
+    "assignedCases": "Trường hợp cần theo dõi",
+    "observedCases": "Trường hợp cần theo dõi",
     "categoryManagement": "Danh mục",
+    "systemConfig": "Cấu hình hệ thống",
     "assessmentDemo": "Phòng thí nghiệm đánh giá",
     "login": "Đăng nhập",
     "logout": "Đăng xuất"
@@ -102,6 +103,90 @@
       "cases": "Số case"
     }
   },
+  "teacherDashboard": {
+    "title": "Bảng điều khiển Giáo viên",
+    "subtitle": "Tổng quan về sức khỏe tinh thần và hoạt động của lớp bạn",
+    "empty": "Không có dữ liệu",
+    "overview": {
+      "totalStudents": "Tổng số học sinh",
+      "studentsWithCases": "Học sinh có ca tư vấn",
+      "studentsInPrograms": "Học sinh tham gia chương trình",
+      "studentsCompletedSurveys": "Hoàn thành khảo sát"
+    },
+    "caseSummary": {
+      "title": "Tổng hợp ca theo danh mục",
+      "cases": "Số ca"
+    },
+    "cases": {
+      "title": "Các ca quan sát",
+      "student": "Học sinh",
+      "category": "Danh mục",
+      "status": "Trạng thái",
+      "trend": "Xu hướng",
+      "priority": "Ưu tiên",
+      "lastUpdated": "Cập nhật gần nhất"
+    },
+    "alertSkippedSurveys": {
+      "title": "Khảo sát bị bỏ qua trong tháng",
+      "countSuffix": "lần bỏ qua"
+    }
+  },
+  "counselorDashboard": {
+    "title": "Bảng điều khiển Tư vấn viên",
+    "subtitle": "Tổng quan ca tư vấn, lịch hẹn và đánh giá của bạn",
+    "upcomingAppointments": "Lịch hẹn sắp tới",
+    "overview": {
+      "myActiveCases": "Trường hợp đang theo dõi",
+      "myAppointmentsThisMonth": "Cuộc hẹn trong tháng",
+      "mySurveysReviewed": "Khảo sát đã duyệt",
+      "programsReferred": "Chương trình giới thiệu"
+    },
+    "caseByCategory": {
+      "title": "Trường hợp theo dõi theo danh mục",
+      "category": "Danh mục",
+      "totalCases": "Tổng ca"
+    },
+    "activeCases": {
+      "title": "Trường hợp đang theo dõi",
+      "titleCol": "Tiêu đề",
+      "student": "Học sinh",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái",
+      "trend": "Xu hướng"
+    }
+  },
+  "managerDashboard": {
+    "title": "Bảng điều khiển Quản lý",
+    "subtitle": "Tổng quan toàn hệ thống và phân tích",
+    "overview": {
+      "totalStudents": "Tổng số học sinh",
+      "totalPrograms": "Tổng số chương trình",
+      "totalSurveys": "Tổng số khảo sát",
+      "totalAppointments": "Tổng số cuộc hẹn",
+      "activeCases": "Ca đang hoạt động"
+    },
+    "activityByCategories": {
+      "title": "Hoạt động theo danh mục",
+      "category": "Danh mục",
+      "programs": "Chương trình",
+      "surveys": "Khảo sát",
+      "appointments": "Cuộc hẹn"
+    },
+    "surveyLevelByCategories": {
+      "title": "Mức độ khảo sát theo danh mục",
+      "category": "Danh mục",
+      "level": "Mức độ",
+      "count": "Số lượng"
+    },
+    "activeCases": {
+      "title": "Ca tư vấn đang hoạt động",
+      "titleCol": "Tiêu đề",
+      "student": "Học sinh",
+      "counselor": "Tư vấn viên",
+      "priority": "Ưu tiên",
+      "status": "Trạng thái"
+    }
+  },
   "theme": {
     "light": "Sáng",
     "dark": "Tối",
@@ -134,8 +219,8 @@
       "editUserSuccess": "Sửa tài khoản người dùng thành công",
       "addUserSuccess": "Thêm tài khoản người dùng thành công",
       "inactiveSuccess": "Chặn tài khoản người dùng thành công",
-      "createCaseSuccess": "Tạo ca tư vấn thành công",
-      "createCaseError": "Không thể tạo ca tư vấn"
+      "createCaseSuccess": "Tạo trường hợp cần theo dõi thành công",
+      "createCaseError": "Không thể tạo trường hợp cần theo dõi"
     }
   },
   "staffManagement": {
@@ -179,7 +264,7 @@
     "gender": "Giới tính",
     "dob": "Ngày sinh",
     "role": "Vai trò",
-    "createCase": "Tạo ca tư vấn",
+    "createCase": "Tạo trường hợp cần theo dõi",
     "roleOptions": {
       "student": "Học sinh",
       "guardian": "Phụ huynh",
@@ -194,11 +279,11 @@
     "surveyStatus": "Trạng thái khảo sát",
     "surveyEnabled": "Bật",
     "surveyDisabled": "Tắt",
-    "caseStatus": "Trạng thái vụ việc",
-    "activeCases": "Có vụ việc",
-    "noCases": "Không có vụ việc",
-    "hasActiveCases": "Có vụ việc hỗ trợ đang hoạt động",
-    "noActiveCases": "Không có vụ việc hỗ trợ đang hoạt động",
+    "caseStatus": "Trạng thái trường hợp cần theo dõi",
+    "activeCases": "Có trường hợp cần theo dõi",
+    "noCases": "Không có trường hợp cần theo dõi",
+    "hasActiveCases": "Có trường hợp cần theo dõi đang hoạt động",
+    "noActiveCases": "Không có trường hợp cần theo dõi đang hoạt động",
     "latestSurvey": "Khảo sát gần nhất",
     "hasSurveyRecord": "Có bản ghi",
     "noSurveyRecord": "Không có bản ghi",
@@ -232,7 +317,7 @@
       "date": "Ngày & Giờ",
       "status": "Trạng thái",
       "actions": "Thao tác",
-      "addCase": "Thêm ca tư vấn"
+      "addCase": "Thêm trường hợp cần theo dõi"
     },
     "status": {
       "PLANNING": "Đang lên kế hoạch",
@@ -1122,6 +1207,15 @@
       "teacherEmail": "Email giáo viên",
       "actions": "Thao tác"
     },
+    "enroll": "Gán HS",
+    "enrollModal": {
+      "title": "Gán học sinh vào lớp {{code}}",
+      "searchPlaceholder": "Tìm học sinh theo tên, email, sđt, mã...",
+      "selectedCount": "Đã chọn: {{count}}",
+      "enrollSelected": "Gán các học sinh đã chọn",
+      "success": "Gán học sinh vào lớp thành công",
+      "error": "Gán học sinh vào lớp thất bại"
+    },
     "form": {
       "codeClass": "Mã lớp",
       "codeClassPlaceholder": "Nhập mã lớp",
@@ -1840,5 +1934,28 @@
       "mistake5": "Lập kế hoạch theo dõi hoặc phân bổ tài nguyên không đầy đủ"
     },
     "footer": "Trợ lý này cung cấp hướng dẫn chung. Luôn xem xét các chính sách tổ chức cụ thể và nhu cầu người tham gia."
+  },
+  "systemConfig": {
+    "title": "Cấu hình hệ thống",
+    "description": "Quản lý các giá trị cấu hình toàn hệ thống",
+    "searchPlaceholder": "Tìm theo key hoặc mô tả...",
+    "allGroups": "Tất cả nhóm",
+    "filters": { "group": "Nhóm" },
+    "resetChanges": "Hủy thay đổi",
+    "rawValueNoteTitle": "Lưu ý",
+    "rawValueNote": "Giá trị được chỉnh sửa ở dạng thô. Không đặt nội dung theo ngôn ngữ (không EN/VI) tại đây.",
+    "table": {
+      "id": "ID",
+      "group": "Nhóm",
+      "key": "Khóa",
+      "value": "Giá trị",
+      "type": "Kiểu",
+      "category": "Danh mục",
+      "description": "Mô tả",
+      "active": "Kích hoạt",
+      "editable": "Có thể sửa",
+      "updatedAt": "Cập nhật lúc",
+      "actions": "Thao tác"
+    }
   }
 }

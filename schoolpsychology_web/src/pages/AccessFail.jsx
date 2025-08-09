@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { Result, Button, Space } from 'antd'
 import {
   HomeOutlined,
   ArrowLeftOutlined,
-  ReloadOutlined,
   LogoutOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
@@ -11,25 +10,9 @@ import { useAuth } from '@/contexts/AuthContext'
 
 const AccessFail = ({ userRole: propUserRole }) => {
   const navigate = useNavigate()
-  const { logout, userRole, refreshToken, checkUserRole } = useAuth()
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { logout, userRole, checkUserRole } = useAuth()
 
   const currentUserRole = propUserRole || userRole
-
-  const handleRefreshAndRetry = async () => {
-    setIsRefreshing(true)
-    const result = await refreshToken()
-
-    if (result?.success) {
-      // Go back to the previous page after successful refresh
-      setTimeout(() => {
-        window.history.back()
-      }, 1000)
-    } else {
-      handleLogout()
-    }
-    setIsRefreshing(false)
-  }
 
   const handleLogout = () => {
     try {
@@ -61,14 +44,6 @@ const AccessFail = ({ userRole: propUserRole }) => {
           extra={
             <Space direction="vertical" size="middle">
               <Space wrap>
-                <Button
-                  type="primary"
-                  icon={<ReloadOutlined />}
-                  onClick={handleRefreshAndRetry}
-                  loading={isRefreshing}
-                >
-                  Refresh Session & Retry
-                </Button>
                 <Button icon={<HomeOutlined />} onClick={handleGoHome}>
                   Go to Dashboard
                 </Button>

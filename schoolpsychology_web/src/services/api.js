@@ -1,10 +1,8 @@
 import axios from 'axios'
 import { store } from '../store'
-import {
-  logoutUser,
-  // refreshToken as refreshTokenAction,
-} from '../store/actions/authActions'
-
+import { logoutUser } from '../store/actions/authActions'
+import { logout as logoutAction } from '../store/slices/authSlice'
+import { authAPI } from './authApi'
 import notificationService from './notificationService'
 
 // Utility function to handle server errors
@@ -61,8 +59,8 @@ const api = axios.create({
 })
 
 // Flag to prevent multiple refresh requests
-// let isRefreshing = false
-// let failedQueue = []
+let isRefreshing = false
+let refreshPromise = null
 
 // const processQueue = (error, token = null) => {
 //   failedQueue.forEach(prom => {
@@ -175,7 +173,11 @@ api.interceptors.response.use(
   },
   async error => {
     const originalRequest = error.config
-    const excludedPaths = ['/api/v1/auth/login', '/api/v1/auth/forgot-password']
+    const excludedPaths = [
+      '/api/v1/auth/login',
+      '/api/v1/auth/forgot-password',
+      '/api/v1/auth/refresh',
+    ]
 
     // Handle 308 (PERMANENT_REDIRECT) - Google OAuth redirect
     if (error.response?.status === 308) {
@@ -193,91 +195,92 @@ api.interceptors.response.use(
       return Promise.reject(serverError)
     }
 
-    // Handle 401 (Unauthorized) - token expired
+    // Handle 401 (Unauthorized) - do not refresh, just logout
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry &&
+      !originalRequest._retry401 &&
       !excludedPaths?.some(path => originalRequest.url.includes(path))
     ) {
       console.log('⚠️ Response: 401 error detected, logging out user...')
-      originalRequest._retry = true
-
-      // Comment out refresh token logic - just logout directly
-      // try {
-      //   // Use centralized refresh logic (with notification for response interceptor)
-      //   const newToken = await handleTokenRefresh(true)
-      //   originalRequest.headers.Authorization = `Bearer ${newToken}`
-      //   return api(originalRequest)
-      // } catch (refreshError) {
-      //   console.log('❌ Response: Token refresh failed for 401:', refreshError)
-      // If refresh fails, logout the user
-      //   store.dispatch(logoutUser())
-      //   return Promise.reject(refreshError)
-      // }
-
-      // Direct logout without refresh attempt
+      originalRequest._retry401 = true
+      notificationService.error({
+        message: 'Phiên đăng nhập hết hạn',
+        description: 'Bạn đã bị đăng xuất. Vui lòng đăng nhập lại.',
+        duration: 4,
+      })
       store.dispatch(logoutUser())
       return Promise.reject(
         new Error('Authentication failed - please login again')
       )
     }
 
-    // Handle 403 (Forbidden) - insufficient permissions
-    if (error.response?.status === 403 && !originalRequest._retryFor403) {
-      console.log('403 error, showing AccessFail page')
-      originalRequest._retryFor403 = true
+    // Handle 403 (Forbidden) - try refresh token ONCE, otherwise logout
+    if (
+      error.response?.status === 403 &&
+      !originalRequest._retry403 &&
+      !excludedPaths?.some(path => originalRequest.url.includes(path))
+    ) {
+      console.log('⚠️ Response: 403 detected, attempting token refresh...')
+      originalRequest._retry403 = true
 
-      // Comment out refresh token logic for 403 errors
-      // try {
-      //   // Try to refresh token first (no standard notification)
-      //   const newToken = await handleTokenRefresh(false)
+      try {
+        // Ensure only one refresh call is in-flight
+        if (!isRefreshing) {
+          isRefreshing = true
+          refreshPromise = (async () => {
+            const currentToken = localStorage.getItem('token')
+            const refreshResponse = await authAPI.refreshToken(currentToken)
+            const refreshedToken = refreshResponse?.data?.token || currentToken
+            if (!refreshedToken) {
+              throw new Error('No token returned from refresh')
+            }
+            // Save and apply new token
+            localStorage.setItem('token', refreshedToken)
+            api.defaults.headers.common.Authorization = `Bearer ${refreshedToken}`
+            return refreshedToken
+          })()
+            .catch(err => {
+              throw err
+            })
+            .finally(() => {
+              isRefreshing = false
+            })
+        }
 
-      //   originalRequest.headers.Authorization = `Bearer ${newToken}`
+        const newToken = await refreshPromise
+        // Retry original request with the (possibly) new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        console.log('✅ Token refreshed on 403. Retrying original request...')
+        return api(originalRequest)
+      } catch (refreshError) {
+        console.error(
+          '❌ Refresh on 403 failed. Logging out locally...',
+          refreshError
+        )
+        // Only show this notification if the refresh endpoint itself returned 403
+        if (refreshError?.response?.status === 403) {
+          notificationService.error({
+            message: 'Tài khoản vừa được đăng nhập ở nơi khác',
+            description: 'Bạn đã bị đăng xuất khỏi phiên hiện tại.',
+            duration: 4,
+          })
+        }
 
-      //   notificationService.info({
-      //     message: 'Session refreshed',
-      //     description: 'Retrying your request with updated permissions',
-      //     duration: 2,
-      //   })
+        // Perform local logout ONLY (do not call logout service)
+        try {
+          localStorage.removeItem('auth')
+          localStorage.removeItem('token')
+        } catch (storageError) {
+          console.warn(
+            'Failed to clear local storage during logout:',
+            storageError
+          )
+        }
+        store.dispatch(logoutAction())
 
-      //   // Retry the original request with new token
-      //   return api(originalRequest)
-      // } catch (refreshError) {
-      //   console.error('Token refresh failed for 403 error:', refreshError)
-
-      // Show AccessFail page instead of immediate logout
-      notificationService.error({
-        message: 'Access Denied',
-        description:
-          'You do not have permission to access this resource. Redirecting to access denied page.',
-        duration: 4,
-      })
-
-      // Redirect to AccessFail page
-      const currentPath = window.location.pathname
-      if (currentPath !== '/access-fail') {
-        window.history.pushState(null, '', '/access-fail')
-        window.dispatchEvent(new PopStateEvent('popstate'))
-      }
-
-      //   return Promise.reject(
-      //     new Error('Access forbidden: Insufficient permissions')
-      //   )
-      // }
-
-      // Direct access fail without refresh attempt
-      notificationService.error({
-        message: 'Access Denied',
-        description:
-          'You do not have permission to access this resource. Redirecting to access denied page.',
-        duration: 4,
-      })
-
-      // Redirect to AccessFail page
-      const currentPathFor403 = window.location.pathname
-      if (currentPathFor403 !== '/access-fail') {
-        window.history.pushState(null, '', '/access-fail')
-        window.dispatchEvent(new PopStateEvent('popstate'))
+        return Promise.reject(
+          new Error('Access forbidden - logged out locally')
+        )
       }
     }
 

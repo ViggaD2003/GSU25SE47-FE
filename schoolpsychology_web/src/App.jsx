@@ -7,6 +7,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import AppRouter from './routes/AppRouter'
 import store from './store'
 import { WebSocketProvider } from './contexts/WebSocketContext'
+import { SystemConfigProvider } from '@/contexts/SystemConfigContext'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
@@ -49,7 +50,9 @@ function App() {
       <AuthProvider>
         <WebSocketProvider>
           <ThemeProvider>
-            <AppContent />
+            <SystemConfigProvider>
+              <AppContent />
+            </SystemConfigProvider>
           </ThemeProvider>
         </WebSocketProvider>
       </AuthProvider>

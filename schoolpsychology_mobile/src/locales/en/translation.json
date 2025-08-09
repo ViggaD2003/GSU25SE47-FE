@@ -1,0 +1,510 @@
+{
+  "app": {
+    "name": "MindfulCare",
+    "signInToYourAccount": "Sign in to your account"
+  },
+  "auth": {
+    "email": "Email Address",
+    "password": "Password",
+    "enterEmail": "Enter your email address",
+    "enterPassword": "Enter your password",
+    "signIn": "Sign in",
+    "forgotPassword": "Forgot password?",
+    "pleaseEnterBoth": "Please enter both email and password.",
+    "loginFailed": "Login failed",
+    "onlyStudentOrParent": "Only Student or Parent can log in."
+  },
+  "tabs": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "case": "Case",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "mobileSubtitle": "Access key metrics and recent updates in one view"
+  },
+  "case": {
+    "followUp": "Follow-up",
+    "followUpSubtitle": "Follow up your case and get the best result",
+    "empty": "You don't have any case to follow up"
+  },
+  "common": {
+    "loading": "Loading...",
+    "errorTitle": "Error",
+    "errorLoadData": "An error occurred while loading data",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "notAvailable": "Not available",
+    "selected": "Selected",
+    "optional": "Optional"
+  },
+  "events": {
+    "title": "Events",
+    "loading": "Loading...",
+    "noEvents": "No events",
+    "selectAnotherDate": "Select another date to see events",
+    "count_one": "{{count}} event",
+    "count_other": "{{count}} events",
+    "schedule": "Schedule",
+    "appointment": "Appointments",
+    "survey": "Surveys",
+    "program": "Programs"
+  },
+  "eventList": {
+    "empty": {
+      "appointment": {
+        "title": "No appointments",
+        "subtitle": "You don't have any scheduled appointments"
+      },
+      "survey": {
+        "title": "No surveys",
+        "subtitle": "There are currently no surveys for you"
+      },
+      "program": {
+        "title": "No programs",
+        "subtitle": "No programs have been created"
+      },
+      "default": {
+        "title": "No data",
+        "subtitle": "No data found"
+      }
+    }
+  },
+  "profile": {
+    "subtitle": "Manage your account and preferences",
+    "edit": "Edit Profile",
+    "myChildren": "My Children",
+    "settings": "Settings",
+    "changePassword": "Change Password",
+    "calendarAccess": "Calendar Access",
+    "notificationSettings": "Notification Settings",
+    "needHelp": "Need Help?",
+    "logout": "Logout"
+  },
+  "home": {
+    "welcomeBack": "Welcome back,",
+    "actions": {
+      "booking": "Booking",
+      "blog": "Doc & Blog",
+      "history": "History"
+    },
+    "quickActions": "Quick Actions",
+    "recommendedPrograms": {
+      "title": "Recommended Programs",
+      "available": "{{count}} available",
+      "viewAll": "View All",
+      "featured": "Featured",
+      "defaultDescription": "Enhance your professional skills with our comprehensive workshop",
+      "enrolled": "{{count}} enrolled",
+      "learnMore": "Learn More",
+      "active": "Active",
+      "professional": "Professional",
+      "untitled": "Untitled Program",
+      "noDescription": "No description available",
+      "participants": "Participants",
+      "flexible": "Flexible",
+      "empty": {
+        "title": "No programs available",
+        "description": "Check back later for new learning opportunities and programs.",
+        "browseAll": "Browse All Programs"
+      }
+    },
+    "planToday": {
+      "title": "Plan for today",
+      "count_one": "{{count}} plan",
+      "count_other": "{{count}} plans",
+      "viewAll": "View All",
+      "loadMore": "Load More Plans",
+      "empty": {
+        "title": "No plans for today",
+        "description": "You're all caught up! Check back later for new activities."
+      }
+    }
+  },
+  "program": {
+    "list": {
+      "title": "Recommended Programs",
+      "empty": {
+        "title": "No Programs Available",
+        "description": "There are no recommended programs at the moment. Please check back later."
+      }
+    }
+  },
+  "parentHome": {
+    "loadingUser": "Loading user information...",
+    "childSelection": {
+      "title": "Select child"
+    },
+    "child": {
+      "status": {
+        "active": "Receiving surveys",
+        "inactive": "Stopped receiving surveys"
+      }
+    },
+    "booking": {
+      "title": "Book a counseling session",
+      "subtitle": "Schedule with a counselor for"
+    },
+    "stats": {
+      "title": "Overview statistics",
+      "subtitle": "Last 30 days",
+      "completedSurveys": {
+        "title": "Surveys",
+        "subtitle": "Completed"
+      },
+      "averageScore": {
+        "title": "Average score",
+        "subtitle": "Out of 10"
+      },
+      "appointments": {
+        "title": "Appointments",
+        "subtitle": "Scheduled"
+      },
+      "programs": {
+        "title": "Support programs",
+        "subtitle": "Participating"
+      }
+    },
+    "assessment": {
+      "title": "Detailed assessment",
+      "subtitle": "Most recent survey results"
+    },
+    "surveys": {
+      "title": "Recent surveys",
+      "subtitle": "{{count}} surveys",
+      "emptyTitle": "No surveys yet",
+      "emptySubtitle": "Your child has not completed any surveys"
+    },
+    "appointments": {
+      "title": "Recent appointments",
+      "subtitle": "{{count}} appointments",
+      "emptyTitle": "No appointments",
+      "emptySubtitle": "No appointments have been scheduled"
+    },
+    "programs": {
+      "title": "Support programs",
+      "subtitle": "{{count}} programs",
+      "emptyTitle": "No support programs",
+      "emptySubtitle": "No support programs have been suggested"
+    },
+    "noChild": {
+      "title": "No child selected",
+      "subtitle": "Please select a child to view detailed information"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "loadingHint": "Please wait a moment",
+    "refreshFailed": "Failed to refresh notifications",
+    "markReadFailed": "Failed to mark notification as read",
+    "processFailed": "Failed to process notification",
+    "messageTitle": "Message",
+    "generalTitle": "Notification",
+    "loadErrorTitle": "Failed to load notifications",
+    "loadErrorSubtitle": "An error occurred while loading notifications",
+    "emptyTitle": "No notifications",
+    "emptySubtitle": "You'll receive notifications when there are new activities",
+    "types": {
+      "appointment": "Appointment",
+      "survey": "Survey",
+      "program": "Program",
+      "case": "Case",
+      "message": "Message",
+      "general": "General",
+      "notification": "Notification"
+    }
+  },
+  "blog": {
+    "title": "Blog",
+    "detailsTitle": "Blog Details"
+  },
+  "appointment": {
+    "record": {
+      "title": "Appointment history",
+      "loading": "Loading records...",
+      "emptyTitle": "No records yet",
+      "emptySubtitle": "Records will appear after you complete a session",
+      "listTitle": "Records ({{count}})"
+    },
+    "details": {
+      "title": "Appointment Details",
+      "hostInfo": "Host Information",
+      "appointmentInfo": "Appointment Information",
+      "bookingInfo": "Booking Information"
+    },
+    "labels": {
+      "date": "Date",
+      "time": "Time",
+      "durationMinutes": "Duration {{minutes}} minutes",
+      "location": "Location",
+      "bookedBy": "Booked by",
+      "bookedFor": "Booked for",
+      "reason": "Reason"
+    },
+    "host": {
+      "teacher": "Homeroom teacher",
+      "counselor": "Counselor"
+    },
+    "status": {
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "inProgress": "In progress"
+    },
+    "cannotCancel": {
+      "title": "Cannot cancel appointment",
+      "pending": "The appointment is pending confirmation, cannot cancel.",
+      "confirmed": "The appointment is near the start time, cannot cancel.",
+      "default": "The appointment has occurred or is too close to start time to cancel."
+    },
+    "actions": {
+      "cancel": "Cancel appointment",
+      "reject": "Reject",
+      "confirm": "Confirm"
+    },
+    "confirmModal": {
+      "cancel": {
+        "title": "Cancel appointment",
+        "message": "Are you sure you want to cancel this appointment? This action cannot be undone.\n\nNote: If the appointment was synced to your calendar, the event will also be removed.",
+        "confirmText": "Cancel appointment",
+        "cancelTextKeep": "Keep it"
+      },
+      "confirm": {
+        "title": "Confirm appointment",
+        "message": "Are you sure you want to confirm this appointment?",
+        "confirmText": "Confirm",
+        "cancelText": "Cancel"
+      },
+      "reject": {
+        "message": "Are you sure you want to reject this appointment?"
+      }
+    },
+    "reasonModal": {
+      "title": "Select a cancellation reason",
+      "otherLabel": "Enter another reason:",
+      "placeholder": "Enter cancellation reason..."
+    },
+    "booking": {
+      "title": "Book a counseling session",
+      "selectStudent": "Select a student to book",
+      "selectHost": "Select counselor",
+      "selectCounselor": "Select counselor",
+      "form": {
+        "mode": "Consultation mode",
+        "reasonLabel": "Consultation reason",
+        "reasonPlaceholder": "Enter the reason (e.g., Study counseling, Psychological counseling...)"
+      },
+      "slots": {
+        "title": "Available appointments",
+        "empty": {
+          "title": "No available appointments",
+          "subtitle": "Please try again later or contact support"
+        }
+      },
+      "loadingSlots": "Loading appointments...",
+      "loadingMoreDays": "Loading more days...",
+      "loadMoreDays": "Load {{count}} more days",
+      "daysInfo": "Showing {{shown}} of {{total}} available days",
+      "lazyLoadHint": "Tap the button to view more",
+      "saving": "Booking...",
+      "submit": "Book appointment",
+      "selectSlotFirst": "Please select a time slot first"
+    },
+    "mode": {
+      "online": "Online",
+      "offline": "In person"
+    },
+    "calendarSync": {
+      "title": "Calendar sync",
+      "enabled": "The appointment will be added to your calendar",
+      "reminderBefore": "Reminder {{time}} before"
+    }
+  },
+  "record": {
+    "title": "History",
+    "survey": {
+      "title": "Survey Records",
+      "description": "View your survey responses and psychological assessments"
+    },
+    "appointment": {
+      "title": "Appointment History",
+      "description": "Track your counseling sessions and appointment history"
+    },
+    "program": {
+      "title": "Completed Programs",
+      "description": "Monitor your participation in support programs and activities"
+    },
+    "closedCases": {
+      "title": "Closed Cases",
+      "description": "View your closed cases and their details"
+    },
+    "details": {},
+    "labels": {},
+    "host": {},
+    "status": {},
+    "cannotCancel": {},
+    "actions": {},
+    "confirmModal": {},
+    "reasonModal": {}
+  },
+  "survey": {
+    "record": {
+      "title": "Survey Records",
+      "loading": "Loading data...",
+      "emptyTitle": "No survey results yet",
+      "emptySubtitle": "Complete your first survey to see results here",
+      "goToSurvey": "Go to surveys",
+      "loadMore": "Load more ({{count}})"
+    },
+    "info": {
+      "title": "Survey Information",
+      "loading": "Loading survey information...",
+      "loadError": "Unable to load survey information",
+      "retry": "Retry",
+      "progressSaved": "Progress saved successfully!",
+      "continue": "Continue Survey",
+      "start": "Start Survey",
+      "category": "Category",
+      "details": "Detailed information",
+      "questions": "Questions",
+      "estimatedTime": "Estimated time",
+      "target": "Target",
+      "createdAt": "Created at",
+      "dateRange": "Execution time",
+      "startDate": "Start",
+      "endDate": "End",
+      "grades": "Applicable grades",
+      "savedProgress": {
+        "title": "Saved progress",
+        "text": "You have saved progress. Tap Continue to proceed."
+      },
+      "instructions": {
+        "title": "Instructions",
+        "step1": "Read each question carefully",
+        "step2": "Choose the most appropriate answer",
+        "step3": "You can save progress and continue later",
+        "step4": "Answer honestly for the most accurate results"
+      }
+    },
+    "taking": {
+      "title": "Take Survey",
+      "notFound": "Survey information not found. Please try again.",
+      "question": "Question",
+      "required": "required",
+      "optional": "optional",
+      "noQuestion": "No question content",
+      "noAnswer": "No answers for this question.",
+      "clearAnswer": "Clear answer",
+      "prev": "Previous",
+      "next": "Next",
+      "submit": "Submit",
+      "submitting": "Submitting...",
+      "submitTitle": "Submit survey",
+      "submitMessage": "Are you sure you want to submit? You cannot edit after submitting.",
+      "submitCheck": "Review",
+      "exitTitle": "Exit survey",
+      "exitMessage": "Current progress will be saved. You can continue later.",
+      "exitContinue": "Continue",
+      "exitSave": "Save and exit",
+      "loadProgress": "Loaded your previous progress",
+      "invalidProgress": "Previous progress invalid, starting new.",
+      "saveProgress": {
+        "success": "Progress saved",
+        "error": "Unable to save progress"
+      },
+      "errors": {
+        "missingSurvey": "Survey information not found",
+        "invalidAnswers": "Some answers are invalid, please check",
+        "unansweredRequired": "Please answer all required questions before submitting",
+        "submitError": "An error occurred when submitting the survey"
+      },
+      "legend": "Choices are sorted from low to high"
+    },
+    "result": {
+      "title": "Survey Result",
+      "skippedTitle": "Survey skipped",
+      "scoreUnit": "points",
+      "completed": "Completed",
+      "skipped": "Skipped",
+      "noResultData": "No result data to display",
+      "levelInfo": "Level information",
+      "description": "Description:",
+      "symptoms": "Symptoms:",
+      "scoreRange": "Score range:",
+      "suggestions": "Intervention suggestions",
+      "summary": "Answer summary",
+      "answered": "{{count}} answered",
+      "skippedCount": "{{count}} skipped",
+      "toggleShow": "Show all answers",
+      "toggleHide": "Hide",
+      "noAnswersTitle": "No answer data",
+      "noAnswersText": "This survey was completed but there is no answer data to display.",
+      "viewAllRecords": "View all results"
+    }
+  },
+  "calendar": {
+    "title": "Appointment management",
+    "permission": {
+      "title": "Permission Status",
+      "granted": "Calendar Access Granted",
+      "required": "Calendar Access Required",
+      "grantedDesc": "Your app can sync appointments with your device calendar.",
+      "requiredDesc": "Grant permission to sync your appointments with your device calendar.",
+      "grant": "Grant Permission"
+    },
+    "settings": {
+      "title": "Sync Settings",
+      "enable": "Enable Calendar Sync",
+      "enableDesc": "Sync your appointments with your device calendar",
+      "auto": "Auto Sync",
+      "autoDesc": "Automatically sync appointments when created or updated",
+      "reminder": "Enable Reminders",
+      "reminderDesc": "Set reminders for your appointments",
+      "reminderTime": "Reminder Time",
+      "reminderTimeDesc": "{{time}} before appointment",
+      "syncNow": "Sync Now",
+      "syncing": "Syncing..."
+    },
+    "modal": {
+      "editReminder": "Edit reminder time",
+      "label": "Remind before appointment (minutes):",
+      "placeholder": "Enter minutes (1-1440)",
+      "hint": "Suggestions: 15, 30, 60, 120, 1440 (1 day)",
+      "quick": "Quick select:",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "alerts": {
+      "permissionGranted": {
+        "title": "Permission Granted",
+        "message": "Calendar access has been granted. You can now sync your appointments.",
+        "ok": "OK"
+      },
+      "permissionRequired": {
+        "title": "Permission Required",
+        "message": "Calendar access is required to sync your appointments. Please enable it in your device settings.",
+        "cancel": "Cancel",
+        "openSettings": "Open Settings"
+      },
+      "syncComplete": {
+        "title": "Sync Complete",
+        "message": "Successfully synced all appointments.",
+        "ok": "OK"
+      },
+      "syncFailed": {
+        "title": "Sync Failed",
+        "ok": "OK"
+      },
+      "noAppointments": {
+        "title": "No Appointments",
+        "message": "No appointments found to sync.",
+        "ok": "OK"
+      },
+      "errorSaving": {
+        "title": "Error",
+        "message": "Failed to save settings. Please try again."
+      }
+    }
+  }
+}

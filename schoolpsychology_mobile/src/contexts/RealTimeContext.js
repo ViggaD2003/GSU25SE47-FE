@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { APP_CONFIG } from "../constants";
 
@@ -28,6 +29,7 @@ export const RealTimeProvider = ({ children }) => {
   const wsRef = useRef(null);
   const reconnectTimeout = useRef(null);
   const isRealDevice = Device.isDevice;
+  const isExpoGo = Constants?.appOwnership === "expo";
 
   useEffect(() => {
     tokenRef.current = token;
@@ -36,27 +38,32 @@ export const RealTimeProvider = ({ children }) => {
   const resetNotificationCount = useCallback(async () => {
     setNotificationCount(0);
     try {
-      await Notifications.setBadgeCountAsync(0);
+      if (!isExpoGo) {
+        await Notifications.setBadgeCountAsync(0);
+      }
     } catch (err) {
       console.warn("Failed to reset badge count", err);
     }
-  }, []);
+  }, [isExpoGo]);
 
-  const showLocalNotification = useCallback(async (title, content) => {
-    if (!isRealDevice || !title || !content) return;
-    try {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body: content,
-          sound: true,
-        },
-        trigger: null,
-      });
-    } catch (err) {
-      console.warn("Failed to show notification", err);
-    }
-  }, []);
+  const showLocalNotification = useCallback(
+    async (title, content) => {
+      if (!isRealDevice || isExpoGo || !title || !content) return;
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title,
+            body: content,
+            sound: true,
+          },
+          trigger: null,
+        });
+      } catch (err) {
+        console.warn("Failed to show notification", err);
+      }
+    },
+    [isExpoGo, isRealDevice]
+  );
 
   const subscribeToNotifications = useCallback(() => {
     // Trong WebSocket thuần, không cần subscribe kiểu STOMP,

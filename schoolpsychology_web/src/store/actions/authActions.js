@@ -148,6 +148,7 @@ export const logoutUser = createAsyncThunk(
     try {
       console.log('🔄 Starting logout process...')
       // Call logout API if available
+
       await authAPI.logout()
     } catch (error) {
       console.error('Logout API error:', error)

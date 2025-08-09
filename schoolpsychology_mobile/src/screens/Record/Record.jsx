@@ -4,9 +4,11 @@ import { Container } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 const Record = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   const navigateToSurveyRecord = () => {
     navigation.navigate("Survey", { screen: "SurveyRecord" });
@@ -28,7 +30,7 @@ const Record = () => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title="History"
+        title={t("record.title")}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -49,9 +51,9 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Survey Records</Text>
+              <Text style={styles.cardTitle}>{t("record.survey.title")}</Text>
               <Text style={styles.cardDescription}>
-                View your survey responses and psychological assessments
+                {t("record.survey.description")}
               </Text>
             </View>
             <View style={styles.cardArrow}>
@@ -73,9 +75,11 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Appointment History</Text>
+              <Text style={styles.cardTitle}>
+                {t("record.appointment.title")}
+              </Text>
               <Text style={styles.cardDescription}>
-                Track your counseling sessions and appointment history
+                {t("record.appointment.description")}
               </Text>
             </View>
             <View style={styles.cardArrow}>
@@ -97,9 +101,9 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Completed Programs</Text>
+              <Text style={styles.cardTitle}>{t("record.program.title")}</Text>
               <Text style={styles.cardDescription}>
-                Monitor your participation in support programs and activities
+                {t("record.program.description")}
               </Text>
             </View>
             <View style={styles.cardArrow}>
@@ -125,9 +129,11 @@ const Record = () => {
               </View>
             </View>
             <View style={styles.cardContent}>
-              <Text style={styles.cardTitle}>Closed Cases</Text>
+              <Text style={styles.cardTitle}>
+                {t("record.closedCases.title")}
+              </Text>
               <Text style={styles.cardDescription}>
-                View your closed cases and their details
+                {t("record.closedCases.description")}
               </Text>
             </View>
             <View style={styles.cardArrow}>

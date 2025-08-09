@@ -1,5 +1,6 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import LanguageSwitcher from "../../common/LanguageSwitcher";
 
 const HeaderWithoutTab = ({
   title,
@@ -16,7 +17,9 @@ const HeaderWithoutTab = ({
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{title}</Text>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerRight}>
+          <LanguageSwitcher />
+        </View>
       </View>
       {/* Refresh Button */}
       {showRefreshButton && (
@@ -74,6 +77,10 @@ const styles = StyleSheet.create({
   },
   headerSpacer: {
     width: 40,
+  },
+  headerRight: {
+    width: 60,
+    alignItems: "flex-end",
   },
   refreshButtonStyle: {},
   refreshButtonStyleDisabled: {

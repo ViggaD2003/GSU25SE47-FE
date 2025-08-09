@@ -14,8 +14,10 @@ import ProgramCard from "../../components/common/ProgramCard";
 import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
 import { useAuth } from "@/contexts";
+import { useTranslation } from "react-i18next";
 
 export default function ProgramList() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigation = useNavigation();
   const [programs, setPrograms] = useState([]);
@@ -67,10 +69,9 @@ export default function ProgramList() {
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>No Programs Available</Text>
+      <Text style={styles.emptyTitle}>{t("program.list.empty.title")}</Text>
       <Text style={styles.emptyDescription}>
-        There are no recommended programs at the moment. Please check back
-        later.
+        {t("program.list.empty.description")}
       </Text>
     </View>
   );
@@ -79,7 +80,7 @@ export default function ProgramList() {
     return (
       <Container>
         <HeaderWithoutTab
-          title="Recommended Programs"
+          title={t("program.list.title")}
           onBackPress={handleBackPress}
         />
         <Loading />
@@ -90,7 +91,7 @@ export default function ProgramList() {
   return (
     <Container>
       <HeaderWithoutTab
-        title="Recommended Programs"
+        title={t("program.list.title")}
         onBackPress={handleBackPress}
       />
 

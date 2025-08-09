@@ -7,8 +7,10 @@ import { useAuth } from "../../contexts";
 import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
+import { useTranslation } from "react-i18next";
 
 export default function ProfileScreen() {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState({});
   const { logout, user } = useAuth();
   const navigation = useNavigation();
@@ -62,8 +64,8 @@ export default function ProfileScreen() {
     <Container>
       {/* Header */}
       <HeaderWithTab
-        title="Profile"
-        subtitle="Manage your account and preferences"
+        title={t("tabs.profile")}
+        subtitle={t("profile.subtitle")}
       />
 
       <View style={{ paddingHorizontal: 20 }}>
@@ -80,19 +82,19 @@ export default function ProfileScreen() {
           <View style={styles.menuList}>
             <MenuItem
               icon="account-edit"
-              label="Edit Profile"
+              label={t("profile.edit")}
               onPress={navigateToEditProfile}
             />
             {user.role === "PARENTS" && (
               <MenuItem
                 icon="baby-face-outline"
-                label="My Children"
+                label={t("profile.myChildren")}
                 onPress={navigateToMyChildren}
               />
             )}
             <MenuItem
               icon="cog-outline"
-              label="Settings"
+              label={t("profile.settings")}
               onPress={() => setShowSettingsDropdown(!showSettingsDropdown)}
             />
             {showSettingsDropdown && (
@@ -101,21 +103,21 @@ export default function ProfileScreen() {
               >
                 <MenuItem
                   icon="lock-reset"
-                  label="Change Password"
+                  label={t("profile.changePassword")}
                   onPress={() =>
                     navigation.navigate("Profile", { screen: "ChangePassword" })
                   }
                 />
                 <MenuItem
                   icon="calendar-outline"
-                  label="Calendar Access"
+                  label={t("profile.calendarAccess")}
                   onPress={() =>
                     navigation.navigate("Profile", { screen: "CalendarAccess" })
                   }
                 />
                 <MenuItem
-                  icon="notifications-outline"
-                  label="Notification Settings"
+                  icon="bell-outline"
+                  label={t("profile.notificationSettings")}
                   onPress={() =>
                     navigation.navigate("Profile", {
                       screen: "NotificationSettings",
@@ -124,12 +126,15 @@ export default function ProfileScreen() {
                 />
               </View>
             )}
-            <MenuItem icon="help-circle-outline" label="Need Help?" />
+            <MenuItem
+              icon="help-circle-outline"
+              label={t("profile.needHelp")}
+            />
 
             {/* Logout */}
             <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
               <Icon name="power" size={24} color="#F44336" />
-              <Text style={styles.logoutText}>Logout</Text>
+              <Text style={styles.logoutText}>{t("profile.logout")}</Text>
             </TouchableOpacity>
           </View>
         </View>

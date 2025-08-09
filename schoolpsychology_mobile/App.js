@@ -14,9 +14,11 @@ import { useEffect, useCallback, useRef } from "react";
 import Toast from "react-native-toast-message";
 import { PaperProvider } from "react-native-paper";
 import { PermissionProvider } from "./src/contexts";
+import { LanguageProvider } from "./src/contexts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { TextEncoder, TextDecoder } from "text-encoding";
+import "./src/i18n";
 
 // Extend global with TextEncoder and TextDecoder
 if (typeof global.TextEncoder === "undefined") {
@@ -46,7 +48,12 @@ function RootNavigation() {
 
   // Handle logout notification
   const handleLogoutNotification = useCallback(() => {
-    console.log("Logout callback triggered from App.js");
+    Toast.show({
+      type: "info",
+      text1: "Đăng xuất",
+      text2: "Phiên làm việc đã kết thúc. Vui lòng đăng nhập lại.",
+      position: "top",
+    });
   }, []);
 
   useEffect(() => {
@@ -84,7 +91,9 @@ export default function App() {
       <PermissionProvider>
         <RealTimeProvider>
           <PaperProvider>
-            <RootNavigation />
+            <LanguageProvider>
+              <RootNavigation />
+            </LanguageProvider>
             <Toast />
           </PaperProvider>
         </RealTimeProvider>

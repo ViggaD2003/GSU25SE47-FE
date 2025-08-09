@@ -6,6 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
+import Toast from "react-native-toast-message";
 import {
   isAuthenticated as authIsAuthenticated,
   getCurrentUser,
@@ -18,7 +19,6 @@ import {
   performLogout,
   isLogoutInProgress,
 } from "../services/auth/tokenManager";
-
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -135,11 +135,24 @@ export const AuthProvider = ({ children }) => {
       await authLogout();
       setUser(null);
       triggerLogout(); // Trigger all logout callbacks
+      // Show toast on logout
+      Toast.show({
+        type: "info",
+        text1: "Đăng xuất",
+        text2: "Bạn đã bị đăng xuất. Vui lòng đăng nhập lại.",
+        position: "top",
+      });
     } catch (error) {
       console.error("Logout error in context:", error);
       // Still clear user state even if logout fails
       setUser(null);
       triggerLogout();
+      Toast.show({
+        type: "error",
+        text1: "Đăng xuất",
+        text2: "Phiên làm việc không còn hợp lệ. Vui lòng đăng nhập lại.",
+        position: "top",
+      });
     } finally {
       logoutInProgressRef.current = false;
     }

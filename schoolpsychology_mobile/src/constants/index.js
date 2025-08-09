@@ -20,8 +20,8 @@ export const GlobalStyles = {
 // Authentication configuration
 export const AUTH_CONFIG = {
   // Token settings
-  TOKEN_KEY: "accessToken",
-  REFRESH_TOKEN_KEY: "refreshToken",
+  TOKEN_KEY: "token",
+  REFRESH_TOKEN_KEY: "token",
 
   // API endpoints
   ENDPOINTS: {

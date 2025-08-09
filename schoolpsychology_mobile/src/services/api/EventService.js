@@ -64,7 +64,6 @@ const EventService = {
       const response = await axios.get(
         `/api/v1/events/${userId}?startDate=${startDate}&endDate=${endDate}`
       );
-      console.log("response", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching events:", error);

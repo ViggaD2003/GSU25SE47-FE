@@ -28,12 +28,13 @@
     "teacherManagement": "Homeroom Teacher",
     "studentManagement": "Student in Class",
     "myClass": "My Class",
-    "myStudent": "Student in Clas",
+    "myStudent": "Student in Class",
     "caseManagement": "Support Cases",
     "caseAssign": "Case Assigned",
     "observedCases": "Observed Cases",
     "assignedCases": "Assigned Cases",
     "categoryManagement": "Category",
+    "systemConfig": "System Config",
     "assessmentDemo": "Assessment Demo Lab",
     "login": "Login",
     "logout": "Logout"
@@ -99,6 +100,90 @@
       "ratioByGender": "Case Ratio by Gender",
       "byIssueTitle": "Cases by Issue Type",
       "cases": "Cases"
+    }
+  },
+  "teacherDashboard": {
+    "title": "Teacher Dashboard",
+    "subtitle": "Overview of your class mental health and activities",
+    "empty": "No data",
+    "overview": {
+      "totalStudents": "Total Students",
+      "studentsWithCases": "Students With Cases",
+      "studentsInPrograms": "Students In Programs",
+      "studentsCompletedSurveys": "Completed Surveys"
+    },
+    "caseSummary": {
+      "title": "Case Summary by Category",
+      "cases": "Cases"
+    },
+    "cases": {
+      "title": "Observed Cases",
+      "student": "Student",
+      "category": "Category",
+      "status": "Status",
+      "trend": "Trend",
+      "priority": "Priority",
+      "lastUpdated": "Last Updated"
+    },
+    "alertSkippedSurveys": {
+      "title": "Skipped Surveys This Month",
+      "countSuffix": "skipped"
+    }
+  },
+  "counselorDashboard": {
+    "title": "Counselor Dashboard",
+    "subtitle": "Your cases, appointments, and reviews overview",
+    "upcomingAppointments": "Upcoming Appointments",
+    "overview": {
+      "myActiveCases": "My Active Cases",
+      "myAppointmentsThisMonth": "Appointments This Month",
+      "mySurveysReviewed": "Surveys Reviewed",
+      "programsReferred": "Programs Referred"
+    },
+    "caseByCategory": {
+      "title": "Cases by Category",
+      "category": "Category",
+      "totalCases": "Total Cases"
+    },
+    "activeCases": {
+      "title": "My Active Cases",
+      "titleCol": "Title",
+      "student": "Student",
+      "priority": "Priority",
+      "status": "Status",
+      "trend": "Trend"
+    }
+  },
+  "managerDashboard": {
+    "title": "Manager Dashboard",
+    "subtitle": "Organization-wide overview and insights",
+    "overview": {
+      "totalStudents": "Total Students",
+      "totalPrograms": "Total Programs",
+      "totalSurveys": "Total Surveys",
+      "totalAppointments": "Total Appointments",
+      "activeCases": "Active Cases"
+    },
+    "activityByCategories": {
+      "title": "Activity by Categories",
+      "category": "Category",
+      "programs": "Programs",
+      "surveys": "Surveys",
+      "appointments": "Appointments"
+    },
+    "surveyLevelByCategories": {
+      "title": "Survey Levels by Categories",
+      "category": "Category",
+      "level": "Level",
+      "count": "Count"
+    },
+    "activeCases": {
+      "title": "Active Cases",
+      "titleCol": "Title",
+      "student": "Student",
+      "counselor": "Counselor",
+      "priority": "Priority",
+      "status": "Status"
     }
   },
   "theme": {
@@ -1200,6 +1285,15 @@
       "teacherEmail": "Teacher Email",
       "actions": "Actions"
     },
+    "enroll": "Enroll",
+    "enrollModal": {
+      "title": "Enroll students to class {{code}}",
+      "searchPlaceholder": "Search students by name, email, phone, code...",
+      "selectedCount": "Selected: {{count}}",
+      "enrollSelected": "Enroll Selected",
+      "success": "Students enrolled successfully",
+      "error": "Failed to enroll students"
+    },
     "form": {
       "codeClass": "Class Code",
       "codeClassPlaceholder": "Enter class code",
@@ -1837,5 +1931,28 @@
       "mistake5": "Inadequate follow-up planning or resource allocation"
     },
     "footer": "This helper provides general guidelines. Always consider specific organizational policies and participant needs."
+  },
+  "systemConfig": {
+    "title": "System Configuration",
+    "description": "Manage system-wide configuration values",
+    "searchPlaceholder": "Search by key or description...",
+    "allGroups": "All Groups",
+    "filters": { "group": "Group" },
+    "resetChanges": "Reset Changes",
+    "rawValueNoteTitle": "Note",
+    "rawValueNote": "Values are edited in raw form. Do not set language-specific text here (no EN/VI variants).",
+    "table": {
+      "id": "ID",
+      "group": "Group",
+      "key": "Key",
+      "value": "Value",
+      "type": "Type",
+      "category": "Category",
+      "description": "Description",
+      "active": "Active",
+      "editable": "Editable",
+      "updatedAt": "Updated At",
+      "actions": "Actions"
+    }
   }
 }

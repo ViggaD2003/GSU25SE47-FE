@@ -21,9 +21,11 @@ import {
   saveSurveyProgress,
 } from "../../services/api/SurveyService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey } = route.params || {};
+  const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,12 +55,9 @@ const SurveyTaking = ({ route, navigation }) => {
       setAnswers(cleanedAnswers);
 
       if (Object.keys(cleanedAnswers).length > 0) {
-        showToast("Đã tải lại tiến độ trước đó của bạn", "info");
+        showToast(t("survey.taking.loadProgress"), "info");
       } else {
-        showToast(
-          "Tiến độ trước đó không hợp lệ, bắt đầu làm bài mới",
-          "warning"
-        );
+        showToast(t("survey.taking.invalidProgress"), "warning");
       }
     }
   }, [survey?.surveyId, cleanInvalidAnswers, showToast]);
@@ -171,7 +170,7 @@ const SurveyTaking = ({ route, navigation }) => {
       console.log("Cleared answer for question:", questionId);
       return newAnswers;
     });
-    showToast("Đã xóa câu trả lời", "info");
+    showToast(t("survey.taking.clearAnswer"), "info");
   };
 
   const handleNext = () => {
@@ -192,7 +191,7 @@ const SurveyTaking = ({ route, navigation }) => {
   const handleSubmit = () => {
     // Check if survey and questions exist
     if (!survey || !survey.questions) {
-      showToast("Không tìm thấy thông tin khảo sát", "error");
+      showToast(t("survey.taking.errors.missingSurvey"), "error");
       return;
     }
 
@@ -201,10 +200,7 @@ const SurveyTaking = ({ route, navigation }) => {
 
     if (!validationResult.isValid) {
       console.warn("Invalid answers found:", validationResult.invalidAnswers);
-      showToast(
-        "Có câu trả lời không hợp lệ, vui lòng kiểm tra lại",
-        "warning"
-      );
+      showToast(t("survey.taking.errors.invalidAnswers"), "warning");
       return;
     }
 
@@ -213,10 +209,7 @@ const SurveyTaking = ({ route, navigation }) => {
     );
 
     if (unansweredRequired.length > 0) {
-      showToast(
-        "Vui lòng trả lời tất cả câu hỏi bắt buộc trước khi nộp bài",
-        "warning"
-      );
+      showToast(t("survey.taking.errors.unansweredRequired"), "warning");
       return;
     }
 
@@ -291,14 +284,14 @@ const SurveyTaking = ({ route, navigation }) => {
       if (survey?.surveyId && Object.keys(answers).length > 0) {
         const saved = await saveSurveyProgress(survey.surveyId, answers);
         if (saved) {
-          showToast("Đã lưu tiến độ khảo sát", "success");
+          showToast(t("survey.taking.saveProgress.success"), "success");
         } else {
-          showToast("Không thể lưu tiến độ", "error");
+          showToast(t("survey.taking.saveProgress.error"), "error");
         }
       }
     } catch (error) {
       console.error("Error saving survey progress:", error);
-      showToast("Không thể lưu tiến độ", "error");
+      showToast(t("survey.taking.saveProgress.error"), "error");
     } finally {
       setTimeout(() => {
         setShowExitModal(false);
@@ -318,7 +311,7 @@ const SurveyTaking = ({ route, navigation }) => {
     try {
       // Check if survey and questions exist
       if (!survey || !survey.questions) {
-        showToast("Không tìm thấy thông tin khảo sát", "error");
+        showToast(t("survey.taking.errors.missingSurvey"), "error");
         return;
       }
 
@@ -440,7 +433,7 @@ const SurveyTaking = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Error submitting survey:", error);
-      showToast("Có lỗi xảy ra khi nộp khảo sát", "error");
+      showToast(t("survey.taking.errors.submitError"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -461,7 +454,7 @@ const SurveyTaking = ({ route, navigation }) => {
           >
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Làm khảo sát</Text>
+          <Text style={styles.headerTitle}>{t("survey.taking.title")}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View
@@ -471,7 +464,7 @@ const SurveyTaking = ({ route, navigation }) => {
           ]}
         >
           <Text style={{ fontSize: 16, color: "#6B7280", textAlign: "center" }}>
-            Không tìm thấy thông tin khảo sát. Vui lòng thử lại.
+            {t("survey.taking.notFound")}
           </Text>
         </View>
       </SafeAreaView>
@@ -491,7 +484,7 @@ const SurveyTaking = ({ route, navigation }) => {
           >
             <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Làm khảo sát</Text>
+          <Text style={styles.headerTitle}>{t("survey.taking.title")}</Text>
           <View style={styles.headerSpacer} />
         </View>
         <View
@@ -501,7 +494,7 @@ const SurveyTaking = ({ route, navigation }) => {
           ]}
         >
           <Text style={{ fontSize: 16, color: "#6B7280", textAlign: "center" }}>
-            Không tìm thấy câu hỏi hiện tại. Vui lòng thử lại.
+            {t("survey.taking.notFound")}
           </Text>
         </View>
       </SafeAreaView>
@@ -529,7 +522,10 @@ const SurveyTaking = ({ route, navigation }) => {
       />
 
       {/* Header */}
-      <HeaderWithoutTab title={"Làm khảo sát"} onBackPress={handleBackPress} />
+      <HeaderWithoutTab
+        title={t("survey.taking.title")}
+        onBackPress={handleBackPress}
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -539,7 +535,8 @@ const SurveyTaking = ({ route, navigation }) => {
         <View style={styles.progressContainer}>
           <View style={styles.progressHeader}>
             <Text style={styles.progressText}>
-              Câu hỏi {currentQuestionIndex + 1} / {survey.questions.length}
+              {t("survey.taking.question")} {currentQuestionIndex + 1} /{" "}
+              {survey.questions.length}
             </Text>
             <Text style={styles.progressPercentage}>
               {Math.round(progress)}%
@@ -572,13 +569,15 @@ const SurveyTaking = ({ route, navigation }) => {
                     : styles.requiredTextFalse,
                 ]}
               >
-                {currentQuestion.required ? "bắt buộc" : "có thể bỏ qua"}
+                {currentQuestion.required
+                  ? t("survey.taking.required")
+                  : t("survey.taking.optional")}
               </Text>
             </View>
           </View>
 
           <Text style={styles.questionText}>
-            {currentQuestion.text || "Không có nội dung câu hỏi"}
+            {currentQuestion.text || t("survey.taking.noQuestion")}
           </Text>
 
           {currentQuestion.description && (
@@ -590,7 +589,7 @@ const SurveyTaking = ({ route, navigation }) => {
           {/* Score Legend */}
           <View style={styles.scoreLegend}>
             <Text style={styles.scoreLegendText}>
-              💡 Các lựa chọn được sắp xếp theo mức độ từ thấp đến cao
+              💡 {t("survey.taking.legend")}
             </Text>
           </View>
 
@@ -638,7 +637,7 @@ const SurveyTaking = ({ route, navigation }) => {
               <Text
                 style={{ textAlign: "center", color: "#6B7280", padding: 20 }}
               >
-                Không có câu trả lời nào cho câu hỏi này.
+                {t("survey.taking.noAnswer")}
               </Text>
             )}
           </View>
@@ -650,7 +649,9 @@ const SurveyTaking = ({ route, navigation }) => {
               onPress={() => handleClearAnswer(currentQuestion.questionId)}
             >
               <Ionicons name="close-circle" size={16} color="#EF4444" />
-              <Text style={styles.clearAnswerText}>Xóa câu trả lời</Text>
+              <Text style={styles.clearAnswerText}>
+                {t("survey.taking.clearAnswer")}
+              </Text>
             </TouchableOpacity>
           )}
         </View>
@@ -667,7 +668,7 @@ const SurveyTaking = ({ route, navigation }) => {
             disabled={currentQuestionIndex === 0}
           >
             <Ionicons name="chevron-back" size={20} color="#6B7280" />
-            <Text style={styles.navButtonText}>Trước</Text>
+            <Text style={styles.navButtonText}>{t("survey.taking.prev")}</Text>
           </TouchableOpacity>
 
           {currentQuestionIndex === survey.questions.length - 1 ? (
@@ -681,17 +682,23 @@ const SurveyTaking = ({ route, navigation }) => {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <Text style={styles.submitButtonText}>Đang nộp...</Text>
+                <Text style={styles.submitButtonText}>
+                  {t("survey.taking.submitting")}
+                </Text>
               ) : (
                 <>
-                  <Text style={styles.submitButtonText}>Nộp bài</Text>
+                  <Text style={styles.submitButtonText}>
+                    {t("survey.taking.submit")}
+                  </Text>
                   <Ionicons name="checkmark" size={20} color="#fff" />
                 </>
               )}
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.navButton} onPress={handleNext}>
-              <Text style={styles.navButtonText}>Tiếp</Text>
+              <Text style={styles.navButtonText}>
+                {t("survey.taking.next")}
+              </Text>
               <Ionicons
                 name="chevron-forward"
                 size={20}
@@ -722,11 +729,13 @@ const SurveyTaking = ({ route, navigation }) => {
                     size={32}
                     color={GlobalStyles.colors.primary}
                   />
-                  <Text style={styles.modalTitle}>Nộp bài khảo sát</Text>
+                  <Text style={styles.modalTitle}>
+                    {t("survey.taking.submitTitle")}
+                  </Text>
                 </View>
 
                 <Text style={styles.modalMessage}>
-                  Bạn có chắc chắn muốn nộp bài? Không thể sửa đổi sau khi nộp.
+                  {t("survey.taking.submitMessage")}
                 </Text>
 
                 <View style={styles.modalButtons}>
@@ -735,7 +744,7 @@ const SurveyTaking = ({ route, navigation }) => {
                     onPress={handleCancelSubmit}
                   >
                     <Text style={styles.modalButtonCancelText}>
-                      Kiểm tra lại
+                      {t("survey.taking.submitCheck")}
                     </Text>
                   </TouchableOpacity>
 
@@ -743,7 +752,9 @@ const SurveyTaking = ({ route, navigation }) => {
                     style={styles.modalButtonConfirm}
                     onPress={handleConfirmSubmit}
                   >
-                    <Text style={styles.modalButtonConfirmText}>Nộp bài</Text>
+                    <Text style={styles.modalButtonConfirmText}>
+                      {t("survey.taking.submit")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -765,13 +776,13 @@ const SurveyTaking = ({ route, navigation }) => {
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Ionicons name="warning" size={32} color="#F59E0B" />
-                  <Text style={styles.modalTitle}>Thoát khỏi bài khảo sát</Text>
+                  <Text style={styles.modalTitle}>
+                    {t("survey.taking.exitTitle")}
+                  </Text>
                 </View>
 
                 <Text style={styles.modalMessage}>
-                  Tiến độ hiện tại sẽ được lưu lại. Bạn có thể tiếp tục làm bài
-                  sau. Lưu ý: Không thể quay lại màn hình trước đó khi đang làm
-                  khảo sát.
+                  {t("survey.taking.exitMessage")}
                 </Text>
 
                 <View style={styles.modalButtons}>
@@ -780,7 +791,7 @@ const SurveyTaking = ({ route, navigation }) => {
                     onPress={handleCancelExit}
                   >
                     <Text style={styles.modalButtonCancelText}>
-                      Tiếp tục làm
+                      {t("survey.taking.exitContinue")}
                     </Text>
                   </TouchableOpacity>
 
@@ -789,7 +800,7 @@ const SurveyTaking = ({ route, navigation }) => {
                     onPress={handleConfirmExit}
                   >
                     <Text style={styles.modalButtonConfirmText}>
-                      Lưu và thoát
+                      {t("survey.taking.exitSave")}
                     </Text>
                   </TouchableOpacity>
                 </View>

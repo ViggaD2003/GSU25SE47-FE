@@ -18,11 +18,13 @@ import "dayjs/locale/vi";
 import { getPastAppointments } from "@/services/api/AppointmentService";
 import { useAuth } from "@/contexts";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 dayjs.locale("vi");
 
 const AppointmentRecord = () => {
   const navigation = useNavigation();
+  const { t } = useTranslation();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -364,13 +366,13 @@ const AppointmentRecord = () => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title={"Lịch sử tư vấn"}
+        title={t("appointment.record.title")}
         onBackPress={() => navigation.goBack()}
       />
 
       {/* Content */}
       {loading ? (
-        <Loading text="Đang tải hồ sơ..." />
+        <Loading text={t("appointment.record.loading")} />
       ) : (
         <ScrollView
           style={styles.content}
@@ -436,16 +438,18 @@ const AppointmentRecord = () => {
           {records.length === 0 ? (
             <View style={styles.emptyContainer}>
               <Ionicons name="document-outline" size={64} color="#9CA3AF" />
-              <Text style={styles.emptyTitle}>Chưa có hồ sơ tư vấn</Text>
+              <Text style={styles.emptyTitle}>
+                {t("appointment.record.emptyTitle")}
+              </Text>
               <Text style={styles.emptySubtitle}>
-                Hồ sơ tư vấn sẽ được tạo sau khi hoàn thành buổi tư vấn
+                {t("appointment.record.emptySubtitle")}
               </Text>
             </View>
           ) : (
             <LazyLoader delay={600}>
               <View style={styles.recordsList}>
                 <Text style={styles.sectionTitle}>
-                  Danh sách hồ sơ ({records.length})
+                  {t("appointment.record.listTitle", { count: records.length })}
                 </Text>
                 {records.map(renderRecordCard)}
               </View>

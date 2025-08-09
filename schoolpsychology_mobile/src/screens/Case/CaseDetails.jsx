@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { Text, Card, Chip, Divider } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -214,12 +214,12 @@ const CaseDetails = ({ route, navigation }) => {
 
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
-        <Card style={[styles.caseInfoCard]}>
+        <View style={[styles.caseInfoCard]}>
           <LinearGradient
             colors={["#FFFFFF", "#F8FAFC"]}
             style={[styles.cardGradient]}
           >
-            <Card.Content style={[styles.cardContent, { width: "100%" }]}>
+            <View style={[styles.cardContent]}>
               {/* Header with gradient background */}
               <LinearGradient
                 colors={statusConfig.gradient}
@@ -357,9 +357,9 @@ const CaseDetails = ({ route, navigation }) => {
                   </View>
                 </View>
               </View>
-            </Card.Content>
+            </View>
           </LinearGradient>
-        </Card>
+        </View>
       </Animated.View>
     );
   };
@@ -385,9 +385,8 @@ const CaseDetails = ({ route, navigation }) => {
               }
               subtitle={`${groupedStatic.survey.completedSurveys} hoàn thành`}
               icon="document-text"
-              iconColor="#FFFFFF"
-              valueColor="#FFFFFF"
-              backgroundColor="#F59E0B"
+              iconColor="#F59E0B"
+              valueColor="#F59E0B"
               size="small"
             />
           </View>
@@ -400,9 +399,8 @@ const CaseDetails = ({ route, navigation }) => {
               }
               subtitle={`${groupedStatic.appointment.completedAppointments} hoàn thành`}
               icon="calendar"
-              iconColor="#FFFFFF"
-              valueColor="#FFFFFF"
-              backgroundColor="#10B981"
+              iconColor="#10B981"
+              valueColor="#10B981"
               size="small"
             />
           </View>
@@ -415,9 +413,8 @@ const CaseDetails = ({ route, navigation }) => {
               }
               subtitle={`${groupedStatic.program.completedPrograms} hoàn thành`}
               icon="school"
-              iconColor="#FFFFFF"
-              valueColor="#FFFFFF"
-              backgroundColor="#F59E0B"
+              iconColor="#F59E0B"
+              valueColor="#F59E0B"
               size="small"
             />
           </View>
@@ -462,51 +459,36 @@ const CaseDetails = ({ route, navigation }) => {
         <Text style={styles.sectionTitle}>Biểu đồ thống kê</Text>
 
         <View style={styles.chartContainer}>
-          <LinearGradient
-            colors={["#FFFFFF", "#F8FAFC"]}
-            style={styles.chartCard}
-          >
-            <BarChart
-              data={surveyData}
-              title="Khảo sát"
-              barColor="#3B82F6"
-              height={150}
-              yAxisMax={4.0}
-              valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
-            />
-          </LinearGradient>
+          <BarChart
+            data={surveyData}
+            title="Khảo sát"
+            barColor="#3B82F6"
+            height={150}
+            yAxisMax={4.0}
+            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+          />
         </View>
 
         <View style={styles.chartContainer}>
-          <LinearGradient
-            colors={["#FFFFFF", "#F8FAFC"]}
-            style={styles.chartCard}
-          >
-            <BarChart
-              data={appointmentData}
-              title="Lịch hẹn"
-              barColor="#10B981"
-              height={150}
-              yAxisMax={4.0}
-              valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
-            />
-          </LinearGradient>
+          <BarChart
+            data={appointmentData}
+            title="Lịch hẹn"
+            barColor="#10B981"
+            height={150}
+            yAxisMax={4.0}
+            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+          />
         </View>
 
         <View style={styles.chartContainer}>
-          <LinearGradient
-            colors={["#FFFFFF", "#F8FAFC"]}
-            style={styles.chartCard}
-          >
-            <BarChart
-              data={programData}
-              title="Chương trình"
-              barColor="#F59E0B"
-              height={150}
-              yAxisMax={4.0}
-              valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
-            />
-          </LinearGradient>
+          <BarChart
+            data={programData}
+            title="Chương trình"
+            barColor="#F59E0B"
+            height={150}
+            yAxisMax={4.0}
+            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+          />
         </View>
       </Animated.View>
     );
@@ -643,7 +625,7 @@ const CaseDetails = ({ route, navigation }) => {
             {renderCaseInfo()}
             {renderStatistics()}
             {renderCharts()}
-            {renderStudentInfo()}
+            {/* {renderStudentInfo()} */}
           </View>
         )}
       </ScrollView>
@@ -652,11 +634,8 @@ const CaseDetails = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollContent: {
-    paddingBottom: 32,
+    // paddingBottom: 32,
   },
   content: {
     padding: 16,
@@ -711,7 +690,6 @@ const styles = StyleSheet.create({
   },
   cardGradient: {
     borderRadius: 20,
-    width: "100%",
   },
   cardContent: {
     padding: 0,
@@ -899,20 +877,8 @@ const styles = StyleSheet.create({
   chartsSection: {
     marginBottom: 32,
   },
-  chartContainer: {
-    marginBottom: 20,
-  },
-  chartCard: {
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
+  chartContainer: {},
+  chartCard: {},
   studentCard: {
     marginBottom: 16,
     borderRadius: 20,

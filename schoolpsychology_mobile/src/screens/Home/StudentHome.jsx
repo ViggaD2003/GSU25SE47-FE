@@ -17,6 +17,7 @@ import { useNotifications } from "../../utils/hooks";
 import EventService from "@/services/api/EventService";
 import { fetchAllRecommendedPrograms } from "@/services/api/ProgramService";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -25,13 +26,8 @@ const isMediumDevice = width >= 375 && width < 414;
 
 const PAGE_SIZE = 2; // Page size for lazy loading
 
-export default function StudentHome({
-  user,
-  navigation,
-  setShowToast,
-  setToastMessage,
-  setToastType,
-}) {
+export default function StudentHome({ user, navigation }) {
+  const { t } = useTranslation();
   const [todayPlans, setTodayPlans] = useState([]); // Store all data
   const [recommandedPrograms, setRecommandedPrograms] = useState([]);
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
@@ -45,7 +41,7 @@ export default function StudentHome({
   const actionItems = useMemo(
     () => [
       {
-        title: "Booking",
+        title: t("home.actions.booking"),
         key: "booking",
         icon: "calendar",
         onPress: () => {
@@ -53,7 +49,7 @@ export default function StudentHome({
         },
       },
       {
-        title: "Doc & Blog",
+        title: t("home.actions.blog"),
         key: "doc-blog",
         icon: "book",
         onPress: () => {
@@ -61,7 +57,7 @@ export default function StudentHome({
         },
       },
       {
-        title: "History",
+        title: t("home.actions.history"),
         key: "history",
         icon: "back-in-time",
         onPress: () => {
@@ -69,7 +65,7 @@ export default function StudentHome({
         },
       },
     ],
-    [navigation]
+    [navigation, t]
   );
 
   const fetchRecommandedPrograms = async () => {
@@ -214,7 +210,7 @@ export default function StudentHome({
       {/* Quick Actions */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
         </View>
         <View style={styles.connectRow}>
           {actionItems.map((item) => (
@@ -236,10 +232,14 @@ export default function StudentHome({
       <View style={styles.sectionContainer}>
         <View style={styles.headerContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended Programs</Text>
+            <Text style={styles.sectionTitle}>
+              {t("home.recommendedPrograms.title")}
+            </Text>
             <View style={styles.programCountContainer}>
               <Text style={styles.programCountText}>
-                {recommandedPrograms.length} available
+                {t("home.recommendedPrograms.available", {
+                  count: recommandedPrograms.length,
+                })}
               </Text>
             </View>
           </View>
@@ -249,7 +249,9 @@ export default function StudentHome({
               navigation.navigate("Program");
             }}
           >
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>
+              {t("home.recommendedPrograms.viewAll")}
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -263,7 +265,9 @@ export default function StudentHome({
                     <MaterialIcons name="star" size={20} color="#F59E0B" />
                   </View>
                   <View style={styles.bannerBadge}>
-                    <Text style={styles.bannerBadgeText}>Featured</Text>
+                    <Text style={styles.bannerBadgeText}>
+                      {t("home.recommendedPrograms.featured")}
+                    </Text>
                   </View>
                 </View>
                 <Text style={styles.bannerTitle} numberOfLines={2}>
@@ -272,7 +276,7 @@ export default function StudentHome({
                 </Text>
                 <Text style={styles.bannerDescription} numberOfLines={2}>
                   {recommandedPrograms[0]?.description ||
-                    "Enhance your professional skills with our comprehensive workshop"}
+                    t("home.recommendedPrograms.defaultDescription")}
                 </Text>
                 <View style={styles.bannerFooter}>
                   <View style={styles.bannerStats}>
@@ -283,7 +287,9 @@ export default function StudentHome({
                         color="#6B7280"
                       />
                       <Text style={styles.statText}>
-                        {recommandedPrograms[0]?.participants ?? 0} enrolled
+                        {t("home.recommendedPrograms.enrolled", {
+                          count: recommandedPrograms[0]?.participants ?? 0,
+                        })}
                       </Text>
                     </View>
                     <View style={styles.statItem}>
@@ -306,7 +312,9 @@ export default function StudentHome({
                       });
                     }}
                   >
-                    <Text style={styles.bannerButtonText}>Learn More</Text>
+                    <Text style={styles.bannerButtonText}>
+                      {t("home.recommendedPrograms.learnMore")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -341,22 +349,28 @@ export default function StudentHome({
                       <MaterialIcons name="school" size={20} color="#F59E0B" />
                     </View>
                     <View style={styles.programStatus}>
-                      <Text style={styles.programStatusText}>Active</Text>
+                      <Text style={styles.programStatusText}>
+                        {t("home.recommendedPrograms.active")}
+                      </Text>
                     </View>
                   </View>
 
                   {/* Category Badge */}
                   <View style={styles.categoryBadge}>
                     <Text style={styles.categoryText}>
-                      {program.category?.name || "Professional"}
+                      {program.category?.name ||
+                        t("home.recommendedPrograms.professional")}
                     </Text>
                   </View>
 
                   <Text style={styles.programTitle} numberOfLines={2}>
-                    {program.title || program.name || "Untitled Program"}
+                    {program.title ||
+                      program.name ||
+                      t("home.recommendedPrograms.untitled")}
                   </Text>
                   <Text style={styles.programDescription} numberOfLines={2}>
-                    {program.description || "No description available"}
+                    {program.description ||
+                      t("home.recommendedPrograms.noDescription")}
                   </Text>
 
                   {/* Progress Bar */}
@@ -369,14 +383,17 @@ export default function StudentHome({
                         ]}
                       />
                     </View>
-                    <Text style={styles.progressText}>Participants</Text>
+                    <Text style={styles.progressText}>
+                      {t("home.recommendedPrograms.participants")}
+                    </Text>
                   </View>
 
                   <View style={styles.programFooter}>
                     <View style={styles.programDuration}>
                       <Ionicons name="time-outline" size={14} color="#6B7280" />
                       <Text style={styles.programDurationText}>
-                        {program.duration || "Flexible"}
+                        {program.duration ||
+                          t("home.recommendedPrograms.flexible")}
                       </Text>
                     </View>
                     {/* <TouchableOpacity
@@ -428,15 +445,17 @@ export default function StudentHome({
             <View style={styles.programEmptyIconContainer}>
               <MaterialIcons name="school" size={48} color="#9CA3AF" />
             </View>
-            <Text style={styles.programEmptyText}>No programs available</Text>
-            <Text style={styles.programEmptySubText}>
-              Check back later for new learning opportunities and programs.
+            <Text style={styles.programEmptyText}>
+              {t("home.recommendedPrograms.empty.title")}
             </Text>
-            <TouchableOpacity style={styles.programEmptyButton}>
+            <Text style={styles.programEmptySubText}>
+              {t("home.recommendedPrograms.empty.description")}
+            </Text>
+            {/* <TouchableOpacity style={styles.programEmptyButton}>
               <Text style={styles.programEmptyButtonText}>
-                Browse All Programs
+                {t("home.recommendedPrograms.browseAll")}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         )}
       </View>
@@ -445,26 +464,29 @@ export default function StudentHome({
       <View style={[styles.sectionContainer]}>
         <View style={styles.headerContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Plan for today</Text>
+            <Text style={styles.sectionTitle}>{t("home.planToday.title")}</Text>
             <View style={styles.planCountContainer}>
               <Text style={styles.planCountText}>
-                {todayPlans.length}{" "}
                 {todayPlans.length === 1 || todayPlans.length === 0
-                  ? "plan"
-                  : "plans"}
+                  ? t("home.planToday.count_one", { count: todayPlans.length })
+                  : t("home.planToday.count_other", {
+                      count: todayPlans.length,
+                    })}
               </Text>
             </View>
           </View>
           <TouchableOpacity
             style={styles.viewAllContainer}
             onPress={() => {
-              console.log(
-                "StudentHome: Navigating to Record from Plan section"
-              );
+              // console.log(
+              //   "StudentHome: Navigating to Record from Plan section"
+              // );
               navigation.navigate("Event");
             }}
           >
-            <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.viewAllText}>
+              {t("home.planToday.viewAll")}
+            </Text>
           </TouchableOpacity>
         </View>
         {displayedData.length > 0 ? (
@@ -531,7 +553,9 @@ export default function StudentHome({
                 onPress={loadMorePlans}
               >
                 <Ionicons name="add-circle-outline" size={20} color="#374151" />
-                <Text style={styles.loadMoreText}>Load More Plans</Text>
+                <Text style={styles.loadMoreText}>
+                  {t("home.planToday.loadMore")}
+                </Text>
               </TouchableOpacity>
             )}
           </>
@@ -540,9 +564,11 @@ export default function StudentHome({
             <View style={styles.emptyIconContainer}>
               <MaterialIcons name="event-busy" size={48} color="#9CA3AF" />
             </View>
-            <Text style={styles.emptyText}>No plans for today</Text>
+            <Text style={styles.emptyText}>
+              {t("home.planToday.empty.title")}
+            </Text>
             <Text style={styles.emptySubText}>
-              You're all caught up! Check back later for new activities.
+              {t("home.planToday.empty.description")}
             </Text>
           </View>
         )}

@@ -23,19 +23,17 @@ export const authAPI = {
   },
 
   logout: async () => {
-    const response = await api.post('/api/v1/auth/logout')
-    return response.data
+    try {
+      const response = await api.post('/api/v1/auth/logout')
+      return response.data
+    } catch (error) {
+      console.error('Logout API error:', error)
+      throw new Error('Logout API error')
+    }
   },
 
   // Add other auth methods as needed
-  refreshToken: async () => {
-    // Get refresh token from localStorage
-    const refreshToken = localStorage.getItem('token')
-    console.log(
-      '[refreshToken] Refresh token from localStorage:',
-      refreshToken ? 'Token exists' : 'No token found'
-    )
-
+  refreshToken: async refreshToken => {
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }

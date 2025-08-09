@@ -71,7 +71,7 @@ const StatisticsCard = ({
   const sizeStyles = getSizeStyles();
 
   return (
-    <View style={[styles.container, sizeStyles.container, { backgroundColor }]}>
+    <View style={[styles.container, sizeStyles.container]}>
       {/* Content */}
       <View style={styles.content}>
         {/* Header section */}
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   title: {
-    color: "#FFF",
+    color: "#1A1A1A",
     fontWeight: "700",
     marginBottom: 8,
   },

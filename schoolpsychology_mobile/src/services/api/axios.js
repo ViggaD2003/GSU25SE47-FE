@@ -2,7 +2,6 @@ import axios from "axios";
 import { Platform, Alert } from "react-native";
 import {
   getAccessToken,
-  isTokenExpired,
   performLogout,
   isLogoutInProgress,
 } from "../auth/tokenManager";
@@ -81,7 +80,8 @@ api.interceptors.request.use(
       const token = await getAccessToken();
       // console.log("token", token);
 
-      if (token && !isTokenExpired(token)) {
+      // Always attach token if present; do not check expiry here
+      if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
@@ -165,25 +165,49 @@ api.interceptors.response.use(
     //   }
     // }
 
-    // Handle 403 Forbidden - logout user
-    if (status === 403) {
-      console.warn("Access forbidden: insufficient permissions");
+    // Handle 403 Forbidden - try to refresh once, otherwise logout
+    if (status === 403 && !originalRequest._retry403 && !isExcludedPath) {
+      originalRequest._retry403 = true;
       try {
-        await forceLogout();
-      } catch (logoutError) {
-        console.error("Logout error during 403:", logoutError);
-        // Try basic logout as fallback
-        try {
-          await performLogout(true);
-        } catch (finalError) {
-          console.error("Final logout attempt failed:", finalError);
+        console.log("403 detected. Attempting token refresh...");
+        const newToken = await refreshAccessToken();
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
         }
+        throw new Error("No token after refresh");
+      } catch (refreshError) {
+        console.error(
+          "Refresh on 403 failed. Logging out locally...",
+          refreshError
+        );
+        // Only notify if refresh endpoint itself returned 403
+        if (refreshError?.response?.status === 403) {
+          try {
+            Alert.alert(
+              "Phiên đăng nhập đã kết thúc",
+              "Tài khoản vừa được đăng nhập ở nơi khác. Bạn đã bị đăng xuất khỏi phiên hiện tại.",
+              [{ text: "OK" }],
+              { cancelable: true }
+            );
+          } catch (_) {}
+        }
+
+        // Perform local logout ONLY (do not call logout service)
+        try {
+          await forceLogout();
+        } catch (logoutError) {
+          console.error("Force logout error during 403:", logoutError);
+          try {
+            await performLogout(true);
+          } catch (finalError) {
+            console.error("Final local logout attempt failed:", finalError);
+          }
+        }
+
+        triggerLogoutCallback();
+        return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
       }
-
-      // Call logout callback if available
-      triggerLogoutCallback();
-
-      return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
     }
 
     // Handle other errors

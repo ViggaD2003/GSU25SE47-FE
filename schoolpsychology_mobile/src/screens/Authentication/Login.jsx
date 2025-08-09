@@ -11,8 +11,10 @@ import {
 } from "react-native";
 import { GlobalStyles } from "../../constants";
 import { useAuth } from "../../contexts";
+import { useTranslation } from "react-i18next";
 
 const Login = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +28,7 @@ const Login = () => {
     setFieldErrors({});
 
     if (!email || !password) {
-      setError("Please enter both email and password.");
+      setError(t("auth.pleaseEnterBoth"));
       return;
     }
 
@@ -35,10 +37,10 @@ const Login = () => {
       await login(email, password);
       // Login successful - AuthContext will handle the state update
     } catch (err) {
-      let msg = "Login failed";
+      let msg = t("auth.loginFailed");
 
       if (err.message === "Only Student or Parent can log in.") {
-        msg = err.message;
+        msg = t("auth.onlyStudentOrParent");
         setError(msg);
       } else if (err.response?.data) {
         const data = err.response.data;
@@ -68,13 +70,13 @@ const Login = () => {
         <Text style={styles.appName}>
           <Text style={styles.appNameBold}>Mindful</Text>Care
         </Text>
-        <Text style={styles.title}>Sign in to your account</Text>
+        <Text style={styles.title}>{t("app.signInToYourAccount")}</Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email Address</Text>
+          <Text style={styles.label}>{t("auth.email")}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your email address"
+            placeholder={t("auth.enterEmail")}
             placeholderTextColor="#B0B0B0"
             value={email}
             onChangeText={setEmail}
@@ -87,11 +89,11 @@ const Login = () => {
         </View>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
+          <Text style={styles.label}>{t("auth.password")}</Text>
           <View style={styles.passwordRow}>
             <TextInput
               style={[styles.input, { flex: 1 }]}
-              placeholder="Enter your password"
+              placeholder={t("auth.enterPassword")}
               placeholderTextColor="#B0B0B0"
               value={password}
               onChangeText={setPassword}
@@ -113,7 +115,9 @@ const Login = () => {
         </View>
 
         <TouchableOpacity style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+          <Text style={styles.forgotPasswordText}>
+            {t("auth.forgotPassword")}
+          </Text>
         </TouchableOpacity>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -123,7 +127,7 @@ const Login = () => {
           onPress={handleLogin}
           disabled={loading}
         >
-          <Text style={styles.signInButtonText}>Sign in</Text>
+          <Text style={styles.signInButtonText}>{t("auth.signIn")}</Text>
         </TouchableOpacity>
       </View>
       <Modal visible={loading} transparent animationType="none">
