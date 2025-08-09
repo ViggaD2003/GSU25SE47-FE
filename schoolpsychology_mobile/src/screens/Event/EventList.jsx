@@ -3,7 +3,7 @@ import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useAuth } from "@/contexts";
 import { getActiveAppointments } from "@/services/api/AppointmentService";
 import { getPublishedSurveys } from "@/services/api/SurveyService";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import { StyleSheet, View, FlatList, Text, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -11,13 +11,15 @@ import { MaterialIcons } from "@expo/vector-icons";
 const EventList = ({ route, navigation }) => {
   const { user } = useAuth();
   const { type } = route.params;
+
+  // Safety check for navigation
+  if (!navigation) {
+    return null; // or a loading component
+  }
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState("");
 
   const fetchByType = async (isRefresh = false) => {
     try {
@@ -36,6 +38,7 @@ const EventList = ({ route, navigation }) => {
           break;
         case "SURVEY":
           data = await getPublishedSurveys();
+
           setEvents(data || []);
           break;
         case "PROGRAM":
@@ -68,25 +71,18 @@ const EventList = ({ route, navigation }) => {
             onPress={() =>
               navigation.navigate("Appointment", {
                 screen: "AppointmentDetails",
-                params: { appointmentId: item.id },
+                params: { appointment: item },
               })
             }
           />
         );
+
       case "SURVEY":
         return (
           <SurveyCard
             survey={item}
-            onPress={() =>
-              navigation.navigate("Survey", {
-                screen: "SurveyInfo",
-                params: { surveyId: item.id },
-              })
-            }
+            navigation={navigation}
             onRefresh={fetchByType}
-            setShowToast={setShowToast}
-            setToastMessage={setToastMessage}
-            setToastType={setToastType}
           />
         );
       case "PROGRAM":
@@ -180,7 +176,7 @@ const EventList = ({ route, navigation }) => {
       <Container>
         <HeaderWithoutTab
           title={getTitle()}
-          onBack={() => navigation.goBack()}
+          onBackPress={() => navigation?.goBack()}
         />
         <Loading />
       </Container>
@@ -191,7 +187,7 @@ const EventList = ({ route, navigation }) => {
     <Container>
       <HeaderWithoutTab
         title={getTitle()}
-        onBackPress={() => navigation.goBack()}
+        onBackPress={() => navigation?.goBack()}
       />
 
       <FlatList

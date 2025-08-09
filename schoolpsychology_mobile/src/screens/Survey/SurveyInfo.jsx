@@ -34,7 +34,6 @@ const SurveyInfo = ({ route, navigation }) => {
 
   const fetchSurvey = async () => {
     try {
-      console.log("surveyId", surveyId);
       setLoading(true);
       const response = await getSurveyById(surveyId);
       if (response) {
@@ -113,10 +112,10 @@ const SurveyInfo = ({ route, navigation }) => {
   const getSurveyTypeColor = (type) => {
     switch (type) {
       case "SCREENING":
-        return "#3B82F6";
-      case "ASSESSMENT":
         return "#10B981";
-      case "EVALUATION":
+      case "PROGRAM":
+        return "#3B82F6";
+      case "FOLLOWUP":
         return "#F59E0B";
       default:
         return "#6B7280";
@@ -127,10 +126,6 @@ const SurveyInfo = ({ route, navigation }) => {
     switch (status) {
       case "PUBLISHED":
         return "#10B981";
-      case "DRAFT":
-        return "#6B7280";
-      case "ARCHIVED":
-        return "#EF4444";
       default:
         return "#6B7280";
     }
@@ -140,10 +135,6 @@ const SurveyInfo = ({ route, navigation }) => {
     switch (status) {
       case "PUBLISHED":
         return "Đã xuất bản";
-      case "DRAFT":
-        return "Bản nháp";
-      case "ARCHIVED":
-        return "Đã lưu trữ";
       default:
         return status;
     }
@@ -153,12 +144,10 @@ const SurveyInfo = ({ route, navigation }) => {
     switch (scope) {
       case "GRADE":
         return "Theo khối lớp";
-      case "CLASS":
-        return "Theo lớp";
-      case "SCHOOL":
+      case "ALL":
         return "Toàn trường";
       default:
-        return scope;
+        return null;
     }
   };
 
@@ -219,7 +208,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 <Text style={styles.surveyTitle}>{survey.title}</Text>
 
                 {/* Status Badge */}
-                <View
+                {/* <View
                   style={[
                     styles.statusBadge,
                     { backgroundColor: getStatusColor(survey.status) + "20" },
@@ -239,7 +228,7 @@ const SurveyInfo = ({ route, navigation }) => {
                   >
                     {getStatusText(survey.status)}
                   </Text>
-                </View>
+                </View> */}
               </View>
               <Text style={styles.surveySubtitle}>
                 {survey.description || "Khảo sát tâm lý học sinh"}
@@ -530,23 +519,24 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   statusBadge: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    padding: 4,
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    justifyContent: "center",
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    // marginRight: 6,
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
+  // statusText: {
+  //   fontSize: 12,
+  //   fontWeight: "600",
+  // },
   categoryCard: {
     backgroundColor: "#fff",
     borderRadius: 16,

@@ -364,3 +364,72 @@ export const useNotifications = () => {
     refreshNotifications,
   };
 };
+
+// Hook để xử lý lỗi server
+export const useServerErrorHandler = () => {
+  const [serverError, setServerError] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("error");
+
+  const handleServerError = useCallback((error, showNotification = true) => {
+    const { status } = error.response || {};
+
+    let errorMessage = "Đã xảy ra lỗi không xác định";
+    let errorTitle = "Lỗi";
+    let toastType = "error";
+
+    switch (status) {
+      case 502:
+        errorTitle = "Lỗi kết nối server";
+        errorMessage =
+          "Server hiện tại không khả dụng. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
+        toastType = "server-error";
+        break;
+      case 503:
+        errorTitle = "Dịch vụ tạm thời không khả dụng";
+        errorMessage = "Server đang bảo trì. Vui lòng thử lại sau.";
+        toastType = "server-error";
+        break;
+      case 504:
+        errorTitle = "Lỗi timeout";
+        errorMessage = "Server phản hồi quá chậm. Vui lòng thử lại sau.";
+        toastType = "server-error";
+        break;
+      default:
+        if (error.message) {
+          errorMessage = error.message;
+        }
+    }
+
+    setServerError({ title: errorTitle, message: errorMessage });
+
+    if (showNotification) {
+      // Sử dụng Toast thay vì Alert
+      setToastMessage(errorMessage);
+      setToastType(toastType);
+      setShowToast(true);
+    }
+
+    return { title: errorTitle, message: errorMessage };
+  }, []);
+
+  const clearServerError = useCallback(() => {
+    setServerError(null);
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setShowToast(false);
+  }, []);
+
+  return {
+    serverError,
+    handleServerError,
+    clearServerError,
+    // Toast props
+    showToast,
+    toastMessage,
+    toastType,
+    hideToast,
+  };
+};

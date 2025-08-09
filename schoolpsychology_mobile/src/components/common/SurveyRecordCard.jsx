@@ -1,17 +1,13 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { GlobalStyles } from "../../constants";
-import {
-  formatDate,
-  getScoreColor,
-  getScoreIcon,
-  getScoreLevel,
-  getInterventionRequired,
-} from "../../utils/helpers";
+import { getLevelConfig, GlobalStyles } from "../../constants";
+import { formatDate } from "../../utils/helpers";
 
 const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
   const isSkipped = record?.isSkipped || false;
-  const levelConfig = record?.level;
+  const levelConfig = getLevelConfig(
+    record?.level?.code || record?.level?.levelType
+  );
 
   return (
     <TouchableOpacity
@@ -46,7 +42,7 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
             style={[
               styles.scoreCircle,
               {
-                borderColor: isSkipped ? "#6B7280" : getScoreColor(levelConfig),
+                borderColor: isSkipped ? "#6B7280" : levelConfig?.color,
                 backgroundColor: isSkipped ? "#F3F4F6" : "#FAFAFA",
               },
             ]}
@@ -55,7 +51,7 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
               style={[
                 styles.scoreText,
                 {
-                  color: isSkipped ? "#6B7280" : getScoreColor(levelConfig),
+                  color: isSkipped ? "#6B7280" : levelConfig?.color,
                 },
               ]}
             >
@@ -69,14 +65,12 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
         {!isSkipped && levelConfig && (
           <View style={styles.scoreInfo}>
             <Ionicons
-              name={getScoreIcon(levelConfig)}
+              name={levelConfig?.icon}
               size={20}
-              color={getScoreColor(levelConfig)}
+              color={levelConfig?.color}
             />
-            <Text
-              style={[styles.scoreLevel, { color: getScoreColor(levelConfig) }]}
-            >
-              {getScoreLevel(levelConfig)}
+            <Text style={[styles.scoreLevel, { color: levelConfig?.color }]}>
+              {levelConfig?.label}
             </Text>
           </View>
         )}
@@ -91,10 +85,10 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
         {showIntervention &&
           !isSkipped &&
           levelConfig &&
-          getInterventionRequired(levelConfig) && (
+          levelConfig?.interventionRequired && (
             <View style={styles.suggestionContainer}>
               <Text style={styles.suggestionText} numberOfLines={2}>
-                {getInterventionRequired(levelConfig)}
+                {levelConfig?.interventionRequired}
               </Text>
             </View>
           )}

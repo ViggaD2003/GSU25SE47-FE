@@ -39,10 +39,10 @@ const ClassTable = ({
     },
     {
       title: t('classManagement.table.classYear'),
-      dataIndex: 'classYear',
-      key: 'classYear',
-      render: text => {
-        const year = dayjs(text).year()
+      dataIndex: 'schoolYear',
+      key: 'schoolYear',
+      render: classYear => {
+        const year = dayjs(classYear).year()
         return <Tag color="blue">{year}</Tag>
       },
       width: 120,

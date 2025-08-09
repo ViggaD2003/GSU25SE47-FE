@@ -100,8 +100,9 @@ export default function MainTabs() {
           component={CaseDetails}
           initialParams={{
             from: "tab",
-            headerTitle: "Trường hợp hiện tại",
-            emptyTitle: "Hiện tại bạn chưa có trường hợp nào",
+            headerTitle: "Follow-up",
+            subTitle: "Follow up your case and get the best result",
+            emptyTitle: "You don't have any case to follow up",
           }}
           options={{
             title: "Case",
@@ -160,10 +161,7 @@ export default function MainTabs() {
 
   const AppointmentStack = () => {
     return (
-      <Stack.Navigator
-        initialRouteName="Appointment"
-        screenOptions={{ headerShown: false }}
-      >
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Appointment" component={BookingScreen} />
         <Stack.Screen name="StatusScreen" component={StatusScreen} />
         <Stack.Screen

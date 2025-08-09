@@ -166,10 +166,14 @@ const ProgramModal = ({
         },
       }
 
+      // console.log('programData', programData)
+
       const requestData = {
         thumbnail: thumbnail,
         request: { ...programData },
       }
+
+      // console.log('requestData', requestData)
 
       const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
 
@@ -183,7 +187,7 @@ const ProgramModal = ({
       handleCancel()
     } catch (error) {
       console.error('Submit failed:', error)
-      messageApi.error(t('programManagement.messages.submitError'))
+      throw error
     } finally {
       setLoading(false)
     }

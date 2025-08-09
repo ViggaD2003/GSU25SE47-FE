@@ -43,21 +43,10 @@ export const createClass = createAsyncThunk(
   'class/createClass',
   async (classData, { rejectWithValue }) => {
     try {
-      if (!classData) {
+      if (!classData || classData.length === 0) {
         return rejectWithValue('Class data is required')
       }
-      const data = [
-        {
-          grade: classData?.grade || 'GRADE_10',
-          teacherId: classData?.teacherId || null,
-          codeClass: classData?.codeClass || null,
-          schoolYear: classData?.schoolYear || null,
-          startTime: classData?.startTime || null,
-          endTime: classData?.endTime || null,
-          isActive: classData?.isActive || true,
-        },
-      ]
-      const response = await classAPI.createClass(data)
+      const response = await classAPI.createClass(classData)
       return response
     } catch (error) {
       return rejectWithValue(

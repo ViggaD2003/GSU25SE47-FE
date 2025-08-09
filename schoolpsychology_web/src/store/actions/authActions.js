@@ -1,6 +1,6 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { authAPI } from '../../services/authApi'
-import { decodeJWT, isTokenExpired } from '../../utils'
+import { decodeJWT } from '../../utils'
 import {
   loginStart,
   loginSuccess,
@@ -64,69 +64,89 @@ export const loginUser = createAsyncThunk(
   }
 )
 
-// Async thunk for refresh token
-export const refreshToken = createAsyncThunk(
-  'auth/refreshToken',
-  async (_, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await authAPI.refreshToken()
+// Async thunk for refresh token - DISABLED
+// export const refreshToken = createAsyncThunk(
+//   'auth/refreshToken',
+//   async (_, { dispatch, rejectWithValue }) => {
+//     try {
+//       console.log('[refreshToken] Running...')
 
-      if (response.success && response.data?.token) {
-        const newToken = response.data.token
-        localStorage.setItem('token', newToken)
+//       const response = await authAPI.refreshToken()
+//       console.log('[refreshToken] Response:', response)
 
-        // Decode the new token to get updated user information
-        const decodedToken = decodeJWT(newToken)
+//       if (response.success && response.data?.token) {
+//         const newToken = response.data.token
 
-        // Update the stored auth data with new token and user info
-        const savedAuth = localStorage.getItem('auth')
-        if (savedAuth) {
-          const authData = JSON.parse(savedAuth)
-          authData.token = newToken
+//         // Only update localStorage if we got a new token
+//         if (newToken !== localStorage.getItem('token')) {
+//           localStorage.setItem('token', newToken)
 
-          // Update user data from decoded token if available
-          if (decodedToken) {
-            authData.user = {
-              ...decodedToken,
-              ...authData.user,
-              id:
-                decodedToken['user-id'] ||
-                decodedToken.userId ||
-                authData.user.id,
-              fullName:
-                decodedToken.name ||
-                decodedToken.fullName ||
-                authData.user.fullName,
-              email:
-                decodedToken.email || decodedToken.sub || authData.user.email,
-              role: decodedToken.role
-                ? String(decodedToken.role).toLowerCase()
-                : null,
-            }
-          }
+//           // Decode the new token to get updated user information
+//           const decodedToken = decodeJWT(newToken)
 
-          localStorage.setItem('auth', JSON.stringify(authData))
-          // Use loginSuccess to ensure isRestoredFromStorage is set to false
-          dispatch(loginSuccess(authData))
-        }
+//           // Update the stored auth data with new token and user info
+//           const savedAuth = localStorage.getItem('auth')
+//           if (savedAuth) {
+//             const authData = JSON.parse(savedAuth)
+//             authData.token = newToken
 
-        return { token: newToken }
-      } else {
-        throw new Error('Token refresh failed')
-      }
-    } catch (error) {
-      // If refresh fails, logout the user
-      dispatch(logoutUser())
-      return rejectWithValue(error.response?.data?.message || error.message)
-    }
-  }
-)
+//             // Update user data from decoded token if available
+//             if (decodedToken) {
+//               authData.user = {
+//                 ...decodedToken,
+//                 ...authData.user,
+//                 id:
+//                   decodedToken['user-id'] ||
+//                   decodedToken.userId ||
+//                   authData.user.id,
+//                 fullName:
+//                   decodedToken.name ||
+//                   decodedToken.fullName ||
+//                   authData.user.fullName,
+//                 email:
+//                   decodedToken.email || decodedToken.sub || authData.user.email,
+//                 role: decodedToken.role
+//                   ? String(decodedToken.role).toLowerCase()
+//                   : null,
+//               }
+//             }
+
+//             localStorage.setItem('auth', JSON.stringify(authData))
+//             // Use loginSuccess to ensure isRestoredFromStorage is set to false
+//             dispatch(loginSuccess(authData))
+//           }
+//         }
+
+//         return { data: { token: newToken } }
+//       } else {
+//         throw new Error('Token refresh failed - invalid response')
+//       }
+//     } catch (error) {
+//       console.log('[refreshToken] Error:', error)
+//       // If refresh fails, logout the user
+//       dispatch(logoutUser())
+//       return rejectWithValue(error.response?.data?.message || error.message)
+//     }
+//   }
+// )
+
+// Flag to prevent multiple logout calls
+let isLoggingOut = false
 
 // Async thunk for logout
 export const logoutUser = createAsyncThunk(
   'auth/logoutUser',
   async (_, { dispatch }) => {
+    // Prevent multiple logout calls
+    if (isLoggingOut) {
+      console.log('Logout already in progress, skipping...')
+      return
+    }
+
+    isLoggingOut = true
+
     try {
+      console.log('🔄 Starting logout process...')
       // Call logout API if available
       await authAPI.logout()
     } catch (error) {
@@ -137,6 +157,8 @@ export const logoutUser = createAsyncThunk(
       localStorage.removeItem('token')
 
       dispatch(logoutAction())
+      console.log('✅ Logout completed')
+      isLoggingOut = false
     }
   }
 )
@@ -203,13 +225,41 @@ export const initializeAuthFromStorage = createAsyncThunk(
 
       if (savedAuth && token) {
         // Check if token is expired
-        if (isTokenExpired(token)) {
-          console.log('Token is expired, clearing auth data')
-          localStorage.removeItem('auth')
-          localStorage.removeItem('token')
-          dispatch(initializeAuth(null))
-          return null
-        }
+
+        // Comment out refresh token logic - just clear auth data
+        // try {
+        //   // Try to refresh the token
+        //   const refreshResult = await dispatch(refreshToken()).unwrap()
+        //   console.log('Token refreshed successfully:', refreshResult)
+
+        //   // Get the updated auth data after refresh
+        //   const updatedAuth = localStorage.getItem('auth')
+        //   const updatedToken = localStorage.getItem('token')
+
+        //   if (updatedAuth && updatedToken) {
+        //     const authData = JSON.parse(updatedAuth)
+        //     dispatch(initializeAuth(authData))
+        //     return authData
+        //   } else {
+        //     throw new Error('Failed to get updated auth data after refresh')
+        //   }
+        // } catch (refreshError) {
+        //   console.log(
+        //     'Token refresh failed during initialization:',
+        //     refreshError
+        //   )
+        // If refresh fails, clear auth data
+        //   localStorage.removeItem('auth')
+        //   localStorage.removeItem('token')
+        //   dispatch(initializeAuth(null))
+        //   return null
+        // }
+
+        // Direct clear auth data without refresh attempt
+        // localStorage.removeItem('auth')
+        // localStorage.removeItem('token')
+        // dispatch(initializeAuth(null))
+        // return null
 
         const authData = JSON.parse(savedAuth)
 

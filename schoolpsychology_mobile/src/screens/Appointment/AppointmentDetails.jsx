@@ -12,7 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-import { Container } from "../../components";
+import { Container, Toast } from "../../components";
 import { GlobalStyles } from "../../constants";
 import Loading from "../../components/common/Loading";
 import ConfirmModal from "../../components/common/ConfirmModal";
@@ -24,6 +24,7 @@ import CalendarService from "@/services/CalendarService";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../contexts/AuthContext";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useServerErrorHandler } from "../../utils/hooks";
 
 const AppointmentDetails = ({ route, navigation }) => {
   const { appointment } = route.params;
@@ -36,6 +37,10 @@ const AppointmentDetails = ({ route, navigation }) => {
   const [customReason, setCustomReason] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+
+  // Server error handling
+  const { handleServerError, showToast, toastMessage, toastType, hideToast } =
+    useServerErrorHandler();
 
   // Cancel reasons
   const cancelReasons = [
@@ -669,6 +674,23 @@ const AppointmentDetails = ({ route, navigation }) => {
         )}
       </ScrollView>
 
+      {/* Warning Card - chỉ hiển thị khi không thể hủy lịch hẹn */}
+      {!canCancel() && (
+        <View style={styles.warningCard}>
+          <View style={styles.warningHeader}>
+            <Ionicons name="warning" size={24} color="#F59E0B" />
+            <Text style={styles.warningTitle}>Không thể hủy lịch hẹn</Text>
+          </View>
+          <Text style={styles.warningText}>
+            {appointment.status === "PENDING"
+              ? "Lịch hẹn đang chờ xác nhận, không thể hủy."
+              : appointment.status === "CONFIRMED"
+              ? "Lịch hẹn gần thời gian bắt đầu, không thể hủy."
+              : "Lịch hẹn đã diễn ra hoặc quá gần thời gian bắt đầu, không thể hủy."}
+          </Text>
+        </View>
+      )}
+
       {/* Action Button */}
       {canCancel() && (
         <View style={styles.actionContainer}>
@@ -829,6 +851,14 @@ const AppointmentDetails = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Server Error Toast */}
+      <Toast
+        visible={showToast}
+        message={toastMessage}
+        type={toastType}
+        onHide={hideToast}
+      />
     </Container>
   );
 };
@@ -1215,6 +1245,33 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  warningCard: {
+    backgroundColor: "#FFFBEB",
+    borderRadius: 16,
+    padding: 20,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    borderLeftWidth: 5,
+    borderLeftColor: "#F59E0B",
+    marginVertical: 5,
+  },
+  warningHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 8,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#92400E",
+  },
+  warningText: {
+    fontSize: 14,
+    color: "#92400E",
+    lineHeight: 20,
   },
 });
 

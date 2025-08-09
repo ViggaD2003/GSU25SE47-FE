@@ -15,6 +15,7 @@ import {
   Badge,
   Row,
   Col,
+  Checkbox,
 } from 'antd'
 import {
   InfoCircleOutlined,
@@ -25,6 +26,7 @@ import {
   FileTextOutlined,
   BarChartOutlined,
   SafetyOutlined,
+  BellOutlined,
 } from '@ant-design/icons'
 import { reportScore } from '../../constants/appointmentReport'
 
@@ -73,6 +75,12 @@ const AssessmentForm = memo(
       sessionFlow: 'AVERAGE',
       studentCoopLevel: 'MEDIUM',
       assessmentScores: [],
+      notificationSettings: {
+        sendNotification: false,
+        notifyTeachers: true,
+        notifyParents: false,
+        // notifyAdministrators: false,
+      },
     })
 
     // State for tracking progress
@@ -116,6 +124,13 @@ const AssessmentForm = memo(
         if (score && score.chronicityScore > 0) completedFields++
       })
 
+      if (formData.notificationSettings?.sendNotification) {
+        if (formData.notificationSettings.notifyTeachers) completedFields++
+        if (formData.notificationSettings.notifyParents) completedFields++
+        if (formData.notificationSettings.notifyAdministrators)
+          completedFields++
+      }
+
       setProgress(Math.round((completedFields / totalFields) * 100))
     }, [formData, categories])
 
@@ -158,10 +173,21 @@ const AssessmentForm = memo(
         setFormData(JSON.parse(savedData))
         if (savedProgress) {
           setProgress(parseInt(savedProgress))
-          message.success(t('assessmentForm.form.messages.saveSuccess'))
+          // message.success(t('assessmentForm.form.messages.saveSuccess'))
         }
       }
-    }, [t, message])
+    }, [])
+
+    // Handle notification settings changes
+    const handleNotificationChange = useCallback((field, value) => {
+      setFormData(prev => ({
+        ...prev,
+        notificationSettings: {
+          ...prev.notificationSettings,
+          [field]: value,
+        },
+      }))
+    }, [])
 
     // Handle assessment score changes
     const handleAssessmentScoreChange = useCallback(
@@ -209,7 +235,7 @@ const AssessmentForm = memo(
     }, [])
 
     // Handle form submission
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = useCallback(async () => {
       // Validate required fields
       if (!formData.sessionNotes.trim()) {
         message.error(t('assessmentForm.form.validation.sessionNotesRequired'))
@@ -251,11 +277,11 @@ const AssessmentForm = memo(
       // Clear localStorage
       localStorage.removeItem('assessmentFormData')
       localStorage.removeItem('assessmentFormProgress')
-
+      console.log('formData', formData)
       // Submit data
-      onSubmit && onSubmit(formData)
+      await onSubmit(formData)
       onClose()
-    }, [formData, highRiskWarnings, onSubmit, onClose, t, message])
+    }, [formData, highRiskWarnings, onSubmit, t, message, onClose])
 
     // Reset form
     const handleReset = useCallback(() => {
@@ -272,6 +298,12 @@ const AssessmentForm = memo(
           impairmentScore: 0,
           chronicityScore: 0,
         })),
+        notificationSettings: {
+          sendNotification: false,
+          notifyTeachers: true,
+          notifyParents: false,
+          notifyAdministrators: false,
+        },
       })
       setProgress(0)
       setExpandedPanels([])
@@ -481,7 +513,7 @@ const AssessmentForm = memo(
     if (!isVisible) return null
 
     return (
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className="w-full">
         {/* Header */}
         <Card
           className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
@@ -670,6 +702,140 @@ const AssessmentForm = memo(
                 maxLength={500}
                 required
               />
+            </div>
+          </div>
+        </Card>
+
+        {/* Notification Settings */}
+        <Card
+          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
+        >
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 mb-4">
+              <BellOutlined className="text-blue-500 text-lg" />
+              <Title level={4} className="mb-0">
+                {t('assessmentForm.notification.title') ||
+                  'Notification Settings'}
+              </Title>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <Checkbox
+                checked={formData.notificationSettings?.sendNotification}
+                onChange={e =>
+                  handleNotificationChange('sendNotification', e.target.checked)
+                }
+                className="text-base font-medium"
+              >
+                {t('assessmentForm.notification.enableNotifications') ||
+                  'Send notifications about this assessment'}
+              </Checkbox>
+
+              {formData.notificationSettings?.sendNotification && (
+                //notifyTeachers
+                <div className="mt-4 ml-6 space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <UserOutlined className="text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <Text
+                          strong
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {t('assessmentForm.notification.notifyTeachers') ||
+                            'Notify Teachers'}
+                        </Text>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {t(
+                            'assessmentForm.notification.teacherDescription'
+                          ) || 'Send assessment results to relevant teachers'}
+                        </div>
+                      </div>
+                    </div>
+                    <Checkbox
+                      checked={formData.notificationSettings?.notifyTeachers}
+                      onChange={e =>
+                        handleNotificationChange(
+                          'notifyTeachers',
+                          e.target.checked
+                        )
+                      }
+                      disabled={
+                        !formData.notificationSettings?.sendNotification
+                      }
+                    />
+                  </div>
+
+                  {/* //notifyParents */}
+                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 opacity-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <UserOutlined className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <Text
+                          strong
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {t('assessmentForm.notification.notifyParents') ||
+                            'Notify Parents'}
+                        </Text>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {t('assessmentForm.notification.parentDescription') ||
+                            'Coming soon - notify parents about assessment'}
+                        </div>
+                      </div>
+                    </div>
+                    <Checkbox
+                      checked={formData.notificationSettings?.notifyParents}
+                      onChange={e =>
+                        handleNotificationChange(
+                          'notifyParents',
+                          e.target.checked
+                        )
+                      }
+                      disabled={true}
+                    />
+                  </div>
+
+                  {/* //notifyAdministrators */}
+                  {/* <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 opacity-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                        <UserOutlined className="text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <Text
+                          strong
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {t(
+                            'assessmentForm.notification.notifyAdministrators'
+                          ) || 'Notify Administrators'}
+                        </Text>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {t('assessmentForm.notification.adminDescription') ||
+                            'Coming soon - notify school administrators'}
+                        </div>
+                      </div>
+                    </div>
+                    <Checkbox
+                      checked={
+                        formData.notificationSettings?.notifyAdministrators
+                      }
+                      onChange={e =>
+                        handleNotificationChange(
+                          'notifyAdministrators',
+                          e.target.checked
+                        )
+                      }
+                      disabled={true}
+                    />
+                  </div> */}
+                </div>
+              )}
             </div>
           </div>
         </Card>

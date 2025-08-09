@@ -1189,6 +1189,7 @@
     "description": "Manage your classes and their information",
     "refresh": "Refresh",
     "addClass": "Add Class",
+    "createMultipleClasses": "Create Multiple Classes",
     "search": "Search class...",
     "table": {
       "codeClass": "Class Code",
@@ -1218,12 +1219,38 @@
       "teacherEmail": "Teacher Email",
       "teacherEmailPlaceholder": "Enter teacher email",
       "teacherEmailRequired": "Please enter teacher email",
-      "teacherEmailInvalid": "Please enter valid email address"
+      "teacherEmailInvalid": "Please enter valid email address",
+      "grade": "Grade",
+      "gradeRequired": "Please select grade",
+      "selectGrade": "Select grade",
+      "grade10": "Grade 10",
+      "grade11": "Grade 11",
+      "grade12": "Grade 12",
+      "numberOfClasses": "Number of Classes",
+      "numberOfClassesRequired": "Please enter number of classes",
+      "numberOfClassesPlaceholder": "Enter number of classes",
+      "numberOfClassesRange": "Number of classes must be between 1 and 10",
+      "schoolYear": "School Year",
+      "schoolYearRequired": "Please enter school year",
+      "schoolYearFormat": "School year must be in format YYYY-YYYY",
+      "startTime": "Start Time",
+      "startTimeRequired": "Please select start time",
+      "selectStartTime": "Select start time",
+      "endTime": "End Time",
+      "endTimeRequired": "Please select end time",
+      "selectEndTime": "Select end time",
+      "teacher": "Teacher",
+      "teacherRequired": "Please select teacher",
+      "selectTeacher": "Select teacher",
+      "class": "Class",
+      "classDetails": "Class Details",
+      "generalConfig": "General Configuration"
     },
     "modal": {
       "addTitle": "Add New Class",
       "editTitle": "Edit Class",
-      "viewTitle": "View Class Details"
+      "viewTitle": "View Class Details",
+      "createMultipleClasses": "Create Multiple Classes"
     },
     "messages": {
       "fetchSuccess": "Classes fetched successfully",
@@ -1235,7 +1262,9 @@
       "deleteSuccess": "Class deleted successfully",
       "deleteError": "Failed to delete class",
       "deleteConfirm": "Are you sure you want to delete this class?",
-      "deleteTitle": "Delete Class"
+      "deleteTitle": "Delete Class",
+      "fetchTeachersError": "Failed to fetch teachers",
+      "createError": "Failed to create classes"
     },
     "filters": {
       "classYear": "Filter by Class Year",
@@ -1554,6 +1583,7 @@
       "messages": {
         "saveSuccess": "Progress saved successfully!",
         "saveError": "Error saving progress. Please try again!",
+        "saveSuccessWithNotification": "Assessment saved successfully! Teachers will be notified about the results.",
         "submitSuccess": "Assessment submitted successfully!",
         "submitError": "Error submitting assessment. Please try again!",
         "resetSuccess": "Form has been reset successfully!"
@@ -1601,7 +1631,29 @@
     "warnings": {
       "highRisk": "Warning: Immediate intervention required",
       "highRiskDescription": "Student shows high-risk signs. Please contact a psychologist or relevant authorities immediately."
-    }
+    },
+    "notification": {
+      "title": "Notification Settings",
+      "enableNotifications": "Send notifications about this assessment",
+      "notifyTeachers": "Notify Teachers",
+      "notifyParents": "Notify Parents",
+      "notifyAdministrators": "Notify Administrators",
+      "teacherDescription": "Send assessment results to relevant teachers",
+      "parentDescription": "Coming soon - notify parents about assessment",
+      "adminDescription": "Coming soon - notify school administrators"
+    },
+    "steps": {
+      "basic": "Basic Info",
+      "assessment": "Assessment",
+      "notifications": "Notifications"
+    },
+    "progress": {
+      "complete": "Complete",
+      "good": "Good Progress",
+      "started": "Started"
+    },
+    "noCategories": "No assessment categories available",
+    "submitting": "Submitting..."
   },
   "appointmentRecord": {
     "title": "Assessment Record",
@@ -1643,6 +1695,7 @@
     "critical": "Critical",
     "messages": {
       "saveSuccess": "Assessment saved successfully!",
+      "saveSuccessWithNotification": "Assessment saved successfully! Teachers will be notified about the results.",
       "saveError": "Error saving assessment. Please try again!"
     },
     "riskLevels": {

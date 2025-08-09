@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
 import {
   getAccessToken,
   isTokenExpired,
@@ -8,6 +8,28 @@ import {
 } from "../auth/tokenManager";
 import { AUTH_CONFIG, AUTH_ERRORS, APP_CONFIG } from "../../constants";
 import { refreshAccessToken, logout, forceLogout } from "../auth/authActions";
+
+// Utility function to handle server errors for mobile
+const handleServerError = (error, showNotification = true) => {
+  const { status } = error.response || {};
+
+  switch (status) {
+    case 502:
+      console.error("❌ Response: 502 Bad Gateway error detected");
+      return new Error("Server temporarily unavailable");
+
+    case 503:
+      console.error("❌ Response: 503 Service Unavailable error detected");
+      return new Error("Service temporarily unavailable");
+
+    case 504:
+      console.error("❌ Response: 504 Gateway Timeout error detected");
+      return new Error("Gateway timeout");
+
+    default:
+      return error;
+  }
+};
 
 // Dynamic baseURL based on platform
 const baseURL =
@@ -90,6 +112,12 @@ api.interceptors.response.use(
     const isExcludedPath = AUTH_CONFIG.EXCLUDED_PATHS.some((path) =>
       originalRequest.url.includes(path)
     );
+
+    // Handle server errors (502, 503, 504)
+    if (status >= 502 && status <= 504) {
+      const serverError = handleServerError(error, true);
+      return Promise.reject(serverError);
+    }
 
     // Handle 401 Unauthorized - try to refresh token
     if (status === 401 && !originalRequest._retry && !isExcludedPath) {

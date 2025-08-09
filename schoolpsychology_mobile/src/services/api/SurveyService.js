@@ -6,6 +6,7 @@ import { surveyRecords, surveys } from "@/constants";
 export const getPublishedSurveys = async () => {
   try {
     const response = await api.get("/api/v1/survey/published");
+
     return response.data;
   } catch (err) {
     console.error("Lỗi khi lấy survey đã publish:", err);
@@ -84,13 +85,15 @@ export const postSurveyResult = async (result) => {
 };
 
 // Skip survey
-export const skipSurvey = async (surveyId) => {
+export const skipSurvey = async (surveyId, surveyRecordType) => {
   const requestBody = {
     surveyId,
     isSkipped: true,
-    totalScore: 0,
+    totalScore: 0.0,
+    surveyRecordType: surveyRecordType || "SCREENING",
     answerRecordRequests: [],
   };
+  console.log("requestBody", requestBody);
   const response = await api.post(`/api/v1/survey-records`, requestBody);
   return response.data;
 };

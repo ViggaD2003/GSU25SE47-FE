@@ -40,6 +40,7 @@ const { Option } = Select
 // Lazy load components
 const ClassTable = lazy(() => import('./ClassTable'))
 const ClassModal = lazy(() => import('./ClassModal'))
+const CreateClassModal = lazy(() => import('./CreateClassModal'))
 
 const ClassManagement = () => {
   const { t } = useTranslation()
@@ -52,6 +53,7 @@ const ClassManagement = () => {
   const [searchText, setSearchText] = useState('')
   const [selectedClass, setSelectedClass] = useState(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [isView, setIsView] = useState(false)
   const [filters, setFilters] = useState({
@@ -71,9 +73,9 @@ const ClassManagement = () => {
   // Handle error messages
   useEffect(() => {
     if (error) {
-      messageApi.error(t('classManagement.messages.fetchError'))
+      console.error('Error fetching classes:', error)
     }
-  }, [error, t, messageApi])
+  }, [error])
 
   // Filter and search classes
   const filteredClasses = useMemo(() => {
@@ -188,12 +190,9 @@ const ClassManagement = () => {
   //   [dispatch, t, messageApi]
   // )
 
-  // Handle add
-  const handleAdd = useCallback(() => {
-    setSelectedClass(null)
-    setIsEdit(false)
-    setIsView(false)
-    setIsModalVisible(true)
+  // Handle create multiple classes
+  const handleCreateMultiple = useCallback(() => {
+    setIsCreateModalVisible(true)
   }, [])
 
   // Handle modal OK
@@ -204,16 +203,17 @@ const ClassManagement = () => {
           // await dispatch(updateClass(selectedClass.codeClass, classData))
           messageApi.success(t('classManagement.messages.editSuccess'))
         } else {
-          await dispatch(createClass(classData))
+          await dispatch(createClass(classData)).unwrap()
           messageApi.success(t('classManagement.messages.addSuccess'))
         }
         setIsModalVisible(false)
-        dispatch(getAllClasses())
-      } catch {
-        const errorMessage = isEdit
-          ? t('classManagement.messages.editError')
-          : t('classManagement.messages.addError')
-        messageApi.error(errorMessage)
+        setIsCreateModalVisible(false) // Close create modal too
+        // Don't need to call getAllClasses() since Redux already updated the state
+        // message.success(t('classManagement.messages.addSuccess'))
+      } catch (error) {
+        console.error('Failed to create/update class:', error)
+        messageApi.error(t('classManagement.messages.createError'))
+        throw error
       }
     },
     [dispatch, isEdit, selectedClass, t, messageApi]
@@ -225,6 +225,11 @@ const ClassManagement = () => {
     setSelectedClass(null)
     setIsEdit(false)
     setIsView(false)
+  }, [])
+
+  // Handle create modal cancel
+  const handleCreateModalCancel = useCallback(() => {
+    setIsCreateModalVisible(false)
   }, [])
 
   return (
@@ -252,8 +257,12 @@ const ClassManagement = () => {
             >
               {t('classManagement.refresh')}
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              {t('classManagement.addClass')}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreateMultiple}
+            >
+              {t('classManagement.createMultipleClasses')}
             </Button>
           </div>
         </div>
@@ -317,6 +326,17 @@ const ClassManagement = () => {
               selectedClass={selectedClass}
               isEdit={isEdit}
               isView={isView}
+            />
+          )}
+        </Suspense>
+
+        {/* Create Class Modal */}
+        <Suspense fallback={null}>
+          {isCreateModalVisible && (
+            <CreateClassModal
+              visible={isCreateModalVisible}
+              onCancel={handleCreateModalCancel}
+              onOk={handleModalOk}
             />
           )}
         </Suspense>

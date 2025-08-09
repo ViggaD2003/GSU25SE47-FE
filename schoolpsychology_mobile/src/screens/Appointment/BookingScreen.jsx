@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   Alert,
@@ -7,7 +7,6 @@ import {
   View,
   Text,
   ScrollView,
-  Dimensions,
   TextInput,
   Switch,
 } from "react-native";
@@ -31,71 +30,213 @@ import {
 } from "../../utils/slotUtils";
 import { ActivityIndicator } from "react-native-paper";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useServerErrorHandler } from "../../utils/hooks";
 
+// Constants
 const VISIBLE_DAYS = 2;
 const VN_FORMAT = "YYYY-MM-DDTHH:mm:ss.SSS[Z]";
 
-const BookingScreen = ({ navigation }) => {
-  const { user } = useAuth();
-
-  // State for host type selection (teacher/counselor)
-  const [hostType, setHostType] = useState(null);
-
-  // State for counselor selection
-  const [selectedCounselor, setSelectedCounselor] = useState(null);
-  const [counselors, setCounselors] = useState([]);
-  const [loadingCounselors, setLoadingCounselors] = useState(false);
-
-  // State for slot selection
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [groupedSlots, setGroupedSlots] = useState({});
-  const [loadingSlots, setLoadingSlots] = useState(false);
-
-  // State for lazy loading days
-  const [visibleDays, setVisibleDays] = useState(VISIBLE_DAYS); // Show first 2 days initially
-  const [loadingMoreDays, setLoadingMoreDays] = useState(false);
-
-  // State for booking
-  const [bookingLoading, setBookingLoading] = useState(false);
-
-  // New fields for appointment request
-  const [isOnline, setIsOnline] = useState(false);
-  const [reason, setReason] = useState("");
+// Custom hook for toast management
+const useToast = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("info");
 
-  // Calendar sync settings
-  const [calendarSettings, setCalendarSettings] = useState({
-    syncEnabled: false,
-    autoSync: false,
-    reminderEnabled: false,
-    reminderTime: 15,
-  });
+  const showToastMessage = useCallback((message, type = "info") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+  }, []);
 
-  const [selectedChild, setSelectedChild] = useState(
-    global.selectedChildForAppointment
+  const hideToast = useCallback(() => {
+    setShowToast(false);
+  }, []);
+
+  return {
+    showToast,
+    toastMessage,
+    toastType,
+    showToastMessage,
+    hideToast,
+  };
+};
+
+// Custom hook for booking state management
+const useBookingState = (user) => {
+  const [hostType, setHostType] = useState(null);
+  const [selectedCounselor, setSelectedCounselor] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [reason, setReason] = useState("");
+  const [selectedChild, setSelectedChild] = useState(null);
+  const [bookedForId, setBookedForId] = useState(null);
+
+  const [selectedBookedFor, setSelectedBookedFor] = useState(() => ({
+    id: user?.id,
+    fullName: user?.fullName,
+    gender: user?.gender,
+    dob: user?.dob,
+    teacherId: user?.teacherId,
+  }));
+
+  // Reset booking state
+  const resetBookingState = useCallback(() => {
+    setHostType(null);
+    setSelectedCounselor(null);
+    setSelectedSlot(null);
+    setIsOnline(false);
+    setReason("");
+  }, []);
+
+  // Update selected child and related state
+  const updateSelectedChild = useCallback(
+    (child) => {
+      setSelectedChild(child);
+      setBookedForId(child?.userId);
+      setSelectedBookedFor({
+        id: child?.userId,
+        fullName: child?.fullName,
+        gender: child?.gender,
+        dob: child?.dob,
+        teacherId: child?.teacherId,
+      });
+      resetBookingState();
+    },
+    [resetBookingState]
   );
 
-  // Get child from global variable or route params or use current user
-  const childFromGlobal = global.selectedChildForAppointment;
+  // Update selectedBookedFor when user changes
+  const updateSelectedBookedFor = useCallback((userData) => {
+    setSelectedBookedFor({
+      id: userData?.id,
+      fullName: userData?.fullName,
+      gender: userData?.gender,
+      dob: userData?.dob,
+      teacherId: userData?.teacherId,
+    });
+    setBookedForId(userData?.id);
+  }, []);
 
-  const [bookedForId, setBookedForId] = useState(
-    childFromGlobal?.userId || user?.id || null
-  );
+  return {
+    hostType,
+    setHostType,
+    selectedCounselor,
+    setSelectedCounselor,
+    selectedSlot,
+    setSelectedSlot,
+    isOnline,
+    setIsOnline,
+    reason,
+    setReason,
+    selectedChild,
+    setSelectedChild,
+    bookedForId,
+    setBookedForId,
+    selectedBookedFor,
+    setSelectedBookedFor: updateSelectedBookedFor,
+    resetBookingState,
+    updateSelectedChild,
+  };
+};
 
-  // Host type options
-  const hostTypeOptions = [
-    { id: "teacher", label: "Giáo viên chủ nhiệm", value: "teacher" },
-    { id: "counselor", label: "Tư vấn viên", value: "counselor" },
-  ];
+// Custom hook for slots management
+const useSlotsManagement = (
+  hostType,
+  selectedCounselor,
+  selectedBookedFor,
+  showToastMessage,
+  setSelectedSlot
+) => {
+  const [groupedSlots, setGroupedSlots] = useState({});
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [visibleDays, setVisibleDays] = useState(VISIBLE_DAYS);
+  const [loadingMoreDays, setLoadingMoreDays] = useState(false);
 
-  /**
-   * Fetch counselors when host type is counselor
-   * Lấy danh sách tư vấn viên và map data cho dropdown
-   */
+  const fetchSlots = useCallback(async () => {
+    if (!hostType) return;
+
+    // Get hostId based on host type
+    let hostId = null;
+    if (hostType.value === "TEACHER") {
+      hostId = selectedBookedFor?.teacherId;
+      if (!hostId) {
+        showToastMessage(
+          "Không thể đặt lịch với giáo viên chủ nhiệm vì học sinh chưa được phân công",
+          "warning"
+        );
+        return;
+      }
+    } else if (hostType.value === "COUNSELOR") {
+      hostId = selectedCounselor?.id;
+      if (!hostId) {
+        // Don't show error for counselor, just return early
+        return;
+      }
+    }
+
+    // Only fetch if we have a valid hostId
+    if (!hostId) return;
+
+    setLoadingSlots(true);
+    setSelectedSlot(null);
+
+    try {
+      const response = await getSlotsWithHostById(hostId);
+      const slotsData = Array.isArray(response)
+        ? response
+        : response.data || [];
+      const processedGrouped = processAndFilterSlots(slotsData);
+      setGroupedSlots(processedGrouped);
+    } catch (error) {
+      console.error("Lỗi khi tải danh sách slot:", error);
+      showToastMessage("Không thể tải danh sách lịch hẹn", "error");
+      setGroupedSlots({});
+      setVisibleDays(VISIBLE_DAYS);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [
+    hostType,
+    selectedCounselor,
+    selectedBookedFor?.teacherId,
+    showToastMessage,
+    setSelectedSlot,
+  ]);
+
+  const loadMoreDays = useCallback(async () => {
+    const availableDays = getAvailableDaysWithTimeValidation(groupedSlots);
+    if (loadingMoreDays || visibleDays >= availableDays.length) return;
+
+    setLoadingMoreDays(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setVisibleDays((prev) => Math.min(prev + 2, availableDays.length));
+    setLoadingMoreDays(false);
+  }, [loadingMoreDays, visibleDays, groupedSlots]);
+
+  const resetSlots = useCallback(() => {
+    setGroupedSlots({});
+    setVisibleDays(VISIBLE_DAYS);
+    setSelectedSlot(null);
+  }, [setSelectedSlot]);
+
+  return {
+    groupedSlots,
+    loadingSlots,
+    visibleDays,
+    loadingMoreDays,
+    fetchSlots,
+    loadMoreDays,
+    resetSlots,
+  };
+};
+
+// Custom hook for counselors management
+const useCounselorsManagement = (hostType, showToastMessage) => {
+  const [counselors, setCounselors] = useState([]);
+  const [loadingCounselors, setLoadingCounselors] = useState(false);
+
   const fetchCounselors = useCallback(async () => {
-    if (hostType?.value !== "counselor") return;
+    if (hostType?.value !== "COUNSELOR") return;
 
     setLoadingCounselors(true);
     try {
@@ -104,272 +245,45 @@ const BookingScreen = ({ navigation }) => {
         ? response
         : response.data || [];
 
-      // Map data để phù hợp với Dropdown component
-      // Format: "Mã - Tên - Giới tính"
       const mappedCounselors = counselorsData.map((counselor) => ({
         ...counselor,
         label: `${counselor.counselorCode} - ${counselor.fullName} - ${
           counselor.gender === true ? "Nam" : "Nữ"
         }`,
-        name: counselor.fullName, // Fallback
+        name: counselor.fullName,
       }));
 
       setCounselors(mappedCounselors);
-      // Tự động chọn counselor đầu tiên
-      setSelectedCounselor(mappedCounselors[0]);
+      return mappedCounselors[0]; // Return first counselor for auto-selection
     } catch (error) {
       console.error("Lỗi khi tải danh sách tư vấn viên:", error);
-      setToastMessage("Không thể tải danh sách tư vấn viên");
-      setToastType("error");
-      setShowToast(true);
+      showToastMessage("Không thể tải danh sách tư vấn viên", "error");
+      return null;
     } finally {
       setLoadingCounselors(false);
     }
-  }, [hostType, setToastMessage, setToastType, setShowToast]);
+  }, [hostType, showToastMessage]);
 
-  const fetchSlots = useCallback(async () => {
-    if (!hostType) return;
-
-    setLoadingSlots(true);
-    setSelectedSlot(null);
-
-    try {
-      let response;
-
-      // Xác định API call dựa trên role và host type
-      if (hostType.value === "teacher") {
-        console.log("user?.teacherId", user);
-        response = await getSlotsWithHostById(
-          selectedChild?.teacherId || user?.teacherId
-        );
-      } else if (hostType.value === "counselor" && selectedCounselor) {
-        response = await getSlotsWithHostById(selectedCounselor.id);
-      } else {
-        setLoadingSlots(false);
-        return;
-      }
-
-      // console.log("Slots response:", response);
-
-      const slotsData = Array.isArray(response)
-        ? response
-        : response.data || [];
-
-      // Process and filter slots by date with time validation
-      const processedGrouped = processAndFilterSlots(slotsData);
-      setGroupedSlots(processedGrouped);
-    } catch (error) {
-      console.error("Lỗi khi tải danh sách slot:", error);
-      setToastMessage("Không thể tải danh sách lịch hẹn");
-      setToastType("error");
-      setShowToast(true);
-      setGroupedSlots({});
-      setVisibleDays(VISIBLE_DAYS); // Reset to initial state
-    } finally {
-      setLoadingSlots(false);
-    }
-  }, [
-    hostType,
-    selectedCounselor,
-    setToastMessage,
-    setToastType,
-    setShowToast,
-  ]);
-
-  // Handle host type selection
-  const handleHostTypeSelect = async (type) => {
-    setHostType(type);
-    setSelectedCounselor(null);
-    setSelectedSlot(null);
-    setGroupedSlots({});
-    setVisibleDays(VISIBLE_DAYS); // Reset to initial state
+  return {
+    counselors,
+    loadingCounselors,
+    fetchCounselors,
   };
+};
 
-  // Handle counselor selection
-  const handleCounselorSelect = (counselor) => {
-    setSelectedCounselor(counselor);
-    setSelectedSlot(null);
-    setGroupedSlots({});
-    setVisibleDays(VISIBLE_DAYS); // Reset to initial state
-  };
+// Custom hook for calendar management
+const useCalendarManagement = () => {
+  const [calendarSettings, setCalendarSettings] = useState({
+    syncEnabled: false,
+    autoSync: false,
+    reminderEnabled: false,
+    reminderTime: 15,
+  });
 
-  // Get available days using utility function with time validation
-  const getAvailableDaysCallback = useCallback(() => {
-    return getAvailableDaysWithTimeValidation(groupedSlots);
-  }, [groupedSlots]);
-
-  // Load more days
-  const loadMoreDays = useCallback(async () => {
-    const availableDays = getAvailableDaysCallback();
-
-    if (loadingMoreDays || visibleDays >= availableDays.length) return;
-
-    setLoadingMoreDays(true);
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setVisibleDays((prev) => Math.min(prev + 2, availableDays.length));
-    setLoadingMoreDays(false);
-  }, [loadingMoreDays, visibleDays, getAvailableDaysCallback]);
-
-  // Handle slot selection
-  const handleSlotSelect = (slot) => {
-    setSelectedSlot(slot);
-  };
-
-  // Handle booking confirmation
-  const handleBooking = async () => {
-    if (!selectedSlot) {
-      setToastMessage("Vui lòng chọn một lịch hẹn");
-      setToastType("warning");
-      setShowToast(true);
-      return;
-    }
-
-    // Create confirmation message with all details
-    let confirmationMessage = `Xác nhận thông tin lịch hẹn:
-
-• Người tư vấn: ${
-      hostType?.value === "teacher"
-        ? "Giáo viên chủ nhiệm"
-        : selectedCounselor?.name || "Tư vấn viên"
-    }
-${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
-• Ngày: ${dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
-• Thời gian: ${
-      dayjs(
-        selectedSlot.selectedStartTime || selectedSlot.startDateTime
-      ).format("HH:mm") +
-      " - " +
-      dayjs(selectedSlot.selectedEndTime || selectedSlot.endDateTime).format(
-        "HH:mm"
-      )
-    }
-• Hình thức: ${isOnline ? "Trực tuyến" : "Trực tiếp"}
-• Lý do: ${reason || "Không có lý do"}`;
-
-    // Add calendar sync information
-    if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
-      confirmationMessage += `\n\n📅 Đồng bộ lịch: Sẽ được thêm vào calendar`;
-
-      if (calendarSettings.reminderEnabled) {
-        confirmationMessage += `\n⏰ Nhắc nhở: ${formatReminderTime(
-          calendarSettings.reminderTime
-        )} trước`;
-      }
-    }
-
-    confirmationMessage += `\n\nBạn có chắc chắn muốn đặt lịch hẹn này?`;
-
-    Alert.alert("Xác nhận đặt lịch", confirmationMessage, [
-      {
-        text: "Hủy",
-        style: "destructive",
-      },
-      {
-        text: "Đặt lịch",
-        onPress: async () => {
-          setBookingLoading(true);
-          try {
-            const bookingData = {
-              slotId: selectedSlot.id,
-              bookedForId:
-                user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
-              isOnline: isOnline,
-              startDateTime: dayjs(selectedSlot.selectedStartTime).format(
-                VN_FORMAT
-              ),
-              endDateTime: dayjs(selectedSlot.selectedEndTime).format(
-                VN_FORMAT
-              ),
-              reasonBooking: reason || "Không có lý do",
-            };
-
-            console.log("Booking data:", bookingData);
-
-            const response = await createAppointment(bookingData);
-
-            // Auto sync with calendar if enabled
-            if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
-              try {
-                console.log("Syncing to calendar...");
-                // Sync to calendar
-                const syncResult = await CalendarService.syncEvent(
-                  "appointment",
-                  [response]
-                );
-
-                if (syncResult.success) {
-                  Alert.alert("Đã đồng bộ lịch");
-                  console.log(
-                    "Appointment synced to calendar:",
-                    syncResult.message
-                  );
-                } else {
-                  Alert.alert("Không thể đồng bộ lịch");
-                  console.log(
-                    "Failed to sync to calendar:",
-                    syncResult.message
-                  );
-                }
-              } catch (error) {
-                Alert.alert("Không thể đồng bộ lịch");
-                console.error("Error syncing appointment to calendar:", error);
-              }
-            }
-
-            // Navigate back or to appointment history
-            setTimeout(() => {
-              navigation.navigate("StatusScreen", {
-                title: "Đặt lịch hẹn thành công",
-                message: "Bạn đã đặt lịch hẹn thành công",
-                response: response,
-              });
-            }, 1000);
-          } catch (error) {
-            console.error("Lỗi khi đặt lịch hẹn:", error);
-            setToastMessage("Không thể đặt lịch hẹn. Vui lòng thử lại");
-            setToastType("error");
-            setShowToast(true);
-          } finally {
-            setBookingLoading(false);
-          }
-        },
-      },
-    ]);
-  };
-
-  // Fetch data when dependencies change
-  useEffect(() => {
-    fetchCounselors();
-  }, [fetchCounselors]);
-
-  useEffect(() => {
-    fetchSlots();
-  }, [fetchSlots]);
-
-  // Load child from global variable when component mounts
-  useEffect(() => {
-    if (global.selectedChildForAppointment) {
-      // console.log(
-      //   "Found child in global variable:",
-      //   global.selectedChildForAppointment
-      // );
-      setBookedForId(global.selectedChildForAppointment.userId);
-
-      // Clear the global variable after reading
-      global.selectedChildForAppointment = null;
-    }
-  }, []);
-
-  // Load calendar settings when component mounts
   useEffect(() => {
     const loadCalendarSettings = async () => {
       try {
-        // Initialize calendar service if needed
         await CalendarService.initialize();
-
         const settings = CalendarService.getSettings();
         setCalendarSettings(settings);
       } catch (error) {
@@ -380,413 +294,788 @@ ${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
     loadCalendarSettings();
   }, []);
 
-  // Reset form state when screen comes into focus (e.g., when navigating back from StatusScreen)
-  useFocusEffect(
-    useCallback(() => {
-      // Only reset if we're coming back to the screen (not on initial mount)
-      const resetFormState = () => {
-        setHostType(null);
-        setSelectedCounselor(null);
-        setSelectedSlot(null);
-        setGroupedSlots({});
-        setVisibleDays(VISIBLE_DAYS);
-        setIsOnline(false);
-        setReason("");
-        setShowToast(false);
-        setToastMessage("");
-        setToastType("info");
+  return { calendarSettings };
+};
 
-        // Reset child selection if no child is pre-selected from global variable
-        if (!global.selectedChildForAppointment) {
-          setBookedForId(user?.id || null);
-        }
-      };
+// Utility functions
+const formatReminderTime = (minutes) => {
+  if (minutes < 60) return `${minutes} phút`;
+  if (minutes === 60) return "1 giờ";
+  if (minutes < 1440) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes === 0
+      ? `${hours} giờ`
+      : `${hours} giờ ${remainingMinutes} phút`;
+  }
+  const days = Math.floor(minutes / 1440);
+  const remainingHours = Math.floor((minutes % 1440) / 60);
+  return remainingHours === 0
+    ? `${days} ngày`
+    : `${days} ngày ${remainingHours} giờ`;
+};
 
-      // Small delay to ensure smooth transition
-      const timeoutId = setTimeout(resetFormState, 100);
+const createBookingData = (
+  selectedSlot,
+  isOnline,
+  reason,
+  user,
+  selectedChild
+) => ({
+  slotId: selectedSlot.id,
+  bookedForId: user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
+  isOnline,
+  startDateTime: dayjs(selectedSlot.selectedStartTime).format(VN_FORMAT),
+  endDateTime: dayjs(selectedSlot.selectedEndTime).format(VN_FORMAT),
+  reasonBooking: reason || "Không có lý do",
+});
 
-      return () => {
-        clearTimeout(timeoutId);
-      };
-    }, [user])
+const createConfirmationMessage = (
+  hostType,
+  selectedCounselor,
+  selectedChild,
+  selectedSlot,
+  isOnline,
+  reason,
+  calendarSettings
+) => {
+  let message = `Xác nhận thông tin lịch hẹn:
+
+• Người tư vấn: ${
+    hostType?.value === "TEACHER"
+      ? "Giáo viên chủ nhiệm"
+      : selectedCounselor?.name || "Tư vấn viên"
+  }
+${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
+• Ngày: ${dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
+• Thời gian: ${
+    dayjs(selectedSlot.selectedStartTime || selectedSlot.startDateTime).format(
+      "HH:mm"
+    ) +
+    " - " +
+    dayjs(selectedSlot.selectedEndTime || selectedSlot.endDateTime).format(
+      "HH:mm"
+    )
+  }
+• Hình thức: ${isOnline ? "Trực tuyến" : "Trực tiếp"}
+• Lý do: ${reason || "Không có lý do"}`;
+
+  if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
+    message += `\n\n📅 Đồng bộ lịch: Sẽ được thêm vào calendar`;
+    if (calendarSettings.reminderEnabled) {
+      message += `\n⏰ Nhắc nhở: ${formatReminderTime(
+        calendarSettings.reminderTime
+      )} trước`;
+    }
+  }
+
+  return message + `\n\nBạn có chắc chắn muốn đặt lịch hẹn này?`;
+};
+
+// Main component
+const BookingScreen = ({ navigation }) => {
+  const { user } = useAuth();
+
+  // Custom hooks
+  const toast = useToast();
+  const bookingState = useBookingState(user);
+  const slotsManagement = useSlotsManagement(
+    bookingState.hostType,
+    bookingState.selectedCounselor,
+    bookingState.selectedBookedFor,
+    toast.showToastMessage,
+    bookingState.setSelectedSlot
+  );
+  const counselorsManagement = useCounselorsManagement(
+    bookingState.hostType,
+    toast.showToastMessage
+  );
+  const calendarManagement = useCalendarManagement();
+  const { handleServerError, showToast, toastMessage, toastType, hideToast } =
+    useServerErrorHandler();
+
+  // Local state
+  const [bookingLoading, setBookingLoading] = useState(false);
+
+  // Computed values
+  const hostTypeOptions = useMemo(
+    () => [
+      {
+        id: "teacher",
+        label: "Giáo viên chủ nhiệm",
+        value: "TEACHER",
+        disabled: !bookingState.selectedBookedFor?.teacherId,
+      },
+      { id: "counselor", label: "Tư vấn viên", value: "COUNSELOR" },
+    ],
+    [bookingState.selectedBookedFor?.teacherId]
   );
 
-  const handleBackPress = () => {
+  const canBook = bookingState.selectedSlot && !bookingLoading;
+
+  // Event handlers
+  const handleHostTypeSelect = useCallback(
+    async (type) => {
+      if (type.disabled) {
+        toast.showToastMessage("Tùy chọn này không khả dụng", "warning");
+        return;
+      }
+      bookingState.setHostType(type);
+      bookingState.setSelectedCounselor(null);
+      bookingState.setSelectedSlot(null);
+      type.value !== "TEACHER" && slotsManagement.resetSlots();
+    },
+    [
+      bookingState.setHostType,
+      bookingState.setSelectedCounselor,
+      bookingState.setSelectedSlot,
+      slotsManagement.resetSlots,
+      toast.showToastMessage,
+    ]
+  );
+
+  const handleCounselorSelect = useCallback(
+    (counselor) => {
+      bookingState.setSelectedCounselor(counselor);
+      bookingState.setSelectedSlot(null);
+      slotsManagement.resetSlots();
+    },
+    [
+      bookingState.setSelectedCounselor,
+      bookingState.setSelectedSlot,
+      slotsManagement.resetSlots,
+    ]
+  );
+
+  const handleSlotSelect = useCallback(
+    (slot) => {
+      bookingState.setSelectedSlot(slot);
+    },
+    [bookingState.setSelectedSlot]
+  );
+
+  const handleChildSelect = useCallback(
+    (child) => {
+      bookingState.updateSelectedChild(child);
+      slotsManagement.resetSlots();
+    },
+    [bookingState.updateSelectedChild, slotsManagement.resetSlots]
+  );
+
+  const handleBooking = useCallback(async () => {
+    if (!bookingState.selectedSlot) {
+      toast.showToastMessage("Vui lòng chọn một lịch hẹn", "warning");
+      return;
+    }
+
+    const confirmationMessage = createConfirmationMessage(
+      bookingState.hostType,
+      bookingState.selectedCounselor,
+      bookingState.selectedChild,
+      bookingState.selectedSlot,
+      bookingState.isOnline,
+      bookingState.reason,
+      calendarManagement.calendarSettings
+    );
+
+    Alert.alert("Xác nhận đặt lịch", confirmationMessage, [
+      { text: "Hủy", style: "destructive" },
+      {
+        text: "Đặt lịch",
+        onPress: async () => {
+          setBookingLoading(true);
+          try {
+            const bookingData = createBookingData(
+              bookingState.selectedSlot,
+              bookingState.isOnline,
+              bookingState.reason,
+              user,
+              bookingState.selectedChild
+            );
+
+            console.log("bookingData", bookingData);
+
+            const response = await createAppointment(bookingData);
+
+            // Handle calendar sync
+            if (
+              calendarManagement.calendarSettings.autoSync &&
+              CalendarService.isSyncEnabled()
+            ) {
+              try {
+                const syncResult = await CalendarService.syncEvent(
+                  "appointment",
+                  [response]
+                );
+                if (syncResult.success) {
+                  Alert.alert("Đã đồng bộ lịch");
+                } else {
+                  Alert.alert("Không thể đồng bộ lịch");
+                }
+              } catch (error) {
+                Alert.alert("Không thể đồng bộ lịch");
+                console.error("Error syncing appointment to calendar:", error);
+              }
+            }
+
+            setTimeout(() => {
+              navigation.navigate("StatusScreen", {
+                title: "Đặt lịch hẹn thành công",
+                message: "Bạn đã đặt lịch hẹn thành công",
+                response: response,
+              });
+            }, 1000);
+          } catch (error) {
+            console.error("Lỗi khi đặt lịch hẹn:", error);
+
+            // Xử lý lỗi server
+            if (
+              error.response?.status >= 502 &&
+              error.response?.status <= 504
+            ) {
+              handleServerError(error, true);
+            } else {
+              toast.showToastMessage(
+                "Không thể đặt lịch hẹn. Vui lòng thử lại",
+                "error"
+              );
+            }
+          } finally {
+            setBookingLoading(false);
+          }
+        },
+      },
+    ]);
+  }, [
+    bookingState.selectedSlot,
+    bookingState.hostType,
+    bookingState.selectedCounselor,
+    bookingState.selectedChild,
+    bookingState.isOnline,
+    bookingState.reason,
+    calendarManagement.calendarSettings,
+    user,
+    navigation,
+    toast.showToastMessage,
+    handleServerError,
+  ]);
+
+  const handleBackPress = useCallback(() => {
     Alert.alert(
       "Thông báo",
       "Bạn có chắc chắn muốn thoát không? Tất cả dữ liệu sẽ bị mất",
       [
-        {
-          text: "Hủy",
-          style: "destructive",
-        },
-        {
-          text: "Đồng ý",
-          onPress: () => navigation.goBack(),
-        },
+        { text: "Hủy", style: "destructive" },
+        { text: "Đồng ý", onPress: () => navigation.goBack() },
       ]
     );
-  };
+  }, [navigation]);
 
-  const canBook = selectedSlot && !bookingLoading;
-
-  // Helper function to format reminder time
-  const formatReminderTime = (minutes) => {
-    if (minutes < 60) {
-      return `${minutes} phút`;
-    } else if (minutes === 60) {
-      return "1 giờ";
-    } else if (minutes < 1440) {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      if (remainingMinutes === 0) {
-        return `${hours} giờ`;
+  // Load child from global variable
+  useEffect(() => {
+    if (global.selectedChildForAppointment) {
+      if (user?.role === "PARENTS") {
+        bookingState.updateSelectedChild(global.selectedChildForAppointment);
       } else {
-        return `${hours} giờ ${remainingMinutes} phút`;
+        bookingState.updateSelectedBookedFor(user);
       }
-    } else {
-      const days = Math.floor(minutes / 1440);
-      const remainingHours = Math.floor((minutes % 1440) / 60);
-      if (remainingHours === 0) {
-        return `${days} ngày`;
-      } else {
-        return `${days} ngày ${remainingHours} giờ`;
+      global.selectedChildForAppointment = null;
+    }
+  }, [
+    user,
+    bookingState.updateSelectedChild,
+    bookingState.updateSelectedBookedFor,
+  ]);
+
+  // Auto-select counselor when teacherId is null
+  useEffect(() => {
+    if (
+      bookingState.selectedBookedFor &&
+      !bookingState.selectedBookedFor.teacherId
+    ) {
+      // Tự động chọn tư vấn viên khi không có teacher
+      const counselorOption = hostTypeOptions.find(
+        (option) => option.id === "counselor"
+      );
+      if (counselorOption && !bookingState.hostType) {
+        handleHostTypeSelect(counselorOption);
       }
     }
-  };
+  }, [
+    bookingState.selectedBookedFor?.teacherId,
+    hostTypeOptions,
+    bookingState.hostType,
+    handleHostTypeSelect,
+  ]);
+
+  // Auto-fetch counselors when host type is counselor
+  useEffect(() => {
+    if (bookingState.hostType?.value === "COUNSELOR") {
+      counselorsManagement.fetchCounselors().then((firstCounselor) => {
+        if (firstCounselor && !bookingState.selectedCounselor) {
+          bookingState.setSelectedCounselor(firstCounselor);
+        }
+      });
+    }
+  }, [
+    bookingState.hostType?.value,
+    counselorsManagement.fetchCounselors,
+    bookingState.selectedCounselor,
+    bookingState.setSelectedCounselor,
+  ]);
+
+  // Auto-fetch slots when host type or counselor changes
+  useEffect(() => {
+    if (bookingState.hostType) {
+      slotsManagement.fetchSlots();
+    }
+  }, [
+    bookingState.hostType,
+    bookingState.selectedCounselor?.id,
+    bookingState.selectedBookedFor?.teacherId,
+    slotsManagement.fetchSlots,
+  ]);
+
+  // Reset form on focus
+  useFocusEffect(
+    useCallback(() => {
+      const resetFormState = () => {
+        bookingState.resetBookingState();
+        slotsManagement.resetSlots();
+        toast.hideToast();
+
+        if (!global.selectedChildForAppointment) {
+          bookingState.setSelectedChild(null);
+          bookingState.setBookedForId(user?.id || null);
+        }
+      };
+
+      const timeoutId = setTimeout(resetFormState, 100);
+      return () => clearTimeout(timeoutId);
+    }, [
+      user?.id,
+      bookingState.resetBookingState,
+      bookingState.setSelectedChild,
+      bookingState.setBookedForId,
+      slotsManagement.resetSlots,
+      toast.hideToast,
+    ])
+  );
+
+  // Render helpers
+  const renderWarningCard = useCallback(() => {
+    if (bookingState.selectedBookedFor?.teacherId) return null;
+
+    return (
+      <View style={styles.warningCard}>
+        <View style={styles.warningHeader}>
+          <Ionicons name="warning" size={24} color="#F59E0B" />
+          <Text style={styles.warningTitle}>Thông báo quan trọng</Text>
+        </View>
+        <Text style={styles.warningText}>
+          Học sinh này chưa được phân công giáo viên chủ nhiệm. Vui lòng chọn tư
+          vấn viên để đặt lịch hẹn.
+        </Text>
+      </View>
+    );
+  }, [bookingState.selectedBookedFor?.teacherId]);
+
+  const renderChildSelection = useCallback(() => {
+    if (
+      user?.role !== "PARENTS" ||
+      !user?.children ||
+      user.children.length <= 1
+    ) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.dropdownContainer}>
+          <Dropdown
+            label=""
+            placeholder="Chọn học sinh để đặt lịch"
+            data={user.children.map((child) => ({
+              ...child,
+              label: child.fullName,
+              value: child.userId,
+            }))}
+            value={bookingState.selectedChild?.userId}
+            onSelect={handleChildSelect}
+          />
+        </View>
+        {bookingState.selectedChild && (
+          <View style={styles.selectedChildIndicator}>
+            <Ionicons name="checkmark-circle" size={16} color="#059669" />
+            <Text style={styles.selectedChildText}>
+              Đã chọn: {bookingState.selectedChild.fullName}
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  }, [
+    user?.role,
+    user?.children,
+    bookingState.selectedChild,
+    handleChildSelect,
+  ]);
+
+  const renderHostSelection = useCallback(
+    () => (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Chọn người tư vấn</Text>
+        <View style={styles.radioGroup}>
+          {hostTypeOptions.map((option) => (
+            <TouchableOpacity
+              key={option.id}
+              style={[
+                styles.radioOption,
+                bookingState.hostType?.id === option.id &&
+                  styles.radioOptionSelected,
+                option.disabled && styles.radioOptionDisabled,
+              ]}
+              onPress={() => !option.disabled && handleHostTypeSelect(option)}
+              disabled={option.disabled}
+            >
+              <View
+                style={[
+                  styles.radioButton,
+                  bookingState.hostType?.id === option.id &&
+                    styles.radioButtonSelected,
+                  option.disabled && styles.radioButtonDisabled,
+                ]}
+              >
+                {bookingState.hostType?.id === option.id &&
+                  !option.disabled && <View style={styles.radioButtonInner} />}
+              </View>
+              <Text
+                style={[
+                  styles.radioLabel,
+                  bookingState.hostType?.id === option.id &&
+                    styles.radioLabelSelected,
+                  option.disabled && styles.radioLabelDisabled,
+                ]}
+              >
+                {option.label}
+                {option.disabled && " (Không khả dụng)"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    ),
+    [hostTypeOptions, bookingState.hostType, handleHostTypeSelect]
+  );
+
+  const renderCounselorSelection = useCallback(() => {
+    if (bookingState.hostType?.value !== "COUNSELOR") return null;
+
+    return (
+      <View style={styles.section}>
+        <Dropdown
+          label="Chọn tư vấn viên"
+          placeholder="Chọn tư vấn viên"
+          data={counselorsManagement.counselors}
+          value={bookingState.selectedCounselor?.id}
+          key={bookingState.selectedCounselor?.id}
+          onSelect={handleCounselorSelect}
+          loading={counselorsManagement.loadingCounselors}
+        />
+      </View>
+    );
+  }, [
+    bookingState.hostType?.value,
+    counselorsManagement.counselors,
+    bookingState.selectedCounselor?.id,
+    counselorsManagement.loadingCounselors,
+    handleCounselorSelect,
+  ]);
+
+  const renderAppointmentDetails = useCallback(() => {
+    if (
+      !bookingState.hostType ||
+      (bookingState.hostType.value !== "TEACHER" &&
+        !bookingState.selectedCounselor)
+    ) {
+      return null;
+    }
+
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
+
+        <View style={styles.switchContainer}>
+          <Text style={styles.inputLabel}>Hình thức tư vấn</Text>
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>
+              {bookingState.isOnline ? "Trực tuyến" : "Trực tiếp"}
+            </Text>
+            <Switch
+              value={bookingState.isOnline}
+              onValueChange={bookingState.setIsOnline}
+              trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputLabelContainer}>
+            <Text style={styles.inputLabel}>Lý do tư vấn</Text>
+            <Text style={styles.optionalText}>(Tùy chọn)</Text>
+          </View>
+          <TextInput
+            style={[styles.textInput, styles.textArea]}
+            placeholder="Nhập lý do tư vấn (VD: Tư vấn học tập, Tư vấn tâm lý...)"
+            value={bookingState.reason}
+            onChangeText={bookingState.setReason}
+            multiline={true}
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+        </View>
+      </View>
+    );
+  }, [
+    bookingState.hostType,
+    bookingState.selectedCounselor,
+    bookingState.isOnline,
+    bookingState.reason,
+    bookingState.setIsOnline,
+    bookingState.setReason,
+  ]);
+
+  const renderSlotsSection = useCallback(() => {
+    const { hostType, selectedCounselor } = bookingState;
+    const {
+      groupedSlots,
+      loadingSlots,
+      visibleDays,
+      loadingMoreDays,
+      loadMoreDays,
+    } = slotsManagement;
+
+    if (!hostType || (hostType.value !== "TEACHER" && !selectedCounselor)) {
+      return null;
+    }
+
+    const availableDays = getAvailableDaysWithTimeValidation(groupedSlots);
+    const totalSlots = countTotalAvailableSlotsWithTimeValidation(groupedSlots);
+    const hasSlots = Object.keys(groupedSlots).length > 0;
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            Lịch hẹn khả dụng
+            {loadingSlots && (
+              <Text style={styles.loadingText}> (Đang tải...)</Text>
+            )}
+          </Text>
+          {hasSlots && (
+            <View style={styles.slotsOverview}>
+              <Text style={styles.slotsOverviewText}>
+                {availableDays.length} ngày • {totalSlots} khung giờ khả dụng
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {loadingSlots ? (
+          <Loading text="Đang tải lịch hẹn..." />
+        ) : !hasAvailableSlots(groupedSlots) ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
+            <Text style={styles.emptyText}>Không có lịch hẹn khả dụng</Text>
+            <Text style={styles.emptySubtext}>
+              Vui lòng thử lại sau hoặc liên hệ để được hỗ trợ
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.slotsContainer}>
+            {availableDays.slice(0, visibleDays).map((date) => (
+              <SlotDayCard
+                key={date}
+                daySlots={groupedSlots[date]}
+                selectedSlot={bookingState.selectedSlot}
+                onSelectSlot={handleSlotSelect}
+                disabled={false}
+              />
+            ))}
+
+            {visibleDays < availableDays.length && (
+              <TouchableOpacity
+                style={styles.loadMoreDaysButton}
+                onPress={loadMoreDays}
+                disabled={loadingMoreDays}
+              >
+                {loadingMoreDays ? (
+                  <Loading text="Đang tải thêm ngày..." />
+                ) : (
+                  <>
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color="#3B82F6"
+                    />
+                    <Text style={styles.loadMoreDaysText}>
+                      Tải thêm {Math.min(2, availableDays.length - visibleDays)}{" "}
+                      ngày
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.daysInfoContainer}>
+              <Text style={styles.daysInfoText}>
+                Hiển thị {Math.min(visibleDays, availableDays.length)} trong
+                tổng số {availableDays.length} ngày khả dụng
+              </Text>
+              {visibleDays < availableDays.length && (
+                <Text style={styles.lazyLoadHint}>Nhấn nút để xem thêm</Text>
+              )}
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  }, [
+    bookingState.hostType,
+    bookingState.selectedCounselor,
+    bookingState.selectedSlot,
+    slotsManagement,
+    handleSlotSelect,
+  ]);
+
+  const renderBookingSummary = useCallback(() => {
+    const { selectedSlot, hostType, selectedCounselor, isOnline, reason } =
+      bookingState;
+
+    if (!selectedSlot) return null;
+
+    const counselorName =
+      hostType?.value === "TEACHER"
+        ? selectedSlot.fullName || "Giáo viên chủ nhiệm"
+        : selectedCounselor?.name || "Tư vấn viên";
+
+    const startTime = dayjs(
+      selectedSlot.selectedStartTime || selectedSlot.startDateTime
+    ).format("HH:mm");
+    const endTime = dayjs(
+      selectedSlot.selectedEndTime || selectedSlot.endDateTime
+    ).format("HH:mm");
+    const date = dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY");
+
+    return (
+      <View style={styles.summarySection}>
+        <Text style={styles.summaryTitle}>Thông tin lịch hẹn</Text>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <Ionicons name="person-outline" size={20} color="#6B7280" />
+            <Text style={styles.summaryLabel}>Người tư vấn:</Text>
+            <Text style={styles.summaryValue}>{counselorName}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+            <Text style={styles.summaryLabel}>Ngày:</Text>
+            <Text style={styles.summaryValue}>{date}</Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Ionicons name="time-outline" size={20} color="#6B7280" />
+            <Text style={styles.summaryLabel}>Thời gian:</Text>
+            <Text style={styles.summaryValue}>
+              {startTime} - {endTime}
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Ionicons
+              name={isOnline ? "wifi-outline" : "business-outline"}
+              size={20}
+              color="#6B7280"
+            />
+            <Text style={styles.summaryLabel}>Hình thức:</Text>
+            <Text style={styles.summaryValue}>
+              {isOnline ? "Trực tuyến" : "Trực tiếp"}
+            </Text>
+          </View>
+          {reason && (
+            <View style={styles.summaryRow}>
+              <Ionicons
+                name="information-circle-outline"
+                size={20}
+                color="#6B7280"
+              />
+              <Text style={styles.summaryLabel}>Lý do:</Text>
+              <Text style={styles.summaryValue}>{reason}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }, [
+    bookingState.selectedSlot,
+    bookingState.hostType,
+    bookingState.selectedCounselor,
+    bookingState.isOnline,
+    bookingState.reason,
+  ]);
+
+  const renderCalendarSyncInfo = useCallback(() => {
+    const { calendarSettings } = calendarManagement;
+
+    if (!calendarSettings.autoSync || !CalendarService.isSyncEnabled()) {
+      return null;
+    }
+
+    return (
+      <View style={[styles.section, { marginBottom: 5 }]}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="calendar-outline" size={20} color="#3B82F6" />
+          <Text style={styles.sectionTitle}>Đồng bộ lịch</Text>
+        </View>
+        <View style={styles.calendarInfoContainer}>
+          <View style={styles.calendarInfoRow}>
+            <Ionicons name="checkmark-circle" size={16} color="#059669" />
+            <Text style={styles.calendarInfoText}>
+              Lịch hẹn sẽ được thêm vào calendar của bạn
+            </Text>
+          </View>
+          {calendarSettings.reminderEnabled && (
+            <View style={styles.calendarInfoRow}>
+              <Ionicons name="alarm" size={16} color="#F59E0B" />
+              <Text style={styles.calendarInfoText}>
+                Nhắc nhở {formatReminderTime(calendarSettings.reminderTime)}{" "}
+                trước
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  }, [calendarManagement.calendarSettings]);
 
   return (
     <Container>
-      {/* Header */}
-      <HeaderWithoutTab
-        title={"Đặt lịch tư vấn"}
-        onBackPress={handleBackPress}
-      />
+      <HeaderWithoutTab title="Đặt lịch tư vấn" onBackPress={handleBackPress} />
 
-      {/* Content */}
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >
-        {/* Child Selection (if user is parent with multiple children) */}
-        {user?.role === "PARENTS" &&
-          user?.children &&
-          user.children.length > 1 && (
-            <View style={styles.section}>
-              <View style={styles.dropdownContainer}>
-                <Dropdown
-                  label=""
-                  placeholder="Chọn học sinh để đặt lịch"
-                  data={user.children.map((child) => ({
-                    ...child,
-                    label: child.fullName,
-                    value: child.userId,
-                  }))}
-                  value={selectedChild?.userId}
-                  onSelect={(child) => {
-                    setSelectedChild(child);
-                    setBookedForId(child.userId);
-                    // Reset other selections when child changes
-                    setHostType(null);
-                    setSelectedCounselor(null);
-                    setSelectedSlot(null);
-                    setGroupedSlots({});
-                  }}
-                />
-              </View>
-              {selectedChild && (
-                <View style={styles.selectedChildIndicator}>
-                  <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                  <Text style={styles.selectedChildText}>
-                    Đã chọn: {selectedChild.fullName}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-
-        {/* Host Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Chọn người tư vấn</Text>
-          <View style={styles.radioGroup}>
-            {hostTypeOptions.map((option) => (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.radioOption,
-                  hostType?.id === option.id && styles.radioOptionSelected,
-                ]}
-                onPress={() => handleHostTypeSelect(option)}
-              >
-                <View
-                  style={[
-                    styles.radioButton,
-                    hostType?.id === option.id && styles.radioButtonSelected,
-                  ]}
-                >
-                  {hostType?.id === option.id && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text
-                  style={[
-                    styles.radioLabel,
-                    hostType?.id === option.id && styles.radioLabelSelected,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        {/* Counselor Selection (only if host type is counselor) */}
-        {hostType?.value === "counselor" && (
-          <View style={styles.section}>
-            <Dropdown
-              label="Chọn tư vấn viên"
-              placeholder="Chọn tư vấn viên"
-              data={counselors}
-              value={selectedCounselor?.id}
-              key={selectedCounselor?.id}
-              onSelect={handleCounselorSelect}
-              loading={loadingCounselors}
-            />
-          </View>
-        )}
-
-        {/* Appointment Details Section */}
-        {hostType && (hostType.value === "teacher" || selectedCounselor) && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
-
-            {/* Online/Offline Toggle */}
-            <View style={styles.switchContainer}>
-              <Text style={styles.inputLabel}>Hình thức tư vấn</Text>
-              <View style={styles.switchRow}>
-                <Text style={styles.switchLabel}>
-                  {isOnline ? "Trực tuyến" : "Trực tiếp"}
-                </Text>
-                <Switch
-                  value={isOnline}
-                  onValueChange={setIsOnline}
-                  trackColor={{ false: "#D1D5DB", true: "#3B82F6" }}
-                  thumbColor={isOnline ? "#FFFFFF" : "#FFFFFF"}
-                />
-              </View>
-            </View>
-
-            {/* Reason */}
-            <View style={styles.inputContainer}>
-              <View style={styles.inputLabelContainer}>
-                <Text style={styles.inputLabel}>Lý do tư vấn</Text>
-                <Text style={styles.optionalText}>(Tùy chọn)</Text>
-              </View>
-              <TextInput
-                style={[styles.textInput, styles.textArea]}
-                placeholder="Nhập lý do tư vấn (VD: Tư vấn học tập, Tư vấn tâm lý...)"
-                value={reason}
-                onChangeText={setReason}
-                multiline={true}
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-            </View>
-          </View>
-        )}
-
-        {/* Slots Section */}
-        {hostType && (hostType.value === "teacher" || selectedCounselor) && (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                Lịch hẹn khả dụng
-                {loadingSlots && (
-                  <Text style={styles.loadingText}> (Đang tải...)</Text>
-                )}
-              </Text>
-              {Object.keys(groupedSlots).length > 0 && (
-                <View style={styles.slotsOverview}>
-                  <Text style={styles.slotsOverviewText}>
-                    {getAvailableDaysCallback().length} ngày •{" "}
-                    {countTotalAvailableSlotsWithTimeValidation(groupedSlots)}{" "}
-                    khung giờ khả dụng
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {loadingSlots ? (
-              <Loading text="Đang tải lịch hẹn..." />
-            ) : !hasAvailableSlots(groupedSlots) ? (
-              <View style={styles.emptyContainer}>
-                <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-                <Text style={styles.emptyText}>Không có lịch hẹn khả dụng</Text>
-                <Text style={styles.emptySubtext}>
-                  Vui lòng thử lại sau hoặc liên hệ để được hỗ trợ
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.slotsContainer}>
-                {getAvailableDaysCallback()
-                  .slice(0, visibleDays)
-                  .map((date) => (
-                    <SlotDayCard
-                      key={date}
-                      daySlots={groupedSlots[date]}
-                      selectedSlot={selectedSlot}
-                      onSelectSlot={handleSlotSelect}
-                      disabled={false}
-                    />
-                  ))}
-
-                {/* Load More Days Button */}
-                {(() => {
-                  const availableDays = getAvailableDaysCallback();
-
-                  return visibleDays < availableDays.length ? (
-                    <TouchableOpacity
-                      style={styles.loadMoreDaysButton}
-                      onPress={loadMoreDays}
-                      disabled={loadingMoreDays}
-                    >
-                      {loadingMoreDays ? (
-                        <Loading text="Đang tải thêm ngày..." />
-                      ) : (
-                        <>
-                          <Ionicons
-                            name="calendar-outline"
-                            size={20}
-                            color="#3B82F6"
-                          />
-                          <Text style={styles.loadMoreDaysText}>
-                            Tải thêm{" "}
-                            {Math.min(2, availableDays.length - visibleDays)}{" "}
-                            ngày
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  ) : null;
-                })()}
-
-                {/* Days Info */}
-                <View style={styles.daysInfoContainer}>
-                  {(() => {
-                    const availableDays = getAvailableDaysCallback();
-
-                    return (
-                      <>
-                        <Text style={styles.daysInfoText}>
-                          Hiển thị {Math.min(visibleDays, availableDays.length)}{" "}
-                          trong tổng số {availableDays.length} ngày khả dụng
-                        </Text>
-                        {visibleDays < availableDays.length && (
-                          <Text style={styles.lazyLoadHint}>
-                            Nhấn nút để xem thêm
-                          </Text>
-                        )}
-                      </>
-                    );
-                  })()}
-                </View>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Booking Summary */}
-        {selectedSlot && (
-          <View style={styles.summarySection}>
-            <Text style={styles.summaryTitle}>Thông tin lịch hẹn</Text>
-            <View style={styles.summaryCard}>
-              <View style={styles.summaryRow}>
-                <Ionicons name="person-outline" size={20} color="#6B7280" />
-                <Text style={styles.summaryLabel}>Người tư vấn:</Text>
-                <Text style={styles.summaryValue}>
-                  {hostType?.value === "teacher"
-                    ? selectedSlot.fullName || "Giáo viên chủ nhiệm"
-                    : selectedCounselor?.name || "Tư vấn viên"}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-                <Text style={styles.summaryLabel}>Ngày:</Text>
-                <Text style={styles.summaryValue}>
-                  {dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Ionicons name="time-outline" size={20} color="#6B7280" />
-                <Text style={styles.summaryLabel}>Thời gian:</Text>
-                <Text style={styles.summaryValue}>
-                  {dayjs(
-                    selectedSlot.selectedStartTime || selectedSlot.startDateTime
-                  ).format("HH:mm")}{" "}
-                  -{" "}
-                  {dayjs(
-                    selectedSlot.selectedEndTime || selectedSlot.endDateTime
-                  ).format("HH:mm")}
-                </Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Ionicons
-                  name={isOnline ? "wifi-outline" : "business-outline"}
-                  size={20}
-                  color="#6B7280"
-                />
-                <Text style={styles.summaryLabel}>Hình thức:</Text>
-                <Text style={styles.summaryValue}>
-                  {isOnline ? "Trực tuyến" : "Trực tiếp"}
-                </Text>
-              </View>
-              {reason && (
-                <View style={styles.summaryRow}>
-                  <Ionicons
-                    name="information-circle-outline"
-                    size={20}
-                    color="#6B7280"
-                  />
-                  <Text style={styles.summaryLabel}>Lý do:</Text>
-                  <Text style={styles.summaryValue}>{reason}</Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* Calendar Sync Information */}
-        {calendarSettings.autoSync && CalendarService.isSyncEnabled() && (
-          <View style={[styles.section, { marginBottom: 5 }]}>
-            <View style={styles.sectionHeader}>
-              <Ionicons name="calendar-outline" size={20} color="#3B82F6" />
-              <Text style={styles.sectionTitle}>Đồng bộ lịch</Text>
-            </View>
-            <View style={styles.calendarInfoContainer}>
-              <View style={styles.calendarInfoRow}>
-                <Ionicons name="checkmark-circle" size={16} color="#059669" />
-                <Text style={styles.calendarInfoText}>
-                  Lịch hẹn sẽ được thêm vào calendar của bạn
-                </Text>
-              </View>
-              {calendarSettings.reminderEnabled && (
-                <View style={styles.calendarInfoRow}>
-                  <Ionicons name="alarm" size={16} color="#F59E0B" />
-                  <Text style={styles.calendarInfoText}>
-                    Nhắc nhở {formatReminderTime(calendarSettings.reminderTime)}{" "}
-                    trước
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
+        {renderWarningCard()}
+        {renderChildSelection()}
+        {renderHostSelection()}
+        {renderCounselorSelection()}
+        {renderAppointmentDetails()}
+        {renderSlotsSection()}
+        {renderBookingSummary()}
+        {renderCalendarSyncInfo()}
       </ScrollView>
 
-      {/* Booking Button */}
-      {hostType && (
+      {bookingState.hostType && (
         <View style={styles.footer}>
           <TouchableOpacity
             style={[
@@ -812,10 +1101,18 @@ ${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
       )}
 
       <Toast
+        visible={toast.showToast}
+        message={toast.toastMessage}
+        type={toast.toastType}
+        onDismiss={toast.hideToast}
+      />
+
+      {/* Server Error Toast */}
+      <Toast
         visible={showToast}
         message={toastMessage}
         type={toastType}
-        onDismiss={() => setShowToast(false)}
+        onHide={hideToast}
       />
     </Container>
   );
@@ -905,6 +1202,11 @@ const styles = StyleSheet.create({
     borderColor: "#3B82F6",
     backgroundColor: "#EFF6FF",
   },
+  radioOptionDisabled: {
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F9FAFB",
+    opacity: 0.6,
+  },
   radioButton: {
     width: 20,
     height: 20,
@@ -917,6 +1219,10 @@ const styles = StyleSheet.create({
   },
   radioButtonSelected: {
     borderColor: "#3B82F6",
+  },
+  radioButtonDisabled: {
+    borderColor: "#E5E7EB",
+    backgroundColor: "#F3F4F6",
   },
   radioButtonInner: {
     width: 8,
@@ -932,6 +1238,10 @@ const styles = StyleSheet.create({
   radioLabelSelected: {
     color: "#1A1A1A",
     fontWeight: "600",
+  },
+  radioLabelDisabled: {
+    color: "#9CA3AF",
+    fontWeight: "400",
   },
   emptyContainer: {
     alignItems: "center",
@@ -1263,6 +1573,42 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginLeft: 8,
     flex: 1,
+  },
+  warningCard: {
+    backgroundColor: "#FFFBEB",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    marginBottom: 24,
+  },
+  warningHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#92400E",
+    marginLeft: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: "#92400E",
+    marginBottom: 16,
+  },
+  warningButton: {
+    backgroundColor: "#F59E0B",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    alignItems: "center",
+  },
+  warningButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
   },
 });
 

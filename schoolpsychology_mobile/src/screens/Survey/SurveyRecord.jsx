@@ -71,6 +71,9 @@ const SurveyRecord = ({ navigation }) => {
           currentSurveys: 0,
           completionRate: 0,
           scoreLevelDistribution: [],
+          levelDistribution: [],
+          surveyTypeDistribution: [],
+          averageScore: 0,
         };
       }
 
@@ -82,7 +85,77 @@ const SurveyRecord = ({ navigation }) => {
           ? Math.round((completedSurveys / totalRecords) * 100)
           : 0;
 
-      // Create score level distribution for BarChart
+      // Calculate average score
+      const validScores = records
+        .filter(
+          (record) => !record.isSkipped && record.totalScore !== undefined
+        )
+        .map((record) => record.totalScore);
+      const averageScore =
+        validScores.length > 0
+          ? Math.round(
+              (validScores.reduce((sum, score) => sum + score, 0) /
+                validScores.length) *
+                10
+            ) / 10
+          : 0;
+
+      // Create level distribution based on actual level data from API
+      const levelCounts = {};
+      const surveyTypeCounts = {};
+
+      records.forEach((record) => {
+        if (!record.isSkipped) {
+          // Count by level
+          const levelLabel = record.level?.label || "Không xác định";
+          levelCounts[levelLabel] = (levelCounts[levelLabel] || 0) + 1;
+
+          // Count by survey type
+          const surveyType = record.survey?.surveyType || "Không xác định";
+          const surveyTypeLabel =
+            surveyType === "SCREENING"
+              ? "Sàng lọc"
+              : surveyType === "FOLLOWUP"
+              ? "Theo dõi"
+              : surveyType;
+          surveyTypeCounts[surveyTypeLabel] =
+            (surveyTypeCounts[surveyTypeLabel] || 0) + 1;
+        }
+      });
+
+      // Convert level counts to chart data
+      const levelDistribution = Object.entries(levelCounts).map(
+        ([label, count]) => {
+          const percentage =
+            completedSurveys > 0
+              ? Math.round((count / completedSurveys) * 100)
+              : 0;
+          return {
+            label,
+            value: percentage,
+            count,
+            color: getLevelColor(label),
+          };
+        }
+      );
+
+      // Convert survey type counts to chart data
+      const surveyTypeDistribution = Object.entries(surveyTypeCounts).map(
+        ([label, count]) => {
+          const percentage =
+            completedSurveys > 0
+              ? Math.round((count / completedSurveys) * 100)
+              : 0;
+          return {
+            label,
+            value: percentage,
+            count,
+            color: getSurveyTypeColor(label),
+          };
+        }
+      );
+
+      // Create score level distribution for BarChart (fallback if no level data)
       const scoreLevels = [
         { level: "Rất thấp", min: 0, max: 20, color: "#EF4444" },
         { level: "Thấp", min: 21, max: 40, color: "#F59E0B" },
@@ -116,10 +189,37 @@ const SurveyRecord = ({ navigation }) => {
         currentSurveys,
         completionRate,
         scoreLevelDistribution,
+        levelDistribution,
+        surveyTypeDistribution,
+        averageScore,
       };
     },
     []
   );
+
+  // Helper function to get color for level
+  const getLevelColor = (levelLabel) => {
+    const colorMap = {
+      Thấp: "#10B981",
+      "Trung bình": "#3B82F6",
+      "Vừa phải": "#F59E0B",
+      "Nghiêm trọng": "#EF4444",
+      "Nguy hiểm": "#7C2D12",
+      "Rủi ro nghiêm trọng": "#7C2D12",
+      "Rủi ro vừa phải": "#F59E0B",
+      "Rủi ro thấp": "#10B981",
+    };
+    return colorMap[levelLabel] || "#6B7280";
+  };
+
+  // Helper function to get color for survey type
+  const getSurveyTypeColor = (surveyType) => {
+    const colorMap = {
+      "Sàng lọc": "#3B82F6",
+      "Theo dõi": "#10B981",
+    };
+    return colorMap[surveyType] || "#6B7280";
+  };
 
   const fetchSurveyRecords = useCallback(
     async (page = 1, isRefresh = false) => {
@@ -315,26 +415,74 @@ const SurveyRecord = ({ navigation }) => {
             valueColor="#10B981"
             size="small"
           />
+          {statistics.averageScore > 0 && (
+            <StatisticsCard
+              title="Điểm trung bình"
+              value={statistics.averageScore}
+              subtitle="Điểm số trung bình"
+              icon="analytics"
+              iconColor="#F59E0B"
+              valueColor="#F59E0B"
+              size="small"
+            />
+          )}
         </View>
 
         {/* Charts Section with Horizontal Scroll */}
-        {statistics.scoreLevelDistribution.length > 0 && (
+        {(statistics.levelDistribution.length > 0 ||
+          statistics.surveyTypeDistribution.length > 0 ||
+          statistics.scoreLevelDistribution.length > 0) && (
           <View style={styles.chartsSection}>
             <Text style={styles.chartsSectionTitle}>Phân tích chi tiết</Text>
             <HorizontalChartCarousel>
-              {/* Score Level Distribution Chart */}
-              <ReusableBarChart
-                key="score-distribution"
-                data={statistics.scoreLevelDistribution.map((item) => ({
-                  x: item.label,
-                  y: item.value,
-                }))}
-                title="Phân bố mức độ điểm số (%)"
-                yAxisMax={100}
-                barColor="#3B82F6"
-                height={200}
-                valueFormatter={(value) => `${value}%`}
-              />
+              {/* Level Distribution Chart - Priority 1 */}
+              {statistics.levelDistribution.length > 0 && (
+                <ReusableBarChart
+                  key="level-distribution"
+                  data={statistics.levelDistribution.map((item) => ({
+                    x: item.label,
+                    y: item.value,
+                  }))}
+                  title="Phân bố mức độ rủi ro (%)"
+                  yAxisMax={100}
+                  barColor="#EF4444"
+                  height={200}
+                  valueFormatter={(value) => `${value}%`}
+                />
+              )}
+
+              {/* Survey Type Distribution Chart */}
+              {statistics.surveyTypeDistribution.length > 0 && (
+                <ReusableBarChart
+                  key="survey-type-distribution"
+                  data={statistics.surveyTypeDistribution.map((item) => ({
+                    x: item.label,
+                    y: item.value,
+                  }))}
+                  title="Phân bố loại khảo sát (%)"
+                  yAxisMax={100}
+                  barColor="#3B82F6"
+                  height={200}
+                  valueFormatter={(value) => `${value}%`}
+                />
+              )}
+
+              {/* Score Level Distribution Chart - Fallback */}
+              {statistics.levelDistribution.length === 0 &&
+                statistics.scoreLevelDistribution.length > 0 && (
+                  <ReusableBarChart
+                    key="score-distribution"
+                    data={statistics.scoreLevelDistribution.map((item) => ({
+                      x: item.label,
+                      y: item.value,
+                    }))}
+                    title="Phân bố mức độ điểm số (%)"
+                    yAxisMax={100}
+                    barColor="#3B82F6"
+                    height={200}
+                    valueFormatter={(value) => `${value}%`}
+                  />
+                )}
 
               {/* Completion Rate Chart */}
               {statistics.completionRate > 0 && (
@@ -357,12 +505,120 @@ const SurveyRecord = ({ navigation }) => {
                   valueFormatter={(value) => `${value}%`}
                 />
               )}
+
+              {/* Average Score Trend Chart */}
+              {statistics.averageScore > 0 && (
+                <ReusableBarChart
+                  key="average-score"
+                  data={[
+                    {
+                      x: "Điểm TB",
+                      y: Math.min(statistics.averageScore, 100),
+                    },
+                  ]}
+                  title="Điểm trung bình"
+                  yAxisMax={100}
+                  barColor="#F59E0B"
+                  height={200}
+                  valueFormatter={(value) => `${value} điểm`}
+                />
+              )}
             </HorizontalChartCarousel>
           </View>
         )}
       </View>
     ),
     [statistics, totalElements]
+  );
+
+  const renderDetailedStatisticsSection = useCallback(
+    () => (
+      <View style={styles.detailedStatsSection}>
+        {/* Header */}
+        <View style={styles.detailedStatsHeader}>
+          <Text style={styles.detailedStatsTitle}>Thống kê chi tiết</Text>
+          <View style={styles.detailedStatsBadge}>
+            <Ionicons name="stats-chart" size={16} color="#8B5CF6" />
+          </View>
+        </View>
+
+        {/* Level Distribution Summary */}
+        {statistics.levelDistribution.length > 0 && (
+          <View style={styles.detailedStatsCard}>
+            <Text style={styles.detailedStatsCardTitle}>
+              Phân bố mức độ rủi ro
+            </Text>
+            <View style={styles.levelDistributionList}>
+              {statistics.levelDistribution.map((item, index) => (
+                <View key={index} style={styles.levelDistributionItem}>
+                  <View
+                    style={[
+                      styles.levelColorIndicator,
+                      { backgroundColor: item.color },
+                    ]}
+                  />
+                  <Text style={styles.levelDistributionLabel}>
+                    {item.label}
+                  </Text>
+                  <Text style={styles.levelDistributionValue}>
+                    {item.count} bài ({item.value}%)
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Survey Type Summary */}
+        {statistics.surveyTypeDistribution.length > 0 && (
+          <View style={styles.detailedStatsCard}>
+            <Text style={styles.detailedStatsCardTitle}>
+              Phân bố loại khảo sát
+            </Text>
+            <View style={styles.surveyTypeList}>
+              {statistics.surveyTypeDistribution.map((item, index) => (
+                <View key={index} style={styles.surveyTypeItem}>
+                  <View
+                    style={[
+                      styles.surveyTypeColorIndicator,
+                      { backgroundColor: item.color },
+                    ]}
+                  />
+                  <Text style={styles.surveyTypeLabel}>{item.label}</Text>
+                  <Text style={styles.surveyTypeValue}>
+                    {item.count} bài ({item.value}%)
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Score Summary */}
+        {statistics.averageScore > 0 && (
+          <View style={styles.detailedStatsCard}>
+            <Text style={styles.detailedStatsCardTitle}>Thống kê điểm số</Text>
+            <View style={styles.scoreSummaryList}>
+              <View style={styles.scoreSummaryItem}>
+                <Ionicons name="analytics" size={20} color="#F59E0B" />
+                <Text style={styles.scoreSummaryLabel}>Điểm trung bình:</Text>
+                <Text style={styles.scoreSummaryValue}>
+                  {statistics.averageScore} điểm
+                </Text>
+              </View>
+              <View style={styles.scoreSummaryItem}>
+                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
+                <Text style={styles.scoreSummaryLabel}>Tỷ lệ hoàn thành:</Text>
+                <Text style={styles.scoreSummaryValue}>
+                  {statistics.completionRate}%
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+      </View>
+    ),
+    [statistics]
   );
 
   if (initialLoading) {
@@ -405,6 +661,12 @@ const SurveyRecord = ({ navigation }) => {
       >
         {/* Statistics Section */}
         {renderStatisticsSection()}
+
+        {/* Detailed Statistics Section */}
+        {(statistics.levelDistribution.length > 0 ||
+          statistics.surveyTypeDistribution.length > 0 ||
+          statistics.averageScore > 0) &&
+          renderDetailedStatisticsSection()}
 
         {/* Survey Records */}
         <View style={styles.recordsSection}>
@@ -593,8 +855,9 @@ const styles = StyleSheet.create({
   mainStatsContainer: {
     flexDirection: "row",
     paddingHorizontal: 16,
-    gap: 12,
+    gap: 8,
     marginBottom: 24,
+    flexWrap: "wrap",
   },
   chartsSection: {
     marginTop: 8,
@@ -605,6 +868,130 @@ const styles = StyleSheet.create({
     color: "#374151",
     paddingHorizontal: 24,
     marginBottom: 16,
+  },
+  detailedStatsSection: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 20,
+    paddingVertical: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  detailedStatsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    marginBottom: 20,
+  },
+  detailedStatsTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  detailedStatsBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  detailedStatsCard: {
+    marginHorizontal: 24,
+    marginBottom: 20,
+    padding: 16,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 12,
+  },
+  detailedStatsCardTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 12,
+  },
+  levelDistributionList: {
+    gap: 8,
+  },
+  levelDistributionItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  levelColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  levelDistributionLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+  },
+  levelDistributionValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  surveyTypeList: {
+    gap: 8,
+  },
+  surveyTypeItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  surveyTypeColorIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  surveyTypeLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+  },
+  surveyTypeValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  scoreSummaryList: {
+    gap: 12,
+  },
+  scoreSummaryItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  scoreSummaryLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#374151",
+    marginLeft: 12,
+  },
+  scoreSummaryValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6B7280",
   },
   recordsSection: {
     paddingHorizontal: 16,

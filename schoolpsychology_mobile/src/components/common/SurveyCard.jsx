@@ -10,30 +10,29 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import ConfirmModal from "./ConfirmModal";
+import Toast from "./Toast";
 import { skipSurvey } from "@/services/api/SurveyService";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 
-export default function SurveyCard({
-  survey,
-  navigation,
-  onRefresh,
-  setShowToast,
-  setToastMessage,
-  setToastType,
-}) {
+export default function SurveyCard({ survey, navigation, onRefresh }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
 
   // Helper function to get calming gradient colors based on survey type
   const getCalmingGradientColors = () => {
     switch (survey.surveyType) {
       case "SCREENING":
         return ["#ECFDF5", "#F0FDF4"]; // Light green - based on primary color
-      case "ASSESSMENT":
+      case "PROGRAM":
         return ["#FEF7ED", "#FFFBEB"]; // Light orange - complementary
-      case "EVALUATION":
+      case "FOLLOWUP":
         return ["#F0F9FF", "#F8FAFC"]; // Light blue - harmonious
       default:
         return ["#F9FAFB", "#FFFFFF"]; // Light gray - neutral
@@ -96,9 +95,9 @@ export default function SurveyCard({
     switch (survey.surveyType) {
       case "SCREENING":
         return "clipboard-outline"; // Medical/health icon
-      case "ASSESSMENT":
+      case "PROGRAM":
         return "analytics-outline"; // Analysis icon
-      case "EVALUATION":
+      case "FOLLOWUP":
         return "star-outline"; // Evaluation icon
       default:
         return "document-text-outline"; // General document icon
@@ -116,16 +115,23 @@ export default function SurveyCard({
     setShowConfirmModal(true);
   };
 
+  const showToast = (message, type = "info") => {
+    setToast({ visible: true, message, type });
+  };
+
+  const hideToast = () => {
+    setToast({ visible: false, message: "", type: "info" });
+  };
+
   const handleSkipConfirm = async () => {
     try {
-      const response = await skipSurvey(survey.surveyId);
+      const response = await skipSurvey(survey.surveyId, survey.surveyType);
       console.log("skip survey response", response);
-      setToastMessage("Đã bỏ qua khảo sát");
-      setToastType("info");
-      setShowToast(true);
+      showToast("Đã bỏ qua khảo sát", "info");
       onRefresh();
     } catch (error) {
       console.log("skip survey error", error);
+      showToast("Có lỗi xảy ra khi bỏ qua khảo sát", "error");
     } finally {
       setShowConfirmModal(false);
     }
@@ -133,6 +139,14 @@ export default function SurveyCard({
 
   return (
     <View style={styles.container}>
+      {/* Toast */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
+
       <TouchableOpacity
         style={[styles.surveyCard, isPressed && styles.surveyCardPressed]}
         onPress={onPress}

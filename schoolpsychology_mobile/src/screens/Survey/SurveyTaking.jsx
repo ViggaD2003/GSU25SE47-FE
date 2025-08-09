@@ -35,19 +35,14 @@ const SurveyTaking = ({ route, navigation }) => {
     type: "info",
   });
 
-  useEffect(() => {
-    // Load saved progress if exists
-    if (survey?.surveyId) {
-      loadSavedProgress();
-    }
-  }, [survey?.surveyId]);
-
   // Note: Removed automatic answer cleaning to prevent useInsertionEffect warnings
   // Answers are now only cleaned when loading saved progress
 
-  const loadSavedProgress = async () => {
+  const loadSavedProgress = useCallback(async () => {
     if (!survey?.surveyId) {
-      console.warn("No survey ID available for loading progress");
+      console.warn(
+        "No survey ID available for loading progress or already loaded"
+      );
       return;
     }
 
@@ -66,7 +61,14 @@ const SurveyTaking = ({ route, navigation }) => {
         );
       }
     }
-  };
+  }, [survey?.surveyId, cleanInvalidAnswers, showToast]);
+
+  useEffect(() => {
+    // Load saved progress if exists
+    if (survey?.surveyId) {
+      loadSavedProgress();
+    }
+  }, [loadSavedProgress]);
 
   // Clean up invalid answers that don't exist in current survey
   const cleanInvalidAnswers = useCallback(
@@ -108,13 +110,13 @@ const SurveyTaking = ({ route, navigation }) => {
     [survey?.questions] // Only depend on survey questions, not the entire survey object
   );
 
-  const showToast = (message, type = "info") => {
+  const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });
-  };
+  }, []);
 
-  const hideToast = () => {
+  const hideToast = useCallback(() => {
     setToast({ visible: false, message: "", type: "info" });
-  };
+  }, []);
 
   const handleAnswerSelect = (questionId, answerId, score) => {
     // Check if survey and questions exist
@@ -283,31 +285,28 @@ const SurveyTaking = ({ route, navigation }) => {
 
   const handleConfirmExit = async () => {
     // Save progress before exiting
-    if (survey?.surveyId && Object.keys(answers).length > 0) {
-      const saved = await saveSurveyProgress(survey.surveyId, answers);
-      if (saved) {
-        showToast("Đã lưu tiến độ khảo sát", "success");
-        // Delay to show toast before closing modal and navigating
-        setTimeout(() => {
-          setShowExitModal(false);
-          setTimeout(() => {
-            // Navigate back to survey info with progress saved flag
-            navigation.goBack();
-          }, 500);
-        }, 2000);
-      } else {
-        showToast("Không thể lưu tiến độ", "error");
-        // Delay to show toast before closing modal and navigating
-        setTimeout(() => {
-          setShowExitModal(false);
-          setTimeout(() => {
-            navigation.goBack();
-          }, 500);
-        }, 2000);
+    try {
+      console.log("answers", answers);
+
+      if (survey?.surveyId && Object.keys(answers).length > 0) {
+        const saved = await saveSurveyProgress(survey.surveyId, answers);
+        if (saved) {
+          showToast("Đã lưu tiến độ khảo sát", "success");
+        } else {
+          showToast("Không thể lưu tiến độ", "error");
+        }
       }
-    } else {
-      setShowExitModal(false);
-      navigation.goBack();
+    } catch (error) {
+      console.error("Error saving survey progress:", error);
+      showToast("Không thể lưu tiến độ", "error");
+    } finally {
+      setTimeout(() => {
+        setShowExitModal(false);
+        setTimeout(() => {
+          // Navigate back to survey info with progress saved flag
+          navigation.goBack();
+        }, 500);
+      }, 2000);
     }
   };
 
@@ -378,6 +377,8 @@ const SurveyTaking = ({ route, navigation }) => {
         }
       });
 
+      let totalScore = 0; // Khai báo biến totalScore
+
       if (survey?.category?.isSum) {
         // Cộng tất cả điểm
         totalScore = answerScores.reduce((sum, score) => sum + score, 0);
@@ -418,7 +419,7 @@ const SurveyTaking = ({ route, navigation }) => {
       const surveyResult = {
         surveyId: survey?.surveyId,
         isSkipped: false,
-        totalScore: 10,
+        totalScore: totalScore, // Sử dụng totalScore đã tính toán
         answerRecordRequests: answerRecordRequests,
       };
 

@@ -248,8 +248,9 @@ const ProgramManagement = () => {
         messageApi.success(t('programManagement.messages.createSuccess'))
         setIsModalVisible(false)
         // dispatch(getAllPrograms()) // Refresh list
-      } catch {
-        throw new Error('Failed to save program')
+      } catch (error) {
+        messageApi.error(t('programManagement.messages.createError'))
+        throw error
       }
     },
     [dispatch, t, messageApi]

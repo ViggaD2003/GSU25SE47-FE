@@ -50,28 +50,32 @@ const AppointmentCard = ({ appointment, onPress }) => {
           color: "#10B981",
           bgColor: "#ECFDF5",
           borderColor: "#D1FAE5",
-          gradient: ["#10B981", "#059669"],
+          gradient: ["#10B981", "#10B981"],
         };
       case "PENDING":
         return {
+          // color: "#F59E0B",
           color: "#F59E0B",
           bgColor: "#FFFBEB",
           borderColor: "#FED7AA",
-          gradient: ["#F59E0B", "#D97706"],
+          gradient: ["#F59E0B", "#F59E0B"],
         };
       case "IN_PROGRESS":
         return {
-          color: "#051396",
+          // color: "#051396",
+          color: "#2563EB",
           bgColor: "#EFF6FF",
           borderColor: "#BFDBFE",
-          gradient: ["#051396", "#2563EB"],
+          gradient: ["#2563EB", "#2563EB"],
         };
       default:
         return {
-          color: "#6B7280",
+          // color: "#6B7280",
+          color: "#4B5563",
           bgColor: "#F9FAFB",
           borderColor: "#E5E7EB",
-          gradient: ["#6B7280", "#4B5563"],
+          // gradient: ["#6B7280", "#4B5563"],
+          gradient: ["#6B7280", "#6B7280"],
         };
     }
   };
@@ -348,7 +352,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#FFFFFF",
     textTransform: "uppercase",
     letterSpacing: 0.3,

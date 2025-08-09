@@ -95,7 +95,7 @@ export const updateAppointmentWithAssessment = createAsyncThunk(
 // Async thunk for updating appointment status
 export const updateAppointmentStatus = createAsyncThunk(
   'appointment/updateAppointmentStatus',
-  async ({ appointmentId, status }, { rejectWithValue }) => {
+  async ({ appointmentId, status = 'IN_PROGRESS' }, { rejectWithValue }) => {
     try {
       const response = await appointmentAPI.updateAppointmentStatus(
         appointmentId,

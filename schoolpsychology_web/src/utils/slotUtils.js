@@ -23,9 +23,9 @@ export const validateSlot = (start, end, userRole, t, existingSlots = []) => {
   }
 
   // Check duration is integer
-  if (duration % 1 !== 0) {
-    return t('slotManagement.validation.durationInteger')
-  }
+  // if (duration % 1 !== 0) {
+  //   return t('slotManagement.validation.durationInteger')
+  // }
 
   // Check end time is not after 17:00
   const endHour = end.hour()

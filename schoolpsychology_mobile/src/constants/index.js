@@ -108,3 +108,6 @@ export * from "./index";
 
 // Survey constants
 export * from "./survey";
+
+// Level config constants
+export * from "./levelConfig";

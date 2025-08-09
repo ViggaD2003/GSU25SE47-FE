@@ -796,8 +796,7 @@ const CategoryModal = ({
         description: values.description?.trim() || null,
         isSum: values.isSum,
         isLimited: values.isLimited,
-        questionLength: values.questionLength ?? null,
-        questionCount: values.isLimited ? values.questionCount : null,
+        questionLength: values.isLimited ? values.questionCount : null,
         severityWeight: values.severityWeight,
         isActive: values.isActive,
         maxScore: values.maxScore ?? null,
@@ -811,11 +810,9 @@ const CategoryModal = ({
           interventionRequired: level.interventionRequired?.trim() || null,
         })),
       }
-      console.log('categoryData', categoryData)
       await onOk(categoryData)
 
       resetAllForms()
-      message?.success(t('categoryManagement.messages.saveSuccess'))
     } catch (error) {
       console.error('Form submission failed:', error)
       message?.error(t('categoryManagement.messages.validationError'))

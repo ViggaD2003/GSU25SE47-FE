@@ -1111,6 +1111,7 @@
     "description": "Quản lý lớp học và thông tin của chúng",
     "refresh": "Làm mới",
     "addClass": "Thêm lớp học",
+    "createMultipleClasses": "Tạo nhiều lớp học",
     "search": "Tìm kiếm lớp học...",
     "table": {
       "codeClass": "Mã lớp",
@@ -1140,12 +1141,38 @@
       "teacherEmail": "Email giáo viên",
       "teacherEmailPlaceholder": "Nhập email giáo viên",
       "teacherEmailRequired": "Vui lòng nhập email giáo viên",
-      "teacherEmailInvalid": "Vui lòng nhập địa chỉ email hợp lệ"
+      "teacherEmailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+      "grade": "Khối lớp",
+      "gradeRequired": "Vui lòng chọn khối lớp",
+      "selectGrade": "Chọn khối lớp",
+      "grade10": "Khối 10",
+      "grade11": "Khối 11",
+      "grade12": "Khối 12",
+      "numberOfClasses": "Số lượng lớp",
+      "numberOfClassesRequired": "Vui lòng nhập số lượng lớp",
+      "numberOfClassesPlaceholder": "Nhập số lượng lớp",
+      "numberOfClassesRange": "Số lượng lớp phải từ 1 đến 10",
+      "schoolYear": "Năm học",
+      "schoolYearRequired": "Vui lòng nhập năm học",
+      "schoolYearFormat": "Năm học phải có định dạng YYYY-YYYY",
+      "startTime": "Thời gian bắt đầu",
+      "startTimeRequired": "Vui lòng chọn thời gian bắt đầu",
+      "selectStartTime": "Chọn thời gian bắt đầu",
+      "endTime": "Thời gian kết thúc",
+      "endTimeRequired": "Vui lòng chọn thời gian kết thúc",
+      "selectEndTime": "Chọn thời gian kết thúc",
+      "teacher": "Giáo viên",
+      "teacherRequired": "Vui lòng chọn giáo viên",
+      "selectTeacher": "Chọn giáo viên",
+      "class": "Lớp",
+      "classDetails": "Chi tiết lớp học",
+      "generalConfig": "Cấu hình chung"
     },
     "modal": {
       "addTitle": "Thêm lớp học mới",
       "editTitle": "Sửa lớp học",
-      "viewTitle": "Xem chi tiết lớp học"
+      "viewTitle": "Xem chi tiết lớp học",
+      "createMultipleClasses": "Tạo nhiều lớp học"
     },
     "messages": {
       "fetchSuccess": "Tải danh sách lớp học thành công",
@@ -1157,7 +1184,9 @@
       "deleteSuccess": "Xóa lớp học thành công",
       "deleteError": "Không thể xóa lớp học",
       "deleteConfirm": "Bạn có chắc chắn muốn xóa lớp học này?",
-      "deleteTitle": "Xóa lớp học"
+      "deleteTitle": "Xóa lớp học",
+      "fetchTeachersError": "Không thể tải danh sách giáo viên",
+      "createError": "Không thể tạo lớp học"
     },
     "filters": {
       "classYear": "Lọc theo năm học",
@@ -1557,6 +1586,7 @@
       "messages": {
         "saveSuccess": "Đã lưu tiến độ thành công!",
         "saveError": "Lỗi khi lưu tiến độ. Vui lòng thử lại!",
+        "saveSuccessWithNotification": "Đã lưu tiến độ thành công! Giáo viên sẽ được thông báo về kết quả.",
         "submitSuccess": "Đánh giá đã được nộp thành công!",
         "submitError": "Lỗi khi nộp đánh giá. Vui lòng thử lại!",
         "resetSuccess": "Đã đặt lại form thành công!"
@@ -1604,7 +1634,29 @@
     "warnings": {
       "highRisk": "Cảnh báo: Cần can thiệp ngay lập tức",
       "highRiskDescription": "Học sinh có dấu hiệu nguy cơ cao. Vui lòng liên hệ ngay với chuyên gia tâm lý hoặc cơ quan chức năng."
-    }
+    },
+    "notification": {
+      "title": "Cài Đặt Thông Báo",
+      "enableNotifications": "Gửi thông báo về đánh giá này",
+      "notifyTeachers": "Thông Báo Giáo Viên",
+      "notifyParents": "Thông Báo Phụ Huynh",
+      "notifyAdministrators": "Thông Báo Ban Giám Hiệu",
+      "teacherDescription": "Gửi kết quả đánh giá đến giáo viên liên quan",
+      "parentDescription": "Sắp ra mắt - thông báo phụ huynh về đánh giá",
+      "adminDescription": "Sắp ra mắt - thông báo ban giám hiệu nhà trường"
+    },
+    "steps": {
+      "basic": "Thông Tin Cơ Bản",
+      "assessment": "Đánh Giá",
+      "notifications": "Thông Báo"
+    },
+    "progress": {
+      "complete": "Hoàn Thành",
+      "good": "Tiến Độ Tốt",
+      "started": "Đã Bắt Đầu"
+    },
+    "noCategories": "Không có danh mục đánh giá nào",
+    "submitting": "Đang gửi..."
   },
   "appointmentRecord": {
     "title": "Bản Ghi Đánh Giá",
@@ -1646,6 +1698,7 @@
     "critical": "Nghiêm Trọng",
     "messages": {
       "saveSuccess": "Lưu đánh giá thành công!",
+      "saveSuccessWithNotification": "Lưu đánh giá thành công! Giáo viên sẽ được thông báo về kết quả.",
       "saveError": "Lỗi khi lưu đánh giá. Vui lòng thử lại!"
     },
     "riskLevels": {

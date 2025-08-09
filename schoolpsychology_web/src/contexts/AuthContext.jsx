@@ -11,7 +11,7 @@ import {
   loginUser,
   logoutUser,
   initializeAuthFromStorage,
-  refreshToken as refreshTokenAction,
+  // refreshToken as refreshTokenAction,
 } from '../store/actions/authActions'
 import { useNavigate } from 'react-router-dom'
 
@@ -48,28 +48,33 @@ export const AuthProvider = ({ children }) => {
   }
 
   const refreshToken = async () => {
-    try {
-      const result = await dispatch(refreshTokenAction()).unwrap()
-      if (result?.token) {
-        notificationService.success({
-          message: 'Session Refreshed',
-          description:
-            'Your session has been refreshed. You can now try accessing the page again.',
-          duration: 3,
-        })
-        return { success: true, data: result }
-      } else {
-        dispatch(logoutUser())
-        notificationService.error({
-          message: 'Session Expired',
-          description: 'Please login again.',
-          duration: 3,
-        })
-        return { success: false, error: 'Failed to refresh token' }
-      }
-    } catch (error) {
-      return { success: false, error }
-    }
+    // Comment out refresh token functionality
+    console.log('Refresh token functionality is disabled')
+    return { success: false, error: 'Refresh token is disabled' }
+
+    // try {
+    //   const result = await dispatch(refreshTokenAction()).unwrap()
+    //   const token = result?.data?.token
+    //   if (token) {
+    //     notificationService.success({
+    //       message: 'Session Refreshed',
+    //       description:
+    //         'Your session has been refreshed. You can now try accessing the page again.',
+    //       duration: 3,
+    //     })
+    //     return { success: true, data: { token } }
+    //   } else {
+    //     dispatch(logoutUser())
+    //     notificationService.error({
+    //       message: 'Session Expired',
+    //       description: 'Please login again.',
+    //       duration: 3,
+    //     })
+    //     return { success: false, error: 'Failed to refresh token' }
+    //   }
+    // } catch (error) {
+    //   return { success: false, error }
+    // }
   }
 
   const checkUserRole = role => {

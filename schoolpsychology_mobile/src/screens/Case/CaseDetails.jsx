@@ -9,7 +9,7 @@ import { Text } from "react-native-paper";
 
 const CaseDetails = ({ route, navigation }) => {
   const { user } = useAuth();
-  const { caseId, headerTitle, emptyTitle, from } = route.params;
+  const { caseId, headerTitle, emptyTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const CaseDetails = ({ route, navigation }) => {
   return (
     <Container>
       {from === "tab" ? (
-        <HeaderWithTab title={headerTitle} />
+        <HeaderWithTab title={headerTitle} subtitle={subTitle} />
       ) : (
         <HeaderWithoutTab
           title={headerTitle}

@@ -16,8 +16,7 @@ export const classAPI = {
     return response.data
   },
   createClass: async data => {
-    const requestBody = Array.isArray(data) ? data : [data]
-    const response = await api.post('/api/v1/classes', requestBody)
+    const response = await api.post('/api/v1/classes', data)
     return response.data
   },
   enrollClass: async data => {

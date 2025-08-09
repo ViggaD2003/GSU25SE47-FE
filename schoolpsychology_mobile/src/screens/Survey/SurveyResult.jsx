@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { GlobalStyles } from "../../constants";
+import { getLevelConfig, GlobalStyles } from "../../constants";
 import { Container, Toast } from "../../components";
 import {
   formatDate,
@@ -65,8 +65,10 @@ const SurveyResult = ({ route, navigation }) => {
   }, [type, result]);
 
   const handleBackPress = useCallback(() => {
-    if (route.params?.screen === "SurveyTaking") {
-      navigation.popTo("MainBottomTabs");
+    if (type === "submit") {
+      navigation.popTo("MainBottomTabs", {
+        screen: "Home",
+      });
     } else {
       navigation.goBack();
     }
@@ -84,18 +86,19 @@ const SurveyResult = ({ route, navigation }) => {
 
   const currentScore = surveyRecord?.totalScore || 0;
   const answerRecords = surveyRecord?.answerRecords || [];
-  const hasAnswers = answerRecords.length > 0;
+  const hasAnswers = answerRecords?.length > 0 ?? false;
   const isSkipped = surveyRecord?.isSkipped || false;
 
   // Calculate summary stats - only for non-skipped surveys
   const answeredCount = isSkipped
     ? 0
-    : answerRecords.filter((record) => !record.skipped).length;
+    : answerRecords?.filter((record) => !record.skipped).length;
   const skippedCount = isSkipped
     ? 0
-    : answerRecords.filter((record) => record.skipped).length;
+    : answerRecords?.filter((record) => record.skipped).length;
 
-  const levelConfig = surveyRecord?.level;
+  const level = surveyRecord?.level;
+  const levelConfig = getLevelConfig(level?.code || level?.levelType);
 
   if (loading) {
     return (
@@ -136,7 +139,7 @@ const SurveyResult = ({ route, navigation }) => {
               <Ionicons
                 name={isSkipped ? "close-circle" : "trophy"}
                 size={24}
-                color={isSkipped ? "#6B7280" : getScoreColor(levelConfig)}
+                color={isSkipped ? "#6B7280" : levelConfig?.color}
               />
             </View>
             <View style={styles.resultInfo}>
@@ -155,6 +158,11 @@ const SurveyResult = ({ route, navigation }) => {
                     : surveyRecord.survey.surveyType}
                 </Text>
               )}
+              {surveyRecord?.survey?.category?.name && (
+                <Text style={styles.surveyCategory}>
+                  {surveyRecord.survey.category.name}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -164,38 +172,33 @@ const SurveyResult = ({ route, navigation }) => {
               <View
                 style={[
                   styles.scoreCircle,
-                  { borderColor: getScoreColor(levelConfig) },
+                  { borderColor: levelConfig?.color },
                 ]}
               >
-                <Text
-                  style={[
-                    styles.scoreText,
-                    { color: getScoreColor(levelConfig) },
-                  ]}
-                >
+                <Text style={[styles.scoreText, { color: levelConfig?.color }]}>
                   {currentScore}
                 </Text>
                 <Text style={styles.scoreLabel}>điểm</Text>
               </View>
               <View style={styles.scoreInfo}>
-                <View style={styles.scoreIconContainer}>
-                  <Ionicons
-                    name={getScoreIcon(levelConfig)}
-                    size={24}
-                    color={getScoreColor(levelConfig)}
-                  />
+                <View style={styles.scoreInfoHeader}>
+                  <View style={styles.scoreIconContainer}>
+                    <Ionicons
+                      name={levelConfig?.icon}
+                      size={24}
+                      color={levelConfig?.color}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.scoreLevel, { color: levelConfig?.color }]}
+                  >
+                    {level?.label || levelConfig?.label}
+                  </Text>
                 </View>
-                <Text
-                  style={[
-                    styles.scoreLevel,
-                    { color: getScoreColor(levelConfig) },
-                  ]}
-                >
-                  {getScoreLevel(levelConfig)}
-                </Text>
-                {getLevelDescription(levelConfig) && (
+
+                {(level?.description || levelConfig?.description) && (
                   <Text style={styles.scoreDescription}>
-                    {getLevelDescription(levelConfig)}
+                    {level?.description || levelConfig?.description}
                   </Text>
                 )}
               </View>
@@ -247,20 +250,31 @@ const SurveyResult = ({ route, navigation }) => {
               <Text style={styles.levelInfoTitle}>Thông tin mức độ</Text>
             </View>
 
-            {getLevelDescription(levelConfig) && (
+            {(level?.description || getLevelDescription(levelConfig)) && (
               <View style={styles.levelInfoItem}>
                 <Text style={styles.levelInfoLabel}>Mô tả:</Text>
                 <Text style={styles.levelInfoText}>
-                  {getLevelDescription(levelConfig)}
+                  {level?.description || getLevelDescription(levelConfig)}
                 </Text>
               </View>
             )}
 
-            {getSymptomsDescription(levelConfig) && (
+            {(level?.symptomsDescription ||
+              getSymptomsDescription(levelConfig)) && (
               <View style={styles.levelInfoItem}>
                 <Text style={styles.levelInfoLabel}>Triệu chứng:</Text>
                 <Text style={styles.levelInfoText}>
-                  {getSymptomsDescription(levelConfig)}
+                  {level?.symptomsDescription ||
+                    getSymptomsDescription(levelConfig)}
+                </Text>
+              </View>
+            )}
+
+            {level?.minScore !== undefined && level?.maxScore !== undefined && (
+              <View style={styles.levelInfoItem}>
+                <Text style={styles.levelInfoLabel}>Khoảng điểm:</Text>
+                <Text style={styles.levelInfoText}>
+                  {level.minScore} - {level.maxScore} điểm
                 </Text>
               </View>
             )}
@@ -293,21 +307,32 @@ const SurveyResult = ({ route, navigation }) => {
                 </Text>
               </View>
             )}
+            {surveyRecord?.survey?.category?.description && (
+              <View style={styles.skippedInfoItem}>
+                <Text style={styles.skippedInfoLabel}>Mô tả danh mục:</Text>
+                <Text style={styles.skippedInfoText}>
+                  {surveyRecord.survey.category.description}
+                </Text>
+              </View>
+            )}
           </View>
         )}
 
         {/* Suggestions */}
-        {!isSkipped && levelConfig && getInterventionRequired(levelConfig) && (
-          <View style={styles.suggestionsCard}>
-            <View style={styles.suggestionsHeader}>
-              <Ionicons name="bulb" size={24} color="#F59E0B" />
-              <Text style={styles.suggestionsTitle}>Gợi ý can thiệp</Text>
+        {!isSkipped &&
+          (level?.interventionRequired ||
+            getInterventionRequired(levelConfig)) && (
+            <View style={styles.suggestionsCard}>
+              <View style={styles.suggestionsHeader}>
+                <Ionicons name="bulb" size={24} color="#F59E0B" />
+                <Text style={styles.suggestionsTitle}>Gợi ý can thiệp</Text>
+              </View>
+              <Text style={styles.suggestionsText}>
+                {level?.interventionRequired ||
+                  getInterventionRequired(levelConfig)}
+              </Text>
             </View>
-            <Text style={styles.suggestionsText}>
-              {getInterventionRequired(levelConfig)}
-            </Text>
-          </View>
-        )}
+          )}
 
         {/* Answer Summary - Only show if not skipped and has answers */}
         {!isSkipped && hasAnswers && (
@@ -355,7 +380,7 @@ const SurveyResult = ({ route, navigation }) => {
               </View>
               <View style={styles.toggleButtonBadge}>
                 <Text style={styles.toggleButtonBadgeText}>
-                  {answerRecords.length}
+                  {answerRecords.length ?? 0}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -378,14 +403,22 @@ const SurveyResult = ({ route, navigation }) => {
                   <View style={styles.questionInfo}>
                     <Text style={styles.questionNumber}>Câu {index + 1}</Text>
                     <Text style={styles.questionText}>
-                      {record.questionResponse?.text || "Câu hỏi"}
+                      {record.answerResponse?.questionResponse?.text ||
+                        "Câu hỏi"}
                     </Text>
                   </View>
                   <View style={styles.answerInfo}>
                     <Text style={styles.answerLabel}>Trả lời:</Text>
                     <Text style={styles.answerText}>
-                      {record.answerResponse?.text || "Chưa trả lời"}
+                      {record.answerResponse?.answerResponse?.text ||
+                        "Chưa trả lời"}
                     </Text>
+                    {record.answerResponse?.answerResponse?.score !==
+                      undefined && (
+                      <Text style={styles.answerScore}>
+                        (Điểm: {record.answerResponse.answerResponse.score})
+                      </Text>
+                    )}
                   </View>
                   {record.skipped && (
                     <View style={styles.skippedBadge}>
@@ -525,6 +558,12 @@ const styles = StyleSheet.create({
     color: "#3B82F6",
     fontWeight: "500",
   },
+  surveyCategory: {
+    fontSize: 12,
+    color: "#059669",
+    fontWeight: "500",
+    marginTop: 2,
+  },
   scoreContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -562,6 +601,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6B7280",
     lineHeight: 20,
+  },
+  scoreInfoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   scoreIconContainer: {
     alignSelf: "flex-start",
@@ -813,6 +857,12 @@ const styles = StyleSheet.create({
     color: "#374151",
     flex: 1,
     lineHeight: 20,
+  },
+  answerScore: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontStyle: "italic",
+    marginLeft: 8,
   },
   skippedBadge: {
     backgroundColor: "#FEF2F2",

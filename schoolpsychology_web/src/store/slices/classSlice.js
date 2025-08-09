@@ -101,9 +101,13 @@ const classSlice = createSlice({
 
       .addCase('class/createClass/fulfilled', (state, action) => {
         state.loading = false
-        // Add the new class to the list
+        // Add the new classes to the list
         if (action.payload) {
-          state.classes.unshift(action.payload)
+          // Handle both single class and multiple classes
+          const newClasses = Array.isArray(action.payload)
+            ? action.payload
+            : [action.payload]
+          state.classes.unshift(...newClasses)
         }
         state.error = null
       })

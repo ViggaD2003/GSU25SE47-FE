@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+
 // Format utilities
 export const formatDate = (date, locale = 'vi-VN') => {
   return new Date(date).toLocaleDateString(locale)
@@ -80,8 +82,16 @@ export const isTokenExpired = token => {
     if (!decoded || !decoded.exp) return true
 
     // exp is in seconds, Date.now() is in milliseconds
-    const currentTime = Math.floor(Date.now() / 1000)
-    return decoded.exp < currentTime
+    const currentTime = Math.floor(dayjs().unix())
+    const isExpired = decoded.exp < currentTime
+
+    console.log(
+      `[Token Check] Expires at: ${dayjs(decoded.exp * 1000).format(
+        'DD/MM/YYYY HH:mm:ss'
+      )}, Current: ${dayjs(currentTime * 1000).format('DD/MM/YYYY HH:mm:ss')}, Expired: ${isExpired}`
+    )
+
+    return isExpired
   } catch (error) {
     console.error('Error checking token expiration:', error)
     return true

@@ -52,13 +52,35 @@ const Toast = ({
   const getToastStyle = () => {
     switch (type) {
       case "success":
-        return { backgroundColor: "#10B981", icon: "checkmark-circle" };
+        return {
+          backgroundColor: "#10B981",
+          icon: "checkmark-circle",
+          borderColor: "#059669",
+        };
       case "error":
-        return { backgroundColor: "#EF4444", icon: "close-circle" };
+        return {
+          backgroundColor: "#EF4444",
+          icon: "close-circle",
+          borderColor: "#DC2626",
+        };
       case "warning":
-        return { backgroundColor: "#F59E0B", icon: "warning" };
+        return {
+          backgroundColor: "#F59E0B",
+          icon: "warning",
+          borderColor: "#D97706",
+        };
+      case "server-error":
+        return {
+          backgroundColor: "#F97316",
+          icon: "server",
+          borderColor: "#EA580C",
+        };
       default:
-        return { backgroundColor: "#3B82F6", icon: "information-circle" };
+        return {
+          backgroundColor: "#3B82F6",
+          icon: "information-circle",
+          borderColor: "#2563EB",
+        };
     }
   };
 
@@ -72,6 +94,7 @@ const Toast = ({
         styles.container,
         { opacity: fadeAnim },
         { backgroundColor: toastStyle.backgroundColor },
+        { borderColor: toastStyle.borderColor },
       ]}
     >
       <View style={styles.content}>
@@ -92,6 +115,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     borderRadius: 12,
+    borderWidth: 2,
     padding: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },

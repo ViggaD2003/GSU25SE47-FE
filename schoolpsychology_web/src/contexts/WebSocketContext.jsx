@@ -191,7 +191,7 @@ export const WebSocketProvider = ({ children }) => {
     }) => {
       if (!isConnectionReady()) {
         console.error('[WebSocket] Cannot send message: not connected')
-        throw new Error('Not connected')
+        throw new Error('[WebSocket] Not connected')
       }
 
       try {

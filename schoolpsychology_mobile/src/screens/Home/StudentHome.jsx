@@ -51,9 +51,7 @@ export default function StudentHome({
         key: "booking",
         icon: "calendar",
         onPress: () => {
-          navigation.navigate("Appointment", {
-            screen: "Appointment",
-          });
+          navigation.navigate("Appointment");
         },
       },
       {
@@ -61,9 +59,7 @@ export default function StudentHome({
         key: "doc-blog",
         icon: "book",
         onPress: () => {
-          navigation.navigate("Blog", {
-            screen: "Blog",
-          });
+          navigation.navigate("Blog");
         },
       },
       {
@@ -71,9 +67,7 @@ export default function StudentHome({
         key: "history",
         icon: "back-in-time",
         onPress: () => {
-          navigation.navigate("Record", {
-            screen: "Record",
-          });
+          navigation.navigate("Record");
         },
       },
     ],
@@ -89,7 +83,7 @@ export default function StudentHome({
     const startIndex = (currentPage - 1) * PAGE_SIZE;
     const endIndex = startIndex + PAGE_SIZE;
     const newData = allData.slice(startIndex, endIndex);
-    console.log("newData", newData);
+    // console.log("newData", newData);
     if (newData.length > 0) {
       setDisplayedData((prev) => [...prev, ...newData]);
       setCurrentPage((prev) => prev + 1);
@@ -243,9 +237,7 @@ export default function StudentHome({
               console.log(
                 "StudentHome: Navigating to Record from Plan section"
               );
-              navigation.navigate("Event", {
-                screen: "Event",
-              });
+              navigation.navigate("Event");
             }}
           >
             <Text style={styles.viewAllText}>View All</Text>

@@ -47,6 +47,7 @@ import {
 import dayjs from 'dayjs'
 import {
   getAppointmentById,
+  updateAppointmentStatus,
   updateAppointmentWithAssessment,
 } from '../../../store/actions/appointmentActions'
 import {
@@ -615,6 +616,7 @@ const AppointmentDetails = () => {
   const [editedAppointment, setEditedAppointment] = useState(null)
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [submittingAssessment, setSubmittingAssessment] = useState(false)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
 
   // Fetch categories function
   const fetchCategories = useCallback(async () => {
@@ -749,11 +751,12 @@ const AppointmentDetails = () => {
     async data => {
       try {
         setSubmittingAssessment(true)
-
+        // console.log('data', data)
+        // console.log('appointment', appointment)
         // First update status to IN_PROGRESS if not already
         if (appointment.status !== APPOINTMENT_STATUS.IN_PROGRESS) return
 
-        // Enhanced assessment data with improved scoring
+        // Enhanced assessment data with improved scoring and notification settings
         const assessmentData = {
           appointmentId: appointment.id,
           caseId: data.caseId || null,
@@ -763,19 +766,37 @@ const AppointmentDetails = () => {
           sessionFlow: data.sessionFlow || SESSION_FLOW.GOOD,
           studentCoopLevel: data.studentCoopLevel || STUDENT_COOP_LEVEL.HIGH,
           assessmentScores: data.assessmentScores || [],
+          notificationSettings: data.notificationSettings || {
+            sendNotification: false,
+            notifyTeachers: true,
+            notifyParents: false,
+            // notifyAdministrators: false,
+          },
         }
 
         console.log('assessmentData', assessmentData)
 
         await dispatch(updateAppointmentWithAssessment(assessmentData)).unwrap()
 
-        messageApi.success(
-          t(
-            'appointmentRecord.messages.saveSuccess',
-            'Assessment saved successfully with enhanced scoring!'
+        // Show success message with notification info if enabled
+        const notificationEnabled = data.notificationSettings?.sendNotification
+        const notifyTeachers = data.notificationSettings?.notifyTeachers
+
+        if (notificationEnabled && notifyTeachers) {
+          messageApi.success(
+            t(
+              'appointmentRecord.messages.saveSuccessWithNotification',
+              'Assessment saved successfully! Teachers will be notified about the results.'
+            )
           )
-        )
-        setShowAssessmentForm(false)
+        } else {
+          messageApi.success(
+            t(
+              'appointmentRecord.messages.saveSuccess',
+              'Assessment saved successfully with enhanced scoring!'
+            )
+          )
+        }
 
         // Refresh appointment details
         dispatch(getAppointmentById(appointment.id))
@@ -791,12 +812,59 @@ const AppointmentDetails = () => {
         setSubmittingAssessment(false)
       }
     },
-    [messageApi, dispatch, t, appointment]
+    [appointment, dispatch, t, messageApi]
   )
 
-  const handleStartSession = useCallback(() => {
-    setShowAssessmentForm(true)
-  }, [])
+  const handleUpdateStatus = useCallback(async () => {
+    if (!appointment?.id && !currentData?.id) {
+      messageApi.error(t('appointmentDetails.messages.noAppointmentId'))
+      return
+    }
+
+    const appointmentId = appointment?.id || currentData?.id
+
+    try {
+      setUpdatingStatus(true)
+      console.log('Updating appointment status:', appointmentId)
+
+      await dispatch(
+        updateAppointmentStatus({
+          appointmentId,
+          status: APPOINTMENT_STATUS.IN_PROGRESS,
+        })
+      ).unwrap()
+
+      // Refresh appointment details
+      await dispatch(getAppointmentById(appointmentId))
+
+      messageApi.success(
+        t(
+          'appointmentDetails.messages.statusUpdateSuccess',
+          'Appointment status updated successfully!'
+        )
+      )
+    } catch (error) {
+      console.error('Error updating appointment status:', error)
+      messageApi.error(
+        t(
+          'appointmentDetails.messages.statusUpdateError',
+          'Failed to update appointment status. Please try again!'
+        )
+      )
+    } finally {
+      setUpdatingStatus(false)
+    }
+  }, [appointment, currentData, dispatch, messageApi, t])
+
+  const handleStartSession = useCallback(async () => {
+    try {
+      await handleUpdateStatus()
+      setShowAssessmentForm(true)
+    } catch (error) {
+      console.error('Error starting session:', error)
+      messageApi.error(t('appointmentDetails.startSessionError'))
+    }
+  }, [handleUpdateStatus, messageApi, t])
 
   const handleCloseAssessmentForm = useCallback(() => {
     setShowAssessmentForm(false)
@@ -912,7 +980,7 @@ const AppointmentDetails = () => {
                   onClick={handleJoinMeeting}
                   className="bg-green-600 hover:bg-green-700 shadow-lg"
                   size="large"
-                  disabled={showAssessmentForm}
+                  disabled={showAssessmentForm || updatingStatus}
                 >
                   {t('appointmentDetails.joinMeeting')}
                 </Button>
@@ -921,13 +989,18 @@ const AppointmentDetails = () => {
               <Tooltip title={t('appointmentDetails.startSessionTooltip')}>
                 <Button
                   type="primary"
-                  icon={<CalendarOutlined />}
+                  icon={
+                    updatingStatus ? <LoadingOutlined /> : <CalendarOutlined />
+                  }
                   onClick={handleStartSession}
                   className="bg-blue-600 hover:bg-blue-700 shadow-lg"
                   size="large"
-                  disabled={showAssessmentForm}
+                  disabled={showAssessmentForm || updatingStatus}
+                  loading={updatingStatus}
                 >
-                  {t('appointmentDetails.startSession')}
+                  {updatingStatus
+                    ? t('appointmentDetails.updatingStatus')
+                    : t('appointmentDetails.startSession')}
                 </Button>
               </Tooltip>
             )}

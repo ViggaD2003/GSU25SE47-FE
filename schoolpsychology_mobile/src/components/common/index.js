@@ -16,3 +16,5 @@ export { default as Toast } from "./Toast";
 export { default as EventCard } from "./EventCard";
 export { default as WeekCalendar } from "./WeekCalendar";
 export { default as WebSocketDebug } from "./WebSocketDebug";
+export { default as LevelBadge } from "./LevelBadge";
+export { default as LevelCard } from "./LevelCard";

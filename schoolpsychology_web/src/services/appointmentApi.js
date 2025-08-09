@@ -6,6 +6,9 @@ export const appointmentAPI = {
     if (!appointment) {
       throw new Error('Appointment data is required')
     }
+
+    console.log('appointment', appointment)
+
     try {
       const response = await api.post('/api/v1/appointments', appointment)
 
@@ -61,6 +64,9 @@ export const appointmentAPI = {
 
   // update appointment status
   updateAppointmentStatus: async (appointmentId, status) => {
+    if (!appointmentId) {
+      throw new Error('Appointment ID is required')
+    }
     if (!status) {
       throw new Error('Status is required')
     }
