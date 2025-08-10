@@ -2,8 +2,11 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
+import { useTranslation } from "react-i18next";
 
 const EventCard = ({ event, onPress }) => {
+  const { t } = useTranslation();
+
   // Get source icon and color
   const getSourceInfo = (source) => {
     switch (source) {
@@ -11,25 +14,25 @@ const EventCard = ({ event, onPress }) => {
         return {
           icon: "calendar",
           color: "#007AFF",
-          label: "Lịch hẹn",
+          label: t("eventCard.source.appointment"),
         };
       case "SURVEY":
         return {
           icon: "clipboard",
           color: "#FF9500",
-          label: "Khảo sát",
+          label: t("eventCard.source.survey"),
         };
       case "PROGRAM":
         return {
           icon: "school",
           color: "#34C759",
-          label: "Chương trình",
+          label: t("eventCard.source.program"),
         };
       default:
         return {
           icon: "ellipse",
           color: "#8E8E93",
-          label: "Sự kiện",
+          label: t("eventCard.source.event"),
         };
     }
   };
@@ -40,39 +43,39 @@ const EventCard = ({ event, onPress }) => {
       //survey
       case "PUBLISHED":
         return {
-          label: "Đã xuất bản",
+          label: t("eventCard.status.published"),
           color: "#34C759",
         };
       //appointment
       case "CONFIRMED":
         return {
-          label: "Đã xác nhận",
+          label: t("eventCard.status.confirmed"),
           color: "#34C759",
         };
       case "PENDING":
         return {
-          label: "Chờ xác nhận",
+          label: t("eventCard.status.pending"),
           color: "#FF9500",
         };
       case "IN_PROGRESS":
         return {
-          label: "Đang diễn ra",
+          label: t("eventCard.status.inProgress"),
           color: "#007AFF",
         };
       //program
       case "ACTIVE":
         return {
-          label: "Hoạt động",
+          label: t("eventCard.status.active"),
           color: "#34C759",
         };
       case "ON_GOING":
         return {
-          label: "Đang diễn ra",
+          label: t("eventCard.status.onGoing"),
           color: "#007AFF",
         };
       default:
         return {
-          label: "Không xác định",
+          label: t("eventCard.status.unknown"),
           color: "#8E8E93",
         };
     }
@@ -100,7 +103,7 @@ const EventCard = ({ event, onPress }) => {
           <Text style={styles.sourceLabel}>{sourceInfo.label}</Text>
           {event.from_case && (
             <View style={styles.caseBadge}>
-              <Text style={styles.caseText}>Case</Text>
+              <Text style={styles.caseText}>{t("eventCard.case")}</Text>
             </View>
           )}
         </View>

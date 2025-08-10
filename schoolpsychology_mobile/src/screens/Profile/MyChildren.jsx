@@ -13,11 +13,13 @@ import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { useNavigation } from "@react-navigation/native";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 
 export default function MyChildren({ route }) {
+  const { t } = useTranslation();
   const { data, onRefresh: onRefreshParent } = route?.params || {};
   const navigation = useNavigation();
   const [children, setChildren] = useState([]);
@@ -87,13 +89,16 @@ export default function MyChildren({ route }) {
   };
 
   const getGenderText = (gender) => {
-    return gender ? "Nam" : "Nữ";
+    return gender ? t("common.male") : t("common.female");
   };
 
   return (
     <Container>
       {/* Header */}
-      <HeaderWithoutTab title={"Con của tôi"} onBackPress={handleBackPress} />
+      <HeaderWithoutTab
+        title={t("profile.myChildren")}
+        onBackPress={handleBackPress}
+      />
 
       {loading ? (
         <View style={styles.loadingContainer}>

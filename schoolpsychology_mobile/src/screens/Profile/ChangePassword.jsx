@@ -11,8 +11,10 @@ import { api } from "../../services";
 import { Container } from "../../components";
 import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
 import { Toast } from "../../components";
+import { useTranslation } from "react-i18next";
 
 export default function ChangePassword({ navigation }) {
+  const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -87,14 +89,14 @@ export default function ChangePassword({ navigation }) {
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Thay đổi mật khẩu</Text>
+        <Text style={styles.headerTitle}>{t("profile.changePassword")}</Text>
         <View style={styles.headerSpacer} />
       </View>
 
       <View style={styles.wrapper}>
         <TextInput
           style={[styles.input, errors.currentPassword && styles.inputError]}
-          placeholder="Current Password"
+          placeholder={t("auth.currentPassword")}
           secureTextEntry
           value={currentPassword}
           onChangeText={setCurrentPassword}
@@ -131,7 +133,7 @@ export default function ChangePassword({ navigation }) {
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? "Changing..." : "Change Password"}
+            {loading ? t("common.changing") : t("profile.changePassword")}
           </Text>
         </TouchableOpacity>
       </View>

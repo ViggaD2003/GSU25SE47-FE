@@ -414,8 +414,10 @@ const SurveyTaking = ({ route, navigation }) => {
         isSkipped: false,
         totalScore: totalScore, // Sử dụng totalScore đã tính toán
         answerRecordRequests: answerRecordRequests,
+        surveyResultType: survey?.surveyType,
       };
 
+      console.log(surveyResult);
       // console.log("Survey submitted:", surveyResult);
       const response = await postSurveyResult(surveyResult);
       // console.log("response", response);

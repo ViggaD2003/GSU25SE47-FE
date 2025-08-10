@@ -74,6 +74,8 @@ export const assignCase = createAsyncThunk(
   'case/assignCase',
   async (data, { rejectWithValue }) => {
     try {
+      console.log('[caseActions] Assigning case with data:', data)
+
       const response = await caseAPI.assignCase(data)
       return response
     } catch (error) {

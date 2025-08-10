@@ -35,7 +35,7 @@ const ClassTable = ({
           <Text strong>{text}</Text>
         </Space>
       ),
-      width: 150,
+      width: 80,
       fixed: 'left',
       sorter: (a, b) => (a.codeClass || '').localeCompare(b.codeClass || ''),
     },
@@ -91,10 +91,9 @@ const ClassTable = ({
       width: 150,
     },
     {
-      title: t('classManagement.table.actions'),
       key: 'action',
       fixed: 'right',
-      width: 150,
+      width: 80,
       render: (_, record) => (
         <Space size="small">
           <Button
@@ -109,7 +108,7 @@ const ClassTable = ({
               <Button
                 icon={<UserAddOutlined />}
                 onClick={() => onEnroll(record)}
-                type="text"
+                type="link"
                 size="small"
                 className="text-green-600 hover:text-green-700"
               />

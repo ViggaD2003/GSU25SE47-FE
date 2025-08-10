@@ -157,6 +157,47 @@ export const useTokenErrorHandler = (logoutFunction) => {
           error?.response?.status === 401 ||
           error?.response?.status === 403;
 
+        // Special handling for 403 errors
+        if (error?.response?.status === 403) {
+          console.log(
+            "403 Forbidden error detected, attempting token refresh..."
+          );
+
+          try {
+            // Import refreshAccessToken dynamically to avoid circular dependencies
+            const { refreshAccessToken } = await import(
+              "../services/auth/authActions"
+            );
+            const newToken = await refreshAccessToken();
+
+            if (newToken) {
+              console.log("Token refresh successful after 403, error handled");
+              // Reset error count since refresh was successful
+              errorCountRef.current = 0;
+              return;
+            } else {
+              throw new Error("No token received after refresh");
+            }
+          } catch (refreshError) {
+            console.error("Token refresh failed after 403:", refreshError);
+            console.log("Performing logout due to refresh failure after 403");
+
+            // Force logout after refresh failure
+            if (logoutFunction) {
+              await logoutFunction();
+            } else {
+              const { performLogout } = await import(
+                "../services/auth/tokenManager"
+              );
+              await performLogout(true);
+            }
+
+            // Reset error count
+            errorCountRef.current = 0;
+            return;
+          }
+        }
+
         if (isTokenError || forceLogout) {
           console.log("Token error confirmed, initiating logout");
 
@@ -244,7 +285,50 @@ export const useApiCall = (handleTokenError) => {
       } catch (error) {
         console.error("API call error:", error);
 
-        // Handle token errors automatically
+        // Handle 403 errors with refresh token logic
+        if (error?.response?.status === 403) {
+          console.log(
+            "403 error detected in useApiCall, attempting token refresh..."
+          );
+
+          try {
+            // Import refreshAccessToken dynamically to avoid circular dependencies
+            const { refreshAccessToken } = await import(
+              "../services/auth/authActions"
+            );
+            const newToken = await refreshAccessToken();
+
+            if (newToken) {
+              console.log(
+                "Token refresh successful in useApiCall, retrying API call..."
+              );
+              // Retry the API call with new token
+              return await apiFunction(...args);
+            } else {
+              throw new Error("No token received after refresh");
+            }
+          } catch (refreshError) {
+            console.error("Token refresh failed in useApiCall:", refreshError);
+            console.log(
+              "Performing logout due to refresh failure in useApiCall"
+            );
+
+            // Force logout after refresh failure
+            try {
+              const { performLogout } = await import(
+                "../services/auth/tokenManager"
+              );
+              await performLogout(true);
+            } catch (logoutError) {
+              console.error("Logout failed in useApiCall:", logoutError);
+            }
+
+            // Re-throw the error for component handling
+            throw error;
+          }
+        }
+
+        // Handle other token errors automatically
         if (handleTokenError) {
           await handleTokenError(error);
         }
@@ -372,47 +456,98 @@ export const useServerErrorHandler = () => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("error");
 
-  const handleServerError = useCallback((error, showNotification = true) => {
-    const { status } = error.response || {};
+  const handleServerError = useCallback(
+    async (error, showNotification = true) => {
+      const { status } = error.response || {};
 
-    let errorMessage = "Đã xảy ra lỗi không xác định";
-    let errorTitle = "Lỗi";
-    let toastType = "error";
+      let errorMessage = "Đã xảy ra lỗi không xác định";
+      let errorTitle = "Lỗi";
+      let toastType = "error";
 
-    switch (status) {
-      case 502:
-        errorTitle = "Lỗi kết nối server";
-        errorMessage =
-          "Server hiện tại không khả dụng. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
-        toastType = "server-error";
-        break;
-      case 503:
-        errorTitle = "Dịch vụ tạm thời không khả dụng";
-        errorMessage = "Server đang bảo trì. Vui lòng thử lại sau.";
-        toastType = "server-error";
-        break;
-      case 504:
-        errorTitle = "Lỗi timeout";
-        errorMessage = "Server phản hồi quá chậm. Vui lòng thử lại sau.";
-        toastType = "server-error";
-        break;
-      default:
-        if (error.message) {
-          errorMessage = error.message;
+      // Special handling for 403 Forbidden errors
+      if (status === 403) {
+        console.log("403 Forbidden error detected in server error handler");
+
+        try {
+          // Import refreshAccessToken dynamically to avoid circular dependencies
+          const { refreshAccessToken } = await import(
+            "../services/auth/authActions"
+          );
+          const newToken = await refreshAccessToken();
+
+          if (newToken) {
+            console.log(
+              "Token refresh successful after 403, retrying operation"
+            );
+            // Return success to indicate retry should be attempted
+            return {
+              title: "Token Refreshed",
+              message: "Token has been refreshed, please retry the operation",
+              shouldRetry: true,
+              status: 403,
+            };
+          } else {
+            throw new Error("No token received after refresh");
+          }
+        } catch (refreshError) {
+          console.error("Token refresh failed after 403:", refreshError);
+          console.log("Performing logout due to refresh failure after 403");
+
+          // Force logout after refresh failure
+          try {
+            const { performLogout } = await import(
+              "../services/auth/tokenManager"
+            );
+            await performLogout(true);
+          } catch (logoutError) {
+            console.error(
+              "Logout failed after 403 refresh failure:",
+              logoutError
+            );
+          }
+
+          errorTitle = "Phiên đăng nhập hết hạn";
+          errorMessage = "Vui lòng đăng nhập lại để tiếp tục sử dụng ứng dụng.";
+          toastType = "auth-error";
         }
-    }
+      } else {
+        switch (status) {
+          case 502:
+            errorTitle = "Lỗi kết nối server";
+            errorMessage =
+              "Server hiện tại không khả dụng. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.";
+            toastType = "server-error";
+            break;
+          case 503:
+            errorTitle = "Dịch vụ tạm thời không khả dụng";
+            errorMessage = "Server đang bảo trì. Vui lòng thử lại sau.";
+            toastType = "server-error";
+            break;
+          case 504:
+            errorTitle = "Lỗi timeout";
+            errorMessage = "Server phản hồi quá chậm. Vui lòng thử lại sau.";
+            toastType = "server-error";
+            break;
+          default:
+            if (error.message) {
+              errorMessage = error.message;
+            }
+        }
+      }
 
-    setServerError({ title: errorTitle, message: errorMessage });
+      setServerError({ title: errorTitle, message: errorMessage });
 
-    if (showNotification) {
-      // Sử dụng Toast thay vì Alert
-      setToastMessage(errorMessage);
-      setToastType(toastType);
-      setShowToast(true);
-    }
+      if (showNotification) {
+        // Sử dụng Toast thay vì Alert
+        setToastMessage(errorMessage);
+        setToastType(toastType);
+        setShowToast(true);
+      }
 
-    return { title: errorTitle, message: errorMessage };
-  }, []);
+      return { title: errorTitle, message: errorMessage, status };
+    },
+    []
+  );
 
   const clearServerError = useCallback(() => {
     setServerError(null);

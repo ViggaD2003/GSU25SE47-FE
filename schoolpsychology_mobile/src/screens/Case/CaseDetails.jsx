@@ -10,6 +10,7 @@ import {
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { useTranslation } from "react-i18next";
 
 import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
@@ -25,6 +26,7 @@ import { getLevelConfig } from "@/constants/levelConfig";
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const CaseDetails = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -74,7 +76,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#3B82F6",
           icon: "add-circle",
-          label: "Mới",
+          label: t("case.status.new"),
           backgroundColor: "#DBEAFE",
           gradient: ["#3B82F6", "#1D4ED8"],
         };
@@ -82,7 +84,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#F59E0B",
           icon: "time-outline",
-          label: "Đang xử lý",
+          label: t("case.status.inProgress"),
           backgroundColor: "#FEF3C7",
           gradient: ["#F59E0B", "#D97706"],
         };
@@ -90,7 +92,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#10B981",
           icon: "checkmark-circle",
-          label: "Đã đóng",
+          label: t("case.status.closed"),
           backgroundColor: "#D1FAE5",
           gradient: ["#10B981", "#059669"],
         };
@@ -98,7 +100,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#6B7280",
           icon: "help-circle",
-          label: "Không xác định",
+          label: t("case.status.unknown"),
           backgroundColor: "#F3F4F6",
           gradient: ["#6B7280", "#4B5563"],
         };
@@ -111,7 +113,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#EF4444",
           icon: "alert-circle",
-          label: "Cao",
+          label: t("case.priority.high"),
           backgroundColor: "#FEE2E2",
           gradient: ["#EF4444", "#DC2626"],
         };
@@ -119,7 +121,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#F59E0B",
           icon: "warning-outline",
-          label: "Trung bình",
+          label: t("case.priority.medium"),
           backgroundColor: "#FEF3C7",
           gradient: ["#F59E0B", "#D97706"],
         };
@@ -127,7 +129,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#10B981",
           icon: "checkmark",
-          label: "Thấp",
+          label: t("case.priority.low"),
           backgroundColor: "#D1FAE5",
           gradient: ["#10B981", "#059669"],
         };
@@ -135,7 +137,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#6B7280",
           icon: "help-circle",
-          label: "Không xác định",
+          label: t("case.priority.unknown"),
           backgroundColor: "#F3F4F6",
           gradient: ["#6B7280", "#4B5563"],
         };
@@ -148,7 +150,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#10B981",
           icon: "trending-up",
-          label: "Cải thiện",
+          label: t("case.progressTrend.improved"),
           backgroundColor: "#D1FAE5",
           gradient: ["#10B981", "#059669"],
         };
@@ -156,7 +158,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#3B82F6",
           icon: "remove-outline",
-          label: "Ổn định",
+          label: t("case.progressTrend.stable"),
           backgroundColor: "#DBEAFE",
           gradient: ["#3B82F6", "#1D4ED8"],
         };
@@ -164,7 +166,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#EF4444",
           icon: "trending-down",
-          label: "Giảm sút",
+          label: t("case.progressTrend.declined"),
           backgroundColor: "#FEE2E2",
           gradient: ["#EF4444", "#DC2626"],
         };
@@ -172,7 +174,7 @@ const CaseDetails = ({ route, navigation }) => {
         return {
           color: "#6B7280",
           icon: "help-circle",
-          label: "Không xác định",
+          label: t("case.progressTrend.unknown"),
           backgroundColor: "#F3F4F6",
           gradient: ["#6B7280", "#4B5563"],
         };
@@ -193,12 +195,14 @@ const CaseDetails = ({ route, navigation }) => {
           <Ionicons name={statusConfig.icon} size={48} color="#FFFFFF" />
         </LinearGradient>
         <Text style={styles.emptyTitle}>
-          {status === "CLOSED" ? "Không có case nào" : "Chưa có case được gán"}
+          {status === "CLOSED"
+            ? t("case.emptyState.noCase")
+            : t("case.emptyState.noCaseAssigned")}
         </Text>
         <Text style={styles.emptySubtitle}>
           {status === "CLOSED"
-            ? "Tất cả các case đã được xử lý hoàn tất"
-            : "Case sẽ được hiển thị khi được gán cho bạn"}
+            ? t("case.emptyState.allCasesClosedSubtitle")
+            : t("case.emptyState.noCaseAssignedSubtitle")}
         </Text>
       </View>
     );
@@ -263,7 +267,9 @@ const CaseDetails = ({ route, navigation }) => {
                     >
                       <Ionicons name="flag" size={16} color="#FFFFFF" />
                     </LinearGradient>
-                    <Text style={styles.statusLabel}>Mức độ ưu tiên:</Text>
+                    <Text style={styles.statusLabel}>
+                      {t("case.caseInfo.priority")}:
+                    </Text>
                     <View style={styles.priorityChip}>
                       <Ionicons
                         name={priorityConfig.icon}
@@ -290,7 +296,9 @@ const CaseDetails = ({ route, navigation }) => {
                     >
                       <Ionicons name="trending-up" size={16} color="#FFFFFF" />
                     </LinearGradient>
-                    <Text style={styles.statusLabel}>Xu hướng tiến triển:</Text>
+                    <Text style={styles.statusLabel}>
+                      {t("case.caseInfo.progressTrend")}:
+                    </Text>
                     <View style={styles.progressChip}>
                       <Ionicons
                         name={progressConfig.icon}
@@ -311,7 +319,9 @@ const CaseDetails = ({ route, navigation }) => {
 
                 {/* Level Information */}
                 <View style={styles.levelSection}>
-                  <Text style={styles.sectionTitle}>Mức độ đánh giá</Text>
+                  <Text style={styles.sectionTitle}>
+                    {t("case.level.title")}
+                  </Text>
                   <View style={styles.levelCards}>
                     <LinearGradient
                       colors={
@@ -321,7 +331,9 @@ const CaseDetails = ({ route, navigation }) => {
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                     >
-                      <Text style={styles.levelLabel}>Mức độ hiện tại</Text>
+                      <Text style={styles.levelLabel}>
+                        {t("case.level.current")}
+                      </Text>
                       <View style={styles.levelBadge}>
                         <Ionicons
                           name={currentLevelConfig?.icon}
@@ -342,7 +354,9 @@ const CaseDetails = ({ route, navigation }) => {
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                     >
-                      <Text style={styles.levelLabel}>Mức độ ban đầu</Text>
+                      <Text style={styles.levelLabel}>
+                        {t("case.level.initial")}
+                      </Text>
                       <View style={styles.levelBadge}>
                         <Ionicons
                           name={initialLevelConfig?.icon}
@@ -369,7 +383,7 @@ const CaseDetails = ({ route, navigation }) => {
 
     return (
       <Animated.View style={[styles.statisticsSection, { opacity: fadeAnim }]}>
-        <Text style={styles.sectionTitle}>Thống kê tổng quan</Text>
+        <Text style={styles.sectionTitle}>{t("case.statistics.title")}</Text>
 
         <ScrollView
           horizontal
@@ -378,12 +392,14 @@ const CaseDetails = ({ route, navigation }) => {
         >
           <View style={{ marginRight: 10 }}>
             <StatisticsCard
-              title="Khảo sát"
+              title={t("case.statistics.surveys")}
               value={
                 groupedStatic.survey.activeSurveys +
                 groupedStatic.survey.completedSurveys
               }
-              subtitle={`${groupedStatic.survey.completedSurveys} hoàn thành`}
+              subtitle={`${groupedStatic.survey.completedSurveys} ${t(
+                "case.statistics.completed"
+              )}`}
               icon="document-text"
               iconColor="#F59E0B"
               valueColor="#F59E0B"
@@ -392,12 +408,14 @@ const CaseDetails = ({ route, navigation }) => {
           </View>
           <View style={{ marginRight: 10 }}>
             <StatisticsCard
-              title="Lịch hẹn"
+              title={t("case.statistics.appointments")}
               value={
                 groupedStatic.appointment.activeAppointments +
                 groupedStatic.appointment.completedAppointments
               }
-              subtitle={`${groupedStatic.appointment.completedAppointments} hoàn thành`}
+              subtitle={`${groupedStatic.appointment.completedAppointments} ${t(
+                "case.statistics.completed"
+              )}`}
               icon="calendar"
               iconColor="#10B981"
               valueColor="#10B981"
@@ -406,12 +424,14 @@ const CaseDetails = ({ route, navigation }) => {
           </View>
           <View style={{ marginRight: 10 }}>
             <StatisticsCard
-              title="Chương trình"
+              title={t("case.statistics.programs")}
               value={
                 groupedStatic.program.activePrograms +
                 groupedStatic.program.completedPrograms
               }
-              subtitle={`${groupedStatic.program.completedPrograms} hoàn thành`}
+              subtitle={`${groupedStatic.program.completedPrograms} ${t(
+                "case.statistics.completed"
+              )}`}
               icon="school"
               iconColor="#F59E0B"
               valueColor="#F59E0B"
@@ -429,7 +449,7 @@ const CaseDetails = ({ route, navigation }) => {
     // Prepare chart data with proper formatting for 0.0-4.0 scale
     const formatChartData = (dataSet, title) => {
       if (!dataSet || dataSet.length === 0) {
-        return [{ x: "Không có dữ liệu", y: 0 }];
+        return [{ x: t("case.charts.noData"), y: 0 }];
       }
 
       return dataSet.map((item, index) => ({
@@ -437,7 +457,7 @@ const CaseDetails = ({ route, navigation }) => {
           ? new Date(item.createdAt).toLocaleDateString("vi-VN")
           : `Lần ${index + 1}`,
         y: item.score || 0,
-        label: `${item.score || 0}/4.0`,
+        label: t("case.charts.scoreFormat", { score: item.score || 0 }),
       }));
     };
 
@@ -456,38 +476,44 @@ const CaseDetails = ({ route, navigation }) => {
 
     return (
       <Animated.View style={[styles.chartsSection, { opacity: fadeAnim }]}>
-        <Text style={styles.sectionTitle}>Biểu đồ thống kê</Text>
+        <Text style={styles.sectionTitle}>{t("case.charts.title")}</Text>
 
         <View style={styles.chartContainer}>
           <BarChart
             data={surveyData}
-            title="Khảo sát"
+            title={t("case.charts.surveys")}
             barColor="#3B82F6"
             height={150}
             yAxisMax={4.0}
-            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+            valueFormatter={(value) =>
+              t("case.charts.scoreFormat", { score: value.toFixed(1) })
+            }
           />
         </View>
 
         <View style={styles.chartContainer}>
           <BarChart
             data={appointmentData}
-            title="Lịch hẹn"
+            title={t("case.charts.appointments")}
             barColor="#10B981"
             height={150}
             yAxisMax={4.0}
-            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+            valueFormatter={(value) =>
+              t("case.charts.scoreFormat", { score: value.toFixed(1) })
+            }
           />
         </View>
 
         <View style={styles.chartContainer}>
           <BarChart
             data={programData}
-            title="Chương trình"
+            title={t("case.charts.programs")}
             barColor="#F59E0B"
             height={150}
             yAxisMax={4.0}
-            valueFormatter={(value) => `${value.toFixed(1)}/4.0`}
+            valueFormatter={(value) =>
+              t("case.charts.scoreFormat", { score: value.toFixed(1) })
+            }
           />
         </View>
       </Animated.View>
@@ -505,7 +531,9 @@ const CaseDetails = ({ route, navigation }) => {
           style={styles.cardGradient}
         >
           <Card.Content style={[styles.cardContent, { padding: 20 }]}>
-            <Text style={styles.sectionTitle}>Thông tin học sinh</Text>
+            <Text style={styles.sectionTitle}>
+              {t("case.studentInfo.title")}
+            </Text>
 
             <View style={styles.studentInfo}>
               <View style={styles.infoRow}>
@@ -517,7 +545,9 @@ const CaseDetails = ({ route, navigation }) => {
                 >
                   <Ionicons name="person" size={16} color="#FFFFFF" />
                 </LinearGradient>
-                <Text style={styles.infoLabel}>Họ tên:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("case.studentInfo.fullName")}:
+                </Text>
                 <Text style={styles.infoValue}>{student.fullName}</Text>
               </View>
 
@@ -530,7 +560,9 @@ const CaseDetails = ({ route, navigation }) => {
                 >
                   <Ionicons name="mail" size={16} color="#FFFFFF" />
                 </LinearGradient>
-                <Text style={styles.infoLabel}>Email:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("case.studentInfo.email")}:
+                </Text>
                 <Text style={styles.infoValue}>{student.email}</Text>
               </View>
 
@@ -543,7 +575,9 @@ const CaseDetails = ({ route, navigation }) => {
                 >
                   <Ionicons name="call" size={16} color="#FFFFFF" />
                 </LinearGradient>
-                <Text style={styles.infoLabel}>Số điện thoại:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("case.studentInfo.phoneNumber")}:
+                </Text>
                 <Text style={styles.infoValue}>{student.phoneNumber}</Text>
               </View>
 
@@ -556,7 +590,9 @@ const CaseDetails = ({ route, navigation }) => {
                 >
                   <Ionicons name="school" size={16} color="#FFFFFF" />
                 </LinearGradient>
-                <Text style={styles.infoLabel}>Lớp:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("case.studentInfo.class")}:
+                </Text>
                 <Text style={styles.infoValue}>
                   {student.classDto.codeClass}
                 </Text>
@@ -571,7 +607,9 @@ const CaseDetails = ({ route, navigation }) => {
                 >
                   <Ionicons name="calendar" size={16} color="#FFFFFF" />
                 </LinearGradient>
-                <Text style={styles.infoLabel}>Năm học:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("case.studentInfo.schoolYear")}:
+                </Text>
                 <Text style={styles.infoValue}>
                   {student.classDto.schoolYear}
                 </Text>

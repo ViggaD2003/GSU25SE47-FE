@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,15 +8,19 @@ import {
   Modal,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
-import { Container, Toast } from "../../components";
+import { Container } from "../../components";
 import { GlobalStyles } from "../../constants";
 import Loading from "../../components/common/Loading";
 import ConfirmModal from "../../components/common/ConfirmModal";
 import {
+  getAppointmentById,
   cancelAppointment,
   updateAppointmentStatus,
 } from "@/services/api/AppointmentService";
@@ -24,7 +28,6 @@ import CalendarService from "@/services/CalendarService";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../contexts/AuthContext";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
-import { useServerErrorHandler } from "../../utils/hooks";
 import { useTranslation } from "react-i18next";
 
 const AppointmentDetails = ({ route, navigation }) => {
@@ -35,22 +38,52 @@ const AppointmentDetails = ({ route, navigation }) => {
   const [error, setError] = useState(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showReasonModal, setShowReasonModal] = useState(false);
-  const [selectedReason, setSelectedReason] = useState("");
+  const [selectedReason, setSelectedReason] = useState(null);
   const [customReason, setCustomReason] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [appointmentData, setAppointmentData] = useState(null);
 
-  // Server error handling
-  const { handleServerError, showToast, toastMessage, toastType, hideToast } =
-    useServerErrorHandler();
+  const fetchAppointment = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const appointmentData = await getAppointmentById(appointment.id);
+      setAppointmentData(appointmentData);
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      setError("Failed to load appointment details. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointment();
+  }, [appointment]);
 
   // Cancel reasons
   const cancelReasons = [
-    "Có việc đột xuất",
-    "Bị ốm",
-    "Có lịch hẹn khác",
-    "Thay đổi thời gian",
-    "Khác",
+    {
+      id: 1,
+      title: t("appointment.cancelReasons.0"),
+    },
+    {
+      id: 2,
+      title: t("appointment.cancelReasons.1"),
+    },
+    {
+      id: 3,
+      title: t("appointment.cancelReasons.2"),
+    },
+    {
+      id: 4,
+      title: t("appointment.cancelReasons.3"),
+    },
+    {
+      id: 0,
+      title: t("appointment.cancelReasons.4"),
+    },
   ];
 
   // Utility functions
@@ -58,7 +91,7 @@ const AppointmentDetails = ({ route, navigation }) => {
     try {
       return dayjs(dateTimeString).format("HH:mm");
     } catch (error) {
-      return "N/A";
+      return t("appointment.common.notDetermined");
     }
   };
 
@@ -66,7 +99,7 @@ const AppointmentDetails = ({ route, navigation }) => {
     try {
       return dayjs(dateTimeString).format("DD/MM/YYYY");
     } catch (error) {
-      return "N/A";
+      return t("appointment.common.notDetermined");
     }
   };
 
@@ -80,15 +113,23 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   const removeEventFromCalendar = async (appointmentId) => {
     try {
+      console.log("Starting calendar cleanup for appointment:", appointmentId);
+
       // Kiểm tra xem appointment có được sync với calendar không
-      const isSynced = await CalendarService.isAppointmentAlreadySynced(
-        appointmentId
-      );
+      let isSynced = false;
+      // try {
+      //   isSynced = await CalendarService.isAppointmentAlreadySynced(
+      //     appointmentId
+      //   );
+      //   console.log("Appointment sync status:", isSynced);
+      // } catch (syncError) {
+      //   console.error("Error checking sync status:", syncError);
+      //   // Nếu không thể kiểm tra, giả sử không sync
+      //   isSynced = false;
+      // }
 
       if (!isSynced) {
-        console.log(
-          "Appointment not synced with calendar, skipping calendar deletion"
-        );
+        console.log("Appointment not synced, skipping calendar cleanup");
         return {
           success: true,
           message: "Appointment not synced with calendar",
@@ -96,36 +137,82 @@ const AppointmentDetails = ({ route, navigation }) => {
       }
 
       // Lấy event ID từ mapping
-      const eventId = await CalendarService.getEventIdForAppointment(
-        appointmentId
-      );
+      let eventId = null;
+      try {
+        eventId = await CalendarService.getEventIdForAppointment(appointmentId);
+        console.log("Event ID from mapping:", eventId);
+      } catch (mappingError) {
+        console.error("Error getting event mapping:", mappingError);
+        // Nếu không thể lấy mapping, xóa mapping để tránh inconsistency
+        try {
+          await CalendarService.removeEventMapping(appointmentId);
+        } catch (removeMappingError) {
+          console.error("Error removing event mapping:", removeMappingError);
+        }
+        return {
+          success: true,
+          message: "No event mapping found, mapping removed",
+        };
+      }
 
       if (!eventId) {
         console.log("No event ID found for appointment, removing mapping");
-        await CalendarService.removeEventMapping(appointmentId);
-        return { success: true, message: "No calendar event found" };
+        try {
+          await CalendarService.removeEventMapping(appointmentId);
+        } catch (removeMappingError) {
+          console.error("Error removing event mapping:", removeMappingError);
+        }
+        return {
+          success: true,
+          message: "No event ID found, mapping removed",
+        };
       }
 
       // Xóa event khỏi calendar
-      const deleteSuccess = await CalendarService.deleteEvent(eventId);
+      let deleteSuccess = false;
+      try {
+        deleteSuccess = await CalendarService.deleteEvent(eventId);
+        console.log("Event deletion result:", deleteSuccess);
+      } catch (deleteError) {
+        console.error("Error deleting calendar event:", deleteError);
+        deleteSuccess = false;
+      }
+
+      // Luôn xóa mapping sau khi xử lý
+      try {
+        await CalendarService.removeEventMapping(appointmentId);
+        console.log("Event mapping removed successfully");
+      } catch (removeMappingError) {
+        console.error("Error removing event mapping:", removeMappingError);
+      }
 
       if (deleteSuccess) {
-        // Xóa mapping sau khi xóa event thành công
-        await CalendarService.removeEventMapping(appointmentId);
         return {
           success: true,
           message: "Calendar event deleted successfully",
         };
       } else {
-        // Nếu xóa event thất bại, vẫn xóa mapping để tránh inconsistency
-        await CalendarService.removeEventMapping(appointmentId);
-        return { success: false, message: "Failed to delete calendar event" };
+        return {
+          success: false,
+          message: "Failed to delete calendar event, but mapping removed",
+        };
       }
     } catch (error) {
-      console.error("Error removing event from calendar:", error);
+      console.error("Unexpected error in removeEventFromCalendar:", error);
       // Xóa mapping để tránh inconsistency
-      await CalendarService.removeEventMapping(appointmentId);
-      return { success: false, message: "Error removing calendar event" };
+      try {
+        await CalendarService.removeEventMapping(appointmentId);
+        console.log("Event mapping removed after error");
+      } catch (removeMappingError) {
+        console.error(
+          "Error removing event mapping after error:",
+          removeMappingError
+        );
+      }
+      return {
+        success: false,
+        message: "Calendar cleanup failed due to unexpected error",
+      };
     }
   };
 
@@ -143,12 +230,18 @@ const AppointmentDetails = ({ route, navigation }) => {
         text: t("appointment.status.pending"),
         icon: "time",
       },
-      // CANCELLED: {
-      //   color: "#EF4444",
-      //   bgColor: "#FEF2F2",
-      //   text: "Đã hủy",
-      //   icon: "close-circle",
-      // },
+      CANCELLED: {
+        color: "#EF4444",
+        bgColor: "#FEF2F2",
+        text: t("appointment.status.cancelled"),
+        icon: "close-circle",
+      },
+      COMPLETED: {
+        color: "#10B981",
+        bgColor: "#ECFDF5",
+        text: t("appointment.status.completed"),
+        icon: "checkmark-circle",
+      },
       IN_PROGRESS: {
         color: "#3B82F6",
         bgColor: "#EFF6FF",
@@ -189,21 +282,19 @@ const AppointmentDetails = ({ route, navigation }) => {
   };
 
   const canCancel = () => {
-    if (!appointment) return false;
+    if (!appointmentData) return false;
 
     const now = dayjs();
-    const startTime = dayjs(appointment.startDateTime);
+    const startTime = dayjs(appointmentData.startDateTime);
     const isFuture = startTime.isAfter(now);
-    const canCancelStatus = !["PENDING", "IN_PROGRESS"].includes(
-      appointment.status
-    );
+    const canCancelStatus = ["CONFIRMED"].includes(appointmentData.status);
 
     return isFuture && canCancelStatus;
   };
 
   const canConfirmOrReject = () => {
-    if (!appointment) return false;
-    return appointment.status === "PENDING";
+    if (!appointmentData) return false;
+    return appointmentData.status === "PENDING";
   };
 
   // Determine what booking information to show based on user role and ID
@@ -217,7 +308,7 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   const shouldShowBookedBy = () => {
     // If user is PARENT and userId matches bookedBy.id, don't show "booked by" person
-    if (user?.role === "PARENT" && user?.id === appointment.bookedBy?.id) {
+    if (user?.role === "PARENT" && user?.id === appointmentData.bookedBy?.id) {
       return false;
     }
     return true;
@@ -233,22 +324,40 @@ const AppointmentDetails = ({ route, navigation }) => {
   const handleConfirmAppointmentAction = async () => {
     try {
       setLoading(true);
-      await updateAppointmentStatus(appointment.id, "CONFIRMED");
+      await updateAppointmentStatus(appointmentData.id, "CONFIRMED");
 
-      Alert.alert("Thành công", "Đã xác nhận lịch hẹn thành công!", [
-        {
-          text: "OK",
-          onPress: () => {
-            setShowConfirmModal(false);
-            navigation.goBack();
+      Alert.alert(
+        t("common.alerts.success"),
+        t("appointment.success.confirmAppointment"),
+        [
+          {
+            text: t("common.ok"),
+            onPress: () => {
+              try {
+                setShowConfirmModal(false);
+                navigation.goBack();
+              } catch (error) {
+                console.error("Error after confirming appointment:", error);
+                // Fallback navigation
+                setTimeout(() => {
+                  try {
+                    navigation.goBack();
+                  } catch (navError) {
+                    console.error("Fallback navigation failed:", navError);
+                  }
+                }, 100);
+              }
+            },
           },
-        },
-      ]);
+        ]
+      );
     } catch (error) {
       console.error("Error confirming appointment:", error);
-      Alert.alert("Lỗi", "Không thể xác nhận lịch hẹn. Vui lòng thử lại sau.", [
-        { text: "OK" },
-      ]);
+      Alert.alert(
+        t("common.alerts.error"),
+        t("appointment.errors.confirmError"),
+        [{ text: t("common.ok") }]
+      );
     } finally {
       setLoading(false);
     }
@@ -257,22 +366,40 @@ const AppointmentDetails = ({ route, navigation }) => {
   const handleRejectAppointmentAction = async () => {
     try {
       setLoading(true);
-      console.log("Rejecting appointment:", appointment.id);
+      console.log("Rejecting appointment:", appointmentData.id);
 
-      Alert.alert("Thành công", "Đã từ chối lịch hẹn!", [
-        {
-          text: "OK",
-          onPress: () => {
-            setShowRejectModal(false);
-            navigation.goBack();
+      Alert.alert(
+        t("common.alerts.success"),
+        t("appointment.success.rejectAppointment"),
+        [
+          {
+            text: t("common.ok"),
+            onPress: () => {
+              try {
+                setShowRejectModal(false);
+                navigation.goBack();
+              } catch (error) {
+                console.error("Error after rejecting appointment:", error);
+                // Fallback navigation
+                setTimeout(() => {
+                  try {
+                    navigation.goBack();
+                  } catch (navError) {
+                    console.error("Fallback navigation failed:", navError);
+                  }
+                }, 100);
+              }
+            },
           },
-        },
-      ]);
+        ]
+      );
     } catch (error) {
       console.error("Error rejecting appointment:", error);
-      Alert.alert("Lỗi", "Không thể từ chối lịch hẹn. Vui lòng thử lại sau.", [
-        { text: "OK" },
-      ]);
+      Alert.alert(
+        t("common.alerts.error"),
+        t("appointment.errors.rejectError"),
+        [{ text: t("common.ok") }]
+      );
     } finally {
       setLoading(false);
     }
@@ -281,79 +408,181 @@ const AppointmentDetails = ({ route, navigation }) => {
   const handleConfirmCancel = async () => {
     try {
       setLoading(true);
+      console.log(
+        "Starting calendar cleanup for appointment:",
+        appointmentData.id
+      );
 
       // Kiểm tra và xóa event trong calendar
-      const calendarResult = await removeEventFromCalendar(appointment.id);
+      let calendarResult = null;
+      try {
+        calendarResult = await removeEventFromCalendar(appointmentData.id);
+        console.log("Calendar cleanup result:", calendarResult);
+      } catch (calendarError) {
+        console.error("Calendar cleanup error:", calendarError);
+        // Tạo kết quả mặc định nếu calendar có lỗi
+        calendarResult = {
+          success: false,
+          message: "Calendar cleanup failed due to error",
+        };
+      }
+
+      if (!calendarResult) {
+        console.warn("Calendar cleanup returned null, using default result");
+        calendarResult = {
+          success: false,
+          message: "Calendar cleanup returned null",
+        };
+      }
 
       if (!calendarResult.success) {
         console.warn("Calendar cleanup warning:", calendarResult.message);
         // Không dừng quá trình hủy hẹn nếu calendar có lỗi
       }
     } catch (error) {
-      console.error("Error during calendar cleanup:", error);
-      // Không dừng quá trình hủy hẹn nếu calendar có lỗi
+      console.error("Unexpected error during calendar cleanup:", error);
+      // Không dừng quá trình hủy hẹn nếu có lỗi bất ngờ
     } finally {
       setLoading(false);
     }
 
-    setShowCancelModal(false);
-    setShowReasonModal(true);
+    // Luôn đảm bảo modal được hiển thị
+    try {
+      setShowCancelModal(false);
+      setShowReasonModal(true);
+      console.log("Successfully showed reason modal");
+    } catch (modalError) {
+      console.error("Error showing reason modal:", modalError);
+      // Fallback: thử hiển thị modal một lần nữa
+      setTimeout(() => {
+        try {
+          setShowCancelModal(false);
+          setShowReasonModal(true);
+        } catch (fallbackError) {
+          console.error("Fallback modal display failed:", fallbackError);
+        }
+      }, 100);
+    }
   };
 
   const handleSelectReason = (reason) => {
+    console.log("Selecting reason:", reason);
     setSelectedReason(reason);
-    setCustomReason(reason === "Khác" ? "" : reason);
+    setCustomReason(reason === 0 ? "" : "");
+    console.log("Selected reason set to:", reason);
+    console.log("Custom reason reset to:", reason === 0 ? "" : "");
+
+    // Validate button state after selection
+    const isButtonDisabled =
+      reason === null || (reason === 0 && !customReason.trim());
+    console.log("Button should be disabled:", isButtonDisabled);
   };
 
   const handleSubmitCancel = async () => {
-    const finalReason =
-      selectedReason === "Khác" ? customReason : selectedReason;
+    console.log("Submit Reason - selectedReason:", selectedReason);
+    console.log("Submit Reason - customReason:", customReason);
+    console.log("Submit Reason - selectedReason type:", typeof selectedReason);
 
-    if (!finalReason.trim()) {
-      Alert.alert("Lỗi", "Vui lòng chọn hoặc nhập lý do hủy hẹn");
+    const finalReason =
+      selectedReason === 0
+        ? customReason
+        : cancelReasons.find((reason) => reason.id === selectedReason)?.title;
+
+    console.log("Submit Reason - finalReason:", finalReason);
+    console.log("Submit Reason - finalReason.trim():", finalReason?.trim());
+
+    if (!finalReason || !finalReason.trim()) {
+      console.log(
+        "Submit Reason - Validation failed: no reason selected or empty"
+      );
+      Alert.alert(
+        t("common.alerts.error"),
+        t("appointment.errors.selectCancelReason")
+      );
       return;
     }
 
+    console.log(
+      "Submit Reason - Validation passed, proceeding with cancellation"
+    );
     setLoading(true);
 
     try {
+      console.log("Final reason:", finalReason);
+
       // Hủy cuộc hẹn
-      const result = await cancelAppointment(appointment.id, finalReason);
+      const result = await cancelAppointment(appointmentData.id, finalReason);
       console.log("Cancelling appointment with reason:", result);
 
       // Kiểm tra và xóa event trong calendar
-      const calendarResult = await removeEventFromCalendar(appointment.id);
+      let calendarResult = null;
+      try {
+        calendarResult = await removeEventFromCalendar(appointmentData.id);
+      } catch (calendarError) {
+        console.error("Calendar cleanup error in submit:", calendarError);
+        calendarResult = {
+          success: false,
+          message: "Calendar cleanup failed",
+        };
+      }
 
-      setShowReasonModal(false);
-      setSelectedReason("");
-      setCustomReason("");
+      try {
+        setShowReasonModal(false);
+        setSelectedReason(null);
+        setCustomReason("");
+      } catch (modalError) {
+        console.error("Error hiding reason modal:", modalError);
+      }
 
       // Hiển thị thông báo thành công với thông tin về calendar
-      let message = "Đã hủy lịch hẹn thành công!";
+      let message = t("appointment.cancelSuccess.message");
 
       if (
+        calendarResult &&
         calendarResult.success &&
         calendarResult.message.includes("deleted successfully")
       ) {
-        message += "\n\n📅 Sự kiện đã được xóa khỏi lịch của bạn.";
-      } else if (calendarResult.message.includes("not synced")) {
-        message += "\n\n📅 Lịch hẹn này chưa được đồng bộ với lịch.";
-      } else if (!calendarResult.success) {
-        message +=
-          "\n\n⚠️ Lưu ý: Không thể xóa sự kiện khỏi lịch. Bạn có thể xóa thủ công.";
+        message += "\n\n" + t("appointment.cancelSuccess.calendarEventDeleted");
+      } else if (
+        calendarResult &&
+        calendarResult.message &&
+        calendarResult.message.includes("not synced")
+      ) {
+        message += "\n\n" + t("appointment.cancelSuccess.notSynced");
+      } else if (calendarResult && !calendarResult.success) {
+        message += "\n\n" + t("appointment.cancelSuccess.calendarDeletionNote");
       }
 
-      Alert.alert("Thành công", message, [
+      Alert.alert(t("appointment.cancelSuccess.title"), message, [
         {
-          text: "OK",
-          onPress: () => navigation.goBack(),
+          text: t("common.ok"),
+          onPress: () => {
+            try {
+              navigation.goBack();
+            } catch (navError) {
+              console.error("Navigation error after cancel:", navError);
+              // Fallback navigation
+              setTimeout(() => {
+                try {
+                  navigation.goBack();
+                } catch (fallbackNavError) {
+                  console.error(
+                    "Fallback navigation failed:",
+                    fallbackNavError
+                  );
+                }
+              }, 100);
+            }
+          },
         },
       ]);
     } catch (error) {
       console.error("Error cancelling appointment:", error);
-      Alert.alert("Lỗi", "Không thể hủy lịch hẹn. Vui lòng thử lại sau.", [
-        { text: "OK" },
-      ]);
+      Alert.alert(
+        t("common.alerts.error"),
+        t("appointment.errors.cancelError"),
+        [{ text: t("common.ok") }]
+      );
     } finally {
       setLoading(false);
     }
@@ -363,7 +592,7 @@ const AppointmentDetails = ({ route, navigation }) => {
   if (loading) {
     return (
       <Container>
-        <Loading text="Đang xử lý yêu cầu..." />
+        <Loading text={t("appointment.common.processing")} />
       </Container>
     );
   }
@@ -373,21 +602,26 @@ const AppointmentDetails = ({ route, navigation }) => {
       <Container>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorText}>
+            {error || "An unexpected error occurred. Please try again."}
+          </Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => {
-              /* TODO: Retry logic */
+              setError(null);
+              fetchAppointment();
             }}
           >
-            <Text style={styles.retryButtonText}>Thử lại</Text>
+            <Text style={styles.retryButtonText}>
+              {t("appointment.common.retry")}
+            </Text>
           </TouchableOpacity>
         </View>
       </Container>
     );
   }
 
-  if (!appointment) {
+  if (!appointmentData) {
     return (
       <Container>
         <View style={styles.errorContainer}>
@@ -397,8 +631,18 @@ const AppointmentDetails = ({ route, navigation }) => {
             color="#6B7280"
           />
           <Text style={styles.errorText}>
-            Không tìm thấy thông tin lịch hẹn
+            {t("appointment.common.appointmentNotFound")}
           </Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => {
+              fetchAppointment();
+            }}
+          >
+            <Text style={styles.retryButtonText}>
+              {t("appointment.common.retry")}
+            </Text>
+          </TouchableOpacity>
         </View>
       </Container>
     );
@@ -406,13 +650,13 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   // Check if bookFor and bookBy are the same person
   const isSamePerson = () => {
-    if (!appointment.bookedFor || !appointment.bookedBy) return false;
-    return appointment.bookedFor.id === appointment.bookedBy.id;
+    if (!appointmentData.bookedFor || !appointmentData.bookedBy) return false;
+    return appointmentData.bookedFor.id === appointmentData.bookedBy.id;
   };
 
-  const statusConfig = getStatusConfig(appointment.status);
+  const statusConfig = getStatusConfig(appointmentData.status);
   const hostConfig = getHostTypeConfig(
-    appointment.hostedBy?.roleName || appointment.slot?.roleName
+    appointmentData.hostedBy?.roleName || appointmentData.slot?.roleName
   );
 
   return (
@@ -446,9 +690,12 @@ const AppointmentDetails = ({ route, navigation }) => {
           </View>
 
           <View style={styles.appointmentTitle}>
-            <Text style={styles.titleText}>Lịch hẹn với</Text>
+            <Text style={styles.titleText}>
+              {t("appointment.details.appointmentWith")}
+            </Text>
             <Text style={styles.hostNameText}>
-              {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+              {appointmentData.hostedBy?.fullName ||
+                appointmentData.slot?.fullName}
             </Text>
           </View>
         </View>
@@ -479,7 +726,8 @@ const AppointmentDetails = ({ route, navigation }) => {
             </LinearGradient>
             <View style={styles.hostInfo}>
               <Text style={styles.hostName}>
-                {appointment.hostedBy?.fullName || appointment.slot?.fullName}
+                {appointmentData.hostedBy?.fullName ||
+                  appointmentData.slot?.fullName}
               </Text>
               <Text style={styles.hostType}>{hostConfig.text}</Text>
               <View style={styles.onlineStatus}>
@@ -487,14 +735,16 @@ const AppointmentDetails = ({ route, navigation }) => {
                   style={[
                     styles.onlineDot,
                     {
-                      backgroundColor: appointment.isOnline
+                      backgroundColor: appointmentData.isOnline
                         ? "#10B981"
                         : "#6B7280",
                     },
                   ]}
                 />
                 <Text style={styles.onlineText}>
-                  {appointment.isOnline ? "Trực tuyến" : "Trực tiếp"}
+                  {appointmentData.isOnline
+                    ? t("appointment.booking.online")
+                    : t("appointment.booking.inPerson")}
                 </Text>
               </View>
             </View>
@@ -524,10 +774,10 @@ const AppointmentDetails = ({ route, navigation }) => {
                   {t("appointment.labels.date")}
                 </Text>
                 <Text style={styles.detailValue}>
-                  {formatDate(appointment.startDateTime)}
+                  {formatDate(appointmentData.startDateTime)}
                 </Text>
                 <Text style={styles.detailSubtext}>
-                  {formatDayOfWeek(appointment.startDateTime)}
+                  {formatDayOfWeek(appointmentData.startDateTime)}
                 </Text>
               </View>
             </View>
@@ -543,13 +793,13 @@ const AppointmentDetails = ({ route, navigation }) => {
                   {t("appointment.labels.time")}
                 </Text>
                 <Text style={styles.detailValue}>
-                  {formatDateTime(appointment.startDateTime)} -{" "}
-                  {formatDateTime(appointment.endDateTime)}
+                  {formatDateTime(appointmentData.startDateTime)} -{" "}
+                  {formatDateTime(appointmentData.endDateTime)}
                 </Text>
                 <Text style={styles.detailSubtext}>
                   {t("appointment.labels.durationMinutes", {
-                    minutes: dayjs(appointment.endDateTime).diff(
-                      dayjs(appointment.startDateTime),
+                    minutes: dayjs(appointmentData.endDateTime).diff(
+                      dayjs(appointmentData.startDateTime),
                       "minute"
                     ),
                   })}
@@ -557,7 +807,7 @@ const AppointmentDetails = ({ route, navigation }) => {
               </View>
             </View>
 
-            {appointment.location && (
+            {appointmentData.location && (
               <>
                 <View style={styles.divider} />
                 <View style={styles.detailRow}>
@@ -573,7 +823,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                       {t("appointment.labels.location")}
                     </Text>
                     <Text style={styles.detailValue}>
-                      {appointment.location}
+                      {appointmentData.location}
                     </Text>
                   </View>
                 </View>
@@ -583,7 +833,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         </View>
 
         {/* Booking Information - conditionally displayed */}
-        {shouldShowBookedFor() && appointment.bookedFor && (
+        {shouldShowBookedFor() && appointmentData.bookedFor && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Ionicons
@@ -609,15 +859,15 @@ const AppointmentDetails = ({ route, navigation }) => {
                   </Text>
                   <Text style={styles.detailValue}>
                     {isSamePerson()
-                      ? appointment.bookedBy?.fullName
-                      : appointment.bookedFor?.fullName}
+                      ? appointmentData.bookedBy?.fullName
+                      : appointmentData.bookedFor?.fullName}
                   </Text>
                 </View>
               </View>
 
               {!isSamePerson() &&
                 shouldShowBookedBy() &&
-                appointment.bookedBy && (
+                appointmentData.bookedBy && (
                   <>
                     <View style={styles.divider} />
                     <View style={styles.detailRow}>
@@ -633,7 +883,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                           {t("appointment.labels.bookedBy")}
                         </Text>
                         <Text style={styles.detailValue}>
-                          {appointment.bookedBy?.fullName}
+                          {appointmentData.bookedBy?.fullName}
                         </Text>
                       </View>
                     </View>
@@ -766,7 +1016,13 @@ const AppointmentDetails = ({ route, navigation }) => {
         confirmText={t("appointment.confirmModal.cancel.confirmText")}
         cancelText={t("appointment.confirmModal.cancel.cancelTextKeep")}
         onConfirm={handleConfirmCancel}
-        onCancel={() => setShowCancelModal(false)}
+        onCancel={() => {
+          try {
+            setShowCancelModal(false);
+          } catch (error) {
+            console.error("Error hiding cancel modal:", error);
+          }
+        }}
         type="danger"
       />
 
@@ -777,7 +1033,13 @@ const AppointmentDetails = ({ route, navigation }) => {
         confirmText={t("appointment.confirmModal.confirm.confirmText")}
         cancelText={t("appointment.confirmModal.confirm.cancelText")}
         onConfirm={handleConfirmAppointmentAction}
-        onCancel={() => setShowConfirmModal(false)}
+        onCancel={() => {
+          try {
+            setShowConfirmModal(false);
+          } catch (error) {
+            console.error("Error hiding confirm modal:", error);
+          }
+        }}
         type="success"
       />
 
@@ -788,7 +1050,13 @@ const AppointmentDetails = ({ route, navigation }) => {
         confirmText={t("appointment.actions.reject")}
         cancelText={t("common.cancel")}
         onConfirm={handleRejectAppointmentAction}
-        onCancel={() => setShowRejectModal(false)}
+        onCancel={() => {
+          try {
+            setShowRejectModal(false);
+          } catch (error) {
+            console.error("Error hiding reject modal:", error);
+          }
+        }}
         type="danger"
       />
 
@@ -796,41 +1064,61 @@ const AppointmentDetails = ({ route, navigation }) => {
         visible={showReasonModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowReasonModal(false)}
+        onRequestClose={() => {
+          try {
+            setShowReasonModal(false);
+          } catch (error) {
+            console.error("Error hiding reason modal:", error);
+          }
+        }}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
           <View style={styles.reasonModal}>
             <View style={styles.reasonModalHeader}>
               <Text style={styles.reasonModalTitle}>
                 {t("appointment.reasonModal.title")}
               </Text>
               <TouchableOpacity
-                onPress={() => setShowReasonModal(false)}
+                onPress={() => {
+                  try {
+                    setShowReasonModal(false);
+                  } catch (error) {
+                    console.error("Error hiding reason modal:", error);
+                  }
+                }}
                 style={styles.closeButton}
               >
                 <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.reasonList}>
+            <ScrollView
+              style={styles.reasonList}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
               {cancelReasons.map((reason, index) => (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.reasonItem,
-                    selectedReason === reason && styles.reasonItemSelected,
+                    selectedReason === reason.id && styles.reasonItemSelected,
                   ]}
-                  onPress={() => handleSelectReason(reason)}
+                  onPress={() => handleSelectReason(reason.id)}
                 >
                   <Text
                     style={[
                       styles.reasonText,
-                      selectedReason === reason && styles.reasonTextSelected,
+                      selectedReason === reason.id && styles.reasonTextSelected,
                     ]}
                   >
-                    {reason}
+                    {reason.title}
                   </Text>
-                  {selectedReason === reason && (
+                  {selectedReason === reason.id && (
                     <Ionicons
                       name="checkmark-circle"
                       size={20}
@@ -841,7 +1129,7 @@ const AppointmentDetails = ({ route, navigation }) => {
               ))}
             </ScrollView>
 
-            {selectedReason === "Khác" && (
+            {selectedReason === 0 && (
               <View style={styles.customReasonContainer}>
                 <Text style={styles.customReasonLabel}>
                   {t("appointment.reasonModal.otherLabel")}
@@ -850,9 +1138,22 @@ const AppointmentDetails = ({ route, navigation }) => {
                   style={styles.customReasonInput}
                   placeholder={t("appointment.reasonModal.placeholder")}
                   value={customReason}
-                  onChangeText={setCustomReason}
+                  onChangeText={(text) => {
+                    console.log("Custom reason changed:", text);
+                    setCustomReason(text);
+                    // Validate button state after text change
+                    const isButtonDisabled =
+                      selectedReason === null ||
+                      (selectedReason === 0 && !text.trim());
+                    console.log(
+                      "Button should be disabled after text change:",
+                      isButtonDisabled
+                    );
+                  }}
                   multiline
                   numberOfLines={3}
+                  returnKeyType="done"
+                  blurOnSubmit={true}
                 />
               </View>
             )}
@@ -869,32 +1170,31 @@ const AppointmentDetails = ({ route, navigation }) => {
               <TouchableOpacity
                 style={[
                   styles.reasonSubmitButton,
-                  (!selectedReason ||
-                    (selectedReason === "Khác" && !customReason.trim())) &&
+                  (selectedReason === null ||
+                    (selectedReason === 0 && !customReason.trim())) &&
                     styles.reasonSubmitButtonDisabled,
                 ]}
                 onPress={handleSubmitCancel}
                 disabled={
-                  !selectedReason ||
-                  (selectedReason === "Khác" && !customReason.trim())
+                  selectedReason === null ||
+                  (selectedReason === 0 && !customReason.trim())
                 }
               >
                 <Text style={styles.reasonSubmitButtonText}>
                   {t("common.confirm")}
+                  {console.log(
+                    "Button disabled state:",
+                    selectedReason === null ||
+                      (selectedReason === 0 && !customReason.trim())
+                  )}
+                  {console.log("selectedReason:", selectedReason)}
+                  {console.log("customReason:", customReason)}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
-
-      {/* Server Error Toast */}
-      <Toast
-        visible={showToast}
-        message={toastMessage}
-        type={toastType}
-        onHide={hideToast}
-      />
     </Container>
   );
 };
@@ -1189,7 +1489,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
-    maxHeight: "80%",
+    maxHeight: Platform.OS === "ios" ? "85%" : "90%",
+    minHeight: Platform.OS === "ios" ? "50%" : "60%",
+    width: "100%",
   },
   reasonModalHeader: {
     flexDirection: "row",
@@ -1199,17 +1501,25 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
   },
   reasonModalTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#111827",
+    flex: 1,
+    marginRight: 10,
   },
   closeButton: {
     padding: 4,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
   },
   reasonList: {
-    maxHeight: 300,
+    flex: 1,
+    // maxHeight: Platform.OS === "ios" ? 200 : 250,
+    paddingHorizontal: 0,
+    backgroundColor: "#FFFFFF",
   },
   reasonItem: {
     flexDirection: "row",
@@ -1219,9 +1529,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
+    backgroundColor: "#FFFFFF",
   },
   reasonItemSelected: {
     backgroundColor: "#EFF6FF",
+  },
+  reasonText: {
+    fontSize: 16,
+    color: "#374151",
+    flex: 1,
+    marginRight: 10,
   },
   reasonTextSelected: {
     color: GlobalStyles.colors.primary,
@@ -1231,6 +1548,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
   },
   customReasonLabel: {
     fontSize: 14,
@@ -1247,11 +1565,17 @@ const styles = StyleSheet.create({
     color: "#111827",
     textAlignVertical: "top",
     minHeight: 80,
+    backgroundColor: "#FFFFFF",
+    maxHeight: 120,
   },
   reasonModalButtons: {
     flexDirection: "row",
     padding: 20,
     gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+    backgroundColor: "#FFFFFF",
+    paddingBottom: Platform.OS === "ios" ? 30 : 20,
   },
   reasonCancelButton: {
     flex: 1,

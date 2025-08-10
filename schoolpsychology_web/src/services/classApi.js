@@ -28,27 +28,13 @@ export const classAPI = {
     const response = await api.post('/api/v1/classes/enrollments', requestBody)
     return response.data
   },
-  // getStudentWithInactiveClass: async query => {
-  //   const cleanQuery = Object.fromEntries(
-  //     Object.entries(query).filter(([_, v]) => v != null)
-  //   )
-  //   const response = await api.get(
-  //     '/api/v1/account/students-without-or-inactive-class',
-  //     { params: cleanQuery }
-  //   )
-  //   return response.data
-  // },
 
-  getStudentWithInactiveClass: async () => {
-    const query = {
-      role: 'STUDENT',
-    }
-    const cleanQuery = Object.fromEntries(
-      Object.entries(query).filter(([_, v]) => v != null)
+  getStudentWithInactiveClass: async params => {
+    const queryString = new URLSearchParams(params).toString()
+
+    const response = await api.get(
+      `/api/v1/account/students-without-or-inactive-class?${queryString}`
     )
-    const response = await api.get('/api/v1/account/list-all-account', {
-      params: cleanQuery,
-    })
     return response.data
   },
 }

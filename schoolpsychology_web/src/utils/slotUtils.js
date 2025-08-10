@@ -195,3 +195,117 @@ export const getSlotTypeText = (type, t) => {
   }
   return typeMap[type] || type
 }
+
+/**
+ * Generate 30-minute time slots between start and end time
+ * @param {Date} startTime - Start time
+ * @param {Date} endTime - End time
+ * @returns {Array} Array of time slots
+ */
+export const generateTimeSlots = (startTime, endTime) => {
+  const slots = []
+  const current = new Date(startTime)
+  const end = new Date(endTime)
+
+  while (current < end) {
+    const slotStart = new Date(current)
+    const slotEnd = new Date(current.getTime() + 30 * 60 * 1000) // 30 minutes
+
+    if (slotEnd <= end) {
+      slots.push({
+        startTime: slotStart,
+        endTime: slotEnd,
+        duration: 30,
+        isAvailable: true,
+      })
+    }
+
+    current.setTime(current.getTime() + 30 * 60 * 1000)
+  }
+
+  return slots
+}
+
+/**
+ * Mark booked slots as unavailable
+ * @param {Array} timeSlots - Array of time slots
+ * @param {Array} bookedSlots - Array of booked slots
+ * @returns {Array} Updated time slots with availability status
+ */
+export const markBookedSlots = (timeSlots, bookedSlots) => {
+  return timeSlots.map(slot => {
+    const isBooked = bookedSlots.some(booked => {
+      const bookedStart = new Date(booked.startDateTime)
+      const bookedEnd = new Date(booked.endDateTime)
+      return slot.startTime >= bookedStart && slot.endTime <= bookedEnd
+    })
+
+    return {
+      ...slot,
+      isAvailable: !isBooked,
+    }
+  })
+}
+
+/**
+ * Format time slot for display
+ * @param {Date} startTime - Start time
+ * @param {Date} endTime - End time
+ * @param {string} locale - Locale for formatting
+ * @returns {string} Formatted time string
+ */
+export const formatTimeSlot = (startTime, endTime, locale = 'vi-VN') => {
+  const start = new Date(startTime)
+  const end = new Date(endTime)
+
+  const dateStr = start.toLocaleDateString(locale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  })
+
+  const timeStr = start.toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
+  const duration = Math.round((end - start) / (1000 * 60))
+
+  return { dateStr, timeStr, duration }
+}
+
+/**
+ * Group time slots by date
+ * @param {Array} timeSlots - Array of time slots
+ * @returns {Object} Time slots grouped by date
+ */
+export const groupSlotsByDate = timeSlots => {
+  const grouped = {}
+
+  timeSlots.forEach(slot => {
+    const dateKey = slot.startTime.toDateString()
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = []
+    }
+    grouped[dateKey].push(slot)
+  })
+
+  return grouped
+}
+
+/**
+ * Check if a time slot conflicts with existing appointments
+ * @param {Object} newSlot - New appointment slot
+ * @param {Array} existingSlots - Existing appointment slots
+ * @returns {boolean} True if there's a conflict
+ */
+export const hasTimeConflict = (newSlot, existingSlots) => {
+  return existingSlots.some(existing => {
+    const newStart = new Date(newSlot.startDateTime)
+    const newEnd = new Date(newSlot.endDateTime)
+    const existingStart = new Date(existing.startDateTime)
+    const existingEnd = new Date(existing.endDateTime)
+
+    return newStart < existingEnd && newEnd > existingStart
+  })
+}

@@ -144,7 +144,7 @@ const CaseDetails = () => {
   }, [caseData])
 
   const handleGoBack = () => {
-    navigate('/case-management')
+    navigate(-1)
   }
 
   const handleUpdate = () => {

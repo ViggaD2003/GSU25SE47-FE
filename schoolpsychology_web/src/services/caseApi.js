@@ -41,13 +41,10 @@ export const caseAPI = {
   },
 
   assignCase: async data => {
-    if (!data) return
-    const params = {
-      caseId: data.caseId || undefined,
-      counselorId: data.counselorId || undefined,
-    }
+    if (!data || !data.counselorId || !Array.isArray(data.caseId)) return
+
     const response = await api.patch(
-      `/api/v1/cases/assign?caseId=${params.caseId}&counselorId=${params.counselorId}`
+      `/api/v1/cases/assign?caseId=${data.caseId}&counselorId=${data.counselorId}`
     )
     return response.data
   },
@@ -97,6 +94,22 @@ export const caseAPI = {
     if (caseIds.length === 0) return
     const response = await api.delete(
       `/api/v1/cases/remove-all-survey?caseIds=${caseIds.join(',')}`
+    )
+    return response.data
+  },
+  assignCaseToProgram: async data => {
+    if (!data) return
+    const caseIds = Array.isArray(data.caseIds)
+      ? data.caseIds
+      : Array.isArray(data.listCaseIds)
+        ? data.listCaseIds
+        : []
+    const params = {
+      programId: data.programId,
+      listCaseIds: caseIds,
+    }
+    const response = await api.post(
+      `/api/v1/support-programs/add-participants?programId=${params.programId}&listCaseIds=${params.listCaseIds}`
     )
     return response.data
   },

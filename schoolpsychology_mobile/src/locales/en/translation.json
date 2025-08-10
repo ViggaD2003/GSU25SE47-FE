@@ -6,6 +6,9 @@
   "auth": {
     "email": "Email Address",
     "password": "Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
     "enterEmail": "Enter your email address",
     "enterPassword": "Enter your password",
     "signIn": "Sign in",
@@ -24,24 +27,157 @@
     "mobileSubtitle": "Access key metrics and recent updates in one view"
   },
   "case": {
-    "followUp": "Follow-up",
-    "followUpSubtitle": "Follow up your case and get the best result",
-    "empty": "You don't have any case to follow up"
+    "followUp": "{{common.empty.subtitle}}",
+    "followUpSubtitle": "{{common.empty.subtitle}}",
+    "empty": "{{common.empty.title}}",
+    "closedCases": "{{common.empty.subtitle}}",
+    "closedCasesSubtitle": "{{common.empty.subtitle}}",
+    "details": "{{common.empty.subtitle}}",
+    "detailsSubtitle": "{{common.empty.subtitle}}",
+    "emptyTitle": "{{common.empty.title}}",
+    "emptySubtitle": "{{common.empty.subtitle}}",
+    "caseInfo": {
+      "title": "{{common.empty.subtitle}}",
+      "caseId": "{{common.empty.subtitle}}",
+      "description": "{{common.description}}",
+      "status": "{{common.status}}",
+      "priority": "{{common.empty.subtitle}}",
+      "progressTrend": "{{common.empty.subtitle}}",
+      "currentLevel": "{{common.empty.subtitle}}",
+      "initialLevel": "{{common.empty.subtitle}}"
+    },
+    "status": {
+      "new": "{{common.empty.subtitle}}",
+      "inProgress": "{{common.empty.subtitle}}",
+      "closed": "{{common.empty.subtitle}}",
+      "unknown": "{{common.empty.subtitle}}"
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "unknown": "Unknown"
+    },
+    "progressTrend": {
+      "improved": "Improved",
+      "stable": "Stable",
+      "declined": "Declined",
+      "unknown": "Unknown"
+    },
+    "level": {
+      "title": "{{common.empty.subtitle}}",
+      "current": "Current Level",
+      "initial": "Initial Level"
+    },
+    "statistics": {
+      "title": "{{common.empty.subtitle}}",
+      "surveys": "Surveys",
+      "appointments": "Appointments",
+      "programs": "Programs",
+      "completed": "{{common.completed}}"
+    },
+    "charts": {
+      "title": "{{common.empty.subtitle}}",
+      "surveys": "Surveys",
+      "appointments": "Appointments",
+      "programs": "Programs",
+      "noData": "{{common.empty.title}}",
+      "scoreFormat": "{{score}}/4.0"
+    },
+    "studentInfo": {
+      "title": "{{common.empty.subtitle}}",
+      "fullName": "Full Name",
+      "email": "{{auth.email}}",
+      "phoneNumber": "Phone Number",
+      "class": "Class",
+      "schoolYear": "School Year"
+    },
+    "emptyState": {
+      "noCase": "{{common.empty.title}}",
+      "noCaseAssigned": "No case assigned yet",
+      "noCaseAssignedSubtitle": "{{common.empty.subtitle}}",
+      "allCasesClosed": "All cases have been {{common.completed}}",
+      "allCasesClosedSubtitle": "All cases have been processed and {{common.completed}}"
+    }
   },
   "common": {
     "loading": "Loading...",
+    "changing": "Changing...",
     "errorTitle": "Error",
     "errorLoadData": "An error occurred while loading data",
     "retry": "Retry",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
+    "ok": "OK",
     "notAvailable": "Not available",
     "selected": "Selected",
-    "optional": "Optional"
+    "optional": "Optional",
+    "male": "Male",
+    "female": "Female",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "submitting": "Submitting...",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "open": "Open",
+    "enable": "Enable",
+    "disable": "Disable",
+    "active": "Active",
+    "inactive": "Inactive",
+    "completed": "Completed",
+    "pending": "Pending",
+    "cancelled": "Cancelled",
+    "expired": "Expired",
+    "online": "Online",
+    "offline": "Offline",
+    "inPerson": "Offline",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "location": "Location",
+    "reason": "Reason",
+    "description": "Description",
+    "title": "Title",
+    "subtitle": "Subtitle",
+    "count_one": "{{count}} item",
+    "count_other": "{{count}} items",
+    "empty": {
+      "title": "No data",
+      "subtitle": "No data found"
+    },
+    "errors": {
+      "loadError": "Error loading data",
+      "saveError": "Error saving data",
+      "deleteError": "Error deleting data",
+      "networkError": "Network error. Please check your connection",
+      "serverError": "Server error. Please try again later",
+      "validationError": "Please check your input and try again",
+      "permissionDenied": "Permission denied for this action"
+    },
+    "successActions": {
+      "save": "Saved successfully",
+      "delete": "Deleted successfully",
+      "update": "Updated successfully"
+    },
+    "alerts": {
+      "success": "Success",
+      "error": "Error"
+    },
+    "notification": "Notification",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "appointmentNotFound": "Appointment information not found"
   },
   "events": {
     "title": "Events",
-    "loading": "Loading...",
     "noEvents": "No events",
     "selectAnotherDate": "Select another date to see events",
     "count_one": "{{count}} event",
@@ -49,7 +185,45 @@
     "schedule": "Schedule",
     "appointment": "Appointments",
     "survey": "Surveys",
-    "program": "Programs"
+    "program": "Programs",
+    "loading": "Loading events..."
+  },
+  "eventCard": {
+    "source": {
+      "appointment": "Appointment",
+      "survey": "Survey",
+      "program": "Program",
+      "event": "Event"
+    },
+    "status": {
+      "published": "Published",
+      "confirmed": "Confirmed",
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "active": "Active",
+      "onGoing": "Ongoing",
+      "unknown": "Unknown"
+    },
+    "case": "Case"
+  },
+  "weekCalendar": {
+    "thisWeek": "This Week",
+    "dayNames": {
+      "sunday": "Sun",
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat"
+    }
+  },
+  "calendarPermission": {
+    "permissionGranted": "Permission Granted",
+    "permissionGrantedMessage": "Calendar access has been granted. You can now sync your appointments.",
+    "permissionRequired": "Permission Required",
+    "permissionRequiredMessage": "Calendar access is required to sync your appointments. Please enable it in your device settings.",
+    "openSettings": "Open Settings"
   },
   "eventList": {
     "empty": {
@@ -64,10 +238,6 @@
       "program": {
         "title": "No programs",
         "subtitle": "No programs have been created"
-      },
-      "default": {
-        "title": "No data",
-        "subtitle": "No data found"
       }
     }
   },
@@ -79,8 +249,14 @@
     "changePassword": "Change Password",
     "calendarAccess": "Calendar Access",
     "notificationSettings": "Notification Settings",
+    "languageSettings": "Language Settings",
+    "languageSettingsSubtitle": "Customize display language",
     "needHelp": "Need Help?",
-    "logout": "Logout"
+    "logout": "Logout",
+    "sessionEnded": "Session has ended. Please log in again.",
+    "selectLanguage": "Select Language",
+    "languageDescription": "Choose your preferred language for the app interface",
+    "languageChangeNote": "Language changes will be applied immediately and saved for future sessions"
   },
   "home": {
     "welcomeBack": "Welcome back,",
@@ -128,6 +304,63 @@
       "empty": {
         "title": "No Programs Available",
         "description": "There are no recommended programs at the moment. Please check back later."
+      }
+    },
+    "detail": {
+      "title": "Program Details",
+      "description": "Description",
+      "scheduleLocation": "Schedule & Location",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "location": "Location",
+      "hostedBy": "Hosted By",
+      "participants": "Participants",
+      "survey": "Program Survey",
+      "required": "Required",
+      "optional": "Optional",
+      "recurring": "Recurring",
+      "oneTime": "One-time",
+      "joinProgram": "Join Program",
+      "leaveProgram": "Leave Program",
+      "loading": "Loading...",
+      "programNotFound": "Program not found",
+      "joinSuccess": "You have successfully joined the program!",
+      "leaveSuccess": "You have left the program",
+      "joinError": "Failed to join program. Please try again.",
+      "leaveError": "Failed to leave program. Please try again.",
+      "leaveConfirmTitle": "Leave Program",
+      "leaveConfirmMessage": "Are you sure you want to leave this program?",
+      "cancel": "Cancel",
+      "leave": "Leave",
+      "status": {
+        "active": "Active",
+        "onGoing": "Ongoing",
+        "completed": "Completed"
+      },
+      "studentStatus": {
+        "absent": "Absent",
+        "active": "Active",
+        "completed": "Completed",
+        "enrolled": "Enrolled"
+      },
+      "surveyIdentity": {
+        "entry": "Entry",
+        "exit": "Exit"
+      },
+      "surveyProgress": {
+        "title": "Survey Progress",
+        "entrySurvey": "Entry Survey",
+        "exitSurvey": "Exit Survey",
+        "takeSurvey": "Take Survey",
+        "viewResults": "View Results",
+        "surveyCompleted": "Survey Completed",
+        "surveySkipped": "Survey Skipped",
+        "finalScore": "Final Score",
+        "totalScore": "Total Score",
+        "level": "Level",
+        "symptomsDescription": "Symptoms Description",
+        "interventionRequired": "Intervention Required",
+        "completedAt": "Completed At"
       }
     }
   },
@@ -195,7 +428,6 @@
   },
   "notifications": {
     "title": "Notifications",
-    "loading": "Loading notifications...",
     "loadingHint": "Please wait a moment",
     "refreshFailed": "Failed to refresh notifications",
     "markReadFailed": "Failed to mark notification as read",
@@ -245,7 +477,8 @@
     },
     "host": {
       "teacher": "Homeroom teacher",
-      "counselor": "Counselor"
+      "counselor": "Counselor",
+      "classTeacher": "Homeroom teacher"
     },
     "status": {
       "confirmed": "Confirmed",
@@ -287,20 +520,12 @@
     },
     "booking": {
       "title": "Book a counseling session",
-      "selectStudent": "Select a student to book",
       "selectHost": "Select counselor",
       "selectCounselor": "Select counselor",
       "form": {
         "mode": "Consultation mode",
         "reasonLabel": "Consultation reason",
         "reasonPlaceholder": "Enter the reason (e.g., Study counseling, Psychological counseling...)"
-      },
-      "slots": {
-        "title": "Available appointments",
-        "empty": {
-          "title": "No available appointments",
-          "subtitle": "Please try again later or contact support"
-        }
       },
       "loadingSlots": "Loading appointments...",
       "loadingMoreDays": "Loading more days...",
@@ -309,16 +534,211 @@
       "lazyLoadHint": "Tap the button to view more",
       "saving": "Booking...",
       "submit": "Book appointment",
-      "selectSlotFirst": "Please select a time slot first"
+      "selectSlotFirst": "Please select a time slot first",
+      "appointmentInfo": "Appointment Information",
+      "consultationFormat": "Consultation Format",
+      "online": "Online",
+      "offline": "Offline",
+      "reason": "Consultation Reason",
+      "optional": "Optional",
+      "reasonPlaceholder": "Enter consultation reason (e.g., Academic counseling, Psychological counseling...)",
+      "selectStudent": "Select student to book appointment",
+      "selectedStudent": "Selected",
+      "unavailable": "Unavailable",
+      "noReason": "No reason provided",
+      "bookingInProgress": "Booking...",
+      "bookAppointment": "Book Appointment",
+      "warning": {
+        "title": "Note",
+        "noTeacher": "You need to select a teacher first to book an appointment"
+      },
+      "slots": {
+        "title": "Available Slots",
+        "overview": "{{days}} days • {{slots}} available slots",
+        "loadMore": "Load more days",
+        "empty": {
+          "title": "No available slots",
+          "subtitle": "Please try another date or counselor"
+        },
+        "available": "available"
+      },
+      "confirmation": {
+        "title": "Confirm Appointment Information",
+        "counselor": "Counselor",
+        "student": "Student",
+        "date": "Date",
+        "time": "Time",
+        "format": "Format",
+        "reason": "Reason",
+        "calendarSync": "Calendar sync: Will be added to calendar",
+        "reminder": "Reminder: {{time}} before",
+        "confirmQuestion": "Are you sure you want to book this appointment?"
+      },
+      "exitConfirmation": "Are you sure you want to exit? All data will be lost"
     },
     "mode": {
       "online": "Online",
-      "offline": "In person"
+      "offline": "Offline"
     },
     "calendarSync": {
       "title": "Calendar sync",
       "enabled": "The appointment will be added to your calendar",
       "reminderBefore": "Reminder {{time}} before"
+    },
+    "toast": {
+      "bookingSuccess": "Appointment booked successfully",
+      "bookingError": "Failed to book appointment. Please try again",
+      "updateSuccess": "Appointment updated successfully",
+      "updateError": "Failed to update appointment",
+      "cancelSuccess": "Appointment cancelled successfully",
+      "cancelError": "Failed to cancel appointment",
+      "confirmSuccess": "Appointment confirmed successfully",
+      "confirmError": "Failed to confirm appointment",
+      "rejectSuccess": "Appointment rejected successfully",
+      "rejectError": "Failed to reject appointment",
+      "calendarSyncSuccess": "Calendar synced successfully",
+      "calendarSyncError": "Failed to sync with calendar",
+      "calendarSyncSuccessMessage": "Calendar synced successfully",
+      "calendarSyncErrorMessage": "Unable to sync with calendar",
+      "noAvailableSlots": "No available slots for selected date",
+      "slotUnavailable": "Selected slot is no longer available",
+      "invalidTimeSelection": "Invalid time selection",
+      "serverError": "Server error occurred. Please try again later",
+      "networkError": "Network error. Please check your connection",
+      "permissionDenied": "Permission denied for this action",
+      "validationError": "Please check your input and try again"
+    },
+    "confirmation": {
+      "booking": {
+        "title": "Confirm Booking",
+        "message": "Are you sure you want to book this appointment?",
+        "confirmText": "Book Appointment",
+        "cancelText": "Cancel"
+      },
+      "cancel": {
+        "title": "Cancel Appointment",
+        "message": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+        "confirmText": "Cancel Appointment",
+        "cancelText": "Keep It"
+      },
+      "exit": {
+        "title": "Exit Booking",
+        "message": "Are you sure you want to exit? All data will be lost.",
+        "confirmText": "Exit",
+        "cancelText": "Cancel"
+      }
+    },
+    "errors": {
+      "noSlotsAvailable": "No slots available for the selected date",
+      "slotAlreadyBooked": "This slot has already been booked",
+      "invalidDateSelection": "Please select a valid date",
+      "invalidTimeSelection": "Please select a valid time",
+      "requiredFieldsMissing": "Please fill in all required fields",
+      "invalidReason": "Please provide a valid reason for the appointment",
+      "bookingError": "Unable to book appointment. Please try again",
+      "counselorUnavailable": "Selected counselor is not available",
+      "studentNotFound": "Student not found",
+      "bookingLimitReached": "You have reached the maximum number of appointments",
+      "pastDateNotAllowed": "Cannot book appointments in the past",
+      "timeConflict": "This time conflicts with another appointment"
+    },
+    "success": {
+      "booking": "Appointment booked successfully!",
+      "update": "Appointment updated successfully!",
+      "cancel": "Appointment cancelled successfully!",
+      "confirm": "Appointment confirmed successfully!",
+      "reject": "Appointment rejected successfully!"
+    },
+    "info": {
+      "bookingInstructions": "Select a date, time, and counselor to book your appointment",
+      "cancellationPolicy": "You can cancel appointments up to 24 hours before the scheduled time",
+      "reschedulingPolicy": "Contact support to reschedule your appointment",
+      "preparationTips": "Please arrive 10 minutes before your appointment time",
+      "whatToBring": "Bring any relevant documents or information",
+      "contactSupport": "Contact support if you need assistance"
+    },
+    "cancelReasons": [
+      "Emergency situation",
+      "Illness",
+      "Other appointment",
+      "Time change",
+      "Other"
+    ],
+    "statusScreen": {
+      "defaultTitle": "Appointment booked successfully!",
+      "defaultMessage": "Your appointment has been confirmed. We will send detailed notifications via email.",
+      "bookingSuccessTitle": "Appointment booked successfully",
+      "bookingSuccessMessage": "You have successfully booked an appointment",
+      "appointmentDetails": "Appointment Details",
+      "consultationDate": "Consultation Date",
+      "consultationTime": "Consultation Time",
+      "location": "Location",
+      "meetingLink": "Meeting Link",
+      "locationWillBeUpdated": "Location will be updated later",
+      "consultationType": "Consultation Type",
+      "onlineConsultation": "Online consultation",
+      "inPersonConsultation": "In-person consultation",
+      "bookAnother": "Book Another Appointment",
+      "goHome": "Go to Home",
+      "cancelInfo": "You can cancel appointments in the 'My Appointments' section"
+    },
+    "common": {
+      "notDetermined": "Not determined",
+      "exitConfirmation": "Exit Confirmation",
+      "exitMessage": "Are you sure you want to exit? All data will be lost.",
+      "agree": "Agree",
+      "cancel": "Cancel"
+    },
+    "records": {
+      "statistics": {
+        "totalRecords": "Total records",
+        "completed": "Completed",
+        "canceled": "Canceled",
+        "absent": "Absent",
+        "expired": "Expired"
+      },
+      "chartTitle": "Record status statistics",
+      "status": {
+        "completed": "Completed",
+        "canceled": "Canceled",
+        "absent": "Absent",
+        "expired": "Expired",
+        "notDetermined": "Not determined"
+      },
+      "sessionFlow": {
+        "good": "Good",
+        "medium": "Medium",
+        "low": "Low",
+        "notEvaluated": "Not evaluated"
+      },
+      "cooperationLevel": {
+        "good": "Good",
+        "average": "Average",
+        "low": "Low",
+        "notEvaluated": "Not evaluated"
+      },
+      "labels": {
+        "consultationType": "Consultation type:",
+        "format": "Format:",
+        "sessionProgress": "Session progress:",
+        "cooperationLevel": "Cooperation level:",
+        "cancelReason": "Cancellation reason:",
+        "bookingReason": "Booking reason:",
+        "lastUpdated": "Last updated:",
+        "recordId": "Record ID"
+      },
+      "values": {
+        "counselor": "Counselor",
+        "teacher": "Teacher",
+        "online": "Online",
+        "inPerson": "Offline"
+      },
+      "errors": {
+        "loadError": "Error loading record list",
+        "detailError": "Error loading record details",
+        "detailErrorTitle": "Error",
+        "detailErrorMessage": "Cannot load record details"
+      }
     }
   },
   "record": {
@@ -351,7 +771,6 @@
   "survey": {
     "record": {
       "title": "Survey Records",
-      "loading": "Loading data...",
       "emptyTitle": "No survey results yet",
       "emptySubtitle": "Complete your first survey to see results here",
       "goToSurvey": "Go to surveys",
@@ -359,9 +778,7 @@
     },
     "info": {
       "title": "Survey Information",
-      "loading": "Loading survey information...",
       "loadError": "Unable to load survey information",
-      "retry": "Retry",
       "progressSaved": "Progress saved successfully!",
       "continue": "Continue Survey",
       "start": "Start Survey",
@@ -444,7 +861,7 @@
     }
   },
   "calendar": {
-    "title": "Appointment management",
+    "title": "Calendar",
     "permission": {
       "title": "Permission Status",
       "granted": "Calendar Access Granted",

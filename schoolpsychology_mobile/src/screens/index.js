@@ -16,6 +16,7 @@ export { default as ChangePasswordScreen } from "./Profile/ChangePassword";
 export { default as MyChildrenScreen } from "./Profile/MyChildren";
 export { default as UpdateProfileScreen } from "./Profile/UpdateProfile";
 export { default as NotificationSettingsScreen } from "./Profile/NotificationSettings";
+export { default as LanguageSettingsScreen } from "./Profile/LanguageSettings";
 
 // Blog screens
 export { default as BlogScreen } from "./Blog/BlogScreen";

@@ -324,15 +324,17 @@ const createBookingData = (
   reason,
   user,
   selectedChild,
-  hostType
+  hostType,
+  t
 ) => ({
   slotId: selectedSlot.id,
   bookedForId: user?.role === "PARENTS" ? selectedChild?.userId : user?.userId,
   isOnline,
   startDateTime: dayjs(selectedSlot.selectedStartTime).format(VN_FORMAT),
   endDateTime: dayjs(selectedSlot.selectedEndTime).format(VN_FORMAT),
-  reasonBooking: reason || "Không có lý do",
+  reasonBooking: reason || t("appointment.booking.noReason"),
   hostType: hostType,
+  caseId: user.caseId || null,
 });
 
 const createConfirmationMessage = (
@@ -342,39 +344,59 @@ const createConfirmationMessage = (
   selectedSlot,
   isOnline,
   reason,
-  calendarSettings
+  calendarSettings,
+  t
 ) => {
-  let message = `Xác nhận thông tin lịch hẹn:
+  const messageParts = [
+    `${t("appointment.booking.confirmation.title")}:\n`,
+    `  • ${t("appointment.booking.confirmation.counselor")}: ${
+      hostType?.value === "TEACHER"
+        ? t("appointment.host.teacher")
+        : selectedCounselor?.fullName || t("appointment.host.counselor")
+    }`,
+    selectedChild &&
+      `  • ${t("appointment.booking.confirmation.student")}: ${
+        selectedChild.fullName
+      }`,
+    `  • ${t("appointment.booking.confirmation.date")}: ${dayjs(
+      selectedSlot.startDateTime
+    ).format("dddd, DD/MM/YYYY")}`,
+    `  • ${t("appointment.booking.confirmation.time")}: ${
+      dayjs(
+        selectedSlot.selectedStartTime || selectedSlot.startDateTime
+      ).format("HH:mm") +
+      " - " +
+      dayjs(selectedSlot.selectedEndTime || selectedSlot.endDateTime).format(
+        "HH:mm"
+      )
+    }`,
+    `  • ${t("appointment.booking.confirmation.format")}: ${
+      isOnline
+        ? t("appointment.booking.online")
+        : t("appointment.booking.offline")
+    }`,
+    `  • ${t("appointment.booking.confirmation.reason")}: ${
+      reason || t("appointment.booking.noReason")
+    }`,
+  ];
 
-• Người tư vấn: ${
-    hostType?.value === "TEACHER"
-      ? "Giáo viên chủ nhiệm"
-      : selectedCounselor?.name || "Tư vấn viên"
-  }
-${selectedChild && `• Học sinh: ${selectedChild.fullName}`}
-• Ngày: ${dayjs(selectedSlot.startDateTime).format("dddd, DD/MM/YYYY")}
-• Thời gian: ${
-    dayjs(selectedSlot.selectedStartTime || selectedSlot.startDateTime).format(
-      "HH:mm"
-    ) +
-    " - " +
-    dayjs(selectedSlot.selectedEndTime || selectedSlot.endDateTime).format(
-      "HH:mm"
-    )
-  }
-• Hình thức: ${isOnline ? "Trực tuyến" : "Trực tiếp"}
-• Lý do: ${reason || "Không có lý do"}`;
+  let message = messageParts.filter(Boolean).join("\n");
 
-  if (calendarSettings.autoSync && CalendarService.isSyncEnabled()) {
-    message += `\n\n📅 Đồng bộ lịch: Sẽ được thêm vào calendar`;
-    if (calendarSettings.reminderEnabled) {
-      message += `\n⏰ Nhắc nhở: ${formatReminderTime(
-        calendarSettings.reminderTime
-      )} trước`;
+  // Thêm thông tin về calendar sync nếu có
+  if (calendarSettings?.autoSync && CalendarService.isSyncEnabled()) {
+    message += `\n\n📅 ${t("appointment.booking.confirmation.calendarSync")}`;
+    if (calendarSettings?.reminderEnabled) {
+      message += `\n⏰ ${t("appointment.booking.confirmation.reminder", {
+        time: formatReminderTime(calendarSettings.reminderTime),
+      })}`;
     }
   }
 
-  return message + `\n\nBạn có chắc chắn muốn đặt lịch hẹn này?`;
+  // Thêm câu hỏi xác nhận
+  message += `\n\n${t("appointment.booking.confirmation.confirmQuestion")}`;
+
+  console.log("[Confirmation Message]: end");
+  return message;
 };
 
 // Main component
@@ -382,9 +404,13 @@ const BookingScreen = ({ navigation }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  // Custom hooks
+  // Custom hooks - MUST be called before any conditional returns
   const toast = useToast();
   const bookingState = useBookingState(user);
+  const { handleServerError, showToast, toastMessage, toastType, hideToast } =
+    useServerErrorHandler();
+
+  // Custom hooks that depend on translation and other state
   const slotsManagement = useSlotsManagement(
     bookingState.hostType,
     bookingState.selectedCounselor,
@@ -399,8 +425,6 @@ const BookingScreen = ({ navigation }) => {
     t
   );
   const calendarManagement = useCalendarManagement();
-  const { handleServerError, showToast, toastMessage, toastType, hideToast } =
-    useServerErrorHandler();
 
   // Local state
   const [bookingLoading, setBookingLoading] = useState(false);
@@ -443,6 +467,7 @@ const BookingScreen = ({ navigation }) => {
       bookingState.setSelectedSlot,
       slotsManagement.resetSlots,
       toast.showToastMessage,
+      t, // Add t to dependency array
     ]
   );
 
@@ -475,6 +500,8 @@ const BookingScreen = ({ navigation }) => {
   );
 
   const handleBooking = useCallback(async () => {
+    // console.log("submit");
+
     if (!bookingState.selectedSlot) {
       toast.showToastMessage(
         t("appointment.booking.selectSlotFirst"),
@@ -490,8 +517,10 @@ const BookingScreen = ({ navigation }) => {
       bookingState.selectedSlot,
       bookingState.isOnline,
       bookingState.reason,
-      calendarManagement.calendarSettings
+      calendarManagement.calendarSettings,
+      t
     );
+    // console.log(bookingState);
 
     Alert.alert(t("appointment.booking.title"), confirmationMessage, [
       { text: t("common.cancel"), style: "destructive" },
@@ -506,10 +535,11 @@ const BookingScreen = ({ navigation }) => {
               bookingState.reason,
               user,
               bookingState.selectedChild,
-              bookingState.hostType.value
+              bookingState.hostType.value,
+              t
             );
-
-            console.log("bookingData", bookingData);
+            console.log("user", user);
+            console.log("bookingData", bookingData.caseId);
 
             const response = await createAppointment(bookingData);
 
@@ -524,20 +554,22 @@ const BookingScreen = ({ navigation }) => {
                   [response]
                 );
                 if (syncResult.success) {
-                  Alert.alert("Đã đồng bộ lịch");
+                  Alert.alert(
+                    t("appointment.toast.calendarSyncSuccessMessage")
+                  );
                 } else {
-                  Alert.alert("Không thể đồng bộ lịch");
+                  Alert.alert(t("appointment.toast.calendarSyncErrorMessage"));
                 }
               } catch (error) {
-                Alert.alert("Không thể đồng bộ lịch");
+                Alert.alert(t("appointment.toast.calendarSyncErrorMessage"));
                 console.error("Error syncing appointment to calendar:", error);
               }
             }
 
             setTimeout(() => {
               navigation.navigate("StatusScreen", {
-                title: "Đặt lịch hẹn thành công",
-                message: "Bạn đã đặt lịch hẹn thành công",
+                title: t("appointment.statusScreen.bookingSuccessTitle"),
+                message: t("appointment.statusScreen.bookingSuccessMessage"),
                 response: response,
               });
             }, 1000);
@@ -552,7 +584,7 @@ const BookingScreen = ({ navigation }) => {
               handleServerError(error, true);
             } else {
               toast.showToastMessage(
-                "Không thể đặt lịch hẹn. Vui lòng thử lại",
+                t("appointment.errors.bookingError"),
                 "error"
               );
             }
@@ -574,18 +606,30 @@ const BookingScreen = ({ navigation }) => {
     navigation,
     toast.showToastMessage,
     handleServerError,
+    t, // Add t to dependency array
   ]);
 
   const handleBackPress = useCallback(() => {
+    // Kiểm tra t có tồn tại không
+    if (!t) {
+      console.error("Translation function 't' is not available");
+      return;
+    }
+
     Alert.alert(
-      "Thông báo",
-      "Bạn có chắc chắn muốn thoát không? Tất cả dữ liệu sẽ bị mất",
+      t("common.notification"),
+      t("appointment.booking.exitConfirmation"),
       [
-        { text: "Hủy", style: "destructive" },
-        { text: "Đồng ý", onPress: () => navigation.goBack() },
+        { text: t("common.cancel"), style: "destructive" },
+        { text: t("common.confirm"), onPress: () => navigation.goBack() },
       ]
     );
-  }, [navigation]);
+  }, [navigation, t]);
+
+  // Debug translation
+  useEffect(() => {
+    console.log("Translation status:", { t: !!t, tType: typeof t });
+  }, [t]);
 
   // Load child from global variable
   useEffect(() => {
@@ -711,7 +755,7 @@ const BookingScreen = ({ navigation }) => {
         <View style={styles.dropdownContainer}>
           <Dropdown
             label=""
-            placeholder="Chọn học sinh để đặt lịch"
+            placeholder={t("appointment.booking.selectStudent")}
             data={user.children.map((child) => ({
               ...child,
               label: child.fullName,
@@ -725,7 +769,8 @@ const BookingScreen = ({ navigation }) => {
           <View style={styles.selectedChildIndicator}>
             <Ionicons name="checkmark-circle" size={16} color="#059669" />
             <Text style={styles.selectedChildText}>
-              Đã chọn: {bookingState.selectedChild.fullName}
+              {t("appointment.booking.selectedStudent")}:{" "}
+              {bookingState.selectedChild.fullName}
             </Text>
           </View>
         )}
@@ -736,12 +781,15 @@ const BookingScreen = ({ navigation }) => {
     user?.children,
     bookingState.selectedChild,
     handleChildSelect,
+    t, // Add t to dependency array
   ]);
 
   const renderHostSelection = useCallback(
     () => (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Chọn người tư vấn</Text>
+        <Text style={styles.sectionTitle}>
+          {t("appointment.booking.selectCounselor")}
+        </Text>
         <View style={styles.radioGroup}>
           {hostTypeOptions.map((option) => (
             <TouchableOpacity
@@ -775,14 +823,15 @@ const BookingScreen = ({ navigation }) => {
                 ]}
               >
                 {option.label}
-                {option.disabled && " (Không khả dụng)"}
+                {option.disabled &&
+                  ` (${t("appointment.booking.unavailable")})`}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
     ),
-    [hostTypeOptions, bookingState.hostType, handleHostTypeSelect]
+    [hostTypeOptions, bookingState.hostType, handleHostTypeSelect, t]
   );
 
   const renderCounselorSelection = useCallback(() => {
@@ -807,6 +856,7 @@ const BookingScreen = ({ navigation }) => {
     bookingState.selectedCounselor?.id,
     counselorsManagement.loadingCounselors,
     handleCounselorSelect,
+    t, // Add t to dependency array
   ]);
 
   const renderAppointmentDetails = useCallback(() => {
@@ -820,13 +870,19 @@ const BookingScreen = ({ navigation }) => {
 
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
+        <Text style={styles.sectionTitle}>
+          {t("appointment.booking.appointmentInfo")}
+        </Text>
 
         <View style={styles.switchContainer}>
-          <Text style={styles.inputLabel}>Hình thức tư vấn</Text>
+          <Text style={styles.inputLabel}>
+            {t("appointment.booking.consultationFormat")}
+          </Text>
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>
-              {bookingState.isOnline ? "Trực tuyến" : "Trực tiếp"}
+              {bookingState.isOnline
+                ? t("appointment.booking.online")
+                : t("appointment.booking.offline")}
             </Text>
             <Switch
               value={bookingState.isOnline}
@@ -839,12 +895,16 @@ const BookingScreen = ({ navigation }) => {
 
         <View style={styles.inputContainer}>
           <View style={styles.inputLabelContainer}>
-            <Text style={styles.inputLabel}>Lý do tư vấn</Text>
-            <Text style={styles.optionalText}>(Tùy chọn)</Text>
+            <Text style={styles.inputLabel}>
+              {t("appointment.booking.reason")}
+            </Text>
+            <Text style={styles.optionalText}>
+              ({t("appointment.booking.optional")})
+            </Text>
           </View>
           <TextInput
             style={[styles.textInput, styles.textArea]}
-            placeholder="Nhập lý do tư vấn (VD: Tư vấn học tập, Tư vấn tâm lý...)"
+            placeholder={t("appointment.booking.reasonPlaceholder")}
             value={bookingState.reason}
             onChangeText={bookingState.setReason}
             multiline={true}
@@ -861,6 +921,7 @@ const BookingScreen = ({ navigation }) => {
     bookingState.reason,
     bookingState.setIsOnline,
     bookingState.setReason,
+    t, // Add t to dependency array
   ]);
 
   const renderSlotsSection = useCallback(() => {
@@ -893,7 +954,10 @@ const BookingScreen = ({ navigation }) => {
           {hasSlots && (
             <View style={styles.slotsOverview}>
               <Text style={styles.slotsOverviewText}>
-                {availableDays.length} ngày • {totalSlots} khung giờ khả dụng
+                {t("appointment.booking.slots.overview", {
+                  days: availableDays.length,
+                  slots: totalSlots,
+                })}
               </Text>
             </View>
           )}
@@ -920,6 +984,7 @@ const BookingScreen = ({ navigation }) => {
                 selectedSlot={bookingState.selectedSlot}
                 onSelectSlot={handleSlotSelect}
                 disabled={false}
+                t={t}
               />
             ))}
 
@@ -981,8 +1046,8 @@ const BookingScreen = ({ navigation }) => {
 
     const counselorName =
       hostType?.value === "TEACHER"
-        ? selectedSlot.fullName || "Giáo viên chủ nhiệm"
-        : selectedCounselor?.name || "Tư vấn viên";
+        ? selectedSlot.fullName || t("appointment.host.classTeacher")
+        : selectedCounselor?.name || t("appointment.host.counselor");
 
     const startTime = dayjs(
       selectedSlot.selectedStartTime || selectedSlot.startDateTime
@@ -1031,7 +1096,9 @@ const BookingScreen = ({ navigation }) => {
               {t("appointment.booking.form.mode")}:
             </Text>
             <Text style={styles.summaryValue}>
-              {isOnline ? "Trực tuyến" : "Trực tiếp"}
+              {isOnline
+                ? t("appointment.booking.online")
+                : t("appointment.booking.offline")}
             </Text>
           </View>
           {reason && (
@@ -1130,12 +1197,16 @@ const BookingScreen = ({ navigation }) => {
             {bookingLoading ? (
               <>
                 <ActivityIndicator size="small" color="#FFFFFF" />
-                <Text style={styles.bookingButtonText}>Đang đặt lịch...</Text>
+                <Text style={styles.bookingButtonText}>
+                  {t("appointment.booking.bookingInProgress")}
+                </Text>
               </>
             ) : (
               <>
                 <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-                <Text style={styles.bookingButtonText}>Đặt lịch hẹn</Text>
+                <Text style={styles.bookingButtonText}>
+                  {t("appointment.booking.bookAppointment")}
+                </Text>
               </>
             )}
           </TouchableOpacity>

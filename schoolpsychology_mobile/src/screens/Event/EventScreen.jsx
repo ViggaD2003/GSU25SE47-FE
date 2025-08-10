@@ -155,21 +155,21 @@ const EventScreen = ({ navigation }) => {
 
       // Navigate to appropriate screen based on source
       switch (event.source) {
-        case "Appointment":
+        case "APPOINTMENT":
           navigation.navigate("Appointment", {
             screen: "AppointmentDetails",
-            params: { appointmentId: event.relatedId },
+            params: { appointment: { id: event.relatedId } },
           });
           break;
-        case "Survey":
+        case "SURVEY":
           navigation.navigate("Survey", {
             screen: "SurveyInfo",
             params: { surveyId: event.relatedId },
           });
           break;
-        case "Program":
+        case "PROGRAM":
           navigation.navigate("Program", {
-            screen: "ProgramDetails",
+            screen: "ProgramDetail",
             params: { programId: event.relatedId },
           });
           break;
@@ -244,7 +244,9 @@ const EventScreen = ({ navigation }) => {
             {filteredEvents.length > 0 && (
               <View style={styles.eventCount}>
                 <Text style={styles.eventCountText}>
-                  {t("events.count", { count: filteredEvents.length })}
+                  {filteredEvents.length > 1
+                    ? t("events.count_other", { count: filteredEvents.length })
+                    : t("events.count_one", { count: filteredEvents.length })}
                 </Text>
               </View>
             )}

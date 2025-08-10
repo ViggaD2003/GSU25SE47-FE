@@ -27,6 +27,7 @@ import {
   EventList,
   CaseDetails,
   NotificationSettingsScreen,
+  LanguageSettingsScreen,
   ClosedCases,
   ProgramListScreen,
   ProgramDetailScreen,
@@ -158,6 +159,10 @@ export default function MainTabs() {
         <Stack.Screen
           name="NotificationSettings"
           component={NotificationSettingsScreen}
+        />
+        <Stack.Screen
+          name="LanguageSettings"
+          component={LanguageSettingsScreen}
         />
       </Stack.Navigator>
     );

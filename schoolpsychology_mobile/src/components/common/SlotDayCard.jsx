@@ -25,6 +25,7 @@ const SlotDayCard = ({
   selectedSlot,
   onSelectSlot,
   disabled = false,
+  t,
 }) => {
   const [visibleSlots, setVisibleSlots] = useState(6); // Show first 6 slots initially
   const [loadingMore, setLoadingMore] = useState(false);
@@ -91,7 +92,8 @@ const SlotDayCard = ({
             : ""}
         </Text>
         <Text style={styles.slotCount}>
-          ({timeSlotsAvailable.length} khả dụng)
+          ({timeSlotsAvailable.length}{" "}
+          {t("appointment.booking.slots.available")})
         </Text>
       </View>
 

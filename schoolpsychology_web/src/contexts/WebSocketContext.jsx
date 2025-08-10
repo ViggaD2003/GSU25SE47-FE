@@ -184,6 +184,7 @@ export const WebSocketProvider = ({ children }) => {
   const sendMessage = useCallback(
     ({
       destination = '/app/send',
+      relatedEntityId = '',
       title = 'Hello from client!',
       username = 'teacher@school.com',
       notificationType = 'SURVEY',
@@ -200,6 +201,7 @@ export const WebSocketProvider = ({ children }) => {
           content,
           notificationType,
           username,
+          relatedEntityId,
         }
         stompClientRef.current.send(destination, {}, JSON.stringify(body))
         console.log('[WebSocket] Message sent to:', destination)

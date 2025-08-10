@@ -20,8 +20,10 @@ import { GlobalStyles } from "../../constants";
 import calendarService from "../../services/CalendarService";
 import { getAppointmentHistory } from "@/services/api/AppointmentService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 export default function CalendarAccess() {
+  const { t } = useTranslation();
   const [calendarPermission, setCalendarPermission] = useState(false);
   const [syncEnabled, setSyncEnabled] = useState(false);
   const [autoSync, setAutoSync] = useState(false);
@@ -78,19 +80,22 @@ export default function CalendarAccess() {
 
       if (hasPermission) {
         Alert.alert(
-          "Permission Granted",
-          "Calendar access has been granted. You can now sync your appointments.",
-          [{ text: "OK" }]
+          t("calendar.permissionGranted"),
+          t("calendar.permissionGrantedMessage"),
+          [{ text: t("common.ok") }]
         );
         console.log("Calendar permission granted successfully");
         return true;
       } else {
         Alert.alert(
-          "Permission Required",
-          "Calendar access is required to sync your appointments. Please enable it in your device settings.",
+          t("calendar.permissionRequired"),
+          t("calendar.permissionRequiredMessage"),
           [
-            { text: "Cancel", style: "destructive" },
-            { text: "Open Settings", onPress: () => Linking.openSettings() },
+            { text: t("common.cancel"), style: "destructive" },
+            {
+              text: t("calendar.openSettings"),
+              onPress: () => Linking.openSettings(),
+            },
           ]
         );
         console.log("Calendar permission denied");

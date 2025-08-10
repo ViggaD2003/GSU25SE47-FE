@@ -743,7 +743,7 @@ const AppointmentDetails = () => {
 
   // Navigation handlers
   const handleBack = useCallback(() => {
-    navigate('/appointment-management')
+    navigate(-1)
   }, [navigate])
 
   // Enhanced assessment form handlers with improved scoring
@@ -871,8 +871,8 @@ const AppointmentDetails = () => {
   }, [])
 
   const handleJoinMeeting = useCallback(() => {
-    if (appointment?.meetingLink) {
-      window.open(appointment.meetingLink, '_blank')
+    if (appointment?.linkMeet) {
+      window.open(appointment.linkMeet, '_blank')
     } else {
       messageApi.info(t('appointmentDetails.noMeetingLink'))
     }

@@ -125,6 +125,9 @@ const CaseManagement = () => {
   const [tempHostBy, setTempHostBy] = useState(null)
   const [availableHosts, setAvailableHosts] = useState([])
   const [hostsLoading, setHostsLoading] = useState(false)
+  const [selectedRowKeys, setSelectedRowKeys] = useState([])
+  const [bulkCounselorId, setBulkCounselorId] = useState(null)
+  const [bulkAssignLoading, setBulkAssignLoading] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -243,7 +246,15 @@ const CaseManagement = () => {
 
   // HostBy editing handlers
   const handleEditHostBy = useCallback(record => {
+    setTempHostBy(record?.counselor?.id || null)
     setEditingHostBy(record.id)
+    // Smoothly scroll the edited row into view
+    requestAnimationFrame(() => {
+      const el = document.querySelector(`.case-row-${record.id}`)
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    })
   }, [])
 
   const handleSaveHostBy = useCallback(
@@ -255,12 +266,15 @@ const CaseManagement = () => {
         }
         await dispatch(
           assignCase({
-            caseId: record.id,
+            caseId: [record.id],
             counselorId: tempHostBy,
           })
-        )
+        ).unwrap()
         messageApi.success(t('caseManagement.messages.assignSuccess'))
+        // Refresh data to reflect latest state
+        await dispatch(getCases())
         setEditingHostBy(null)
+        setTempHostBy(null)
       } catch {
         messageApi.error(t('caseManagement.messages.assignError'))
       }
@@ -274,13 +288,15 @@ const CaseManagement = () => {
   }, [])
 
   const handleChangeHostBy = useCallback(value => {
-    console.log(value)
     setTempHostBy(value)
   }, [])
 
-  const handleViewCase = useCallback(record => {
-    navigate(`/case-management/details/${record.id}`)
-  }, [])
+  const handleViewCase = useCallback(
+    record => {
+      navigate(`/case-management/details/${record.id}`)
+    },
+    [navigate]
+  )
 
   const editHostByColumn = useCallback(
     (counselor, record) => {
@@ -288,29 +304,35 @@ const CaseManagement = () => {
 
       if (isEditing) {
         return (
-          <div className="flex items-center space-x-2">
-            <Select
-              placeholder={t('caseManagement.table.hostBy')}
-              value={tempHostBy}
-              onChange={handleChangeHostBy}
-              style={{ width: 150 }}
-              loading={hostsLoading}
-            >
-              {availableHosts.map(host => (
-                <Option key={host.id} value={host.id}>
-                  <div className="font-medium flex items-center">
-                    <UserOutlined className="mr-1" />
-                    {host.fullName} -{' '}
-                    {host?.gender ? t('common.male') : t('common.female')}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {host?.counselorCode &&
-                      `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
-                  </div>
-                </Option>
-              ))}
-            </Select>
-          </div>
+          <Select
+            placeholder={t('caseManagement.table.hostBy')}
+            value={tempHostBy}
+            onChange={handleChangeHostBy}
+            style={{ width: 'auto', minWidth: 100 }} // Auto width + giới hạn nhỏ nhất
+            loading={hostsLoading}
+            showSearch
+            allowClear
+            optionLabelProp="label"
+            popupMatchSelectWidth={false}
+          >
+            {availableHosts.map(host => (
+              <Option
+                key={host.id}
+                value={host.id}
+                label={`${host.fullName}${host.counselorCode ? ` (${host.counselorCode})` : ''}`}
+              >
+                <div className="font-medium flex items-center">
+                  <UserOutlined className="mr-1" />
+                  {host.fullName} -{' '}
+                  {host?.gender ? t('common.male') : t('common.female')}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {host?.counselorCode &&
+                    `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
+                </div>
+              </Option>
+            ))}
+          </Select>
         )
       }
       return (
@@ -337,8 +359,38 @@ const CaseManagement = () => {
         </div>
       )
     },
-    [t, editingHostBy, availableHosts, hostsLoading, user?.role, tempHostBy]
+    [
+      t,
+      editingHostBy,
+      availableHosts,
+      hostsLoading,
+      tempHostBy,
+      handleChangeHostBy,
+    ]
   )
+
+  // Bulk assign selected cases to a counselor (for managers)
+  const handleBulkAssign = useCallback(async () => {
+    if (!bulkCounselorId || !selectedRowKeys.length) return
+    setBulkAssignLoading(true)
+    try {
+      const caseIds = selectedRowKeys
+      await dispatch(
+        assignCase({
+          caseId: caseIds,
+          counselorId: bulkCounselorId,
+        })
+      ).unwrap()
+      messageApi.success(t('caseManagement.messages.assignSuccess'))
+      await dispatch(getCases())
+      setSelectedRowKeys([])
+      setBulkCounselorId(null)
+    } catch {
+      messageApi.error(t('caseManagement.messages.assignError'))
+    } finally {
+      setBulkAssignLoading(false)
+    }
+  }, [bulkCounselorId, selectedRowKeys, dispatch, messageApi, t])
 
   // Table columns
   const columns = useMemo(
@@ -368,12 +420,15 @@ const CaseManagement = () => {
         key: 'status',
         render: status => {
           const config = STATUS_CONFIG[status]
+          const tagColor = config?.color || 'default'
+          const className = config
+            ? `${config.bgColor} ${config.textColor} ${config.borderColor} border`
+            : ''
           return (
-            <Tag
-              color={config.color}
-              className={`${config.bgColor} ${config.textColor} ${config.borderColor} border`}
-            >
-              {t(`caseManagement.statusOptions.${status}`)}
+            <Tag color={tagColor} className={className}>
+              {status
+                ? t(`caseManagement.statusOptions.${status}`)
+                : t('common.unknown')}
             </Tag>
           )
         },
@@ -393,13 +448,15 @@ const CaseManagement = () => {
         key: 'priority',
         render: priority => {
           const config = PRIORITY_CONFIG[priority]
+          const tagColor = config?.color || 'default'
+          const className = config
+            ? `${config.bgColor} ${config.textColor} ${config.borderColor} border`
+            : ''
           return (
-            <Tag
-              color={config.color}
-              icon={config.icon}
-              className={`${config.bgColor} ${config.textColor} ${config.borderColor} border`}
-            >
-              {t(`caseManagement.priorityOptions.${priority}`)}
+            <Tag color={tagColor} icon={config?.icon} className={className}>
+              {priority
+                ? t(`caseManagement.priorityOptions.${priority}`)
+                : t('common.unknown')}
             </Tag>
           )
         },
@@ -416,9 +473,12 @@ const CaseManagement = () => {
         key: 'progressTrend',
         render: progress => {
           const config = PROGRESS_CONFIG[progress]
+          const tagColor = config?.color || 'default'
           return (
-            <Tag color={config.color}>
-              {t(`caseManagement.progressTrendOptions.${progress}`)}
+            <Tag color={tagColor}>
+              {progress
+                ? t(`caseManagement.progressTrendOptions.${progress}`)
+                : t('common.unknown')}
             </Tag>
           )
         },
@@ -558,7 +618,22 @@ const CaseManagement = () => {
         fixed: 'right',
       },
     ],
-    [t, user?.role, editHostByColumn]
+    [
+      t,
+      user?.role,
+      editHostByColumn,
+      handleViewCase,
+      handleEditHostBy,
+      handleSaveHostBy,
+      handleCancelHostBy,
+      editingHostBy,
+    ]
+  )
+
+  // Only render visible columns (support custom hidden flag)
+  const visibleColumns = useMemo(
+    () => columns.filter(col => !col.hidden),
+    [columns]
   )
 
   return (
@@ -682,23 +757,87 @@ const CaseManagement = () => {
               </Button>
             </Space>
           </Col>
+          {user?.role === 'manager' && (
+            <Col xs={24} sm={24} lg={24}>
+              <Space wrap>
+                <Select
+                  placeholder={t('caseManagement.table.hostBy')}
+                  value={bulkCounselorId}
+                  onChange={setBulkCounselorId}
+                  style={{ minWidth: 220 }}
+                  loading={hostsLoading}
+                  showSearch
+                  allowClear
+                  optionLabelProp="label"
+                >
+                  {availableHosts.map(host => (
+                    <Option
+                      key={host.id}
+                      value={host.id}
+                      label={
+                        // This label will be used for the selected value
+                        `${host.fullName}${host.counselorCode ? ` (${host.counselorCode})` : ''}`
+                      }
+                    >
+                      {/* Dropdown content */}
+                      <div className="font-medium flex items-center">
+                        <UserOutlined className="mr-1" />
+                        {host.fullName} -{' '}
+                        {host?.gender ? t('common.male') : t('common.female')}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {host?.counselorCode &&
+                          `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
+                      </div>
+                    </Option>
+                  ))}
+                </Select>
+                <Button
+                  type="primary"
+                  icon={<CheckCircleOutlined />}
+                  disabled={!bulkCounselorId || !selectedRowKeys.length}
+                  loading={bulkAssignLoading}
+                  onClick={handleBulkAssign}
+                >
+                  {t('common.assign')}
+                </Button>
+              </Space>
+            </Col>
+          )}
         </Row>
       </Card>
 
       {/* Table */}
       <Card>
         <Table
-          columns={columns}
+          columns={visibleColumns}
           dataSource={filteredCases}
           rowKey="id"
           loading={loading}
+          sticky
+          rowSelection={
+            user?.role === 'manager'
+              ? {
+                  selectedRowKeys,
+                  onChange: setSelectedRowKeys,
+                  preserveSelectedRowKeys: true,
+                  getCheckboxProps: record => ({
+                    disabled: record.status !== 'NEW',
+                  }),
+                }
+              : undefined
+          }
+          rowClassName={record =>
+            `case-row-${record.id}` +
+            (editingHostBy === record.id ? ' bg-yellow-50' : '')
+          }
           pagination={{
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
           }}
-          scroll={{ x: 1800 }}
+          scroll={{ x: 2000 }}
         />
       </Card>
     </div>

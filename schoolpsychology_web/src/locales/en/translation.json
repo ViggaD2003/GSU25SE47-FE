@@ -26,7 +26,7 @@
     "slotManagement": "Slots",
     "classManagement": "Classes",
     "teacherManagement": "Homeroom Teacher",
-    "studentManagement": "Student in Class",
+    "studentManagement": "Students in Class",
     "myClass": "My Class",
     "myStudent": "Student in Class",
     "caseManagement": "Support Cases",
@@ -315,7 +315,8 @@
       "category": "Category",
       "date": "Date & Time",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "addCase": "Add Cases"
     },
     "status": {
       "PLANNING": "Planning",
@@ -523,8 +524,37 @@
         "noDescription": "No description",
         "noParticipantsEnrolled": "No participants enrolled in this program."
       },
+      "addCasesToProgram": "Add Cases to Program",
+      "addSelected": "Add Selected ({{count}})",
+      "searchCasesPlaceholder": "Search cases by title, student, code...",
+      "availableCases": "Available: {{count}}",
       "participantInfo": "Participant Information",
       "viewParticipant": "View Participant",
+      "participants": {
+        "title": "Participant List",
+        "addCases": "Add Cases",
+        "selectCases": "Select cases to add",
+        "availableCases": "Available cases",
+        "searchCases": "Search cases",
+        "noAvailableCases": "No available cases",
+        "noParticipants": "No participants",
+        "participantDetails": "Participant Details",
+        "name": "Name",
+        "enrollmentDate": "Enrollment Date",
+        "finalScore": "Final Score",
+        "completionDate": "Completion Date",
+        "description": "Description",
+        "viewDetails": "View Details",
+        "addSuccess": "Cases added successfully",
+        "status": {
+          "title": "Status",
+          "ACTIVE": "Active",
+          "PLANNING": "Planning",
+          "ON_GOING": "On Going",
+          "COMPLETED": "Completed",
+          "ABSENT": "Absent"
+        }
+      },
       "basicInfo": "Basic Information",
       "hostedBy": "Hosted By",
       "startDate": "Start Date",
@@ -683,6 +713,12 @@
       "updatePermissionDenied": "Only counselors can update cases",
       "updateModalPlaceholder": "Update functionality will be implemented here",
       "quickStats": {
+        "totalActivities": "Total Activities",
+        "totalSurveys": "Total Surveys",
+        "totalAppointments": "Total Appointments",
+        "totalPrograms": "Total Programs",
+        "totalAbsent": "Total Absent",
+        "totalCompleted": "Total Completed",
         "activeSurveys": "Active Surveys",
         "completedSurveys": "Completed Surveys",
         "skippedSurveys": "Skipped Surveys",
@@ -1131,6 +1167,28 @@
     "description": "Manage your appointments and their information",
     "refresh": "Refresh",
     "searchStudent": "Search student...",
+    "createNew": "Create New Appointment",
+    "student": "Student",
+    "selectStudent": "Select student",
+    "selectCase": "Select case",
+    "selectSlot": "Select slot",
+    "slot": "Time slot",
+    "caseInformation": "Case information",
+    "loadingSlots": "Loading slots...",
+    "priority": "Priority",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "notes": "Notes",
+    "notesPlaceholder": "Enter notes for appointment...",
+    "create": "Create appointment",
+    "createSuccess": "Appointment created successfully!",
+    "createError": "Error occurred while creating appointment",
+    "createButton": {
+      "title": "Create New Appointment",
+      "description": "Create new appointment for student",
+      "tooltip": "Click to create new appointment"
+    },
     "tabs": {
       "active": "Active Appointments",
       "past": "Past Appointments",
@@ -1205,9 +1263,160 @@
       "cancelled": "Cancelled",
       "absent": "Absent",
       "expired": "Expired"
+    },
+    "booking": {
+      "title": "Book Appointment",
+      "selectStudent": "Select student to book for",
+      "selectHost": "Select host type",
+      "selectCounselor": "Select counselor",
+      "form": {
+        "mode": "Consultation mode",
+        "reasonLabel": "Consultation reason",
+        "reasonPlaceholder": "Enter the reason (e.g., Study counseling, Psychological counseling...)"
+      },
+      "slots": {
+        "title": "Available appointments",
+        "empty": {
+          "title": "No available appointments",
+          "subtitle": "Please try again later or contact support"
+        }
+      },
+      "loadingSlots": "Loading appointments...",
+      "loadingMoreDays": "Loading more days...",
+      "loadMoreDays": "Load {{count}} more days",
+      "daysInfo": "Showing {{shown}} of {{total}} available days",
+      "lazyLoadHint": "Tap the button to view more",
+      "saving": "Booking...",
+      "submit": "Book appointment",
+      "selectSlotFirst": "Please select a time slot first",
+      "openCreateModal": "Open appointment creation form",
+      "createButton": {
+        "title": "Create New Appointment",
+        "description": "Click to create appointment for student",
+        "icon": "Add New"
+      }
+    },
+    "mode": {
+      "online": "Online",
+      "offline": "Offline"
+    },
+    "calendarSync": {
+      "title": "Calendar sync",
+      "enabled": "The appointment will be added to your calendar",
+      "reminderBefore": "Reminder {{time}} before"
+    },
+    "toast": {
+      "bookingSuccess": "Appointment booked successfully",
+      "bookingError": "Failed to book appointment. Please try again",
+      "updateSuccess": "Appointment updated successfully",
+      "updateError": "Failed to update appointment",
+      "cancelSuccess": "Appointment cancelled successfully",
+      "cancelError": "Failed to cancel appointment",
+      "confirmSuccess": "Appointment confirmed successfully",
+      "confirmError": "Failed to confirm appointment",
+      "rejectSuccess": "Appointment rejected successfully",
+      "rejectError": "Failed to reject appointment",
+      "calendarSyncSuccess": "Calendar synced successfully",
+      "calendarSyncError": "Failed to sync with calendar",
+      "noAvailableSlots": "No available slots for selected date",
+      "slotUnavailable": "Selected slot is no longer available",
+      "invalidTimeSelection": "Invalid time selection",
+      "serverError": "Server error occurred. Please try again later",
+      "networkError": "Network error. Please check your connection",
+      "permissionDenied": "Permission denied for this action",
+      "validationError": "Please check your input and try again"
+    },
+    "confirmation": {
+      "booking": {
+        "title": "Confirm Booking",
+        "message": "Are you sure you want to book this appointment?",
+        "confirmText": "Book Appointment",
+        "cancelText": "Cancel"
+      },
+      "cancel": {
+        "title": "Cancel Appointment",
+        "message": "Are you sure you want to cancel this appointment? This action cannot be undone.",
+        "confirmText": "Cancel Appointment",
+        "cancelText": "Keep It"
+      },
+      "exit": {
+        "title": "Exit Booking",
+        "message": "Are you sure you want to exit? All data will be lost.",
+        "confirmText": "Exit",
+        "cancelText": "Cancel"
+      }
+    },
+    "errors": {
+      "noSlotsAvailable": "No slots available for the selected date",
+      "slotAlreadyBooked": "This slot has already been booked",
+      "invalidDateSelection": "Please select a valid date",
+      "invalidTimeSelection": "Please select a valid time",
+      "requiredFieldsMissing": "Please fill in all required fields",
+      "invalidReason": "Please provide a valid reason for the appointment",
+      "counselorUnavailable": "Selected counselor is not available",
+      "studentNotFound": "Student not found",
+      "bookingLimitReached": "You have reached the maximum number of appointments",
+      "pastDateNotAllowed": "Cannot book appointments in the past",
+      "timeConflict": "This time conflicts with another appointment"
+    },
+    "success": {
+      "booking": "Appointment booked successfully!",
+      "update": "Appointment updated successfully!",
+      "cancel": "Appointment cancelled successfully!",
+      "confirm": "Appointment confirmed successfully!",
+      "reject": "Appointment rejected successfully!"
+    },
+    "info": {
+      "bookingInstructions": "Select a date, time, and counselor to book your appointment",
+      "cancellationPolicy": "You can cancel appointments up to 24 hours before the scheduled time",
+      "reschedulingPolicy": "Contact support to reschedule your appointment",
+      "preparationTips": "Please arrive 10 minutes before your appointment time",
+      "whatToBring": "Bring any relevant documents or information",
+      "contactSupport": "Contact support if you need assistance"
+    },
+    "form": {
+      "title": "Create New Appointment",
+      "subtitle": "Schedule a counseling session for a student",
+      "studentSection": "Student Information",
+      "caseSection": "Case Information",
+      "scheduleSection": "Schedule",
+      "detailsSection": "Additional Details",
+      "studentRequired": "Please select a student",
+      "caseRequired": "Please select a case",
+      "slotRequired": "Please select a time slot",
+      "notesOptional": "Optional notes for the appointment",
+      "priorityDescription": "Set the priority level for this appointment",
+      "slotDescription": "Choose an available time slot",
+      "noAvailableSlots": "No available time slots found",
+      "noStudentCases": "No active cases found for this student",
+      "loadingStudents": "Loading students...",
+      "loadingCases": "Loading cases...",
+      "loadingSlots": "Loading time slots...",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "dateTime": "Date & Time",
+      "counselor": "Counselor",
+      "appointmentType": "Appointment Type",
+      "typeIndividual": "Individual Session",
+      "typeGroup": "Group Session",
+      "location": "Location",
+      "locationOnline": "Online (Video Call)",
+      "locationOffline": "In-person (Office)",
+      "locationPlaceholder": "Enter location details...",
+      "timeSlots": "Time Slots",
+      "selectTimeSlot": "Select time slot",
+      "timeSlotFormat": "{{date}} - {{time}} ({{duration}} minutes)",
+      "bookedSlots": "Booked",
+      "availableSlots": "Available",
+      "noSlotsToday": "No time slots available for this date",
+      "selectDate": "Select date",
+      "selectTime": "Select time",
+      "reasonBooking": "Booking reason",
+      "reasonPlaceholder": "Enter booking reason..."
     }
   },
   "common": {
+    "assign": "Assign",
     "completed": "Completed",
     "error": "Error",
     "success": "Success",
@@ -1226,11 +1435,14 @@
     "clear": "Clear",
     "filter": "Filter",
     "action": "Action",
+    "actions": "Actions",
     "yes": "Yes",
     "no": "No",
     "startDate": "Start Date",
     "endDate": "End Date",
     "back": "Back",
+    "next": "Next",
+    "creating": "Creating...",
     "edit": "Edit",
     "save": "Save",
     "loading": "Loading...",
@@ -1249,6 +1461,7 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "goBack": "Go Back",
+    "confirm": "Confirm",
     "yearsOld": "years old",
     "weekdays": {
       "monday": "Monday",
@@ -1267,7 +1480,13 @@
     "reference": "Reference",
     "refresh": "Refresh",
     "refreshSuccess": "Refresh successfully",
-    "filtersReset": "Filters reset successfully"
+    "filtersReset": "Filters reset successfully",
+    "unknown": "Unknown",
+    "pagination": {
+      "showing": "Showing",
+      "of": "of",
+      "items": "items"
+    }
   },
   "classManagement": {
     "title": "Class Management",
@@ -1292,7 +1511,15 @@
       "selectedCount": "Selected: {{count}}",
       "enrollSelected": "Enroll Selected",
       "success": "Students enrolled successfully",
-      "error": "Failed to enroll students"
+      "error": "Failed to enroll students",
+      "getStudents": "Get Students",
+      "filterTitle": "Filter Students",
+      "schoolYearPlaceholder": "Enter school year (e.g., 2024-2025)",
+      "classCodePlaceholder": "Enter class code",
+      "applyFilters": "Apply Filters",
+      "showFilters": "Show Filters",
+      "hideFilters": "Hide Filters",
+      "studentList": "Student List"
     },
     "form": {
       "codeClass": "Class Code",

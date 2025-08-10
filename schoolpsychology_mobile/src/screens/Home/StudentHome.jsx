@@ -146,8 +146,8 @@ export default function StudentHome({ user, navigation }) {
     }, [])
   );
 
-  const getEventIcon = (eventType) => {
-    switch (eventType?.toLowerCase()) {
+  const getEventIcon = (eventSource) => {
+    switch (eventSource?.toLowerCase()) {
       case "appointment":
         return "calendar";
       case "survey":
@@ -172,12 +172,50 @@ export default function StudentHome({ user, navigation }) {
     }
   };
 
-  const formatTime = (timeString) => {
-    if (!timeString) return "";
+  const formatTime = (dateString, timeString) => {
+    if (!timeString || !dateString) return "";
+
     try {
-      return dayjs(timeString).format("HH:mm");
-    } catch {
+      // Parse timeString to determine if it's hours or minutes
+      const timeValue = parseFloat(timeString);
+      if (isNaN(timeValue)) return timeString;
+
+      // If timeString is <= 24, treat as hours (e.g., 1, 1.5, 2, 24)
+      // If timeString is > 24, treat as minutes (e.g., 30, 60, 90)
+      const unit = timeValue <= 24 ? "hours" : "minutes";
+
+      const dateTime = dayjs(dateString).add(timeValue, unit).format("HH:mm");
+
+      return dateTime;
+    } catch (error) {
       return timeString;
+    }
+  };
+
+  const handlePlanItemPress = (item) => {
+    if (item.source === "SURVEY") {
+      navigation.navigate("Survey", {
+        screen: "SurveyInfo",
+        params: {
+          surveyId: item.relatedId,
+        },
+      });
+    } else if (item.source === "PROGRAM") {
+      navigation.navigate("Program", {
+        screen: "ProgramDetail",
+        params: {
+          programId: item.relatedId,
+        },
+      });
+    } else {
+      navigation.navigate("Appointment", {
+        screen: "AppointmentDetails",
+        params: {
+          appointment: {
+            id: item.relatedId,
+          },
+        },
+      });
     }
   };
 
@@ -478,9 +516,6 @@ export default function StudentHome({ user, navigation }) {
           <TouchableOpacity
             style={styles.viewAllContainer}
             onPress={() => {
-              // console.log(
-              //   "StudentHome: Navigating to Record from Plan section"
-              // );
               navigation.navigate("Event");
             }}
           >
@@ -496,17 +531,14 @@ export default function StudentHome({ user, navigation }) {
                 <TouchableOpacity
                   key={item.id || index}
                   style={styles.planItem}
-                  onPress={() => {
-                    // Navigate to event details
-                    console.log("Navigate to event:", item.id);
-                  }}
+                  onPress={() => handlePlanItemPress(item)}
                 >
                   <View style={styles.planItemHeader}>
                     <View style={styles.planIconContainer}>
-                      <MaterialIcons
-                        name={getEventIcon(item.type)}
+                      <Ionicons
+                        name={getEventIcon(item.source)}
                         size={20}
-                        color={getEventColor(item.type)}
+                        color={getEventColor(item.source)}
                       />
                     </View>
                     <View style={styles.planInfo}>
@@ -520,9 +552,9 @@ export default function StudentHome({ user, navigation }) {
                       )}
                     </View>
                     <View style={styles.planTimeContainer}>
-                      {item.time && (
+                      {item.time && item.date && item.source !== "SURVEY" && (
                         <Text style={styles.planTime}>
-                          {formatTime(item.time)}
+                          {formatTime(item.date, item.time)}
                         </Text>
                       )}
                       <MaterialIcons

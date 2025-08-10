@@ -18,6 +18,7 @@ import { LanguageProvider } from "./src/contexts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { TextEncoder, TextDecoder } from "text-encoding";
+import { useTranslation } from "react-i18next";
 import "./src/i18n";
 
 // Extend global with TextEncoder and TextDecoder
@@ -33,6 +34,7 @@ dayjs.extend(utc);
 
 function RootNavigation() {
   const { user, loading, registerLogoutCallback, logout } = useAuth();
+  const { t } = useTranslation();
   const logoutCallbackRef = useRef(null);
 
   // Create a stable logout callback function
@@ -50,11 +52,11 @@ function RootNavigation() {
   const handleLogoutNotification = useCallback(() => {
     Toast.show({
       type: "info",
-      text1: "Đăng xuất",
-      text2: "Phiên làm việc đã kết thúc. Vui lòng đăng nhập lại.",
+      text1: t("profile.logout"),
+      text2: t("profile.sessionEnded"),
       position: "top",
     });
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     // Register logout callback only once
@@ -87,17 +89,17 @@ function RootNavigation() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <PermissionProvider>
-        <RealTimeProvider>
-          <PaperProvider>
-            <LanguageProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <PermissionProvider>
+          <RealTimeProvider>
+            <PaperProvider>
               <RootNavigation />
-            </LanguageProvider>
-            <Toast />
-          </PaperProvider>
-        </RealTimeProvider>
-      </PermissionProvider>
-    </AuthProvider>
+              <Toast />
+            </PaperProvider>
+          </RealTimeProvider>
+        </PermissionProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }

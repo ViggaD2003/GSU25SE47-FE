@@ -3,8 +3,10 @@ import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { getClosedCases } from "@/services/api/caseApi";
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
 
 const ClosedCases = ({ navigation }) => {
+  const { t } = useTranslation();
   const [closedCases, setClosedCases] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,8 +33,8 @@ const ClosedCases = ({ navigation }) => {
       params: {
         from: "closedCases",
         caseId,
-        headerTitle: "Chi tiết trường hợp",
-        emptyTitle: "Không tìm thấy thông tin",
+        headerTitle: t("case.details"),
+        emptyTitle: t("case.emptyTitle"),
       },
     });
   };
@@ -40,7 +42,7 @@ const ClosedCases = ({ navigation }) => {
   return (
     <Container>
       <HeaderWithoutTab
-        title={"Các trường hợp đã đóng"}
+        title={t("case.closedCases")}
         onBackPress={() => {
           navigation.goBack();
         }}

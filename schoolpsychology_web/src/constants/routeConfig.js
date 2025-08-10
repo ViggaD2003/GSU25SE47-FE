@@ -94,7 +94,7 @@ export const ROUTE_CONFIG = [
     children: [
       {
         key: '/my-class',
-        labelKey: 'navigation.myStudent',
+        labelKey: 'navigation.myClass',
         allowedRoles: ['teacher'],
         element: 'ClientManagement',
       },

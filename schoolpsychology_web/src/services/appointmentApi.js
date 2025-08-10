@@ -7,8 +7,6 @@ export const appointmentAPI = {
       throw new Error('Appointment data is required')
     }
 
-    console.log('appointment', appointment)
-
     try {
       const response = await api.post('/api/v1/appointments', appointment)
 

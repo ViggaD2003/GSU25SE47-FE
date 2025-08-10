@@ -181,6 +181,7 @@ const ProgramModal = ({
       sendMessage({
         title: 'New Program',
         content: `You have a new program ${values.name}`,
+        notificationType: 'PROGRAM',
         username: selectedCounselor.email,
       })
 

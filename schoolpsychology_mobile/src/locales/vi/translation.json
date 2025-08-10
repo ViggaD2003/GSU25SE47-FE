@@ -6,6 +6,9 @@
   "auth": {
     "email": "Email",
     "password": "Mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "newPassword": "Mật khẩu mới",
+    "confirmPassword": "Xác nhận mật khẩu",
     "enterEmail": "Nhập địa chỉ email",
     "enterPassword": "Nhập mật khẩu",
     "signIn": "Đăng nhập",
@@ -24,24 +27,152 @@
     "mobileSubtitle": "Xem nhanh số liệu và cập nhật gần đây"
   },
   "case": {
-    "followUp": "Theo dõi",
-    "followUpSubtitle": "Theo dõi ca tư vấn của bạn để đạt kết quả tốt nhất",
-    "empty": "Bạn chưa có ca tư vấn nào để theo dõi"
+    "followUp": "{{common.empty.subtitle}}",
+    "followUpSubtitle": "{{common.empty.subtitle}}",
+    "empty": "{{common.empty.title}}",
+    "closedCases": "{{common.empty.subtitle}}",
+    "closedCasesSubtitle": "{{common.empty.subtitle}}",
+    "details": "{{common.empty.subtitle}}",
+    "detailsSubtitle": "{{common.empty.subtitle}}",
+    "emptyTitle": "{{common.empty.title}}",
+    "emptySubtitle": "{{common.empty.subtitle}}",
+    "caseInfo": {
+      "title": "{{common.empty.subtitle}}",
+      "caseId": "{{common.empty.subtitle}}",
+      "description": "{{common.description}}",
+      "status": "{{common.status}}",
+      "priority": "{{common.empty.subtitle}}",
+      "progressTrend": "{{common.empty.subtitle}}",
+      "currentLevel": "{{common.empty.subtitle}}",
+      "initialLevel": "{{common.empty.subtitle}}"
+    },
+    "status": {
+      "new": "{{common.empty.subtitle}}",
+      "inProgress": "{{common.empty.subtitle}}",
+      "closed": "{{common.empty.subtitle}}",
+      "unknown": "Không xác định"
+    },
+    "priority": {
+      "high": "Cao",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "unknown": "Không xác định"
+    },
+    "progressTrend": {
+      "improved": "Cải thiện",
+      "stable": "Ổn định",
+      "declined": "Giảm sút",
+      "unknown": "Không xác định"
+    },
+    "level": {
+      "title": "{{common.empty.subtitle}}",
+      "current": "Mức độ hiện tại",
+      "initial": "Mức độ ban đầu"
+    },
+    "statistics": {
+      "title": "{{common.empty.subtitle}}",
+      "surveys": "Khảo sát",
+      "appointments": "Lịch hẹn",
+      "programs": "Chương trình",
+      "completed": "{{common.completed}}"
+    },
+    "charts": {
+      "title": "{{common.empty.subtitle}}",
+      "surveys": "Khảo sát",
+      "appointments": "Lịch hẹn",
+      "programs": "Chương trình",
+      "noData": "{{common.empty.title}}",
+      "scoreFormat": "{{score}}/4.0"
+    },
+    "studentInfo": {
+      "title": "{{common.empty.subtitle}}",
+      "fullName": "Họ tên",
+      "email": "{{auth.email}}",
+      "phoneNumber": "Số điện thoại",
+      "class": "Lớp",
+      "schoolYear": "Năm học"
+    },
+    "emptyState": {
+      "noCase": "{{common.empty.title}}",
+      "noCaseAssigned": "Chưa có case được gán",
+      "noCaseAssignedSubtitle": "{{common.empty.subtitle}}",
+      "allCasesClosed": "Tất cả các case đã được xử lý {{common.completed}}",
+      "allCasesClosedSubtitle": "Tất cả các case đã được xử lý {{common.completed}}"
+    }
   },
   "common": {
     "loading": "Đang tải...",
+    "changing": "Đang thay đổi...",
     "errorTitle": "Lỗi",
     "errorLoadData": "Có lỗi xảy ra khi tải dữ liệu",
     "retry": "Thử lại",
     "cancel": "Hủy",
     "confirm": "Xác nhận",
+    "ok": "OK",
     "notAvailable": "Không khả dụng",
     "selected": "Đã chọn",
-    "optional": "Tùy chọn"
+    "optional": "Tùy chọn",
+    "male": "Nam",
+    "female": "Nữ",
+    "save": "Lưu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "submit": "Gửi",
+    "submitting": "Đang gửi...",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "warning": "Cảnh báo",
+    "info": "Thông tin",
+    "notification": "Thông báo",
+    "yes": "Có",
+    "no": "Không",
+    "close": "Đóng",
+    "open": "Mở",
+    "enable": "Bật",
+    "disable": "Tắt",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "completed": "Hoàn thành",
+    "pending": "Chờ xử lý",
+    "cancelled": "Đã hủy",
+    "expired": "Hết hạn",
+    "online": "Trực tuyến",
+    "offline": "Trực tiếp",
+    "inPerson": "Trực tiếp",
+    "date": "Ngày",
+    "time": "Thời gian",
+    "duration": "Thời lượng",
+    "location": "Địa điểm",
+    "reason": "Lý do",
+    "description": "Mô tả",
+    "title": "Tiêu đề",
+    "subtitle": "Phụ đề",
+    "count_one": "{{count}} mục",
+    "count_other": "{{count}} mục",
+    "empty": {
+      "title": "Không có dữ liệu",
+      "subtitle": "Không tìm thấy dữ liệu nào"
+    },
+    "errors": {
+      "loadError": "Lỗi khi tải dữ liệu",
+      "saveError": "Lỗi khi lưu dữ liệu",
+      "deleteError": "Lỗi khi xóa dữ liệu",
+      "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau",
+      "validationError": "Vui lòng kiểm tra thông tin nhập và thử lại",
+      "permissionDenied": "Không có quyền thực hiện hành động này"
+    },
+    "alerts": {
+      "success": "Thành công",
+      "error": "Lỗi"
+    },
+    "appointmentNotFound": "Không tìm thấy thông tin lịch hẹn"
   },
   "events": {
     "title": "Sự kiện",
-    "loading": "Đang tải...",
     "noEvents": "Không có sự kiện nào",
     "selectAnotherDate": "Chọn ngày khác để xem các sự kiện",
     "count_one": "{{count}} sự kiện",
@@ -49,7 +180,45 @@
     "schedule": "Lịch trình",
     "appointment": "Cuộc hẹn",
     "survey": "Khảo sát",
-    "program": "Chương trình"
+    "program": "Chương trình",
+    "loading": "Đang tải sự kiện..."
+  },
+  "eventCard": {
+    "source": {
+      "appointment": "Cuộc hẹn",
+      "survey": "Khảo sát",
+      "program": "Chương trình",
+      "event": "Sự kiện"
+    },
+    "status": {
+      "published": "Đã xuất bản",
+      "confirmed": "Đã xác nhận",
+      "pending": "Chờ xác nhận",
+      "inProgress": "Đang diễn ra",
+      "active": "Hoạt động",
+      "onGoing": "Đang diễn ra",
+      "unknown": "Không xác định"
+    },
+    "case": "Case"
+  },
+  "weekCalendar": {
+    "thisWeek": "Tuần này",
+    "dayNames": {
+      "sunday": "CN",
+      "monday": "T2",
+      "tuesday": "T3",
+      "wednesday": "T4",
+      "thursday": "T5",
+      "friday": "T6",
+      "saturday": "T7"
+    }
+  },
+  "calendarPermission": {
+    "permissionGranted": "Quyền truy cập được cấp",
+    "permissionGrantedMessage": "Quyền truy cập lịch đã được cấp. Bạn có thể đồng bộ lịch hẹn của mình.",
+    "permissionRequired": "Yêu cầu quyền truy cập",
+    "permissionRequiredMessage": "Quyền truy cập lịch là cần thiết để đồng bộ lịch hẹn của bạn. Vui lòng bật nó trong cài đặt thiết bị.",
+    "openSettings": "Mở cài đặt"
   },
   "eventList": {
     "empty": {
@@ -64,10 +233,6 @@
       "program": {
         "title": "Không có chương trình nào",
         "subtitle": "Chưa có chương trình nào được tạo"
-      },
-      "default": {
-        "title": "Không có dữ liệu",
-        "subtitle": "Không tìm thấy dữ liệu nào"
       }
     }
   },
@@ -79,8 +244,14 @@
     "changePassword": "Đổi mật khẩu",
     "calendarAccess": "Truy cập lịch",
     "notificationSettings": "Cài đặt thông báo",
+    "languageSettings": "Cài đặt ngôn ngữ",
+    "languageSettingsSubtitle": "Tùy chỉnh ngôn ngữ hiển thị",
     "needHelp": "Cần trợ giúp?",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "sessionEnded": "Phiên làm việc đã kết thúc. Vui lòng đăng nhập lại.",
+    "selectLanguage": "Chọn ngôn ngữ",
+    "languageDescription": "Chọn ngôn ngữ ưa thích cho giao diện ứng dụng",
+    "languageChangeNote": "Thay đổi ngôn ngữ sẽ được áp dụng ngay lập tức và lưu cho các phiên làm việc sau"
   },
   "home": {
     "welcomeBack": "Chào mừng trở lại,",
@@ -128,6 +299,63 @@
       "empty": {
         "title": "Không có chương trình",
         "description": "Hiện chưa có chương trình phù hợp. Vui lòng quay lại sau."
+      }
+    },
+    "detail": {
+      "title": "Chi tiết chương trình",
+      "description": "Mô tả",
+      "scheduleLocation": "Lịch trình & Địa điểm",
+      "startTime": "Thời gian bắt đầu",
+      "endTime": "Thời gian kết thúc",
+      "location": "Địa điểm",
+      "hostedBy": "Người tổ chức",
+      "participants": "Người tham gia",
+      "survey": "Khảo sát chương trình",
+      "required": "Bắt buộc",
+      "optional": "Tùy chọn",
+      "recurring": "Định kỳ",
+      "oneTime": "Một lần",
+      "joinProgram": "Tham gia chương trình",
+      "leaveProgram": "Rời chương trình",
+      "loading": "Đang tải...",
+      "programNotFound": "Không tìm thấy chương trình",
+      "joinSuccess": "Bạn đã tham gia chương trình thành công!",
+      "leaveSuccess": "Bạn đã rời chương trình",
+      "joinError": "Không thể tham gia chương trình. Vui lòng thử lại.",
+      "leaveError": "Không thể rời chương trình. Vui lòng thử lại.",
+      "leaveConfirmTitle": "Rời chương trình",
+      "leaveConfirmMessage": "Bạn có chắc chắn muốn rời chương trình này?",
+      "cancel": "Hủy",
+      "leave": "Rời",
+      "status": {
+        "active": "Đang hoạt động",
+        "onGoing": "Đang diễn ra",
+        "completed": "Đã hoàn thành"
+      },
+      "studentStatus": {
+        "absent": "Vắng mặt",
+        "active": "Đang tham gia",
+        "completed": "Đã hoàn thành",
+        "enrolled": "Đã đăng ký"
+      },
+      "surveyIdentity": {
+        "entry": "Đầu vào",
+        "exit": "Đầu ra"
+      },
+      "surveyProgress": {
+        "title": "Tiến độ khảo sát",
+        "entrySurvey": "Khảo sát đầu vào",
+        "exitSurvey": "Khảo sát đầu ra",
+        "takeSurvey": "Làm khảo sát",
+        "viewResults": "Xem kết quả",
+        "surveyCompleted": "Đã hoàn thành khảo sát",
+        "surveySkipped": "Đã bỏ qua khảo sát",
+        "finalScore": "Điểm cuối cùng",
+        "totalScore": "Tổng điểm",
+        "level": "Mức độ",
+        "symptomsDescription": "Mô tả triệu chứng",
+        "interventionRequired": "Can thiệp cần thiết",
+        "completedAt": "Hoàn thành lúc"
       }
     }
   },
@@ -195,7 +423,6 @@
   },
   "notifications": {
     "title": "Thông báo",
-    "loading": "Đang tải thông báo...",
     "loadingHint": "Vui lòng chờ trong giây lát",
     "refreshFailed": "Không thể tải lại thông báo",
     "markReadFailed": "Không thể đánh dấu đã đọc",
@@ -232,7 +459,8 @@
       "title": "Chi tiết lịch hẹn",
       "hostInfo": "Thông tin người hẹn",
       "appointmentInfo": "Thông tin lịch hẹn",
-      "bookingInfo": "Thông tin đặt hẹn"
+      "bookingInfo": "Thông tin đặt hẹn",
+      "appointmentWith": "Lịch hẹn với"
     },
     "labels": {
       "date": "Ngày",
@@ -245,12 +473,14 @@
     },
     "host": {
       "teacher": "Giáo viên chủ nhiệm",
-      "counselor": "Tư vấn viên"
+      "counselor": "Tư vấn viên",
+      "classTeacher": "Giáo viên chủ nhiệm"
     },
     "status": {
       "confirmed": "Đã xác nhận",
       "pending": "Chờ xác nhận",
-      "inProgress": "Đang diễn ra"
+      "inProgress": "Đang diễn ra",
+      "cancelled": "Đã hủy"
     },
     "cannotCancel": {
       "title": "Không thể hủy lịch hẹn",
@@ -287,20 +517,12 @@
     },
     "booking": {
       "title": "Đặt lịch tư vấn",
-      "selectStudent": "Chọn học sinh để đặt lịch",
       "selectHost": "Chọn người tư vấn",
       "selectCounselor": "Chọn tư vấn viên",
       "form": {
         "mode": "Hình thức tư vấn",
         "reasonLabel": "Lý do tư vấn",
         "reasonPlaceholder": "Nhập lý do (VD: Tư vấn học tập, Tư vấn tâm lý...)"
-      },
-      "slots": {
-        "title": "Lịch hẹn khả dụng",
-        "empty": {
-          "title": "Không có lịch hẹn khả dụng",
-          "subtitle": "Vui lòng thử lại sau hoặc liên hệ để được hỗ trợ"
-        }
       },
       "loadingSlots": "Đang tải lịch hẹn...",
       "loadingMoreDays": "Đang tải thêm ngày...",
@@ -309,7 +531,48 @@
       "lazyLoadHint": "Nhấn nút để xem thêm",
       "saving": "Đang đặt lịch...",
       "submit": "Đặt lịch hẹn",
-      "selectSlotFirst": "Vui lòng chọn một lịch hẹn"
+      "selectSlotFirst": "Vui lòng chọn một lịch hẹn",
+      "appointmentInfo": "Thông tin lịch hẹn",
+      "consultationFormat": "Hình thức tư vấn",
+      "online": "Trực tuyến",
+      "offline": "Trực tiếp",
+      "inPerson": "Trực tiếp",
+      "reason": "Lý do tư vấn",
+      "optional": "Tùy chọn",
+      "reasonPlaceholder": "Nhập lý do tư vấn (VD: Tư vấn học tập, Tư vấn tâm lý...)",
+      "selectStudent": "Chọn học sinh để đặt lịch",
+      "selectedStudent": "Đã chọn",
+      "unavailable": "Không khả dụng",
+      "noReason": "Không có lý do",
+      "bookingInProgress": "Đang đặt lịch...",
+      "bookAppointment": "Đặt lịch hẹn",
+      "warning": {
+        "title": "Lưu ý",
+        "noTeacher": "Bạn cần chọn giáo viên trước để đặt lịch hẹn"
+      },
+      "slots": {
+        "title": "Khung giờ khả dụng",
+        "overview": "{{days}} ngày • {{slots}} khung giờ",
+        "loadMore": "Tải thêm ngày",
+        "empty": {
+          "title": "Không có khung giờ khả dụng",
+          "subtitle": "Vui lòng thử ngày khác hoặc tư vấn viên khác"
+        },
+        "available": "khả dụng"
+      },
+      "confirmation": {
+        "title": "Xác nhận thông tin lịch hẹn",
+        "counselor": "Người tư vấn",
+        "student": "Học sinh",
+        "date": "Ngày",
+        "time": "Thời gian",
+        "format": "Hình thức",
+        "reason": "Lý do",
+        "calendarSync": "Đồng bộ lịch: Sẽ được thêm vào calendar",
+        "reminder": "Nhắc nhở: {{time}} trước",
+        "confirmQuestion": "Bạn có chắc chắn muốn đặt lịch hẹn này?"
+      },
+      "exitConfirmation": "Bạn có chắc chắn muốn thoát không? Tất cả dữ liệu sẽ bị mất"
     },
     "mode": {
       "online": "Trực tuyến",
@@ -318,7 +581,187 @@
     "calendarSync": {
       "title": "Đồng bộ lịch",
       "enabled": "Lịch hẹn sẽ được thêm vào calendar của bạn",
-      "reminderBefore": "Nhắc nhở {{time}} trước"
+      "reminderBefore": "Nhắc nhở {{time}} trước",
+      "skipDeletion": "Bỏ qua việc xóa sự kiện lịch",
+      "notSynced": "Lịch hẹn này chưa được đồng bộ với lịch"
+    },
+    "toast": {
+      "bookingSuccess": "Đặt lịch hẹn thành công",
+      "bookingError": "Không thể đặt lịch hẹn. Vui lòng thử lại",
+      "updateSuccess": "Cập nhật lịch hẹn thành công",
+      "updateError": "Không thể cập nhật lịch hẹn",
+      "cancelSuccess": "Hủy lịch hẹn thành công",
+      "cancelError": "Không thể hủy lịch hẹn",
+      "confirmSuccess": "Xác nhận lịch hẹn thành công",
+      "confirmError": "Không thể xác nhận lịch hẹn",
+      "rejectSuccess": "Từ chối lịch hẹn thành công",
+      "rejectError": "Không thể từ chối lịch hẹn",
+      "calendarSyncSuccess": "Đồng bộ lịch thành công",
+      "calendarSyncError": "Không thể đồng bộ với lịch",
+      "calendarSyncSuccessMessage": "Đã đồng bộ lịch thành công",
+      "calendarSyncErrorMessage": "Không thể đồng bộ lịch",
+      "noAvailableSlots": "Không có lịch hẹn khả dụng cho ngày đã chọn",
+      "slotUnavailable": "Lịch hẹn đã chọn không còn khả dụng",
+      "invalidTimeSelection": "Lựa chọn thời gian không hợp lệ",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau",
+      "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối",
+      "permissionDenied": "Không có quyền thực hiện hành động này",
+      "validationError": "Vui lòng kiểm tra thông tin nhập và thử lại"
+    },
+    "confirmation": {
+      "booking": {
+        "title": "Xác nhận đặt lịch",
+        "message": "Bạn có chắc chắn muốn đặt lịch hẹn này không?",
+        "confirmText": "Đặt lịch hẹn",
+        "cancelText": "Hủy"
+      },
+      "cancel": {
+        "title": "Hủy lịch hẹn",
+        "message": "Bạn có chắc chắn muốn hủy lịch hẹn này không? Hành động này không thể hoàn tác.",
+        "confirmText": "Hủy lịch hẹn",
+        "cancelText": "Giữ lại"
+      },
+      "exit": {
+        "title": "Thoát khỏi đặt lịch",
+        "message": "Bạn có chắc chắn muốn thoát không? Tất cả dữ liệu sẽ bị mất.",
+        "confirmText": "Thoát",
+        "cancelText": "Hủy"
+      }
+    },
+    "errors": {
+      "noSlotsAvailable": "Không có lịch hẹn khả dụng cho ngày đã chọn",
+      "slotAlreadyBooked": "Lịch hẹn này đã được đặt",
+      "invalidDateSelection": "Vui lòng chọn ngày hợp lệ",
+      "invalidTimeSelection": "Vui lòng chọn thời gian hợp lệ",
+      "requiredFieldsMissing": "Vui lòng điền đầy đủ các trường bắt buộc",
+      "invalidReason": "Vui lòng cung cấp lý do hợp lệ cho cuộc hẹn",
+      "bookingError": "Không thể đặt lịch hẹn. Vui lòng thử lại",
+      "counselorUnavailable": "Tư vấn viên đã chọn không khả dụng",
+      "studentNotFound": "Không tìm thấy học sinh",
+      "bookingLimitReached": "Bạn đã đạt giới hạn số lượng cuộc hẹn",
+      "pastDateNotAllowed": "Không thể đặt lịch hẹn trong quá khứ",
+      "timeConflict": "Thời gian này xung đột với cuộc hẹn khác",
+      "confirmError": "Không thể xác nhận lịch hẹn. Vui lòng thử lại sau.",
+      "rejectError": "Không thể từ chối lịch hẹn. Vui lòng thử lại sau.",
+      "cancelError": "Không thể hủy lịch hẹn. Vui lòng thử lại sau.",
+      "selectCancelReason": "Vui lòng chọn hoặc nhập lý do hủy hẹn"
+    },
+    "success": {
+      "booking": "Đặt lịch hẹn thành công!",
+      "update": "Cập nhật lịch hẹn thành công!",
+      "cancel": "Hủy lịch hẹn thành công!",
+      "confirm": "Xác nhận lịch hẹn thành công!",
+      "reject": "Từ chối lịch hẹn thành công!",
+      "confirmAppointment": "Đã xác nhận lịch hẹn thành công!",
+      "rejectAppointment": "Đã từ chối lịch hẹn!"
+    },
+    "info": {
+      "bookingInstructions": "Chọn ngày, thời gian và tư vấn viên để đặt lịch hẹn",
+      "cancellationPolicy": "Bạn có thể hủy lịch hẹn trước 24 giờ so với thời gian đã lên lịch",
+      "reschedulingPolicy": "Liên hệ hỗ trợ để thay đổi lịch hẹn",
+      "preparationTips": "Vui lòng đến trước 10 phút so với thời gian hẹn",
+      "whatToBring": "Mang theo các tài liệu hoặc thông tin liên quan",
+      "contactSupport": "Liên hệ hỗ trợ nếu bạn cần trợ giúp"
+    },
+    "cancelReasons": [
+      "Có việc đột xuất",
+      "Bị ốm",
+      "Có lịch hẹn khác",
+      "Thay đổi thời gian",
+      "Khác"
+    ],
+    "cancelSuccess": {
+      "title": "Thành công",
+      "message": "Đã hủy lịch hẹn thành công!",
+      "calendarEventDeleted": "📅 Sự kiện đã được xóa khỏi lịch của bạn.",
+      "notSynced": "📅 Lịch hẹn này chưa được đồng bộ với lịch.",
+      "calendarDeletionNote": "⚠️ Lưu ý: Không thể xóa sự kiện khỏi lịch. Bạn có thể xóa thủ công."
+    },
+    "calendar": {
+      "noEventFound": "Không tìm thấy sự kiện lịch",
+      "eventDeleted": "Đã xóa sự kiện lịch thành công",
+      "deleteFailed": "Không thể xóa sự kiện lịch",
+      "removeError": "Lỗi khi xóa sự kiện lịch"
+    },
+    "statusScreen": {
+      "defaultTitle": "Đặt lịch hẹn thành công!",
+      "defaultMessage": "Lịch hẹn của bạn đã được xác nhận. Chúng tôi sẽ gửi thông báo chi tiết qua email.",
+      "bookingSuccessTitle": "Đặt lịch hẹn thành công",
+      "bookingSuccessMessage": "Bạn đã đặt lịch hẹn thành công",
+      "appointmentDetails": "Chi tiết lịch hẹn",
+      "consultationDate": "Ngày tư vấn",
+      "consultationTime": "Thời gian tư vấn",
+      "location": "Địa điểm",
+      "meetingLink": "Link meeting",
+      "locationWillBeUpdated": "Địa điểm sẽ được cập nhật sau",
+      "consultationType": "Hình thức",
+      "onlineConsultation": "Tư vấn trực tuyến",
+      "inPersonConsultation": "Tư vấn trực tiếp",
+      "bookAnother": "Đặt lịch hẹn khác",
+      "goHome": "Về trang chủ",
+      "cancelInfo": "Bạn có thể hủy lịch hẹn trong phần 'Lịch hẹn của tôi'"
+    },
+    "common": {
+      "notDetermined": "Chưa xác định",
+      "exitConfirmation": "Thông báo",
+      "exitMessage": "Bạn có chắc chắn muốn thoát không? Tất cả dữ liệu sẽ bị mất",
+      "agree": "Đồng ý",
+      "cancel": "Hủy",
+      "processing": "Đang xử lý yêu cầu...",
+      "other": "Khác",
+      "retry": "Thử lại",
+      "appointmentNotFound": "Không tìm thấy thông tin lịch hẹn"
+    },
+    "records": {
+      "statistics": {
+        "totalRecords": "Tổng hồ sơ",
+        "completed": "Hoàn thành",
+        "canceled": "Đã hủy",
+        "absent": "Vắng",
+        "expired": "Hết hạn"
+      },
+      "chartTitle": "Thống kê trạng thái hồ sơ",
+      "status": {
+        "completed": "Hoàn thành",
+        "canceled": "Đã hủy",
+        "absent": "Vắng",
+        "expired": "Hết hạn",
+        "notDetermined": "Chưa xác định"
+      },
+      "sessionFlow": {
+        "good": "Tốt",
+        "medium": "Trung bình",
+        "low": "Kém",
+        "notEvaluated": "Chưa đánh giá"
+      },
+      "cooperationLevel": {
+        "good": "Tốt",
+        "average": "Trung bình",
+        "low": "Thấp",
+        "notEvaluated": "Chưa đánh giá"
+      },
+      "labels": {
+        "consultationType": "Loại tư vấn:",
+        "format": "Hình thức:",
+        "sessionProgress": "Tiến trình:",
+        "cooperationLevel": "Mức độ hợp tác:",
+        "cancelReason": "Lý do hủy:",
+        "bookingReason": "Lý do đặt hẹn:",
+        "lastUpdated": "Cập nhật:",
+        "recordId": "Mã hồ sơ"
+      },
+      "values": {
+        "counselor": "Tư vấn viên",
+        "teacher": "Giáo viên",
+        "online": "Trực tuyến",
+        "inPerson": "Trực tiếp"
+      },
+      "errors": {
+        "loadError": "Lỗi khi tải danh sách hồ sơ",
+        "detailError": "Lỗi khi tải chi tiết hồ sơ",
+        "detailErrorTitle": "Lỗi",
+        "detailErrorMessage": "Không thể tải chi tiết hồ sơ"
+      }
     }
   },
   "record": {
@@ -351,7 +794,6 @@
   "survey": {
     "record": {
       "title": "Lịch sử khảo sát",
-      "loading": "Đang tải dữ liệu...",
       "emptyTitle": "Chưa có kết quả khảo sát",
       "emptySubtitle": "Hoàn thành khảo sát đầu tiên để xem kết quả tại đây",
       "goToSurvey": "Đi đến khảo sát",
@@ -359,9 +801,7 @@
     },
     "info": {
       "title": "Thông tin khảo sát",
-      "loading": "Đang tải thông tin khảo sát...",
       "loadError": "Không thể tải thông tin khảo sát",
-      "retry": "Thử lại",
       "progressSaved": "Tiến độ đã được lưu thành công!",
       "continue": "Tiếp tục khảo sát",
       "start": "Bắt đầu khảo sát",
@@ -399,7 +839,6 @@
       "prev": "Trước",
       "next": "Tiếp",
       "submit": "Nộp bài",
-      "submitting": "Đang nộp...",
       "submitTitle": "Nộp bài khảo sát",
       "submitMessage": "Bạn có chắc chắn muốn nộp bài? Không thể sửa đổi sau khi nộp.",
       "submitCheck": "Kiểm tra lại",

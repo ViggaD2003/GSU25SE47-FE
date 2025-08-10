@@ -10,19 +10,30 @@ const resources = {
   vi: { translation: vi },
 };
 
+// Get device language for reference only - don't use as fallback initially
 const deviceLanguageCode =
   Array.isArray(Localization.getLocales()) &&
   Localization.getLocales().length > 0
     ? Localization.getLocales()[0].languageCode
     : "vi";
 
+console.log("i18n: Device language code =", deviceLanguageCode);
+console.log(
+  "i18n: Note: Language will be set by LanguageContext after checking AsyncStorage"
+);
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: deviceLanguageCode?.startsWith("vi") ? "vi" : "en",
-  fallbackLng: "vi",
+  lng: "vi", // Start with Vietnamese as default, will be overridden by LanguageContext
+  fallbackLng: "vi", // Simple fallback, will be updated by LanguageContext
   compatibilityJSON: "v3",
   interpolation: { escapeValue: false },
   react: { useSuspense: false },
 });
+
+console.log("i18n: Initialized with basic fallback language = vi");
+console.log(
+  "i18n: Note: Actual language and fallback will be set by LanguageContext after checking AsyncStorage"
+);
 
 export default i18n;

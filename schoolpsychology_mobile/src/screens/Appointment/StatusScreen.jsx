@@ -13,12 +13,14 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 const { width, height } = Dimensions.get("window");
 
 const StatusScreen = ({ route }) => {
   const { title, message, response } = route.params;
   const navigation = useNavigation();
+  const { t } = useTranslation();
 
   // Animation values
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -86,7 +88,7 @@ const StatusScreen = ({ route }) => {
   };
 
   const formatTime = (dateTimeString) => {
-    if (!dateTimeString) return "Chưa xác định";
+    if (!dateTimeString) return t("appointment.statusScreen.notDetermined");
     try {
       return dayjs(dateTimeString).format("HH:mm");
     } catch (error) {
@@ -95,7 +97,7 @@ const StatusScreen = ({ route }) => {
   };
 
   const formatDate = (dateTimeString) => {
-    if (!dateTimeString) return "Chưa xác định";
+    if (!dateTimeString) return t("appointment.statusScreen.notDetermined");
     try {
       return dayjs(dateTimeString).format("DD/MM/YYYY");
     } catch (error) {
@@ -104,7 +106,9 @@ const StatusScreen = ({ route }) => {
   };
 
   const getAppointmentType = (isOnline) => {
-    return isOnline ? "Tư vấn trực tuyến" : "Tư vấn trực tiếp";
+    return isOnline
+      ? t("appointment.statusScreen.onlineConsultation")
+      : t("appointment.statusScreen.inPersonConsultation");
   };
 
   return (
@@ -154,14 +158,13 @@ const StatusScreen = ({ route }) => {
           {/* Title with gradient text effect */}
           <View style={styles.titleContainer}>
             <Text style={styles.title}>
-              {title || "Đặt lịch hẹn thành công!"}
+              {title || t("appointment.statusScreen.defaultTitle")}
             </Text>
             <View style={styles.titleUnderline} />
           </View>
           {/* Message */}
           <Text style={styles.message}>
-            {message ||
-              "Lịch hẹn của bạn đã được xác nhận. Chúng tôi sẽ gửi thông báo chi tiết qua email."}
+            {message || t("appointment.statusScreen.defaultMessage")}
           </Text>
           {/* Appointment details with enhanced design */}
           {response && (
@@ -174,7 +177,9 @@ const StatusScreen = ({ route }) => {
                     color="#4CAF50"
                   />
                 </View>
-                <Text style={styles.detailsHeaderText}>Chi tiết lịch hẹn</Text>
+                <Text style={styles.detailsHeaderText}>
+                  {t("appointment.statusScreen.appointmentDetails")}
+                </Text>
               </View>
 
               <View style={styles.detailRow}>
@@ -182,7 +187,9 @@ const StatusScreen = ({ route }) => {
                   <MaterialIcons name="schedule" size={20} color="#4CAF50" />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Ngày tư vấn</Text>
+                  <Text style={styles.detailLabel}>
+                    {t("appointment.statusScreen.consultationDate")}
+                  </Text>
                   <Text style={styles.detailText}>
                     {formatDate(response.startDateTime)}
                   </Text>
@@ -198,7 +205,9 @@ const StatusScreen = ({ route }) => {
                   />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Thời gian tư vấn</Text>
+                  <Text style={styles.detailLabel}>
+                    {t("appointment.statusScreen.consultationTime")}
+                  </Text>
                   <Text style={styles.detailText}>
                     {formatTime(response.startDateTime)} -{" "}
                     {formatTime(response.endDateTime)}
@@ -211,11 +220,14 @@ const StatusScreen = ({ route }) => {
                   <MaterialIcons name="location-on" size={20} color="#4CAF50" />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Địa điểm</Text>
+                  <Text style={styles.detailLabel}>
+                    {t("appointment.statusScreen.location")}
+                  </Text>
                   <Text style={styles.detailText}>
                     {response.isOnline
-                      ? response.location || "Link meeting"
-                      : "Địa điểm sẽ được cập nhật sau"}
+                      ? response.location ||
+                        t("appointment.statusScreen.meetingLink")
+                      : t("appointment.statusScreen.locationWillBeUpdated")}
                   </Text>
                 </View>
               </View>
@@ -225,7 +237,9 @@ const StatusScreen = ({ route }) => {
                   <MaterialIcons name="video-call" size={20} color="#4CAF50" />
                 </View>
                 <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Hình thức</Text>
+                  <Text style={styles.detailLabel}>
+                    {t("appointment.statusScreen.consultationType")}
+                  </Text>
                   <Text style={styles.detailText}>
                     {getAppointmentType(response.isOnline)}
                   </Text>
@@ -252,7 +266,9 @@ const StatusScreen = ({ route }) => {
                   color="white"
                   style={styles.buttonIcon}
                 />
-                <Text style={styles.primaryButtonText}>Đặt lịch hẹn khác</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t("appointment.statusScreen.bookAnother")}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
 
@@ -273,7 +289,9 @@ const StatusScreen = ({ route }) => {
                   color="#4CAF50"
                   style={styles.buttonIcon}
                 />
-                <Text style={styles.secondaryButtonText}>Về trang chủ</Text>
+                <Text style={styles.secondaryButtonText}>
+                  {t("appointment.statusScreen.goHome")}
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -283,7 +301,7 @@ const StatusScreen = ({ route }) => {
               <MaterialIcons name="info-outline" size={18} color="#4CAF50" />
             </View>
             <Text style={styles.infoText}>
-              Bạn có thể hủy lịch hẹn trong phần "Lịch hẹn của tôi"
+              {t("appointment.statusScreen.cancelInfo")}
             </Text>
           </View>
         </Animated.View>

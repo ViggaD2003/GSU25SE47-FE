@@ -45,7 +45,7 @@ export default function ProfileScreen() {
 
   const navigateToEditProfile = () => {
     navigation.navigate("Profile", {
-      screen: "EditProfile",
+      screen: "UpdateProfile",
       params: { data: profile },
     });
   };
@@ -124,12 +124,21 @@ export default function ProfileScreen() {
                     })
                   }
                 />
+                <MenuItem
+                  icon="translate"
+                  label={t("profile.languageSettings")}
+                  onPress={() =>
+                    navigation.navigate("Profile", {
+                      screen: "LanguageSettings",
+                    })
+                  }
+                />
               </View>
             )}
-            <MenuItem
+            {/* <MenuItem
               icon="help-circle-outline"
               label={t("profile.needHelp")}
-            />
+            /> */}
 
             {/* Logout */}
             <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
@@ -166,13 +175,19 @@ const styles = StyleSheet.create({
     padding: 24,
     marginHorizontal: 8,
     alignItems: "center",
-    boxShadow: "0 0 10px 0 rgba(0, 0, 0, 0.1)",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
     elevation: 4,
   },
   avatarWrapper: {
     width: 100,
     height: 100,
-    borderRadius: "50%",
+    borderRadius: 50,
     backgroundColor: GlobalStyles.colors.primary,
     alignItems: "center",
     justifyContent: "center",

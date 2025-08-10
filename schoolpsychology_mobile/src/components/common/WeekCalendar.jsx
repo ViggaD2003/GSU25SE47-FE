@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 const WeekCalendar = ({
   selectedDate,
@@ -17,6 +18,7 @@ const WeekCalendar = ({
   onWeekChange,
   currentWeekIndex = 0,
 }) => {
+  const { t } = useTranslation();
   // Generate week dates
   const weekDates = useMemo(() => {
     const dates = [];
@@ -90,16 +92,27 @@ const WeekCalendar = ({
     [events, isPastDate]
   );
 
-  // Get day name in Vietnamese
-  const getDayName = useCallback((date) => {
-    const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    return dayNames[date.getDay()];
-  }, []);
+  // Get day name
+  const getDayName = useCallback(
+    (date) => {
+      const dayNames = [
+        t("weekCalendar.dayNames.sunday"),
+        t("weekCalendar.dayNames.monday"),
+        t("weekCalendar.dayNames.tuesday"),
+        t("weekCalendar.dayNames.wednesday"),
+        t("weekCalendar.dayNames.thursday"),
+        t("weekCalendar.dayNames.friday"),
+        t("weekCalendar.dayNames.saturday"),
+      ];
+      return dayNames[date.getDay()];
+    },
+    [t]
+  );
 
   // Get week range text
   const getWeekRangeText = useCallback(() => {
     if (currentWeekIndex === 0) {
-      return "Tuần này";
+      return t("weekCalendar.thisWeek");
     }
 
     const startDate = weekDates[0];
@@ -110,17 +123,17 @@ const WeekCalendar = ({
 
     if (startMonth === endMonth) {
       return `${startDate.getDate()} - ${endDate.getDate()} ${startDate.toLocaleDateString(
-        "vi-VN",
+        undefined,
         { month: "long" }
       )}`;
     } else {
-      return `${startDate.getDate()} ${startDate.toLocaleDateString("vi-VN", {
+      return `${startDate.getDate()} ${startDate.toLocaleDateString(undefined, {
         month: "short",
-      })} - ${endDate.getDate()} ${endDate.toLocaleDateString("vi-VN", {
+      })} - ${endDate.getDate()} ${endDate.toLocaleDateString(undefined, {
         month: "short",
       })}`;
     }
-  }, [currentWeekIndex, weekDates]);
+  }, [currentWeekIndex, weekDates, t]);
 
   return (
     <View style={styles.container}>

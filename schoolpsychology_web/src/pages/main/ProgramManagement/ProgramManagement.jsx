@@ -58,7 +58,6 @@ const ProgramManagement = () => {
   const dispatch = useDispatch()
   const { programs, loading, error, pagination, filters, sortConfig } =
     useSelector(state => state.program)
-
   const [messageApi, contextHolder] = message.useMessage()
 
   // Local state
@@ -300,14 +299,16 @@ const ProgramManagement = () => {
           >
             {t('programManagement.refresh')}
           </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-            size="middle"
-          >
-            {t('programManagement.create')}
-          </Button>
+          {user.role === 'manager' && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+              size="middle"
+            >
+              {t('programManagement.create')}
+            </Button>
+          )}
         </Space>
       </div>
 

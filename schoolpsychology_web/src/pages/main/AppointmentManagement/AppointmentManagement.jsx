@@ -33,7 +33,9 @@ import {
   PlayCircleOutlined,
   StopOutlined,
   ExclamationCircleOutlined,
+  PlusOutlined,
 } from '@ant-design/icons'
+import CreateAppointmentModal from './CreateAppointmentModal'
 import dayjs from 'dayjs'
 import {
   getActiveAppointments,
@@ -173,9 +175,11 @@ const AppointmentManagement = () => {
     pageSize: 10,
     total: 0,
   })
+  const [createModalVisible, setCreateModalVisible] = useState(false)
 
   // Check if user is manager (read-only access)
-  const isManager = user?.role === 'MANAGER'
+  const isManager = user?.role === 'manager'
+  const isCounselor = user?.role === 'counselor'
 
   // Memoized utility functions
   const formatDateTime = useCallback(dateTime => {
@@ -190,30 +194,6 @@ const AppointmentManagement = () => {
       ? `${Math.floor(minutes / 60)}h ${minutes % 60}m`
       : `${minutes}m`
   }, [])
-
-  // Calculate statistics
-  // const statistics = useMemo(() => {
-  //   const allAppointments = [...activeAppointments, ...pastAppointments]
-  //   const stats = {
-  //     total: allAppointments.length,
-  //     pending: 0,
-  //     confirmed: 0,
-  //     inProgress: 0,
-  //     completed: 0,
-  //     cancelled: 0,
-  //     absent: 0,
-  //     expired: 0,
-  //   }
-
-  //   allAppointments.forEach(appointment => {
-  //     const status = appointment.status?.toLowerCase()
-  //     if (Object.prototype.hasOwnProperty.call(stats, status)) {
-  //       stats[status]++
-  //     }
-  //   })
-
-  //   return stats
-  // }, [activeAppointments, pastAppointments])
 
   // Load appointments on component mount
   useEffect(() => {
@@ -233,6 +213,25 @@ const AppointmentManagement = () => {
       dispatch(clearError())
     }
   }, [error, t, dispatch, messageApi])
+
+  // Handle create appointment modal
+  const handleCreateAppointment = () => {
+    setCreateModalVisible(true)
+  }
+
+  const handleCreateModalCancel = () => {
+    setCreateModalVisible(false)
+  }
+
+  const handleCreateAppointmentSuccess = () => {
+    setCreateModalVisible(false)
+    // Refresh appointments
+    if (user?.id) {
+      dispatch(getActiveAppointments(user.id))
+      dispatch(getPastAppointments(user.id))
+    }
+    messageApi.success(t('appointment.createdSuccessfully'))
+  }
 
   // Filter appointments by date range and search text
   const filterAppointments = useCallback(
@@ -748,49 +747,108 @@ const AppointmentManagement = () => {
     <div className="p-6">
       {contextHolder}
 
-      {/* Header */}
-      <div className="flex items-end justify-between mb-6">
-        <div>
-          <Title
-            level={2}
-            className={isDarkMode ? 'text-white' : 'text-gray-900'}
-          >
-            {t('appointment.title')}
-          </Title>
-          <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
-            {t('appointment.description')}
-          </Text>
-          {isManager && (
-            <div className="mt-2">
-              <Tag color="orange" icon={<ExclamationCircleOutlined />}>
-                {t(
-                  'appointment.manager.readOnly',
-                  'Read-only mode for manager'
-                )}
-              </Tag>
-            </div>
-          )}
+      {/* Header Section */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <Title
+              level={2}
+              className={isDarkMode ? 'text-white' : 'text-gray-900'}
+            >
+              {t('appointment.title')}
+            </Title>
+            <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+              {t('appointment.description')}
+            </Text>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3">
+            {isCounselor && (
+              <Tooltip title={t('appointment.createButton.tooltip')}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleCreateAppointment}
+                  className="shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 border-0 hover:from-blue-600 hover:to-blue-700"
+                >
+                  <span className="flex items-center space-x-2">
+                    <PlusOutlined />
+                    <span>{t('appointment.createButton.title')}</span>
+                  </span>
+                </Button>
+              </Tooltip>
+            )}
+
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              loading={loading}
+              className="hover:bg-gray-50 transition-all duration-200"
+            >
+              {t('appointment.refresh')}
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center space-x-3">
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={handleRefresh}
-            loading={loading}
-          >
-            {t('appointment.refresh')}
-          </Button>
-        </div>
+
+        {/* Manager Notice */}
+        {isManager && (
+          <div className="mb-4">
+            <Tag color="orange" icon={<ExclamationCircleOutlined />}>
+              {t('appointment.manager.readOnly')}
+            </Tag>
+          </div>
+        )}
       </div>
 
-      {/* Statistics */}
-      {/* <div className="mb-6">
-        <StatisticsCard statistics={statistics} isDarkMode={isDarkMode} t={t} />
-      </div> */}
+      {/* Statistics Overview */}
+      <div className="mb-6">
+        <Card
+          className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
+        >
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} sm={12} md={8}>
+              <div className="text-center p-4">
+                <div className="text-3xl font-bold text-blue-600 mb-2">
+                  {filteredActiveAppointments.length}
+                </div>
+                <div className="text-sm text-gray-600 font-medium">
+                  {t('appointment.tabs.active')}
+                </div>
+              </div>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <div className="text-center p-4">
+                <div className="text-3xl font-bold text-orange-600 mb-2">
+                  {filteredPastAppointments.length}
+                </div>
+                <div className="text-sm text-gray-600 font-medium">
+                  {t('appointment.tabs.past')}
+                </div>
+              </div>
+            </Col>
+            <Col xs={24} sm={24} md={8}>
+              <div className="text-center p-4">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {filteredActiveAppointments.length +
+                    filteredPastAppointments.length}
+                </div>
+                <div className="text-sm text-gray-600 font-medium">
+                  {t('appointment.statistics.total')}
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Card>
+      </div>
 
-      {/* Filters */}
-      <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <Row gutter={[16, 16]} className="mb-4">
-          <Col xs={24} sm={12} md={8} lg={6}>
+      {/* Filters Section */}
+      <Card
+        className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
+        style={{ marginBottom: '16px' }}
+      >
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} md={8}>
             <Search
               placeholder={t('appointment.searchStudent')}
               allowClear
@@ -799,7 +857,7 @@ const AppointmentManagement = () => {
               prefix={<SearchOutlined />}
             />
           </Col>
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col xs={24} sm={12} md={8}>
             <DatePicker.RangePicker
               placeholder={[
                 t('appointment.filter.startDate'),
@@ -811,46 +869,94 @@ const AppointmentManagement = () => {
               style={{ width: '100%' }}
             />
           </Col>
+          <Col xs={24} sm={24} md={8}>
+            <div className="flex justify-end">
+              <Button
+                onClick={() => {
+                  setSearchText('')
+                  setDateRange([])
+                  setPagination(prev => ({ ...prev, current: 1 }))
+                }}
+                s
+                className="hover:bg-gray-50 transition-all duration-200"
+              >
+                {t('appointment.filter.clearFilters')}
+              </Button>
+            </div>
+          </Col>
         </Row>
       </Card>
 
-      {/* Tabs */}
+      {/* Tabs and Table Section */}
       <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <Tabs
-          activeKey={activeTab}
-          onChange={handleTabChange}
-          size="large"
-          tabBarStyle={{ marginBottom: 24 }}
-          items={tabItems}
-        />
+        <div className="mb-4">
+          <Tabs
+            activeKey={activeTab}
+            onChange={handleTabChange}
+            size="large"
+            items={tabItems}
+          />
+        </div>
 
-        <Table
-          columns={getColumns()}
-          dataSource={currentTabData}
-          rowKey="id"
-          loading={loading}
-          onRow={
-            isManager
-              ? record => ({
-                  onClick: () => handleRowClick(record),
-                  style: { cursor: 'pointer' },
-                })
-              : undefined
-          }
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: currentTabData.length,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} items`,
-            onChange: handlePaginationChange,
-          }}
-          scroll={{ x: 1200 }}
-          size="middle"
-        />
+        <div className="mb-4">
+          <Table
+            columns={getColumns()}
+            dataSource={currentTabData}
+            rowKey="id"
+            loading={loading}
+            onRow={
+              isManager
+                ? record => ({
+                    onClick: () => handleRowClick(record),
+                    style: { cursor: 'pointer' },
+                  })
+                : undefined
+            }
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: currentTabData.length,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} items`,
+              onChange: handlePaginationChange,
+            }}
+            scroll={{ x: 1200 }}
+            size="middle"
+            locale={{
+              emptyText: (
+                <div className="py-12 text-center">
+                  <div className="text-gray-400 text-lg mb-4">
+                    {t('appointment.messages.noData')}
+                  </div>
+                  {isCounselor && (
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      onClick={handleCreateAppointment}
+                      className="shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 border-0 hover:from-blue-600 hover:to-blue-700"
+                    >
+                      <span className="flex items-center space-x-2">
+                        <PlusOutlined />
+                        <span>{t('appointment.createButton.title')}</span>
+                      </span>
+                    </Button>
+                  )}
+                </div>
+              ),
+            }}
+          />
+        </div>
       </Card>
+
+      {/* Create Appointment Modal */}
+      <CreateAppointmentModal
+        isOpen={createModalVisible}
+        onClose={handleCreateModalCancel}
+        onSuccess={handleCreateAppointmentSuccess}
+        messageApi={messageApi}
+      />
     </div>
   )
 }

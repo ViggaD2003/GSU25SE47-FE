@@ -1343,7 +1343,7 @@ const CategoryModal = ({
                           },
                           {
                             type: 'number',
-                            max: 10,
+                            max: 100,
                             message: t(
                               'categoryManagement.form.questionCountMax'
                             ),
@@ -1352,7 +1352,7 @@ const CategoryModal = ({
                       >
                         <InputNumber
                           min={0}
-                          max={10}
+                          max={100}
                           placeholder={t(
                             'categoryManagement.form.questionCountPlaceholder'
                           )}

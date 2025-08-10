@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import i18n from "../i18n";
 
 /**
  * Utility functions for slot management
@@ -6,14 +7,22 @@ import dayjs from "dayjs";
  */
 
 /**
- * Format date to Vietnamese locale
+ * Format date to current locale (long format)
  * @param {string} dateString - ISO date string
  * @returns {string} Formatted date string
  */
 export const formatDate = (dateString) => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("vi-VN", {
+
+  // Get current locale from i18n
+  const currentLocale = i18n.language || "vi";
+  const localeMap = {
+    en: "en-US",
+    vi: "vi-VN",
+  };
+
+  return date.toLocaleDateString(localeMap[currentLocale] || "vi-VN", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -22,14 +31,22 @@ export const formatDate = (dateString) => {
 };
 
 /**
- * Format time to Vietnamese locale (HH:mm format)
+ * Format time to current locale (HH:mm format)
  * @param {string} dateTimeString - ISO datetime string
  * @returns {string} Formatted time string
  */
 export const formatTime = (dateTimeString) => {
   if (!dateTimeString) return "";
   const date = new Date(dateTimeString);
-  return date.toLocaleTimeString("vi-VN", {
+
+  // Get current locale from i18n
+  const currentLocale = i18n.language || "vi";
+  const localeMap = {
+    en: "en-US",
+    vi: "vi-VN",
+  };
+
+  return date.toLocaleTimeString(localeMap[currentLocale] || "vi-VN", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,

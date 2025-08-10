@@ -158,22 +158,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     backgroundColor: "#FFFFFF",
+    textAlign: "center",
   },
   cancelButtonText: {
     color: "#6B7280",
     fontWeight: "600",
     fontSize: 14,
+    textAlign: "center",
   },
   confirmButton: {
     flex: 1,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: "center",
+    textAlign: "center",
   },
   confirmButtonText: {
     color: "#FFFFFF",
     fontWeight: "600",
     fontSize: 14,
+    textAlign: "center",
   },
 });
 

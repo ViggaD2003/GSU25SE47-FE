@@ -17,13 +17,18 @@ export const fetchAllRecommendedPrograms = async (studentId) => {
 };
 
 // Get program details by ID
-export const fetchProgramDetails = async (programId) => {
+export const fetchProgramDetails = async (programId, studentId) => {
   try {
     if (!programId) {
       throw new Error("Program ID is required");
     }
-    const response = await api.get(`/api/v1/support-programs/${programId}`);
-    return response.data.data;
+    if (!studentId) {
+      throw new Error("Student ID is required");
+    }
+    const response = await api.get(
+      `/api/v1/support-programs/participant-program-detail?programId=${programId}&studentId=${studentId}`
+    );
+    return response.data;
   } catch (error) {
     console.error("Error fetching program details:", error);
     throw error;

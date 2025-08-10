@@ -16,74 +16,88 @@ const HeaderWithoutTab = ({
         <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{title}</Text>
-        <View style={styles.headerRight}>
-          <LanguageSwitcher />
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.headerTitle}>{title}</Text>
+        </View>
+
+        <View style={styles.rightContainer}>
+          {showRefreshButton && (
+            <TouchableOpacity
+              style={[
+                styles.refreshButton,
+                refreshing && styles.refreshButtonDisabled,
+              ]}
+              onPress={onRefresh}
+              disabled={refreshing}
+            >
+              <MaterialIcons
+                name="refresh"
+                size={22}
+                color={refreshing ? "#ccc" : "#007AFF"}
+              />
+            </TouchableOpacity>
+          )}
+          {rightComponent && rightComponent}
         </View>
       </View>
-      {/* Refresh Button */}
-      {showRefreshButton && (
-        <TouchableOpacity
-          style={[
-            styles.refreshButtonStyle,
-            refreshing && styles.refreshButtonStyleDisabled,
-          ]}
-          onPress={onRefresh}
-          disabled={refreshing}
-        >
-          <MaterialIcons
-            name="refresh"
-            size={22}
-            color={refreshing ? "#ccc" : "#007AFF"}
-          />
-        </TouchableOpacity>
-      )}
-      {rightComponent && rightComponent}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   headerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
     elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    paddingRight: 20,
-    paddingLeft: 20,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 2,
     paddingVertical: 16,
   },
   header: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    paddingHorizontal: 20,
   },
   backButton: {
-    padding: 10,
-    borderRadius: 10,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 22,
     backgroundColor: "#F1F5F9",
+  },
+  titleContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 16,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#1A1A1A",
+    textAlign: "center",
   },
-  headerSpacer: {
-    width: 40,
+  rightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    minWidth: 44,
   },
-  headerRight: {
-    width: 60,
-    alignItems: "flex-end",
+  refreshButton: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 22,
+    backgroundColor: "#F8FAFC",
+    marginRight: 8,
   },
-  refreshButtonStyle: {},
-  refreshButtonStyleDisabled: {
+  refreshButtonDisabled: {
     opacity: 0.5,
   },
 });

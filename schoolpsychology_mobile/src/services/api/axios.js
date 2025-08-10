@@ -6,7 +6,12 @@ import {
   isLogoutInProgress,
 } from "../auth/tokenManager";
 import { AUTH_CONFIG, AUTH_ERRORS, APP_CONFIG } from "../../constants";
-import { refreshAccessToken, logout, forceLogout } from "../auth/authActions";
+import {
+  refreshAccessToken,
+  logout,
+  forceLogout,
+  handleLogout,
+} from "../auth/authActions";
 
 // Utility function to handle server errors for mobile
 const handleServerError = (error, showNotification = true) => {
@@ -120,91 +125,95 @@ api.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized - try to refresh token
-    // if (status === 401 && !originalRequest._retry && !isExcludedPath) {
-    //   originalRequest._retry = true;
+    if (status === 401 && !originalRequest._retry && !isExcludedPath) {
+      originalRequest._retry = true;
 
-    //   try {
-    //     // Check if logout is already in progress
-    //     if (isLogoutInProgress()) {
-    //       console.log("Logout in progress, skipping token refresh");
-    //       return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-    //     }
-
-    //     console.log("Attempting to refresh token due to 401 error");
-    //     // Try to refresh the token
-    //     const newToken = await refreshAccessToken();
-    //     if (newToken) {
-    //       console.log("Token refresh successful, retrying original request");
-    //       // Retry the original request with new token
-    //       originalRequest.headers.Authorization = `Bearer ${newToken}`;
-    //       return api(originalRequest);
-    //     }
-    //   } catch (refreshError) {
-    //     console.error("Token refresh failed:", refreshError);
-
-    //     // Refresh failed, ensure tokens are cleared and logout user
-    //     try {
-    //       console.log("Clearing tokens and logging out due to refresh failure");
-
-    //       // Use force logout to ensure cleanup
-    //       await forceLogout();
-    //     } catch (logoutError) {
-    //       console.error("Logout error during refresh failure:", logoutError);
-    //       // Try one more time with basic logout
-    //       try {
-    //         await performLogout(true);
-    //       } catch (finalError) {
-    //         console.error("Final logout attempt failed:", finalError);
-    //       }
-    //     }
-
-    //     // Call logout callback if available
-    //     triggerLogoutCallback();
-
-    //     return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-    //   }
-    // }
-
-    // Handle 403 Forbidden - try to refresh once, otherwise logout
-    if (status === 403 && !originalRequest._retry403 && !isExcludedPath) {
-      originalRequest._retry403 = true;
       try {
-        console.log("403 detected. Attempting token refresh...");
+        // Check if logout is already in progress
+        if (isLogoutInProgress()) {
+          console.log("Logout in progress, skipping token refresh");
+          return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+        }
+
+        console.log("Attempting to refresh token due to 401 error");
+        // Try to refresh the token
         const newToken = await refreshAccessToken();
         if (newToken) {
+          console.log("Token refresh successful, retrying original request");
+          // Retry the original request with new token
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return api(originalRequest);
         }
-        throw new Error("No token after refresh");
       } catch (refreshError) {
-        console.error(
-          "Refresh on 403 failed. Logging out locally...",
-          refreshError
-        );
-        // Only notify if refresh endpoint itself returned 403
-        if (refreshError?.response?.status === 403) {
-          try {
-            Alert.alert(
-              "Phiên đăng nhập đã kết thúc",
-              "Tài khoản vừa được đăng nhập ở nơi khác. Bạn đã bị đăng xuất khỏi phiên hiện tại.",
-              [{ text: "OK" }],
-              { cancelable: true }
-            );
-          } catch (_) {}
-        }
+        console.error("Token refresh failed:", refreshError);
 
-        // Perform local logout ONLY (do not call logout service)
+        // Refresh failed, ensure tokens are cleared and logout user
         try {
+          console.log("Clearing tokens and logging out due to refresh failure");
+
+          // Use force logout to ensure cleanup
           await forceLogout();
         } catch (logoutError) {
-          console.error("Force logout error during 403:", logoutError);
+          console.error("Logout error during refresh failure:", logoutError);
+          // Try one more time with basic logout
           try {
             await performLogout(true);
           } catch (finalError) {
-            console.error("Final local logout attempt failed:", finalError);
+            console.error("Final logout attempt failed:", finalError);
           }
         }
 
+        // Call logout callback if available
+        triggerLogoutCallback();
+
+        return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+      }
+    }
+
+    // Handle 403 Forbidden - try to refresh token, then logout if failed
+    if (status === 403 && !originalRequest._retry403 && !isExcludedPath) {
+      originalRequest._retry403 = true;
+
+      try {
+        // Check if logout is already in progress
+        if (isLogoutInProgress()) {
+          console.log("Logout in progress, skipping token refresh for 403");
+          return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
+        }
+
+        console.log("403 detected. Attempting token refresh...");
+        const newToken = await refreshAccessToken();
+
+        if (newToken) {
+          console.log(
+            "Token refresh successful after 403, retrying original request"
+          );
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } else {
+          throw new Error("No token received after refresh");
+        }
+      } catch (refreshError) {
+        console.error("Token refresh failed after 403 error:", refreshError);
+        console.log("Performing logout due to refresh failure after 403");
+
+        try {
+          // Use force logout to ensure cleanup
+          await forceLogout();
+        } catch (logoutError) {
+          console.error(
+            "Force logout failed after 403 refresh failure:",
+            logoutError
+          );
+          // Try basic logout as fallback
+          try {
+            await performLogout(true);
+          } catch (finalError) {
+            console.error("Final logout attempt failed after 403:", finalError);
+          }
+        }
+
+        // Trigger logout callback to navigate user to login screen
         triggerLogoutCallback();
         return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
       }
