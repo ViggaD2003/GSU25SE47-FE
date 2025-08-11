@@ -1,6 +1,14 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { authAPI } from '../../services/authApi'
-import { decodeJWT } from '../../utils'
+import { decodeJWT, isTokenExpired } from '../../utils'
+import {
+  saveAuthData,
+  clearAuthData,
+  getToken,
+  getRefreshToken,
+  createStandardizedUser,
+  isAuthorizedRole,
+} from '../../utils/authHelpers'
 import {
   loginStart,
   loginSuccess,
@@ -9,126 +17,168 @@ import {
   initializeAuth,
 } from '../slices/authSlice'
 
+// Flag to prevent multiple refresh calls
+let isRefreshing = false
+
 // Async thunk for login
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
       dispatch(loginStart())
+      console.log('🔄 Starting login process for:', credentials.email)
+
       const response = await authAPI.login(
         credentials.email,
         credentials.password
       )
 
-      // console.log(response)
+      console.log('📡 Login API response:', response)
 
       if (response.success) {
+        // Check if response contains Google OAuth URL (for MANAGER role)
         const isGoogleOAuthUrl =
           typeof response.data === 'string' &&
           response.data.includes('https://accounts.google.com/o/oauth2/auth')
 
-        // ✅ Nếu là MANAGER thì redirect thẳng
         if (isGoogleOAuthUrl) {
-          window.location.href = response.data // chuyển trình duyệt
-          return
+          console.log('🔐 Manager detected, redirecting to Google OAuth...')
+          console.log('📍 OAuth URL:', response.data)
+
+          // For MANAGER role: redirect to Google OAuth
+          window.location.href = response.data
+          return {
+            success: true,
+            isOAuthRedirect: true,
+            oauthUrl: response.data,
+          }
         }
 
-        // ✅ Nếu là USER thường thì lưu token và login
-        localStorage.setItem('token', response.data.token)
+        // For COUNSELOR/TEACHER role: normal login with token
+        console.log('👤 Counselor/Teacher detected, processing normal login...')
+
+        if (!response.data || !response.data.token) {
+          throw new Error('Invalid response: missing token data')
+        }
 
         const decodedToken = decodeJWT(response.data.token)
-        const user = {
-          ...decodedToken,
-          id: decodedToken['user-id'] || decodedToken?.userId || 1,
-          fullName:
-            decodedToken?.name ||
-            decodedToken?.fullName ||
-            credentials.email.split('@')[0],
-          email: decodedToken?.sub || decodedToken?.email || credentials.email,
-          role: decodedToken?.role
-            ? String(decodedToken.role).toLowerCase()
-            : null,
+        if (!decodedToken) {
+          throw new Error('Invalid token: failed to decode JWT')
         }
 
-        const authData = { user, token: response.data.token }
-        localStorage.setItem('auth', JSON.stringify(authData))
+        console.log('🔓 Decoded token:', decodedToken)
+
+        const user = createStandardizedUser(decodedToken)
+        console.log('👤 Standardized user:', user)
+
+        // Validate user role
+        if (!isAuthorizedRole(user.role)) {
+          throw new Error(`Unauthorized role: ${user.role}`)
+        }
+
+        // Save both access token and refresh token
+        const authData = {
+          user,
+          token: response.data.token,
+          refreshToken: response.data.refreshToken || response.data.token, // Fallback to token if no refresh token
+        }
+
+        console.log('💾 Saving auth data:', {
+          userId: user.id,
+          userRole: user.role,
+          hasToken: !!authData.token,
+          hasRefreshToken: !!authData.refreshToken,
+        })
+
+        saveAuthData(response.data.token, user, response.data.token)
         dispatch(loginSuccess(authData))
+
+        console.log('✅ Login successful for user:', user.fullName)
         return authData
       } else {
         throw new Error(response.message || 'Login failed')
       }
     } catch (error) {
+      console.error('❌ Login failed:', error)
       dispatch(loginFailure())
       return rejectWithValue(error.response?.data?.message || error.message)
     }
   }
 )
 
-// Async thunk for refresh token - DISABLED
-// export const refreshToken = createAsyncThunk(
-//   'auth/refreshToken',
-//   async (_, { dispatch, rejectWithValue }) => {
-//     try {
-//       console.log('[refreshToken] Running...')
+// Async thunk for refresh token - IMPROVED with better error handling
+export const refreshToken = createAsyncThunk(
+  'auth/refreshToken',
+  async (_, { dispatch, rejectWithValue }) => {
+    // Prevent multiple refresh calls
+    if (isRefreshing) {
+      console.log('[refreshToken] Already refreshing, skipping...')
+      return { data: { token: null } }
+    }
 
-//       const response = await authAPI.refreshToken()
-//       console.log('[refreshToken] Response:', response)
+    isRefreshing = true
 
-//       if (response.success && response.data?.token) {
-//         const newToken = response.data.token
+    try {
+      console.log('[refreshToken] Running...')
 
-//         // Only update localStorage if we got a new token
-//         if (newToken !== localStorage.getItem('token')) {
-//           localStorage.setItem('token', newToken)
+      // Get refresh token using centralized helpers
+      const currentToken = getToken()
+      const refreshTokenValue = getRefreshToken()
 
-//           // Decode the new token to get updated user information
-//           const decodedToken = decodeJWT(newToken)
+      if (!currentToken || !refreshTokenValue) {
+        throw new Error('No auth data found in storage')
+      }
 
-//           // Update the stored auth data with new token and user info
-//           const savedAuth = localStorage.getItem('auth')
-//           if (savedAuth) {
-//             const authData = JSON.parse(savedAuth)
-//             authData.token = newToken
+      // Check if current token is still valid
+      if (!isTokenExpired(currentToken)) {
+        console.log(
+          '[refreshToken] Current token is still valid, no refresh needed'
+        )
+        return { data: { token: currentToken } }
+      }
 
-//             // Update user data from decoded token if available
-//             if (decodedToken) {
-//               authData.user = {
-//                 ...decodedToken,
-//                 ...authData.user,
-//                 id:
-//                   decodedToken['user-id'] ||
-//                   decodedToken.userId ||
-//                   authData.user.id,
-//                 fullName:
-//                   decodedToken.name ||
-//                   decodedToken.fullName ||
-//                   authData.user.fullName,
-//                 email:
-//                   decodedToken.email || decodedToken.sub || authData.user.email,
-//                 role: decodedToken.role
-//                   ? String(decodedToken.role).toLowerCase()
-//                   : null,
-//               }
-//             }
+      // Try to refresh the token using refresh token
+      const response = await authAPI.refreshToken(refreshTokenValue)
+      console.log('[refreshToken] Response:', response)
 
-//             localStorage.setItem('auth', JSON.stringify(authData))
-//             // Use loginSuccess to ensure isRestoredFromStorage is set to false
-//             dispatch(loginSuccess(authData))
-//           }
-//         }
+      if (response.status === 200 && response.success && response.data?.token) {
+        const newToken = response.data.token
 
-//         return { data: { token: newToken } }
-//       } else {
-//         throw new Error('Token refresh failed - invalid response')
-//       }
-//     } catch (error) {
-//       console.log('[refreshToken] Error:', error)
-//       // If refresh fails, logout the user
-//       dispatch(logoutUser())
-//       return rejectWithValue(error.response?.data?.message || error.message)
-//     }
-//   }
-// )
+        // Only update localStorage if we got a new token
+        if (newToken !== currentToken) {
+          // Decode the new token to get updated user information
+          const decodedNewToken = decodeJWT(newToken)
+
+          // Get current auth data
+          const authData = JSON.parse(localStorage.getItem('auth'))
+
+          // Update the stored auth data with new token and user info
+          const updatedAuthData = {
+            ...authData,
+            token: newToken,
+            user: createStandardizedUser(decodedNewToken),
+          }
+
+          saveAuthData(newToken, updatedAuthData.user, newToken)
+          // Use loginSuccess to ensure isRestoredFromStorage is set to false
+          dispatch(loginSuccess(updatedAuthData))
+        }
+
+        return { data: { token: newToken } }
+      } else {
+        throw new Error('Token refresh failed - invalid response')
+      }
+    } catch (error) {
+      console.log('[refreshToken] Error:', error)
+      // If refresh fails, logout the user
+      // dispatch(logoutUser())
+      clearAuthData()
+      return rejectWithValue(error.response?.data?.message || error.message)
+    } finally {
+      isRefreshing = false
+    }
+  }
+)
 
 // Flag to prevent multiple logout calls
 let isLoggingOut = false
@@ -148,14 +198,12 @@ export const logoutUser = createAsyncThunk(
     try {
       console.log('🔄 Starting logout process...')
       // Call logout API if available
-
       await authAPI.logout()
     } catch (error) {
       console.error('Logout API error:', error)
     } finally {
-      // Clear localStorage
-      localStorage.removeItem('auth')
-      localStorage.removeItem('token')
+      // Clear localStorage using centralized helpers
+      clearAuthData()
 
       dispatch(logoutAction())
       console.log('✅ Logout completed')
@@ -179,31 +227,25 @@ export const loginWithGoogleToken = createAsyncThunk(
         throw new Error('Invalid authentication token')
       }
 
-      // Tạo object user từ decoded token
-      const user = {
-        ...decodedToken,
-        id: decodedToken?.userId || decodedToken['user-id'] || 1,
-        fullName: decodedToken?.name || decodedToken?.fullName || 'Google User',
-        email: decodedToken?.email || decodedToken?.sub || '',
-        role: decodedToken?.role
-          ? String(decodedToken.role).toLowerCase()
-          : null,
-      }
+      // Tạo standardized user object
+      const user = createStandardizedUser(decodedToken)
 
       // Kiểm tra quyền truy cập
-      const authorizedRoles = ['manager', 'teacher', 'counselor']
-      if (!authorizedRoles.includes(user.role?.toLowerCase())) {
+      if (!isAuthorizedRole(user.role)) {
         throw new Error(
           `Your role (${user.role || 'undefined'}) is not authorized to access this application. Only managers, teachers, and counselors are allowed.`
         )
       }
 
-      // Tạo auth data object
-      const authData = { user, token }
+      // Tạo auth data object với refresh token
+      const authData = {
+        user,
+        token,
+        refreshToken: token, // For Google OAuth, use token as refresh token
+      }
 
-      // Lưu vào localStorage
-      localStorage.setItem('token', token)
-      localStorage.setItem('auth', JSON.stringify(authData))
+      // Lưu vào localStorage sử dụng centralized helpers
+      saveAuthData(token, user, token)
 
       // Dispatch loginSuccess để cập nhật Redux state
       dispatch(loginSuccess(authData))
@@ -216,90 +258,77 @@ export const loginWithGoogleToken = createAsyncThunk(
   }
 )
 
-// Initialize auth from localStorage
+// Initialize auth from localStorage - IMPROVED with better error handling
 export const initializeAuthFromStorage = createAsyncThunk(
   'auth/initializeAuthFromStorage',
   async (_, { dispatch }) => {
     try {
       const savedAuth = localStorage.getItem('auth')
-      const token = localStorage.getItem('token')
 
-      if (savedAuth && token) {
-        // Check if token is expired
+      if (!savedAuth) {
+        dispatch(initializeAuth(null))
+        return null
+      }
 
-        // Comment out refresh token logic - just clear auth data
-        // try {
-        //   // Try to refresh the token
-        //   const refreshResult = await dispatch(refreshToken()).unwrap()
-        //   console.log('Token refreshed successfully:', refreshResult)
+      const authData = JSON.parse(savedAuth)
+      const token = authData.token
 
-        //   // Get the updated auth data after refresh
-        //   const updatedAuth = localStorage.getItem('auth')
-        //   const updatedToken = localStorage.getItem('token')
+      if (!token) {
+        console.log('[initializeAuthFromStorage] No token found')
+        clearAuthData()
+        dispatch(initializeAuth(null))
+        return null
+      }
 
-        //   if (updatedAuth && updatedToken) {
-        //     const authData = JSON.parse(updatedAuth)
-        //     dispatch(initializeAuth(authData))
-        //     return authData
-        //   } else {
-        //     throw new Error('Failed to get updated auth data after refresh')
-        //   }
-        // } catch (refreshError) {
-        //   console.log(
-        //     'Token refresh failed during initialization:',
-        //     refreshError
-        //   )
-        // If refresh fails, clear auth data
-        //   localStorage.removeItem('auth')
-        //   localStorage.removeItem('token')
-        //   dispatch(initializeAuth(null))
-        //   return null
-        // }
+      // Check if token is expired
+      if (isTokenExpired(token)) {
+        console.log(
+          '[initializeAuthFromStorage] Token expired, attempting refresh...'
+        )
 
-        // Direct clear auth data without refresh attempt
-        // localStorage.removeItem('auth')
-        // localStorage.removeItem('token')
-        // dispatch(initializeAuth(null))
-        // return null
+        try {
+          // Try to refresh the token
+          const refreshResult = await dispatch(refreshToken()).unwrap()
+          console.log('Token refreshed successfully:', refreshResult)
 
-        const authData = JSON.parse(savedAuth)
+          // Get the updated auth data after refresh
+          const updatedAuth = localStorage.getItem('auth')
+          if (updatedAuth) {
+            const updatedAuthData = JSON.parse(updatedAuth)
+            dispatch(initializeAuth(updatedAuthData))
+            return updatedAuthData
+          } else {
+            throw new Error('Failed to get updated auth data after refresh')
+          }
+        } catch (refreshError) {
+          console.log(
+            'Token refresh failed during initialization:',
+            refreshError
+          )
+          // If refresh fails, clear auth data
+          clearAuthData()
+          dispatch(initializeAuth(null))
+          return null
+        }
+      } else {
+        console.log('[initializeAuthFromStorage] Token is still valid')
 
         // Decode token to verify and potentially update user data
         const decodedToken = decodeJWT(token)
         if (decodedToken) {
           // Update user data with fresh data from token
-          authData.user = {
-            ...decodedToken,
-            ...authData.user,
-            id:
-              decodedToken['user-id'] ||
-              decodedToken.userId ||
-              authData.user.id,
-            fullName:
-              decodedToken.name ||
-              decodedToken.fullName ||
-              authData.user.fullName,
-            email:
-              decodedToken.email || decodedToken.sub || authData.user.email,
-            role: decodedToken.role
-              ? String(decodedToken.role).toLowerCase()
-              : null,
-          }
+          authData.user = createStandardizedUser(decodedToken)
 
           // Save updated auth data
-          localStorage.setItem('auth', JSON.stringify(authData))
+          saveAuthData(token, authData.user, token)
         }
 
         dispatch(initializeAuth(authData))
         return authData
-      } else {
-        dispatch(initializeAuth(null))
-        return null
       }
     } catch (error) {
       console.error('Error initializing auth from storage:', error)
-      localStorage.removeItem('auth')
-      localStorage.removeItem('token')
+      clearAuthData()
       dispatch(initializeAuth(null))
       return null
     }

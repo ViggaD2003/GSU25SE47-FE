@@ -50,6 +50,44 @@ export const removeFromStorage = key => {
   }
 }
 
+// Auth storage utilities
+export const getAuthData = () => {
+  try {
+    const authData = localStorage.getItem('auth')
+    return authData ? JSON.parse(authData) : null
+  } catch (error) {
+    console.error('Error getting auth data:', error)
+    return null
+  }
+}
+
+export const saveAuthData = authData => {
+  try {
+    localStorage.setItem('auth', JSON.stringify(authData))
+  } catch (error) {
+    console.error('Error saving auth data:', error)
+  }
+}
+
+export const clearAuthData = () => {
+  try {
+    localStorage.removeItem('auth')
+    localStorage.removeItem('token') // Remove legacy token if exists
+  } catch (error) {
+    console.error('Error clearing auth data:', error)
+  }
+}
+
+export const getToken = () => {
+  try {
+    const authData = getAuthData()
+    return authData?.token || null
+  } catch (error) {
+    console.error('Error getting token:', error)
+    return null
+  }
+}
+
 // JWT Token utilities
 export const decodeJWT = token => {
   try {
@@ -85,11 +123,11 @@ export const isTokenExpired = token => {
     const currentTime = Math.floor(dayjs().unix())
     const isExpired = decoded.exp < currentTime
 
-    console.log(
-      `[Token Check] Expires at: ${dayjs(decoded.exp * 1000).format(
-        'DD/MM/YYYY HH:mm:ss'
-      )}, Current: ${dayjs(currentTime * 1000).format('DD/MM/YYYY HH:mm:ss')}, Expired: ${isExpired}`
-    )
+    // console.log(
+    //   `[Token Check] Expires at: ${dayjs(decoded.exp * 1000).format(
+    //     'DD/MM/YYYY HH:mm:ss'
+    //   )}, Current: ${dayjs(currentTime * 1000).format('DD/MM/YYYY HH:mm:ss')}, Expired: ${isExpired}`
+    // )
 
     return isExpired
   } catch (error) {
@@ -135,3 +173,36 @@ export const getTokenInfo = token => {
     return null
   }
 }
+
+// Token refresh utilities
+export const shouldRefreshToken = (token, bufferMinutes = 5) => {
+  try {
+    if (!token) return false
+
+    const tokenInfo = getTokenInfo(token)
+    if (!tokenInfo || !tokenInfo.expiresIn) return false
+
+    // Refresh if token expires within buffer minutes
+    const bufferSeconds = bufferMinutes * 60
+    return tokenInfo.expiresIn <= bufferSeconds
+  } catch (error) {
+    console.error('Error checking if token should be refreshed:', error)
+    return false
+  }
+}
+
+export const isTokenValid = token => {
+  try {
+    if (!token) return false
+    return !isTokenExpired(token)
+  } catch (error) {
+    console.error('Error checking token validity:', error)
+    return false
+  }
+}
+
+// Re-export auth utilities
+export * from './authUtils'
+
+// Auth helper functions
+export * from './authHelpers'

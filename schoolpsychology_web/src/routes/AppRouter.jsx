@@ -183,6 +183,8 @@ const AppRouter = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="login-success" element={<GoogleCallBack />} />
+          {/* Test route for debugging GoogleCallback */}
+          <Route path="test-google-callback" element={<GoogleCallBack />} />
         </Route>
 
         {/* Access Fail route - accessible without authentication */}

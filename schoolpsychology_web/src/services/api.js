@@ -1,9 +1,12 @@
 import axios from 'axios'
 import { store } from '../store'
-import { logoutUser } from '../store/actions/authActions'
-import { logout as logoutAction } from '../store/slices/authSlice'
-import { authAPI } from './authApi'
+import {
+  logoutUser,
+  refreshToken as refreshTokenAction,
+} from '../store/actions/authActions'
 import notificationService from './notificationService'
+import { isTokenExpired, shouldRefreshToken } from '../utils'
+import { getToken, updateToken } from '../utils/authHelpers'
 
 // Utility function to handle server errors
 const handleServerError = (error, showNotification = true) => {
@@ -28,7 +31,7 @@ const handleServerError = (error, showNotification = true) => {
         notificationService.error({
           message: 'Dịch vụ tạm thời không khả dụng',
           description: 'Server đang bảo trì. Vui lòng thử lại sau.',
-          duration: 5,
+          duration: 4,
         })
       }
       return new Error('Service temporarily unavailable')
@@ -39,7 +42,7 @@ const handleServerError = (error, showNotification = true) => {
         notificationService.error({
           message: 'Lỗi timeout',
           description: 'Server phản hồi quá chậm. Vui lòng thử lại sau.',
-          duration: 5,
+          duration: 4,
         })
       }
       return new Error('Gateway timeout')
@@ -60,100 +63,126 @@ const api = axios.create({
 
 // Flag to prevent multiple refresh requests
 let isRefreshing = false
-let refreshPromise = null
 
-// const processQueue = (error, token = null) => {
-//   failedQueue.forEach(prom => {
-//     if (error) {
-//       prom.reject(error)
-//     } else {
-//       prom.resolve(token)
-//     }
-//   })
+// Queue for failed requests during refresh
+const failedQueue = []
 
-//   failedQueue = []
-// }
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  failedQueue.length = 0
+}
 
-// Centralized token refresh logic
-// const handleTokenRefresh = async (showNotification = true) => {
-//   // Prevent multiple refresh attempts
-//   if (isRefreshing) {
-//     return new Promise((resolve, reject) => {
-//       failedQueue.push({ resolve, reject })
-//     })
-//   }
+// Centralized token refresh logic with improved error handling
+const handleTokenRefresh = async () => {
+  if (isRefreshing) {
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject })
+    })
+  }
 
-//   isRefreshing = true
+  isRefreshing = true
 
-//   try {
-//     console.log('🔄 Attempting to refresh token...')
+  try {
+    console.log('🔄 Attempting to refresh token...')
 
-//     // Use Redux action to refresh token
-//     const result = await store.dispatch(refreshTokenAction()).unwrap()
-//     console.log('[handleTokenRefresh] Result:', result)
-//     const token = result?.data?.token
-//     if (token) {
-//       api.defaults.headers.common.Authorization = `Bearer ${token}`
+    const result = await store.dispatch(refreshTokenAction()).unwrap()
+    const newToken = result?.data?.token
 
-//       processQueue(null, token)
+    if (newToken) {
+      console.log('✅ Token refreshed successfully')
 
-//       if (showNotification) {
-//         // Check if token was actually refreshed or just validated
-//         const currentToken = localStorage.getItem('token')
-//         const resultToken = result?.data?.token
+      // Update both axios defaults and localStorage using authHelpers
+      api.defaults.headers.common.Authorization = `Bearer ${newToken}`
 
-//         if (resultToken && resultToken !== currentToken) {
-//           notificationService.success({
-//             message: 'Phiên làm việc đã được gia hạn',
-//             description: 'Token đã được làm mới thành công',
-//             duration: 2,
-//           })
-//         } else {
-//           notificationService.info({
-//             message: 'Phiên làm việc vẫn hợp lệ',
-//             description: 'Token chưa hết hạn, không cần làm mới',
-//             duration: 2,
-//           })
-//         }
-//       }
+      // Update stored auth data with new token using centralized function
+      updateToken(newToken)
 
-//       console.log('✅ Token refreshed successfully')
-//       return token
-//     } else {
-//       throw new Error('Token refresh failed - no token returned')
-//     }
-//   } catch (refreshError) {
-//     processQueue(refreshError, null)
+      processQueue(null, newToken)
+      return newToken
+    } else {
+      throw new Error('Token refresh failed - no token returned')
+    }
+  } catch (error) {
+    console.error('❌ Token refresh failed:', error)
+    processQueue(error, null)
 
-//     if (showNotification) {
-//       notificationService.error({
-//         message: 'Phiên làm việc đã hết hạn',
-//         description: 'Vui lòng đăng nhập lại',
-//         duration: 3,
-//       })
-//     }
+    // If refresh fails, logout user
+    store.dispatch(logoutUser())
+    throw error
+  } finally {
+    isRefreshing = false
+  }
+}
 
-//     console.log('❌ Token refresh failed, logging out user')
-//     store.dispatch(logoutUser())
-//     throw refreshError
-//   } finally {
-//     isRefreshing = false
-//   }
-// }
-
-// Request interceptor
+// Request interceptor with improved token management
 api.interceptors.request.use(
   async config => {
-    // Add auth token or other headers here if needed
-    const token = localStorage.getItem('token')
-    if (token) {
-      // Only add token to request, don't check expiration here
-      // Let the response interceptor handle 401 errors
-      console.log('✅ Request: Adding token to request')
-      config.headers.Authorization = `Bearer ${token}`
-    } else {
-      console.log('ℹ️ Request: No token found, proceeding without auth')
+    // Skip auth for login and refresh endpoints
+    const excludedPaths = [
+      '/api/v1/auth/login',
+      '/api/v1/auth/forgot-password',
+      '/api/v1/auth/refresh',
+      '/api/v1/auth/google/callback',
+    ]
+
+    const isExcludedPath = excludedPaths.some(path => config.url.includes(path))
+
+    if (isExcludedPath) {
+      console.log('ℹ️ Request: Excluded path, no auth required')
+      return config
     }
+
+    // Get token using centralized authHelpers
+    const token = getToken()
+    if (!token) {
+      console.log('ℹ️ Request: No token found')
+      return config
+    }
+
+    // Check if token is expired
+    if (isTokenExpired(token)) {
+      console.log('⚠️ Request: Token expired, attempting refresh...')
+
+      try {
+        const newToken = await handleTokenRefresh()
+        if (newToken) {
+          config.headers.Authorization = `Bearer ${newToken}`
+          console.log('✅ Request: Token refreshed and added to request')
+        }
+      } catch {
+        console.error('❌ Request: Token refresh failed, request will fail')
+        // Request will fail with 401, let response interceptor handle it
+      }
+    } else {
+      // Check if token needs refresh (expires soon)
+      if (shouldRefreshToken(token)) {
+        console.log('🔄 Request: Token expires soon, refreshing proactively...')
+
+        try {
+          const newToken = await handleTokenRefresh()
+          if (newToken) {
+            config.headers.Authorization = `Bearer ${newToken}`
+            console.log('✅ Request: Token refreshed proactively')
+          }
+        } catch {
+          console.error(
+            '❌ Request: Proactive refresh failed, using current token'
+          )
+          config.headers.Authorization = `Bearer ${token}`
+        }
+      } else {
+        // Token is valid, add to request
+        config.headers.Authorization = `Bearer ${token}`
+        console.log('✅ Request: Adding valid token to request')
+      }
+    }
+
     return config
   },
   error => {
@@ -162,7 +191,7 @@ api.interceptors.request.use(
   }
 )
 
-// Response interceptor
+// Response interceptor with improved error handling
 api.interceptors.response.use(
   response => {
     // Handle 308 PERMANENT_REDIRECT as success for Google OAuth
@@ -177,11 +206,11 @@ api.interceptors.response.use(
       '/api/v1/auth/login',
       '/api/v1/auth/forgot-password',
       '/api/v1/auth/refresh',
+      '/api/v1/auth/google/callback',
     ]
 
     // Handle 308 (PERMANENT_REDIRECT) - Google OAuth redirect
     if (error.response?.status === 308) {
-      // Return the response data as success for Google OAuth redirect
       return Promise.resolve({
         data: error.response.data,
         status: 308,
@@ -195,98 +224,68 @@ api.interceptors.response.use(
       return Promise.reject(serverError)
     }
 
-    // Handle 401 (Unauthorized) - do not refresh, just logout
+    // Handle 401 (Unauthorized) - token expired or invalid
     if (
       error.response?.status === 401 &&
       !originalRequest._retry401 &&
       !excludedPaths?.some(path => originalRequest.url.includes(path))
     ) {
-      console.log('⚠️ Response: 401 error detected, logging out user...')
-      originalRequest._retry401 = true
-      notificationService.error({
-        message: 'Phiên đăng nhập hết hạn',
-        description: 'Bạn đã bị đăng xuất. Vui lòng đăng nhập lại.',
-        duration: 4,
-      })
-      store.dispatch(logoutUser())
-      return Promise.reject(
-        new Error('Authentication failed - please login again')
+      console.log(
+        '⚠️ Response: 401 error detected, attempting token refresh...'
       )
-    }
-
-    // Handle 403 (Forbidden) - try refresh token ONCE, otherwise logout
-    if (
-      error.response?.status === 403 &&
-      !originalRequest._retry403 &&
-      !excludedPaths?.some(path => originalRequest.url.includes(path))
-    ) {
-      console.log('⚠️ Response: 403 detected, attempting token refresh...')
-      originalRequest._retry403 = true
+      originalRequest._retry401 = true
 
       try {
-        // Ensure only one refresh call is in-flight
-        if (!isRefreshing) {
-          isRefreshing = true
-          refreshPromise = (async () => {
-            const currentToken = localStorage.getItem('token')
-            const refreshResponse = await authAPI.refreshToken(currentToken)
-            const refreshedToken = refreshResponse?.data?.token || currentToken
-            if (!refreshedToken) {
-              throw new Error('No token returned from refresh')
-            }
-            // Save and apply new token
-            localStorage.setItem('token', refreshedToken)
-            api.defaults.headers.common.Authorization = `Bearer ${refreshedToken}`
-            return refreshedToken
-          })()
-            .catch(err => {
-              throw err
-            })
-            .finally(() => {
-              isRefreshing = false
-            })
+        const newToken = await handleTokenRefresh()
+        if (newToken) {
+          // Update API headers and retry request
+          api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+          originalRequest.headers.Authorization = `Bearer ${newToken}`
+          console.log('✅ Token refreshed on 401. Retrying original request...')
+          return api(originalRequest)
         }
-
-        const newToken = await refreshPromise
-        // Retry original request with the (possibly) new token
-        originalRequest.headers.Authorization = `Bearer ${newToken}`
-        console.log('✅ Token refreshed on 403. Retrying original request...')
-        return api(originalRequest)
-      } catch (refreshError) {
-        console.error(
-          '❌ Refresh on 403 failed. Logging out locally...',
-          refreshError
-        )
-        // Only show this notification if the refresh endpoint itself returned 403
-        if (refreshError?.response?.status === 403) {
-          notificationService.error({
-            message: 'Tài khoản vừa được đăng nhập ở nơi khác',
-            description: 'Bạn đã bị đăng xuất khỏi phiên hiện tại.',
-            duration: 4,
-          })
-        }
-
-        // Perform local logout ONLY (do not call logout service)
-        try {
-          localStorage.removeItem('auth')
-          localStorage.removeItem('token')
-        } catch (storageError) {
-          console.warn(
-            'Failed to clear local storage during logout:',
-            storageError
-          )
-        }
-        store.dispatch(logoutAction())
-
+      } catch {
+        console.log('❌ Token refresh failed on 401, user logged out')
+        // User is already logged out by handleTokenRefresh
         return Promise.reject(
-          new Error('Access forbidden - logged out locally')
+          new Error('Authentication failed - please login again')
         )
       }
+    }
+
+    // Handle 403 (Forbidden) - access denied
+    if (
+      error.response?.status === 403 &&
+      !excludedPaths?.some(path => originalRequest.url.includes(path))
+    ) {
+      console.log('⚠️ Response: 403 Forbidden - access denied')
+
+      // For 403, we don't try to refresh - just show error
+      notificationService.error({
+        message: 'Quyền truy cập bị từ chối',
+        description: 'Bạn không có quyền thực hiện hành động này.',
+        duration: 4,
+      })
     }
 
     // Handle other errors
     return Promise.reject(error)
   }
 )
+
+// Function to manually update auth headers (useful after login/logout)
+export const updateAuthHeaders = () => {
+  const token = getToken()
+  if (token) {
+    api.defaults.headers.common.Authorization = `Bearer ${token}`
+    return true
+  } else {
+    delete api.defaults.headers.common.Authorization
+    return false
+  }
+}
+
+// Initialize auth headers on module load
+updateAuthHeaders()
 
 export default api
