@@ -1,269 +1,142 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Image,
   ScrollView,
-  RefreshControl,
-  ActivityIndicator,
   Dimensions,
-  Alert,
+  RefreshControl,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect } from "@react-navigation/native";
-import { GlobalStyles } from "../../constants";
-import {
-  StatisticsCard,
-  RecordCard,
-  SectionHeader,
-  Chart,
-  ChildSelector,
-} from "../../components";
-import { AssessmentScoreChart } from "../../components/charts";
-import { 
-  getChildSurveyRecords, 
-  getChildAppointmentRecords, 
-  getChildSupportProgramRecords 
-} from "../../services";
+import { ChildSelector, Loading } from "../../components";
+import { Alert } from "../../components";
+import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { useNotifications } from "../../utils/hooks";
+import EventService from "../../services/api/EventService";
+import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
+import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
-import { useChildren } from "../../contexts";
+import { useChildren } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
+const isMediumDevice = width >= 375 && width < 414;
+// const isLargeDevice = width >= 414;
 
-export default function ParentHome({
-  user,
-  navigation,
-  setShowToast,
-  setToastMessage,
-  setToastType,
-}) {
+const PAGE_SIZE = 2; // Page size for lazy loading
+
+export default function ParentHome({ user, navigation }) {
   const { t } = useTranslation();
-  const { selectedChild, children } = useChildren();
-  const [refreshing, setRefreshing] = useState(false);
+  const [todayPlans, setTodayPlans] = useState([]); // Store all data
+  const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
-    statistics: {},
-    surveyRecords: [],
-    appointmentRecords: [],
-    supportProgramRecords: [],
-    assessmentScores: [],
-  });
+  const [refreshing, setRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const { selectedChild, children } = useChildren();
 
-  // Memoized child selection
-  const availableChildren = useMemo(() => {
-    return children || [];
-  }, [children]);
-
-  // Load dashboard data when selected child changes
-  useEffect(() => {
-    if (selectedChild) {
-      loadDashboardData();
-    }
-  }, [selectedChild]);
-
-  // Auto-refresh when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      if (selectedChild) {
-        loadDashboardData();
-      }
-    }, [selectedChild])
+  const actionItems = useMemo(
+    () => [
+      {
+        title: t("home.actions.booking"),
+        key: "booking",
+        icon: "calendar",
+        onPress: () => {
+          navigation.navigate("Appointment");
+        },
+      },
+      {
+        title: t("home.actions.blog"),
+        key: "doc-blog",
+        icon: "book",
+        onPress: () => {
+          navigation.navigate("Blog");
+        },
+      },
+      {
+        title: t("home.actions.history"),
+        key: "history",
+        icon: "back-in-time",
+        onPress: () => {
+          navigation.navigate("Record");
+        },
+      },
+    ],
+    [navigation, t]
   );
 
-  // Safety check for user data
-  if (!user) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-        <Text style={styles.loadingText}>{t("parentHome.loadingUser")}</Text>
-      </View>
-    );
-  }
-
-  const loadDashboardData = async () => {
-    if (!selectedChild?.userId) return;
-
+  const getTodayPlans = async () => {
     try {
       setLoading(true);
-      setError(null);
+      if (!user?.id) {
+        console.warn("User ID not available");
+        setTodayPlans([]);
+        setDisplayedData([]);
+        return;
+      }
 
-      const [surveyRecords, appointmentRecords, supportProgramRecords] =
-        await Promise.all([
-          getChildSurveyRecords(selectedChild.userId),
-          getChildAppointmentRecords(
-            selectedChild.userId
-          ),
-          getChildSupportProgramRecords(
-            selectedChild.userId
-          ),
-        ]);
-
-      // Calculate statistics
-      const statistics = calculateStatistics(
-        surveyRecords,
-        appointmentRecords,
-        supportProgramRecords
-      );
-
-      // Process assessment scores from survey records
-      const assessmentScores = processAssessmentScores(surveyRecords);
-
-      setDashboardData({
-        surveyRecords: surveyRecords || [],
-        appointmentRecords: appointmentRecords?.data || [],
-        supportProgramRecords: supportProgramRecords?.data || [],
-        statistics,
-        assessmentScores,
-      });
+      const today = dayjs().format("YYYY-MM-DD");
+      const params = {
+        startDate: today,
+        endDate: today,
+      };
+      const response = await EventService.getEvents(selectedChild.id, params);
+      setTodayPlans(response || []);
+      // Update displayed data with pagination
+      const initialData = (response || []).slice(0, PAGE_SIZE);
+      setDisplayedData(initialData);
     } catch (error) {
-      console.error("Error loading dashboard data:", error);
-      setError(t("common.errorLoadData"));
-      setShowToast(true);
-      setToastMessage(t("common.errorLoadData"));
-      setToastType("error");
+      console.error(`Error loading today's plans:`, error);
+      setTodayPlans([]);
+      setDisplayedData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateStatistics = (
-    surveyRecords,
-    appointmentRecords,
-    supportProgramRecords
-  ) => {
-    const completedSurveys = surveyRecords?.length || 0;
-    const activeAppointments = appointmentRecords?.length || 0;
-    const activePrograms = supportProgramRecords?.length || 0;
+  const loadMorePlans = () => {
+    const nextPage = currentPage + 1;
+    const startIndex = (nextPage - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const newData = todayPlans.slice(startIndex, endIndex);
 
-    // Calculate average score from completed surveys
-    const averageScore =
-      surveyRecords?.length > 0
-        ? Math.round(
-            surveyRecords.reduce(
-              (sum, record) => sum + (record.totalScore || 0),
-              0
-            ) / surveyRecords.length
-          )
-        : 0;
-
-    return {
-      completedSurveys,
-      averageScore,
-      activeAppointments,
-      activePrograms,
-    };
-  };
-
-  const processAssessmentScores = (surveyRecords) => {
-    if (!surveyRecords || surveyRecords.length === 0) return [];
-
-    // Get the most recent survey record with assessment scores
-    const latestRecord = surveyRecords
-      .filter(
-        (record) =>
-          record.assessmentScores && record.assessmentScores.length > 0
-      )
-      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0];
-
-    return latestRecord?.assessmentScores || [];
+    if (newData.length > 0) {
+      setDisplayedData((prev) => [...prev, ...newData]);
+      setCurrentPage(nextPage);
+    }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadDashboardData();
-    setRefreshing(false);
+    await loadData();
   };
 
-  const handleChildSelect = (child) => {
-    // Child selection is now handled by context
-    console.log("Child selected:", child);
-  };
+  // Centralized function to load tab data
+  const loadData = async () => {
+    setLoading(true);
+    // Reset pagination at the start of loading new tab data
+    setCurrentPage(1);
+    setDisplayedData([]);
 
-  const handleViewAllSurveys = () => {
-    navigation.navigate("Survey", { screen: "SurveyRecord" });
-  };
-
-  const handleViewAllAppointments = () => {
-    navigation.navigate("Appointment", { screen: "AppointmentRecord" });
-  };
-
-  const handleViewAllSupportPrograms = () => {
-    navigation.navigate("Program", { screen: "ProgramRecord" });
-  };
-
-  const handleBooking = () => {
-    if (!selectedChild) {
-      Alert.alert("Lỗi", "Vui lòng chọn con trước khi đặt lịch tư vấn", [
-        { text: "OK" },
-      ]);
-      return;
+    try {
+      await Promise.all([getTodayPlans()]);
+    } catch (error) {
+      console.error(`Error loading data:`, error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    // Save selectedChild to global variable
-    global.selectedChildForAppointment = selectedChild;
-
-    // Navigate to Appointment stack
-    navigation.navigate("Appointment", {
-      screen: "AppointmentMain",
-    });
   };
 
-  const handleViewSurveyDetail = (record) => {
-    navigation.navigate("Survey", {
-      screen: "SurveyResult",
-      params: {
-        survey: {
-          surveyCode: record.surveyCode,
-          name: record.surveyName,
-          id: record.surveyId,
-        },
-        result: record,
-        screen: "ParentHome",
-        showRecordsButton: false,
-      },
-    });
-  };
-
-  const handleViewAppointmentDetail = (record) => {
-    navigation.navigate("Appointment", {
-      screen: "AppointmentRecordDetail",
-      params: { appointment: record },
-    });
-  };
-
-  const handleViewProgramDetail = (record) => {
-    navigation.navigate("Program", {
-      screen: "ProgramRecordDetail",
-      params: { program: record },
-    });
-  };
-
-  // Memoized chart data
-  const chartData = useMemo(() => {
-    const last7Days = [];
-    const today = new Date();
-
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      const dayName = date.toLocaleDateString("vi-VN", { weekday: "short" });
-
-      // Mock data - replace with real data from API
-      last7Days.push({
-        label: dayName,
-        value: Math.floor(Math.random() * 10) + 1,
-      });
-    }
-
-    return last7Days;
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [selectedChild])
+  );
 
   const renderChildSelection = () => {
-    if (availableChildren.length <= 1) return null;
+    if (children.length === 0) return null;
 
     return (
       <View style={styles.childSelectionContainer}>
@@ -271,518 +144,256 @@ export default function ParentHome({
           {t("parentHome.childSelection.title") || "Chọn con"}
         </Text>
         <ChildSelector
-          onChildSelect={handleChildSelect}
+          // onChildSelect={handleChildSelect}
           style={styles.childSelector}
         />
       </View>
     );
   };
 
-  const renderSelectedChildInfo = () => {
-    if (!selectedChild) return null;
-
-    return (
-      <View style={styles.selectedChildContainer}>
-        <View style={styles.selectedChildHeader}>
-          <View style={styles.selectedChildAvatar}>
-            <Text style={styles.selectedChildAvatarText}>
-              {selectedChild.fullName?.charAt(0)?.toUpperCase() || "C"}
-            </Text>
-          </View>
-          <View style={styles.selectedChildInfo}>
-            <Text style={styles.selectedChildName}>
-              {selectedChild.fullName}
-            </Text>
-            <Text style={styles.selectedChildStatus}>
-              {selectedChild.isEnable ? (
-                <Text style={styles.selectedChildStatusActive}>
-                  {t("parentHome.child.status.active")}
-                </Text>
-              ) : (
-                <Text style={styles.selectedChildStatusInactive}>
-                  {t("parentHome.child.status.inactive")}
-                </Text>
-              )}
-            </Text>
-          </View>
-          <TouchableOpacity
-            style={styles.childSettingsButton}
-            onPress={() => {
-              // Navigate to child settings with proper data structure
-              navigation.navigate("Profile", {
-                screen: "MyChildren",
-                params: {
-                  data: { student: user?.children || [] },
-                  onRefresh: () => {
-                    // Refresh parent data if needed
-                    console.log("Refreshing parent data");
-                  },
-                },
-              });
-            }}
-          >
-            <Ionicons name="settings-outline" size={20} color="#6B7280" />
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
+  const getEventIcon = (eventSource) => {
+    switch (eventSource?.toLowerCase()) {
+      case "appointment":
+        return "calendar";
+      case "survey":
+        return "clipboard";
+      case "program":
+        return "school";
+      default:
+        return "event";
+    }
   };
 
-  const renderBookingSection = () => {
-    if (!selectedChild) return null;
-
-    return (
-      <View style={styles.bookingSection}>
-        <TouchableOpacity
-          style={styles.bookingButton}
-          onPress={handleBooking}
-          activeOpacity={0.9}
-        >
-          <LinearGradient
-            colors={["#4CAF50", "#45a049"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.bookingGradient}
-          >
-            <View style={styles.bookingButtonContent}>
-              <View style={styles.bookingIconContainer}>
-                <Ionicons name="calendar" size={22} color="#FFFFFF" />
-              </View>
-              <View style={styles.bookingTextContainer}>
-                <Text style={styles.bookingTitle}>
-                  {t("parentHome.booking.title")}
-                </Text>
-                <View style={{ gap: 4 }}>
-                  <Text style={styles.bookingSubtitle}>
-                    {t("parentHome.booking.subtitle")}
-                  </Text>
-                  <Text style={styles.bookingChildName}>
-                    {selectedChild.fullName}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.bookingArrowContainer}>
-                <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
-              </View>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    );
+  const getEventColor = (eventType) => {
+    switch (eventType?.toLowerCase()) {
+      case "appointment":
+        return "#3B82F6";
+      case "survey":
+        return "#10B981";
+      case "program":
+        return "#F59E0B";
+      default:
+        return "#6B7280";
+    }
   };
 
-  const renderStatistics = () => {
-    const { statistics } = dashboardData;
+  const formatTime = (dateString, timeString) => {
+    if (!timeString || !dateString) return "";
 
-    return (
-      <>
-        <SectionHeader
-          title={t("parentHome.stats.title")}
-          subtitle={t("parentHome.stats.subtitle")}
-          showViewAll={false}
-        />
+    try {
+      // Parse timeString to determine if it's hours or minutes
+      const timeValue = parseFloat(timeString);
+      if (isNaN(timeValue)) return timeString;
 
-        <View style={styles.statisticsGrid}>
-          <StatisticsCard
-            title={t("parentHome.stats.completedSurveys.title")}
-            value={statistics.completedSurveys || 0}
-            change={statistics.completedSurveys > 0 ? "+12%" : "0%"}
-            changeType={
-              statistics.completedSurveys > 0 ? "positive" : "neutral"
-            }
-            icon="document-text"
-            color="#3B82F6"
-            subtitle={t("parentHome.stats.completedSurveys.subtitle")}
-            trend={statistics.completedSurveys > 0 ? "up" : "neutral"}
-            percentage={statistics.completedSurveys > 0 ? 12 : 0}
-            size="small"
-          />
-          <StatisticsCard
-            title={t("parentHome.stats.averageScore.title")}
-            value={statistics.averageScore || 0}
-            change={statistics.averageScore > 0 ? "+2.1" : "0"}
-            changeType={statistics.averageScore > 0 ? "positive" : "neutral"}
-            icon="trending-up"
-            color="#10B981"
-            subtitle={t("parentHome.stats.averageScore.subtitle")}
-            trend={statistics.averageScore > 0 ? "up" : "neutral"}
-            percentage={statistics.averageScore > 0 ? 21 : 0}
-            size="small"
-          />
-          <StatisticsCard
-            title={t("parentHome.stats.appointments.title")}
-            value={statistics.activeAppointments || 0}
-            change={statistics.activeAppointments > 0 ? "+3" : "0"}
-            changeType={
-              statistics.activeAppointments > 0 ? "positive" : "neutral"
-            }
-            icon="calendar"
-            color="#F59E0B"
-            subtitle={t("parentHome.stats.appointments.subtitle")}
-            trend={statistics.activeAppointments > 0 ? "up" : "neutral"}
-            percentage={statistics.activeAppointments > 0 ? 15 : 0}
-            size="small"
-          />
-          <StatisticsCard
-            title={t("parentHome.stats.programs.title")}
-            value={statistics.activePrograms || 0}
-            change={statistics.activePrograms > 0 ? "+1" : "0"}
-            changeType={statistics.activePrograms > 0 ? "positive" : "neutral"}
-            icon="heart"
-            color="#EF4444"
-            subtitle={t("parentHome.stats.programs.subtitle")}
-            trend={statistics.activePrograms > 0 ? "up" : "neutral"}
-            percentage={statistics.activePrograms > 0 ? 8 : 0}
-            size="small"
-          />
-        </View>
-      </>
-    );
+      // If timeString is <= 24, treat as hours (e.g., 1, 1.5, 2, 24)
+      // If timeString is > 24, treat as minutes (e.g., 30, 60, 90)
+      const unit = timeValue <= 24 ? "hours" : "minutes";
+
+      const dateTime = dayjs(dateString).add(timeValue, unit).format("HH:mm");
+
+      return dateTime;
+    } catch (error) {
+      return timeString;
+    }
   };
 
-  const renderCharts = () => {
-    return (
-      <>
-        {/* <SectionHeader
-          title="Biểu đồ thống kê"
-          subtitle="Xu hướng 7 ngày gần nhất"
-          showViewAll={false}
-        />
-
-        <View style={styles.chartsContainer}>
-          <Chart
-            title="Điểm khảo sát"
-            data={chartData}
-            type="line"
-            color="#10B981"
-          />
-          <Chart
-            title="Số bài khảo sát"
-            data={chartData}
-            type="bar"
-            color="#3B82F6"
-          />
-        </View> */}
-      </>
-    );
-  };
-
-  const renderAssessmentScores = () => {
-    const { assessmentScores } = dashboardData;
-
-    if (assessmentScores.length === 0) return null;
-
-    return (
-      <>
-        <SectionHeader
-          title={t("parentHome.assessment.title")}
-          subtitle={t("parentHome.assessment.subtitle")}
-          showViewAll={false}
-        />
-        <AssessmentScoreChart
-          scores={assessmentScores}
-          title="Phân tích đánh giá"
-        />
-      </>
-    );
-  };
-
-  const renderSurveyRecords = () => {
-    const { surveyRecords } = dashboardData;
-
-    return (
-      <>
-        <SectionHeader
-          title={t("parentHome.surveys.title")}
-          subtitle={t("parentHome.surveys.subtitle", {
-            count: surveyRecords.length,
-          })}
-          onViewAll={handleViewAllSurveys}
-        />
-
-        {surveyRecords.length > 0 ? (
-          surveyRecords
-            .slice(0, 3)
-            .map((record, index) => (
-              <RecordCard
-                key={record.id || index}
-                type="survey"
-                title={record.survey?.name || record.name}
-                subtitle={record.survey?.surveyCode || record.surveyCode}
-                date={record.completedAt || record.createdAt}
-                status={record.status}
-                score={record.totalScore}
-                icon="document-text"
-                color="#3B82F6"
-                onPress={() => handleViewSurveyDetail(record)}
-              />
-            ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>
-              {t("parentHome.surveys.emptyTitle")}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {t("parentHome.surveys.emptySubtitle")}
-            </Text>
-          </View>
-        )}
-      </>
-    );
-  };
-
-  const renderAppointmentRecords = () => {
-    const { appointmentRecords } = dashboardData;
-
-    return (
-      <>
-        <SectionHeader
-          title={t("parentHome.appointments.title")}
-          subtitle={t("parentHome.appointments.subtitle", {
-            count: appointmentRecords.length,
-          })}
-          onViewAll={handleViewAllAppointments}
-        />
-
-        {appointmentRecords.length > 0 ? (
-          appointmentRecords
-            .slice(0, 3)
-            .map((record, index) => (
-              <RecordCard
-                key={record.id || index}
-                type="appointment"
-                title={record.title || record.appointmentType}
-                subtitle={record.description}
-                date={record.appointmentDate || record.createdAt}
-                status={record.status}
-                icon="calendar"
-                color="#F59E0B"
-                onPress={() => handleViewAppointmentDetail(record)}
-              />
-            ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>
-              {t("parentHome.appointments.emptyTitle")}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {t("parentHome.appointments.emptySubtitle")}
-            </Text>
-          </View>
-        )}
-      </>
-    );
-  };
-
-  const renderSupportProgramRecords = () => {
-    const { supportProgramRecords } = dashboardData;
-
-    return (
-      <>
-        <SectionHeader
-          title={t("parentHome.programs.title")}
-          subtitle={t("parentHome.programs.subtitle", {
-            count: supportProgramRecords.length,
-          })}
-          onViewAll={handleViewAllSupportPrograms}
-        />
-
-        {supportProgramRecords.length > 0 ? (
-          supportProgramRecords
-            .slice(0, 3)
-            .map((record, index) => (
-              <RecordCard
-                key={record.id || index}
-                type="support"
-                title={record.programName || record.title}
-                subtitle={record.description}
-                date={record.startDate || record.createdAt}
-                status={record.status}
-                icon="heart"
-                color="#EF4444"
-                onPress={() => handleViewProgramDetail(record)}
-              />
-            ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>
-              {t("parentHome.programs.emptyTitle")}
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              {t("parentHome.programs.emptySubtitle")}
-            </Text>
-          </View>
-        )}
-      </>
-    );
+  const handlePlanItemPress = (item) => {
+    if (item.source === "SURVEY") {
+      navigation.navigate("Survey", {
+        screen: "SurveyInfo",
+        params: {
+          surveyId: item.relatedId,
+        },
+      });
+    } else if (item.source === "PROGRAM") {
+      navigation.navigate("Program", {
+        screen: "ProgramDetail",
+        params: {
+          programId: item.relatedId,
+        },
+      });
+    } else {
+      navigation.navigate("Appointment", {
+        screen: "AppointmentDetails",
+        params: {
+          appointment: {
+            id: item.relatedId,
+          },
+        },
+      });
+    }
   };
 
   return (
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.scrollContainer}
-      bounces={true}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-    >
+    <View style={styles.container}>
       {/* Child Selection Header */}
       {renderChildSelection()}
 
-      {/* Selected Child Info */}
-      {renderSelectedChildInfo()}
-
-      {/* Dashboard Content */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+        bounces={true}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {/* Quick Actions */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
+          </View>
+          <View style={styles.connectRow}>
+            {actionItems.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={styles.connectBox}
+                onPress={item.onPress}
+              >
+                <View style={styles.iconContainer}>
+                  <Entypo name={item.icon} size={24} color="#438455FF" />
+                </View>
+                <Text style={styles.connectTitle}>{item.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-      ) : error ? (
-        <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-          <Text style={styles.errorTitle}>{t("common.errorTitle")}</Text>
-          <Text style={styles.errorSubtitle}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={loadDashboardData}
-          >
-            <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
-          </TouchableOpacity>
+
+        {/* Plan for today */}
+        <View style={[styles.sectionContainer]}>
+          <View style={styles.headerContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t("home.planToday.title")}
+              </Text>
+              <View style={styles.planCountContainer}>
+                <Text style={styles.planCountText}>
+                  {todayPlans.length === 1 || todayPlans.length === 0
+                    ? t("home.planToday.count_one", {
+                        count: todayPlans.length,
+                      })
+                    : t("home.planToday.count_other", {
+                        count: todayPlans.length,
+                      })}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.viewAllContainer}
+              onPress={() => {
+                navigation.navigate("Event");
+              }}
+            >
+              <Text style={styles.viewAllText}>
+                {t("home.planToday.viewAll")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {loading ? (
+            <Loading />
+          ) : displayedData.length > 0 ? (
+            <>
+              <View style={styles.planContainer}>
+                {displayedData.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.id || index}
+                    style={styles.planItem}
+                    onPress={() => handlePlanItemPress(item)}
+                  >
+                    <View style={styles.planItemHeader}>
+                      <View style={styles.planIconContainer}>
+                        <Ionicons
+                          name={getEventIcon(item.source)}
+                          size={20}
+                          color={getEventColor(item.source)}
+                        />
+                      </View>
+                      <View style={styles.planInfo}>
+                        <Text style={styles.planTitle} numberOfLines={2}>
+                          {item.title}
+                        </Text>
+                        {item.description && (
+                          <Text
+                            style={styles.planDescription}
+                            numberOfLines={2}
+                          >
+                            {item.description}
+                          </Text>
+                        )}
+                      </View>
+                      <View style={styles.planTimeContainer}>
+                        {item.time && item.date && item.source !== "SURVEY" && (
+                          <Text style={styles.planTime}>
+                            {formatTime(item.date, item.time)}
+                          </Text>
+                        )}
+                        <MaterialIcons
+                          name="chevron-right"
+                          size={20}
+                          color="#9CA3AF"
+                        />
+                      </View>
+                    </View>
+                    {item.location && (
+                      <View style={styles.planLocation}>
+                        <Ionicons
+                          name="location-outline"
+                          size={14}
+                          color="#6B7280"
+                        />
+                        <Text style={styles.planLocationText}>
+                          {item.location}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+              {displayedData.length < todayPlans.length && (
+                <TouchableOpacity
+                  style={styles.loadMoreButton}
+                  onPress={loadMorePlans}
+                >
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={20}
+                    color="#374151"
+                  />
+                  <Text style={styles.loadMoreText}>
+                    {t("home.planToday.loadMore")}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            <View style={styles.emptyContainer}>
+              <View style={styles.emptyIconContainer}>
+                <MaterialIcons name="event-busy" size={48} color="#9CA3AF" />
+              </View>
+              <Text style={styles.emptyText}>
+                {t("home.planToday.empty.title")}
+              </Text>
+              <Text style={styles.emptySubText}>
+                {t("home.planToday.empty.description")}
+              </Text>
+            </View>
+          )}
         </View>
-      ) : selectedChild ? (
-        <>
-          {/* Quick Booking Button */}
-          {renderBookingSection()}
-
-          {/* Statistics Section */}
-          {renderStatistics()}
-
-          {/* Charts Section */}
-          {renderCharts()}
-
-          {/* Assessment Scores Section */}
-          {renderAssessmentScores()}
-
-          {/* Survey Records Section */}
-          {renderSurveyRecords()}
-          <View style={styles.space} />
-
-          {/* Appointment Records Section */}
-          {renderAppointmentRecords()}
-          <View style={styles.space} />
-
-          {/* Support Program Records Section */}
-          {renderSupportProgramRecords()}
-        </>
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>{t("parentHome.noChild.title")}</Text>
-          <Text style={styles.emptySubtitle}>
-            {t("parentHome.noChild.subtitle")}
-          </Text>
-        </View>
-      )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
-    elevation: 0,
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  userSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
-  avatarContainer: {
-    marginRight: 12,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: GlobalStyles.colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  userInfo: {
-    flex: 1,
-  },
-  greetingText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "400",
-    marginBottom: 2,
-  },
-  nameText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#111827",
-  },
-  actionsSection: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconButton: {
-    padding: 8,
-    borderRadius: 12,
-    backgroundColor: "#F9FAFB",
-  },
-  notificationContainer: {
-    position: "relative",
-  },
-  notificationBadge: {
-    position: "absolute",
-    top: -6,
-    right: -6,
-    backgroundColor: "#EF4444",
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
-  },
-  notificationBadgeText: {
-    fontSize: 10,
-    color: "#FFFFFF",
-    fontWeight: "600",
-  },
-  scrollContainer: {
     paddingTop: 13,
     paddingHorizontal: 24,
+  },
+  scrollContainer: {
+    paddingBottom: 32,
+  },
+  childSelector: {
+    marginTop: 8,
   },
   childSelectionContainer: {
     marginBottom: 24,
@@ -793,234 +404,504 @@ const styles = StyleSheet.create({
     color: "#374151",
     marginBottom: 12,
   },
-  childSelectionScroll: {
-    gap: 12,
-    paddingRight: 20,
+  alertSection: {
+    marginTop: 20,
+    marginBottom: 32,
   },
-  childOption: {
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    backgroundColor: "#F9FAFB",
-    borderWidth: 2,
-    borderColor: "transparent",
-    minWidth: 100,
-  },
-  childOptionActive: {
-    backgroundColor: "#E0F2FE",
-    borderColor: GlobalStyles.colors.primary,
-  },
-  childAvatarContainer: {
-    width: 40,
-    height: 40,
+  alertBox: {
+    backgroundColor: "#FEF2F2",
     borderRadius: 20,
-    backgroundColor: "#E5E7EB",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
+    padding: 18,
+    borderLeftWidth: 5,
+    borderLeftColor: "#EF4444",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  childAvatarText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#374151",
-  },
-  childName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#6B7280",
-    textAlign: "center",
-  },
-  childNameActive: {
-    color: GlobalStyles.colors.primary,
-    fontWeight: "600",
-  },
-  selectedChildContainer: {
-    backgroundColor: "#F8FAFC",
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  selectedChildHeader: {
+  alertHeader: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 12,
   },
-  selectedChildAvatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: GlobalStyles.colors.primary,
+  alertIcon: {
+    fontSize: 22,
+    marginRight: 10,
+  },
+  alertTitle: {
+    fontWeight: "700",
+    color: "#DC2626",
+    fontSize: isSmallDevice ? 16 : 17,
+    flex: 1,
+  },
+  alertDesc: {
+    color: "#7F1D1D",
+    fontSize: isSmallDevice ? 14 : 15,
+    lineHeight: 22,
+  },
+  sectionContainer: {
+    marginBottom: 30,
+    gap: 10,
+  },
+  headerContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    justifyContent: "center",
-    marginRight: 16,
   },
-  selectedChildAvatarText: {
-    fontSize: 20,
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: isSmallDevice ? 16 : isMediumDevice ? 18 : 20,
+    fontWeight: "700",
+    color: "#1A1A1A",
+  },
+  planCountContainer: {},
+  planCountText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#5D5D5D",
+  },
+  programCountContainer: {},
+  programCountText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#10B981",
+  },
+  viewAllContainer: {
+    borderRadius: 10,
+    padding: 10,
+  },
+  viewAllText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#438455FF",
+  },
+  connectRow: {
+    flexDirection: "row",
+    gap: isSmallDevice ? 16 : 20,
+  },
+  connectBox: {
+    flex: 1,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 20,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 16,
+    gap: 12,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#F0F9FF",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  connectTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "center",
+  },
+  // Program Styles
+  programScrollContainer: {
+    paddingRight: 24,
+  },
+  programCard: {
+    width: 280,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  programHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  programIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#FEF3C7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  programStatus: {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  programStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#065F46",
+  },
+  programTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 8,
+    lineHeight: 22,
+  },
+  programDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  programFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  programDuration: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  programDurationText: {
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  joinButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  joinButtonText: {
+    fontSize: 12,
     fontWeight: "600",
     color: "#FFFFFF",
   },
-  selectedChildInfo: {
+  // Plan Styles
+  planContainer: {
+    gap: 12,
+  },
+  planItem: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  planItemHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+  },
+  planIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  planInfo: {
     flex: 1,
   },
-  selectedChildName: {
+  planTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+    marginBottom: 4,
+    lineHeight: 22,
+  },
+  planDescription: {
+    fontSize: 14,
+    color: "#6B7280",
+    lineHeight: 20,
+  },
+  planTimeContainer: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  planTime: {
+    fontSize: 14,
+    color: "#374151",
+    fontWeight: "600",
+  },
+  planLocation: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
+  },
+  planLocationText: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+  emptyContainer: {
+    backgroundColor: "#F8FAFC",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 40,
+  },
+  emptyIconContainer: {
+    marginBottom: 16,
+  },
+  emptyText: {
+    color: "#9CA3AF",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  emptySubText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  loadMoreButton: {
+    backgroundColor: "#F3F4F6",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    flexDirection: "row",
+    gap: 8,
+  },
+  loadMoreText: {
+    color: "#374151",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  // New styles for Recommended Programs section
+  featuredProgramBanner: {
+    flexDirection: "row",
+    backgroundColor: "#FEF3C7",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    alignItems: "center",
+    gap: 16,
+  },
+  bannerContent: {
+    flex: 1,
+  },
+  bannerHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  bannerIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#FFFBEB",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerBadge: {
+    backgroundColor: "#FDE68A",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  bannerBadgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#92400E",
+  },
+  bannerTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#1F2937",
     marginBottom: 4,
+    lineHeight: 24,
   },
-  selectedChildStatus: {
+  bannerDescription: {
     fontSize: 14,
-    color: "#059669",
+    color: "#6B7280",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  bannerFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 16,
+  },
+  bannerStats: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  statItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  statText: {
+    fontSize: 12,
+    color: "#6B7280",
     fontWeight: "500",
   },
-  selectedChildStatusActive: {
-    color: "#059669",
+  bannerButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  selectedChildStatusInactive: {
-    color: "#EF4444",
-  },
-  childSettingsButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#F3F4F6",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#6B7280",
-    marginTop: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-  },
-  errorTitle: {
-    fontSize: 18,
+  bannerButtonText: {
+    fontSize: 12,
     fontWeight: "600",
-    color: "#EF4444",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  errorSubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 24,
-    paddingHorizontal: 40,
-  },
-  retryButton: {
-    backgroundColor: "#EF4444",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
   },
-  statisticsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 32,
-  },
-  chartsContainer: {
-    marginBottom: 32,
-  },
-  emptyContainer: {
+  bannerImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: "#FDE68A",
+    justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 40,
-    marginBottom: 24,
   },
-  emptyTitle: {
-    fontSize: 18,
+  bannerImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFFBEB",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  categoryBadge: {
+    backgroundColor: "#E0F2FE",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  categoryText: {
+    fontSize: 12,
     fontWeight: "600",
-    color: "#374151",
-    marginTop: 16,
-    marginBottom: 8,
+    color: "#1E40AF",
   },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
-    marginBottom: 24,
-    paddingHorizontal: 40,
+  progressContainer: {
+    marginTop: 12,
+    marginBottom: 16,
   },
-  space: {
-    marginBottom: 20,
-  },
-  bookingSection: {
-    marginBottom: 24,
-  },
-  bookingButton: {
-    borderRadius: 16,
-    shadowColor: "#4F46E5",
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 6,
+  progressBar: {
+    height: 8,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 4,
     overflow: "hidden",
   },
-  bookingGradient: {
-    borderRadius: 16,
-    padding: 20,
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#10B981",
+    borderRadius: 4,
   },
-  bookingButtonContent: {
+  progressText: {
+    fontSize: 12,
+    color: "#6B7280",
+    textAlign: "right",
+    marginTop: 4,
+  },
+  programStats: {
     flexDirection: "row",
+    justifyContent: "space-around",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  statCard: {
     alignItems: "center",
   },
-  bookingIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    alignItems: "center",
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E0F2FE",
     justifyContent: "center",
-    marginRight: 16,
+    alignItems: "center",
+    marginBottom: 8,
   },
-  bookingTextContainer: {
-    flex: 1,
+  statContent: {
+    alignItems: "center",
   },
-  bookingTitle: {
+  statNumber: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 4,
+    color: "#1F2937",
   },
-  bookingSubtitle: {
-    fontSize: 13,
-    color: "rgba(255, 255, 255, 0.85)",
-    fontWeight: "400",
-    lineHeight: 18,
+  statLabel: {
+    fontSize: 12,
+    color: "#6B7280",
   },
-  bookingChildName: {
-    fontWeight: 600,
-    color: "#FFFFFF",
-  },
-  bookingArrowContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    alignItems: "center",
+  // Program Empty State Styles
+  programEmptyContainer: {
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
-    marginLeft: 8,
+    alignItems: "center",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    padding: 40,
+    marginTop: 10,
   },
-  childSelector: {
-    marginTop: 8,
+  programEmptyIconContainer: {
+    marginBottom: 16,
+  },
+  programEmptyText: {
+    color: "#9CA3AF",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  programEmptySubText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  programEmptyButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  programEmptyButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });

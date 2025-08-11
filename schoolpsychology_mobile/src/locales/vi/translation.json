@@ -498,6 +498,8 @@
       "total_one": "{{count}} con",
       "total_other": "{{count}} con",
       "switch": "Chuyển đổi",
+      "prev": "trước",
+      "next": "tiếp",
       "viewAll": "Xem tất cả",
       "compact": "Xem gọn",
       "full": "Xem đầy đủ"

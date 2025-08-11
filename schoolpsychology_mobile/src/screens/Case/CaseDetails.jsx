@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { Text } from "react-native-paper";
+import { Card, Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
@@ -18,10 +18,14 @@ import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 import StatisticsCard from "@/components/dashboard/StatisticsCard";
 import BarChart from "@/components/charts/BarChart";
 import Loading from "@/components/common/Loading";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 import { getCaseByCaseId } from "@/services/api/caseApi";
 import { GlobalStyles } from "@/constants";
 import { getLevelConfig } from "@/constants/levelConfig";
+import ChildSelector, {
+  ChildSelectorWithTitle,
+} from "@/components/common/ChildSelector";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -33,12 +37,15 @@ const CaseDetails = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const { children, selectedChild } = useChildren();
 
   const fetchCaseDetails = async () => {
     try {
       setLoading(true);
 
-      const data = await getCaseByCaseId(caseId || user?.caseId);
+      const data = await getCaseByCaseId(
+        caseId || user?.caseId || selectedChild?.id
+      );
       setCaseDetails(data);
 
       // Animate content appearance
@@ -61,13 +68,16 @@ const CaseDetails = ({ route, navigation }) => {
     setRefreshing(false);
   };
 
-  useEffect(() => {
-    if (!caseId && !user?.caseId) {
-      setLoading(false);
-      return;
-    }
-    fetchCaseDetails();
-  }, [caseId, user?.caseId]);
+  useFocusEffect(
+    useCallback(() => {
+      console.log("selectedChild", selectedChild);
+      if (!caseId && !user?.caseId && !selectedChild?.id) {
+        setLoading(false);
+        return;
+      }
+      fetchCaseDetails();
+    }, [selectedChild, user?.caseId, caseId])
+  );
 
   // Helper functions
   const getStatusConfig = (status) => {
@@ -520,123 +530,6 @@ const CaseDetails = ({ route, navigation }) => {
     );
   };
 
-  const renderStudentInfo = () => {
-    const { caseInfo } = caseDetails;
-    const student = caseInfo.student;
-
-    return (
-      <Animated.View style={[styles.studentCard, { opacity: fadeAnim }]}>
-        <LinearGradient
-          colors={["#FFFFFF", "#F8FAFC"]}
-          style={styles.cardGradient}
-        >
-          <Card.Content style={[styles.cardContent, { padding: 20 }]}>
-            <Text style={styles.sectionTitle}>
-              {t("case.studentInfo.title")}
-            </Text>
-
-            <View style={styles.studentInfo}>
-              <View style={styles.infoRow}>
-                <LinearGradient
-                  colors={["#3B82F6", "#1D4ED8"]}
-                  style={styles.infoIconContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="person" size={16} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.infoLabel}>
-                  {t("case.studentInfo.fullName")}:
-                </Text>
-                <Text style={styles.infoValue}>{student.fullName}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <LinearGradient
-                  colors={["#10B981", "#059669"]}
-                  style={styles.infoIconContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="mail" size={16} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.infoLabel}>
-                  {t("case.studentInfo.email")}:
-                </Text>
-                <Text style={styles.infoValue}>{student.email}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <LinearGradient
-                  colors={["#F59E0B", "#D97706"]}
-                  style={styles.infoIconContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="call" size={16} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.infoLabel}>
-                  {t("case.studentInfo.phoneNumber")}:
-                </Text>
-                <Text style={styles.infoValue}>{student.phoneNumber}</Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <LinearGradient
-                  colors={["#8B5CF6", "#7C3AED"]}
-                  style={styles.infoIconContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="school" size={16} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.infoLabel}>
-                  {t("case.studentInfo.class")}:
-                </Text>
-                <Text style={styles.infoValue}>
-                  {student.classDto.codeClass}
-                </Text>
-              </View>
-
-              <View style={styles.infoRow}>
-                <LinearGradient
-                  colors={["#EC4899", "#DB2777"]}
-                  style={styles.infoIconContainer}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <Ionicons name="calendar" size={16} color="#FFFFFF" />
-                </LinearGradient>
-                <Text style={styles.infoLabel}>
-                  {t("case.studentInfo.schoolYear")}:
-                </Text>
-                <Text style={styles.infoValue}>
-                  {student.classDto.schoolYear}
-                </Text>
-              </View>
-            </View>
-          </Card.Content>
-        </LinearGradient>
-      </Animated.View>
-    );
-  };
-
-  if (loading) {
-    return (
-      <Container>
-        {from === "tab" ? (
-          <HeaderWithTab title={headerTitle} subtitle={subTitle} />
-        ) : (
-          <HeaderWithoutTab
-            title={headerTitle}
-            onBackPress={() => navigation.goBack()}
-          />
-        )}
-        <Loading />
-      </Container>
-    );
-  }
-
   return (
     <Container>
       {from === "tab" ? (
@@ -648,30 +541,47 @@ const CaseDetails = ({ route, navigation }) => {
         />
       )}
 
-      <ScrollView
-        style={styles.container}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {!caseDetails ? (
-          renderEmptyState(user?.caseId ? "IN_PROGRESS" : "CLOSED")
-        ) : (
-          <View style={styles.content}>
-            {renderCaseInfo()}
-            {renderStatistics()}
-            {renderCharts()}
-            {user?.role === "PARENTS" && renderStudentInfo()}
-          </View>
-        )}
-      </ScrollView>
+      {/* Child selector */}
+      {user?.role === "PARENTS" && children && children.length > 0 && (
+        <View style={styles.childSelectionContainer}>
+          <ChildSelector style={styles.childSelector} />
+        </View>
+      )}
+
+      {loading ? (
+        <Loading />
+      ) : (
+        <ScrollView
+          style={styles.container}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {!caseDetails ? (
+            renderEmptyState(user?.caseId ? "IN_PROGRESS" : "CLOSED")
+          ) : (
+            <View style={styles.content}>
+              {renderCaseInfo()}
+              {renderStatistics()}
+              {renderCharts()}
+            </View>
+          )}
+        </ScrollView>
+      )}
     </Container>
   );
 };
 
 const styles = StyleSheet.create({
+  childSelector: {
+    marginTop: 0,
+  },
+  // childSelectionContainer: {
+  //   paddingHorizontal: 16,
+  //   minHeight: 150,
+  // },
   scrollContent: {
     // paddingBottom: 32,
   },

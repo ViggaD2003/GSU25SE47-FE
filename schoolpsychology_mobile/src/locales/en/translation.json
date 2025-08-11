@@ -503,6 +503,8 @@
       "total_one": "{{count}} child",
       "total_other": "{{count}} children",
       "switch": "Switch",
+      "prev": "previous",
+      "next": "next",
       "viewAll": "View All",
       "compact": "Compact View",
       "full": "Full View"
