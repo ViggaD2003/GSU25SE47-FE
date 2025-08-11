@@ -30,7 +30,7 @@ export default function ProgramDetail() {
   const navigation = useNavigation();
   const route = useRoute();
   const { programId } = route.params;
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
 
   const [program, setProgram] = useState(null);
@@ -39,6 +39,11 @@ export default function ProgramDetail() {
   const [isJoined, setIsJoined] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
 
   useEffect(() => {
     fetchProgramData();

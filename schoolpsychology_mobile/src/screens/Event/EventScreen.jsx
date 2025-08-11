@@ -18,16 +18,21 @@ import { useAuth } from "@/contexts";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 
-const EventScreen = ({ navigation }) => {
+const EventScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedFilter, setSelectedFilter] = useState("all");
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
 
-  // Remove incorrect initial fetch that passed an invalid params shape
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
 
   // Filter events by selected date
   const filteredEvents = useMemo(() => {

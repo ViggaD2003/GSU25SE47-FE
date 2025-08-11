@@ -10,12 +10,12 @@ import {
   RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import Loading from "../../components/common/Loading";
+import { Loading } from "../../components";
 import { Alert } from "../../components";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useNotifications } from "../../utils/hooks";
-import EventService from "@/services/api/EventService";
-import { fetchAllRecommendedPrograms } from "@/services/api/ProgramService";
+import EventService from "../../services/api/EventService";
+import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 

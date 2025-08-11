@@ -58,7 +58,23 @@ export const isTokenExpired = (token) => {
   }
 };
 
-// shouldRefreshToken sẽ kiểm tra accessToken
+// Check if token is actually expired (without buffer time)
+export const isTokenActuallyExpired = (token) => {
+  if (!token || typeof token !== "string" || token.trim() === "") {
+    return true;
+  }
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    // No buffer time - check actual expiration
+    return decoded.exp < currentTime;
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return true;
+  }
+};
+
+// Check if token should be refreshed (close to expiry with buffer)
 export const shouldRefreshToken = async () => {
   try {
     const token = await getAccessToken();

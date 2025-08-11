@@ -14,9 +14,9 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useNotifications } from "../../utils/hooks";
 import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
-import { useRealTime } from "@/contexts/RealTimeContext";
+import { useRealTime } from "@/contexts";
 import WebSocketDebug from "@/components/common/WebSocketDebug";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 
 const NotificationScreen = ({ navigation }) => {
   const { t } = useTranslation();
@@ -38,7 +38,7 @@ const NotificationScreen = ({ navigation }) => {
       await refreshNotifications();
     } catch (error) {
       console.error("❌ NotificationScreen: Refresh failed:", error);
-      Alert.alert(t('common.errorTitle'), t('notifications.refreshFailed'));
+      Alert.alert(t("common.errorTitle"), t("notifications.refreshFailed"));
     }
   }, [refreshNotifications]);
 
@@ -49,7 +49,7 @@ const NotificationScreen = ({ navigation }) => {
       await refreshNotifications();
     } catch (error) {
       console.error("❌ NotificationScreen: Manual refresh failed:", error);
-      Alert.alert(t('common.errorTitle'), t('notifications.refreshFailed'));
+      Alert.alert(t("common.errorTitle"), t("notifications.refreshFailed"));
     }
   }, [refreshNotifications]);
 
@@ -63,7 +63,7 @@ const NotificationScreen = ({ navigation }) => {
           "❌ NotificationScreen: Error marking notification as read:",
           error
         );
-        Alert.alert(t('common.errorTitle'), t('notifications.markReadFailed'));
+        Alert.alert(t("common.errorTitle"), t("notifications.markReadFailed"));
       }
     },
     [markAsRead]
@@ -109,19 +109,22 @@ const NotificationScreen = ({ navigation }) => {
             break;
           case "message":
             console.log("💬 Message notification:", notification);
-            Alert.alert(t('notifications.messageTitle'), notification.content || notification.body);
+            Alert.alert(
+              t("notifications.messageTitle"),
+              notification.content || notification.body
+            );
             break;
           case "general":
             console.log("📢 General notification:", notification);
             Alert.alert(
-              t('notifications.generalTitle'),
+              t("notifications.generalTitle"),
               notification.content || notification.body
             );
             break;
           default:
             console.log("❓ Unknown notification type:", notification.type);
             Alert.alert(
-              t('notifications.generalTitle'),
+              t("notifications.generalTitle"),
               notification.content || notification.body
             );
             break;
@@ -131,7 +134,7 @@ const NotificationScreen = ({ navigation }) => {
           "❌ NotificationScreen: Error handling notification press:",
           error
         );
-        Alert.alert(t('common.errorTitle'), t('notifications.processFailed'));
+        Alert.alert(t("common.errorTitle"), t("notifications.processFailed"));
       }
     },
     [handleMarkAsRead, navigation]
@@ -202,19 +205,19 @@ const NotificationScreen = ({ navigation }) => {
   const getNotificationTypeLabel = useCallback((type) => {
     switch (type) {
       case "appointment":
-        return t('notifications.types.appointment');
+        return t("notifications.types.appointment");
       case "survey":
-        return t('notifications.types.survey');
+        return t("notifications.types.survey");
       case "program":
-        return t('notifications.types.program');
+        return t("notifications.types.program");
       case "case":
-        return t('notifications.types.case');
+        return t("notifications.types.case");
       case "message":
-        return t('notifications.types.message');
+        return t("notifications.types.message");
       case "general":
-        return t('notifications.types.general');
+        return t("notifications.types.general");
       default:
-        return t('notifications.types.notification');
+        return t("notifications.types.notification");
     }
   }, []);
 

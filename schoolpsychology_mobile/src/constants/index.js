@@ -104,7 +104,7 @@ export const APP_CONFIG = {
 };
 
 // Main constants
-export * from "./index";
+// export * from "./index"; // Removed circular export
 
 // Survey constants
 export * from "./survey";

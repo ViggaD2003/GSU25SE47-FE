@@ -39,6 +39,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useNotifications } from "../utils/hooks";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -47,12 +48,25 @@ export default function MainTabs() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { user, loading: authLoading } = useAuth();
   // Hook mới không cần fetchNotifications vì đã tự động subscribe
   // const { fetchNotifications } = useNotifications();
 
   // useEffect(() => {
   //   fetchNotifications(1, true);
   // }, []);
+
+  useEffect(() => {
+    if (!user && !authLoading) {
+      console.log("No user, navigating to login");
+      navigation.navigate("AuthStack", { screen: "Login" });
+    }
+  }, [user, authLoading, navigation]);
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null; // Don't render tabs while loading or no user
+  }
 
   const BottomTabs = () => {
     return (

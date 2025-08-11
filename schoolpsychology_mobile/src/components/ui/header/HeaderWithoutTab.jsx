@@ -1,6 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import LanguageSwitcher from "../../common/LanguageSwitcher";
+import { CompactChildSelector } from "../../common";
+import { useChildren, useAuth } from "../../../contexts";
 
 const HeaderWithoutTab = ({
   title,
@@ -9,7 +10,13 @@ const HeaderWithoutTab = ({
   onRefresh,
   refreshing,
   rightComponent,
+  showChildSelector = false,
+  onChildSelect,
 }) => {
+  const { children } = useChildren();
+  const { user } = useAuth();
+  const hasMultipleChildren = children && children.length > 1;
+
   return (
     <View style={styles.headerContainer}>
       <View style={styles.header}>
@@ -19,6 +26,16 @@ const HeaderWithoutTab = ({
 
         <View style={styles.titleContainer}>
           <Text style={styles.headerTitle}>{title}</Text>
+          {showChildSelector &&
+            user?.role === "PARENTS" &&
+            hasMultipleChildren && (
+              <View style={styles.childSelectorContainer}>
+                <CompactChildSelector
+                  onChildSelect={onChildSelect}
+                  style={styles.headerChildSelector}
+                />
+              </View>
+            )}
         </View>
 
         <View style={styles.rightContainer}>
@@ -51,10 +68,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
     elevation: 2,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.1,
-    // shadowRadius: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
     paddingVertical: 16,
   },
   header: {
@@ -81,6 +98,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1A1A1A",
     textAlign: "center",
+    marginBottom: 8,
+  },
+  childSelectorContainer: {
+    alignItems: "center",
+    marginTop: 4,
+  },
+  headerChildSelector: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 8,
+    padding: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   rightContainer: {
     flexDirection: "row",

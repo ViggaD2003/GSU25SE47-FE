@@ -1,13 +1,11 @@
 import * as encoding from "text-encoding";
 import { StatusBar, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import AuthStack from "./src/navigation/AuthStack";
-import MainTabs from "./src/navigation/MainTabs";
 import {
   AuthProvider,
   useAuth,
   RealTimeProvider,
-  useRealTime,
+  ChildrenProvider,
 } from "./src/contexts";
 import { setLogoutCallback } from "./src/services/api/axios";
 import { useEffect, useCallback, useRef } from "react";
@@ -20,6 +18,7 @@ import utc from "dayjs/plugin/utc";
 import { TextEncoder, TextDecoder } from "text-encoding";
 import { useTranslation } from "react-i18next";
 import "./src/i18n";
+import RootStack from "./src/navigation";
 
 // Extend global with TextEncoder and TextDecoder
 if (typeof global.TextEncoder === "undefined") {
@@ -82,7 +81,7 @@ function RootNavigation() {
   return (
     <NavigationContainer>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      {user ? <MainTabs /> : <AuthStack />}
+      <RootStack />
     </NavigationContainer>
   );
 }
@@ -93,10 +92,12 @@ export default function App() {
       <AuthProvider>
         <PermissionProvider>
           <RealTimeProvider>
-            <PaperProvider>
-              <RootNavigation />
-              <Toast />
-            </PaperProvider>
+            <ChildrenProvider>
+              <PaperProvider>
+                <RootNavigation />
+                <Toast />
+              </PaperProvider>
+            </ChildrenProvider>
           </RealTimeProvider>
         </PermissionProvider>
       </AuthProvider>

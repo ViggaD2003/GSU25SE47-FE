@@ -13,7 +13,7 @@ import { Container } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
-import { useRealTime } from "@/contexts/RealTimeContext";
+import { useRealTime } from "@/contexts";
 
 const NotificationSettings = ({ navigation }) => {
   const { t } = useTranslation();

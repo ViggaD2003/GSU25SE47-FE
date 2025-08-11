@@ -24,33 +24,99 @@
     "profile": "Profile"
   },
   "dashboard": {
-    "mobileSubtitle": "Access key metrics and recent updates in one view"
+    "mobileSubtitle": "Access key metrics and recent updates in one view",
+    "overview": {
+      "title": "Dashboard Overview",
+      "subtitle": "Key statistics and performance metrics",
+      "surveys": "Surveys",
+      "surveysSubtitle": "Total surveys",
+      "programs": "Programs",
+      "programsSubtitle": "Total programs",
+      "appointments": "Appointments",
+      "appointmentsSubtitle": "Total appointments",
+      "cases": "Cases",
+      "casesSubtitle": "Total cases"
+    },
+    "mentalHealth": {
+      "survey": {
+        "title": "Survey Statistics",
+        "active": "Active Surveys",
+        "activeSubtitle": "Currently active",
+        "completed": "Completed Surveys",
+        "completedSubtitle": "Successfully finished",
+        "skips": "Skipped Surveys",
+        "skipsSubtitle": "Number of skips",
+        "chartTitle": "Survey Progress Over Time",
+        "noData": "No survey data available"
+      },
+      "appointment": {
+        "title": "Appointment Statistics",
+        "active": "Active Appointments",
+        "activeSubtitle": "Currently scheduled",
+        "completed": "Completed Appointments",
+        "completedSubtitle": "Successfully finished",
+        "absent": "Absent Appointments",
+        "absentSubtitle": "Number of absences",
+        "chartTitle": "Appointment Progress Over Time",
+        "noData": "No appointment data available"
+      },
+      "program": {
+        "title": "Program Statistics",
+        "active": "Active Programs",
+        "activeSubtitle": "Currently enrolled",
+        "completed": "Completed Programs",
+        "completedSubtitle": "Successfully finished",
+        "absent": "Absent Programs",
+        "absentSubtitle": "Number of absences",
+        "chartTitle": "Program Progress Over Time",
+        "noData": "No program data available"
+      }
+    },
+    "dateRanges": {
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "last90Days": "Last 90 days",
+      "custom": "Custom range",
+      "selectRange": "Select Date Range"
+    },
+    "noChild": {
+      "title": "No Child Selected",
+      "subtitle": "Please select a child to view their dashboard information"
+    },
+    "noStudent": {
+      "title": "Student ID Not Available",
+      "subtitle": "Unable to load student information. Please contact support."
+    },
+    "empty": {
+      "title": "No Data Available",
+      "subtitle": "There is no dashboard data to display for the selected time period"
+    }
   },
   "case": {
-    "followUp": "{{common.empty.subtitle}}",
-    "followUpSubtitle": "{{common.empty.subtitle}}",
+    "followUp": "Follow Up",
+    "followUpSubtitle": "Track case progress and updates",
     "empty": "{{common.empty.title}}",
     "closedCases": "{{common.empty.subtitle}}",
     "closedCasesSubtitle": "{{common.empty.subtitle}}",
-    "details": "{{common.empty.subtitle}}",
-    "detailsSubtitle": "{{common.empty.subtitle}}",
+    "details": "Case Details",
+    "detailsSubtitle": "View detailed case information",
     "emptyTitle": "{{common.empty.title}}",
     "emptySubtitle": "{{common.empty.subtitle}}",
     "caseInfo": {
-      "title": "{{common.empty.subtitle}}",
-      "caseId": "{{common.empty.subtitle}}",
+      "title": "Case Information",
+      "caseId": "Case ID",
       "description": "{{common.description}}",
       "status": "{{common.status}}",
-      "priority": "{{common.empty.subtitle}}",
-      "progressTrend": "{{common.empty.subtitle}}",
-      "currentLevel": "{{common.empty.subtitle}}",
-      "initialLevel": "{{common.empty.subtitle}}"
+      "priority": "Priority",
+      "progressTrend": "Progress Trend",
+      "currentLevel": "Current Level",
+      "initialLevel": "Initial Level"
     },
     "status": {
-      "new": "{{common.empty.subtitle}}",
-      "inProgress": "{{common.empty.subtitle}}",
-      "closed": "{{common.empty.subtitle}}",
-      "unknown": "{{common.empty.subtitle}}"
+      "new": "New",
+      "inProgress": "In Progress",
+      "closed": "Closed",
+      "unknown": "Unknown"
     },
     "priority": {
       "high": "High",
@@ -65,19 +131,19 @@
       "unknown": "Unknown"
     },
     "level": {
-      "title": "{{common.empty.subtitle}}",
+      "title": "Level Information",
       "current": "Current Level",
       "initial": "Initial Level"
     },
     "statistics": {
-      "title": "{{common.empty.subtitle}}",
+      "title": "Statistics",
       "surveys": "Surveys",
       "appointments": "Appointments",
       "programs": "Programs",
       "completed": "{{common.completed}}"
     },
     "charts": {
-      "title": "{{common.empty.subtitle}}",
+      "title": "Charts",
       "surveys": "Surveys",
       "appointments": "Appointments",
       "programs": "Programs",
@@ -85,12 +151,13 @@
       "scoreFormat": "{{score}}/4.0"
     },
     "studentInfo": {
-      "title": "{{common.empty.subtitle}}",
+      "title": "Student Information",
       "fullName": "Full Name",
       "email": "{{auth.email}}",
       "phoneNumber": "Phone Number",
       "class": "Class",
-      "schoolYear": "School Year"
+      "schoolYear": "School Year",
+      "teacher": "Teacher"
     },
     "emptyState": {
       "noCase": "{{common.empty.title}}",
@@ -424,6 +491,46 @@
     "noChild": {
       "title": "No child selected",
       "subtitle": "Please select a child to view detailed information"
+    }
+  },
+  "children": {
+    "selector": {
+      "title": "Select Child",
+      "subtitle": "Choose a child to view information",
+      "total": "{{count}} children",
+      "total_one": "{{count}} child",
+      "total_other": "{{count}} children",
+      "switch": "Switch",
+      "viewAll": "View All",
+      "compact": "Compact View",
+      "full": "Full View"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "surveyActive": "Surveys enabled",
+      "surveyInactive": "Surveys disabled"
+    },
+    "info": {
+      "studentCode": "Student Code",
+      "class": "Class",
+      "grade": "Grade",
+      "school": "School",
+      "parent": "Parent",
+      "guardian": "Guardian"
+    },
+    "actions": {
+      "select": "Select",
+      "deselect": "Deselect",
+      "edit": "Edit",
+      "viewDetails": "View Details",
+      "manage": "Manage"
+    },
+    "empty": {
+      "noChildren": "No children found",
+      "noChildrenSubtitle": "Add children to get started",
+      "selectChildFirst": "Please select a child first",
+      "selectChildSubtitle": "Choose a child to view detailed information"
     }
   },
   "notifications": {

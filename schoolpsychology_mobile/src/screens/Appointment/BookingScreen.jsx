@@ -401,8 +401,13 @@ const createConfirmationMessage = (
 
 // Main component
 const BookingScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
 
   // Custom hooks - MUST be called before any conditional returns
   const toast = useToast();

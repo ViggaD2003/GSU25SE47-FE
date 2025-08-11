@@ -8,12 +8,19 @@ import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 import { useTranslation } from "react-i18next";
+import { useChildren } from "../../contexts/ChildrenContext";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const { t } = useTranslation();
+  const { logout, user, loading: authLoading } = useAuth();
+  const { selectedChild } = useChildren();
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
+
   const [profile, setProfile] = useState({});
-  const { logout, user } = useAuth();
-  const navigation = useNavigation();
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
   const handleLogout = async () => {

@@ -11,16 +11,44 @@ export { default as FilterSortModal } from "./common/FilterSortModal";
 export { default as SurveyRecordCard } from "./common/SurveyRecordCard";
 export { default as LazyLoader } from "./common/LazyLoader";
 export { default as WebSocketDebug } from "./common/WebSocketDebug";
+export { default as ChildSelector } from "./common/ChildSelector";
+export {
+  CompactChildSelector,
+  FullChildSelector,
+} from "./common/ChildSelector";
+export { default as DateRangeSelector } from "./common/DateRangeSelector";
+export { default as EventCard } from "./common/EventCard";
+export { default as LevelBadge } from "./common/LevelBadge";
+export { default as LevelCard } from "./common/LevelCard";
+export { default as ProgramCard } from "./common/ProgramCard";
+export { default as WeekCalendar } from "./common/WeekCalendar";
+export { default as LanguageSwitcher } from "./common/LanguageSwitcher";
+export { default as NotificationBadge } from "./common/NotificationBadge";
+export { default as LogoutToast } from "./common/LogoutToast";
+export { default as CalendarExample } from "./common/CalendarExample";
+export { default as AlertDemo } from "./common/AlertDemo";
 
 // UI components
-export { default as Container } from "./ui/Container";
-export { default as ProtectedRoute } from "./ui/ProtectedRoute";
+export {
+  Container,
+  HeaderWithoutTab,
+  HeaderWithTab,
+  ProtectedRoute,
+} from "./ui";
 
 // Dashboard components
-export * from "./dashboard";
+export { default as StatisticsCard } from "./dashboard/StatisticsCard";
+export { default as RecordCard } from "./dashboard/RecordCard";
+export { default as SectionHeader } from "./dashboard/SectionHeader";
+export { default as Chart } from "./dashboard/Chart";
+export { default as DashboardOverview } from "./dashboard/DashboardOverview";
+export { default as MentalHealthSection } from "./dashboard/MentalHealthSection";
 
 // Chart components
-export * from "./charts";
+export { default as ReusableBarChart } from "./charts/BarChart";
+export { default as HorizontalChartCarousel } from "./charts/HorizontalChartCarousel";
+export { default as AssessmentScoreChart } from "./charts/AssessmentScoreChart";
+export { default as MentalHealthChart } from "./charts/MentalHealthChart";
 
 // Forms components (future)
 // export { default as LoginForm } from './forms/LoginForm';

@@ -4,6 +4,9 @@ import {
   getAccessToken,
   performLogout,
   isLogoutInProgress,
+  isTokenExpired,
+  clearTokens,
+  isTokenActuallyExpired,
 } from "../auth/tokenManager";
 import { AUTH_CONFIG, AUTH_ERRORS, APP_CONFIG } from "../../constants";
 import {
@@ -12,6 +15,33 @@ import {
   forceLogout,
   handleLogout,
 } from "../auth/authActions";
+
+/**
+ * Axios API Configuration với Token Management thông minh
+ *
+ * Cách hoạt động:
+ * 1. Kiểm tra token expiry trước mỗi request
+ * 2. Chỉ refresh token khi thực sự hết hạn (không có buffer time)
+ * 3. Khi refresh thất bại: clear token local + navigate ngay lập tức
+ * 4. Hiển thị toast thông báo "Tài khoản hiện được đăng nhập nơi khác"
+ *
+ * Cách sử dụng Toast Callback:
+ * 1. Import setToastCallback từ axios.js
+ * 2. Gọi setToastCallback với function hiển thị toast của bạn
+ * 3. Toast sẽ tự động hiển thị khi có lỗi token
+ *
+ * Ví dụ:
+ * import { setToastCallback } from './services/api/axios';
+ * import Toast from 'react-native-toast-message';
+ *
+ * setToastCallback((message, type) => {
+ *   Toast.show({
+ *     type: type,
+ *     text1: message,
+ *     position: 'top'
+ *   });
+ * });
+ */
 
 // Utility function to handle server errors for mobile
 const handleServerError = (error, showNotification = true) => {
@@ -49,9 +79,22 @@ const api = axios.create({
   },
 });
 
+export const refreshApi = axios.create({
+  baseURL,
+  timeout: AUTH_CONFIG.REQUEST_TIMEOUT,
+  headers: {
+    "Content-Type": "application/json",
+    // Note: refreshApi intentionally doesn't include Authorization header
+    // as it's used for token refresh without requiring authentication
+  },
+});
+
 // Global logout callback
 let logoutCallback = null;
 let isLogoutCallbackTriggered = false;
+
+// Global toast callback for showing messages
+let toastCallback = null;
 
 // Set logout callback function
 export const setLogoutCallback = (callback) => {
@@ -59,20 +102,67 @@ export const setLogoutCallback = (callback) => {
   isLogoutCallbackTriggered = false; // Reset flag when setting new callback
 };
 
+// Set toast callback function
+export const setToastCallback = (callback) => {
+  toastCallback = callback;
+};
+
 // Safe logout callback trigger
 const triggerLogoutCallback = () => {
   if (logoutCallback && !isLogoutCallbackTriggered) {
     isLogoutCallbackTriggered = true;
     try {
-      console.log("Triggering logout callback");
-      logoutCallback();
+      console.log("🚀 Triggering immediate navigation to login");
+      // Use setTimeout to ensure this runs in the next tick and doesn't block
+      setTimeout(() => {
+        logoutCallback();
+      }, 0);
     } catch (callbackError) {
       console.error("Logout callback error:", callbackError);
+      // Reset flag if callback fails so it can be retried
+      isLogoutCallbackTriggered = false;
     }
+  } else if (!logoutCallback) {
+    console.warn(
+      "⚠️ No logout callback set. User may not be redirected to login."
+    );
+  } else {
+    console.log(
+      "🔄 Logout callback already triggered, skipping duplicate call"
+    );
   }
 };
 
-// Request interceptor to attach JWT token
+// Safe toast callback trigger
+const triggerToastCallback = (message, type = "error") => {
+  if (toastCallback) {
+    try {
+      console.log(`📱 Showing toast immediately: ${message}`);
+      // Use setTimeout to ensure this runs in the next tick and doesn't block
+      setTimeout(() => {
+        toastCallback(message, type);
+      }, 0);
+    } catch (callbackError) {
+      console.error("Toast callback error:", callbackError);
+    }
+  } else {
+    console.warn(
+      "⚠️ No toast callback set. Toast message may not be displayed."
+    );
+  }
+};
+
+// Check if path should skip token validation
+const shouldSkipTokenValidation = (url) => {
+  return AUTH_CONFIG.EXCLUDED_PATHS.some((path) => url.includes(path));
+};
+
+// Check if path is refresh endpoint
+const isRefreshEndpoint = (url) => {
+  return url.includes("/refresh") || url.includes("/token/refresh");
+};
+
+// Request interceptor to attach JWT token and handle token expiry
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -82,15 +172,76 @@ api.interceptors.request.use(
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
 
-      const token = await getAccessToken();
-      // console.log("token", token);
+      // Skip token validation for excluded paths and refresh endpoints
+      if (
+        shouldSkipTokenValidation(config.url) ||
+        isRefreshEndpoint(config.url)
+      ) {
+        console.log(`Skipping token validation for: ${config.url}`);
+        return config;
+      }
 
-      // Always attach token if present; do not check expiry here
-      if (token) {
+      const token = await getAccessToken();
+
+      if (!token) {
+        console.log("No token found, navigating to login immediately");
+        // Show toast message
+        triggerToastCallback("Phiên đăng nhập đã kết thúc", "warning");
+        // Navigate to login immediately
+        triggerLogoutCallback();
+        return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+      }
+
+      // Check if token is actually expired (no buffer time)
+      if (isTokenActuallyExpired(token)) {
+        console.log(
+          "Token actually expired, attempting refresh before request"
+        );
+
+        try {
+          const newToken = await refreshAccessToken();
+          if (newToken) {
+            console.log("Token refresh successful, proceeding with request");
+            config.headers.Authorization = `Bearer ${newToken}`;
+            return config;
+          } else {
+            console.log(
+              "Token refresh failed, clearing local tokens and navigating to login"
+            );
+            // Clear local tokens only, no API call
+            await clearTokens();
+            // Show toast message
+            triggerToastCallback(
+              "Tài khoản hiện được đăng nhập nơi khác",
+              "warning"
+            );
+            // Navigate to login immediately
+            triggerLogoutCallback();
+            return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+          }
+        } catch (refreshError) {
+          console.error("Token refresh failed during request:", refreshError);
+          // Clear local tokens only, no API call
+          await clearTokens();
+          // Show toast message
+          triggerToastCallback(
+            "Tài khoản hiện được đăng nhập nơi khác",
+            "warning"
+          );
+          // Navigate to login immediately
+          triggerLogoutCallback();
+          return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+        }
+      } else {
+        // Token is still valid, attach it to request
         config.headers.Authorization = `Bearer ${token}`;
+        console.log(
+          `✅ Token attached to request: ${config.url} (valid until expiry)`
+        );
       }
     } catch (error) {
-      console.error("Error getting token from tokenManager:", error.message);
+      console.error("Error in request interceptor:", error.message);
+      return Promise.reject(error);
     }
     return config;
   },
@@ -113,10 +264,9 @@ api.interceptors.response.use(
 
     const { status } = error.response;
 
-    // Check if request is to excluded paths
-    const isExcludedPath = AUTH_CONFIG.EXCLUDED_PATHS.some((path) =>
-      originalRequest.url.includes(path)
-    );
+    // Check if request is to excluded paths or refresh endpoint
+    const isExcludedPath = shouldSkipTokenValidation(originalRequest.url);
+    const isRefreshPath = isRefreshEndpoint(originalRequest.url);
 
     // Handle server errors (502, 503, 504)
     if (status >= 502 && status <= 504) {
@@ -125,7 +275,12 @@ api.interceptors.response.use(
     }
 
     // Handle 401 Unauthorized - try to refresh token
-    if (status === 401 && !originalRequest._retry && !isExcludedPath) {
+    if (
+      status === 401 &&
+      !originalRequest._retry &&
+      !isExcludedPath &&
+      !isRefreshPath
+    ) {
       originalRequest._retry = true;
 
       try {
@@ -147,31 +302,39 @@ api.interceptors.response.use(
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
 
-        // Refresh failed, ensure tokens are cleared and logout user
+        // Refresh failed, clear local tokens only (no API call)
         try {
-          console.log("Clearing tokens and logging out due to refresh failure");
-
-          // Use force logout to ensure cleanup
-          await forceLogout();
-        } catch (logoutError) {
-          console.error("Logout error during refresh failure:", logoutError);
-          // Try one more time with basic logout
-          try {
-            await performLogout(true);
-          } catch (finalError) {
-            console.error("Final logout attempt failed:", finalError);
-          }
+          console.log(
+            "Clearing local tokens and navigating to login due to refresh failure"
+          );
+          await clearTokens();
+          // Show toast message
+          triggerToastCallback(
+            "Tài khoản hiện được đăng nhập nơi khác",
+            "warning"
+          );
+          // Navigate to login immediately
+          triggerLogoutCallback();
+        } catch (clearError) {
+          console.error(
+            "Error clearing tokens during refresh failure:",
+            clearError
+          );
+          // Even if clearing fails, still try to navigate
+          triggerLogoutCallback();
         }
-
-        // Call logout callback if available
-        triggerLogoutCallback();
 
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
     }
 
     // Handle 403 Forbidden - try to refresh token, then logout if failed
-    if (status === 403 && !originalRequest._retry403 && !isExcludedPath) {
+    if (
+      status === 403 &&
+      !originalRequest._retry403 &&
+      !isExcludedPath &&
+      !isRefreshPath
+    ) {
       originalRequest._retry403 = true;
 
       try {
@@ -195,26 +358,29 @@ api.interceptors.response.use(
         }
       } catch (refreshError) {
         console.error("Token refresh failed after 403 error:", refreshError);
-        console.log("Performing logout due to refresh failure after 403");
+        console.log(
+          "Clearing local tokens and navigating to login due to refresh failure after 403"
+        );
 
         try {
-          // Use force logout to ensure cleanup
-          await forceLogout();
-        } catch (logoutError) {
-          console.error(
-            "Force logout failed after 403 refresh failure:",
-            logoutError
+          // Clear local tokens only (no API call)
+          await clearTokens();
+          // Show toast message
+          triggerToastCallback(
+            "Tài khoản hiện được đăng nhập nơi khác",
+            "warning"
           );
-          // Try basic logout as fallback
-          try {
-            await performLogout(true);
-          } catch (finalError) {
-            console.error("Final logout attempt failed after 403:", finalError);
-          }
+          // Navigate to login immediately
+          triggerLogoutCallback();
+        } catch (clearError) {
+          console.error(
+            "Error clearing tokens after 403 refresh failure:",
+            clearError
+          );
+          // Even if clearing fails, still try to navigate
+          triggerLogoutCallback();
         }
 
-        // Trigger logout callback to navigate user to login screen
-        triggerLogoutCallback();
         return Promise.reject(new Error(AUTH_ERRORS.FORBIDDEN));
       }
     }

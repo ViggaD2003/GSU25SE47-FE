@@ -1,4 +1,4 @@
-import api from "../api/axios";
+import api, { refreshApi } from "../api/axios";
 import { AUTH_CONFIG, AUTH_ERRORS } from "../../constants";
 import {
   setTokens,
@@ -64,6 +64,8 @@ export const refreshAccessToken = async () => {
       throw new Error(AUTH_ERRORS.REFRESH_FAILED);
     }
 
+    console.log("refreshToken", refreshToken);
+
     // Validate the current token before attempting refresh
     const tokenValidation = await validateToken(refreshToken);
     if (!tokenValidation.isValid) {
@@ -72,11 +74,11 @@ export const refreshAccessToken = async () => {
       throw new Error(tokenValidation.error);
     }
 
-    const response = await api.post(AUTH_CONFIG.ENDPOINTS.REFRESH, {
+    const response = await refreshApi.post(AUTH_CONFIG.ENDPOINTS.REFRESH, {
       token: refreshToken,
     });
 
-    const { token: accessToken } = response.data.data.token;
+    const { token: accessToken } = response.data.data;
 
     // Validate that we received valid tokens
     if (

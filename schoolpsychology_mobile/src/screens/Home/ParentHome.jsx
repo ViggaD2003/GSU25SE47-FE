@@ -19,10 +19,16 @@ import {
   RecordCard,
   SectionHeader,
   Chart,
+  ChildSelector,
 } from "../../components";
-import AssessmentScoreChart from "../../components/charts/AssessmentScoreChart";
-import { ParentDashboardService } from "../../services";
+import { AssessmentScoreChart } from "../../components/charts";
+import { 
+  getChildSurveyRecords, 
+  getChildAppointmentRecords, 
+  getChildSupportProgramRecords 
+} from "../../services";
 import { useTranslation } from "react-i18next";
+import { useChildren } from "../../contexts";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -35,7 +41,7 @@ export default function ParentHome({
   setToastType,
 }) {
   const { t } = useTranslation();
-  const [selectedChild, setSelectedChild] = useState(null);
+  const { selectedChild, children } = useChildren();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,15 +55,8 @@ export default function ParentHome({
 
   // Memoized child selection
   const availableChildren = useMemo(() => {
-    return user?.children || [];
-  }, [user?.children]);
-
-  // Set default selected child when component mounts or user changes
-  useEffect(() => {
-    if (availableChildren.length > 0) {
-      setSelectedChild(availableChildren[0]);
-    }
-  }, [availableChildren]);
+    return children || [];
+  }, [children]);
 
   // Load dashboard data when selected child changes
   useEffect(() => {
@@ -80,7 +79,7 @@ export default function ParentHome({
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-        <Text style={styles.loadingText}>{t('parentHome.loadingUser')}</Text>
+        <Text style={styles.loadingText}>{t("parentHome.loadingUser")}</Text>
       </View>
     );
   }
@@ -94,11 +93,11 @@ export default function ParentHome({
 
       const [surveyRecords, appointmentRecords, supportProgramRecords] =
         await Promise.all([
-          ParentDashboardService.getChildSurveyRecords(selectedChild.userId),
-          ParentDashboardService.getChildAppointmentRecords(
+          getChildSurveyRecords(selectedChild.userId),
+          getChildAppointmentRecords(
             selectedChild.userId
           ),
-          ParentDashboardService.getChildSupportProgramRecords(
+          getChildSupportProgramRecords(
             selectedChild.userId
           ),
         ]);
@@ -122,9 +121,9 @@ export default function ParentHome({
       });
     } catch (error) {
       console.error("Error loading dashboard data:", error);
-      setError(t('common.errorLoadData'));
+      setError(t("common.errorLoadData"));
       setShowToast(true);
-      setToastMessage(t('common.errorLoadData'));
+      setToastMessage(t("common.errorLoadData"));
       setToastType("error");
     } finally {
       setLoading(false);
@@ -180,7 +179,8 @@ export default function ParentHome({
   };
 
   const handleChildSelect = (child) => {
-    setSelectedChild(child);
+    // Child selection is now handled by context
+    console.log("Child selected:", child);
   };
 
   const handleViewAllSurveys = () => {
@@ -267,40 +267,13 @@ export default function ParentHome({
 
     return (
       <View style={styles.childSelectionContainer}>
-        <Text style={styles.childSelectionTitle}>{t('parentHome.childSelection.title')}</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.childSelectionScroll}
-        >
-          {availableChildren.map((child, index) => (
-            <TouchableOpacity
-              key={child.userId}
-              style={[
-                styles.childOption,
-                selectedChild?.userId === child.userId &&
-                  styles.childOptionActive,
-              ]}
-              onPress={() => handleChildSelect(child)}
-            >
-              <View style={styles.childAvatarContainer}>
-                <Text style={styles.childAvatarText}>
-                  {child.fullName?.charAt(0)?.toUpperCase() || "C"}
-                </Text>
-              </View>
-              <Text
-                style={[
-                  styles.childName,
-                  selectedChild?.userId === child.userId &&
-                    styles.childNameActive,
-                ]}
-                numberOfLines={1}
-              >
-                {child.fullName}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <Text style={styles.childSelectionTitle}>
+          {t("parentHome.childSelection.title") || "Chọn con"}
+        </Text>
+        <ChildSelector
+          onChildSelect={handleChildSelect}
+          style={styles.childSelector}
+        />
       </View>
     );
   };
@@ -322,12 +295,12 @@ export default function ParentHome({
             </Text>
             <Text style={styles.selectedChildStatus}>
               {selectedChild.isEnable ? (
-                 <Text style={styles.selectedChildStatusActive}>
-                   {t('parentHome.child.status.active')}
-                 </Text>
+                <Text style={styles.selectedChildStatusActive}>
+                  {t("parentHome.child.status.active")}
+                </Text>
               ) : (
                 <Text style={styles.selectedChildStatusInactive}>
-                  {t('parentHome.child.status.inactive')}
+                  {t("parentHome.child.status.inactive")}
                 </Text>
               )}
             </Text>
@@ -376,10 +349,12 @@ export default function ParentHome({
                 <Ionicons name="calendar" size={22} color="#FFFFFF" />
               </View>
               <View style={styles.bookingTextContainer}>
-                <Text style={styles.bookingTitle}>{t('parentHome.booking.title')}</Text>
+                <Text style={styles.bookingTitle}>
+                  {t("parentHome.booking.title")}
+                </Text>
                 <View style={{ gap: 4 }}>
                   <Text style={styles.bookingSubtitle}>
-                    {t('parentHome.booking.subtitle')}
+                    {t("parentHome.booking.subtitle")}
                   </Text>
                   <Text style={styles.bookingChildName}>
                     {selectedChild.fullName}
@@ -402,14 +377,14 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title={t('parentHome.stats.title')}
-          subtitle={t('parentHome.stats.subtitle')}
+          title={t("parentHome.stats.title")}
+          subtitle={t("parentHome.stats.subtitle")}
           showViewAll={false}
         />
 
         <View style={styles.statisticsGrid}>
           <StatisticsCard
-            title={t('parentHome.stats.completedSurveys.title')}
+            title={t("parentHome.stats.completedSurveys.title")}
             value={statistics.completedSurveys || 0}
             change={statistics.completedSurveys > 0 ? "+12%" : "0%"}
             changeType={
@@ -417,25 +392,25 @@ export default function ParentHome({
             }
             icon="document-text"
             color="#3B82F6"
-            subtitle={t('parentHome.stats.completedSurveys.subtitle')}
+            subtitle={t("parentHome.stats.completedSurveys.subtitle")}
             trend={statistics.completedSurveys > 0 ? "up" : "neutral"}
             percentage={statistics.completedSurveys > 0 ? 12 : 0}
             size="small"
           />
           <StatisticsCard
-            title={t('parentHome.stats.averageScore.title')}
+            title={t("parentHome.stats.averageScore.title")}
             value={statistics.averageScore || 0}
             change={statistics.averageScore > 0 ? "+2.1" : "0"}
             changeType={statistics.averageScore > 0 ? "positive" : "neutral"}
             icon="trending-up"
             color="#10B981"
-            subtitle={t('parentHome.stats.averageScore.subtitle')}
+            subtitle={t("parentHome.stats.averageScore.subtitle")}
             trend={statistics.averageScore > 0 ? "up" : "neutral"}
             percentage={statistics.averageScore > 0 ? 21 : 0}
             size="small"
           />
           <StatisticsCard
-            title={t('parentHome.stats.appointments.title')}
+            title={t("parentHome.stats.appointments.title")}
             value={statistics.activeAppointments || 0}
             change={statistics.activeAppointments > 0 ? "+3" : "0"}
             changeType={
@@ -443,19 +418,19 @@ export default function ParentHome({
             }
             icon="calendar"
             color="#F59E0B"
-            subtitle={t('parentHome.stats.appointments.subtitle')}
+            subtitle={t("parentHome.stats.appointments.subtitle")}
             trend={statistics.activeAppointments > 0 ? "up" : "neutral"}
             percentage={statistics.activeAppointments > 0 ? 15 : 0}
             size="small"
           />
           <StatisticsCard
-            title={t('parentHome.stats.programs.title')}
+            title={t("parentHome.stats.programs.title")}
             value={statistics.activePrograms || 0}
             change={statistics.activePrograms > 0 ? "+1" : "0"}
             changeType={statistics.activePrograms > 0 ? "positive" : "neutral"}
             icon="heart"
             color="#EF4444"
-            subtitle={t('parentHome.stats.programs.subtitle')}
+            subtitle={t("parentHome.stats.programs.subtitle")}
             trend={statistics.activePrograms > 0 ? "up" : "neutral"}
             percentage={statistics.activePrograms > 0 ? 8 : 0}
             size="small"
@@ -500,8 +475,8 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title={t('parentHome.assessment.title')}
-          subtitle={t('parentHome.assessment.subtitle')}
+          title={t("parentHome.assessment.title")}
+          subtitle={t("parentHome.assessment.subtitle")}
           showViewAll={false}
         />
         <AssessmentScoreChart
@@ -518,8 +493,10 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title={t('parentHome.surveys.title')}
-          subtitle={t('parentHome.surveys.subtitle', { count: surveyRecords.length })}
+          title={t("parentHome.surveys.title")}
+          subtitle={t("parentHome.surveys.subtitle", {
+            count: surveyRecords.length,
+          })}
           onViewAll={handleViewAllSurveys}
         />
 
@@ -543,9 +520,11 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="document-text-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>{t('parentHome.surveys.emptyTitle')}</Text>
+            <Text style={styles.emptyTitle}>
+              {t("parentHome.surveys.emptyTitle")}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              {t('parentHome.surveys.emptySubtitle')}
+              {t("parentHome.surveys.emptySubtitle")}
             </Text>
           </View>
         )}
@@ -559,8 +538,10 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title={t('parentHome.appointments.title')}
-          subtitle={t('parentHome.appointments.subtitle', { count: appointmentRecords.length })}
+          title={t("parentHome.appointments.title")}
+          subtitle={t("parentHome.appointments.subtitle", {
+            count: appointmentRecords.length,
+          })}
           onViewAll={handleViewAllAppointments}
         />
 
@@ -583,9 +564,11 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>{t('parentHome.appointments.emptyTitle')}</Text>
+            <Text style={styles.emptyTitle}>
+              {t("parentHome.appointments.emptyTitle")}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              {t('parentHome.appointments.emptySubtitle')}
+              {t("parentHome.appointments.emptySubtitle")}
             </Text>
           </View>
         )}
@@ -599,8 +582,10 @@ export default function ParentHome({
     return (
       <>
         <SectionHeader
-          title={t('parentHome.programs.title')}
-          subtitle={t('parentHome.programs.subtitle', { count: supportProgramRecords.length })}
+          title={t("parentHome.programs.title")}
+          subtitle={t("parentHome.programs.subtitle", {
+            count: supportProgramRecords.length,
+          })}
           onViewAll={handleViewAllSupportPrograms}
         />
 
@@ -623,9 +608,11 @@ export default function ParentHome({
         ) : (
           <View style={styles.emptyContainer}>
             <Ionicons name="heart-outline" size={48} color="#9CA3AF" />
-            <Text style={styles.emptyTitle}>{t('parentHome.programs.emptyTitle')}</Text>
+            <Text style={styles.emptyTitle}>
+              {t("parentHome.programs.emptyTitle")}
+            </Text>
             <Text style={styles.emptySubtitle}>
-              {t('parentHome.programs.emptySubtitle')}
+              {t("parentHome.programs.emptySubtitle")}
             </Text>
           </View>
         )}
@@ -652,18 +639,18 @@ export default function ParentHome({
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>{t('common.loading')}</Text>
+          <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-          <Text style={styles.errorTitle}>{t('common.errorTitle')}</Text>
+          <Text style={styles.errorTitle}>{t("common.errorTitle")}</Text>
           <Text style={styles.errorSubtitle}>{error}</Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={loadDashboardData}
           >
-            <Text style={styles.retryButtonText}>{t('common.retry')}</Text>
+            <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : selectedChild ? (
@@ -694,9 +681,9 @@ export default function ParentHome({
       ) : (
         <View style={styles.emptyContainer}>
           <Ionicons name="people-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>{t('parentHome.noChild.title')}</Text>
+          <Text style={styles.emptyTitle}>{t("parentHome.noChild.title")}</Text>
           <Text style={styles.emptySubtitle}>
-            {t('parentHome.noChild.subtitle')}
+            {t("parentHome.noChild.subtitle")}
           </Text>
         </View>
       )}
@@ -1032,5 +1019,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,
+  },
+  childSelector: {
+    marginTop: 8,
   },
 });

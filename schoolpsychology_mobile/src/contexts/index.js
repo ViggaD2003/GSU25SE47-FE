@@ -5,3 +5,6 @@ export { PermissionProvider, usePermissions } from "./PermissionContext";
 // Real-time context
 export { RealTimeProvider, useRealTime } from "./RealTimeContext";
 export { LanguageProvider, useLanguage } from "./LanguageContext";
+
+// Children context
+export { ChildrenProvider, useChildren } from "./ChildrenContext";

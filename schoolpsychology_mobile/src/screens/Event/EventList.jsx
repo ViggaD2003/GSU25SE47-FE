@@ -10,7 +10,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
 const EventList = ({ route, navigation }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { type } = route.params;
   const { t } = useTranslation();
 
@@ -18,6 +18,12 @@ const EventList = ({ route, navigation }) => {
   if (!navigation) {
     return null; // or a loading component
   }
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
+
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);

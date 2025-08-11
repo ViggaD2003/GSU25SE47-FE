@@ -40,7 +40,6 @@ const EventService = {
         ...filters,
       });
     } catch (error) {
-      console.error("Error fetching events for week:", error);
       throw error;
     }
   },
@@ -66,7 +65,6 @@ const EventService = {
       );
       return response.data;
     } catch (error) {
-      console.error("Error fetching events:", error);
       throw error;
     }
   },

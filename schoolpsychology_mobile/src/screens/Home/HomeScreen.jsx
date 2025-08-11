@@ -1,24 +1,32 @@
 import React, { useState } from "react";
-import { Container } from "../../components";
-import Toast from "../../components/common/Toast";
-import { useAuth } from "../../contexts";
+import { Container, CompactChildSelector } from "../../components";
+import { Toast } from "../../components";
+import { useAuth, useChildren } from "../../contexts";
 import StudentHome from "./StudentHome";
 import ParentHome from "./ParentHome";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { GlobalStyles } from "../../constants";
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
-import { NotificationBadge } from "@/components/common";
+import { NotificationBadge } from "../../components/common";
 import { useTranslation } from "react-i18next";
 
 // const isLargeDevice = width >= 414;
 
 export default function HomeScreen({ navigation }) {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { children } = useChildren();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
+
+  // Show loading state while auth is loading
+  if (authLoading || !user) {
+    return null;
+  }
+
+  const hasMultipleChildren = children && children.length > 1;
 
   return (
     <Container>
@@ -40,6 +48,16 @@ export default function HomeScreen({ navigation }) {
 
         {/* Right side - Actions */}
         <View style={styles.actionsSection}>
+          {user.role === "PARENTS" && hasMultipleChildren && (
+            <View style={styles.childSelectorContainer}>
+              <CompactChildSelector
+                onChildSelect={() => {
+                  console.log("Child selected from home header");
+                }}
+                style={styles.headerChildSelector}
+              />
+            </View>
+          )}
           <NotificationBadge
             onPress={() => navigation.navigate("Notification")}
             size={24}
@@ -136,5 +154,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     marginRight: 10,
+  },
+  childSelectorContainer: {
+    marginRight: 8,
+  },
+  headerChildSelector: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 8,
+    padding: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
 });
