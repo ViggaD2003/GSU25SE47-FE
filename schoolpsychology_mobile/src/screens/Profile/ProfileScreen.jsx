@@ -122,7 +122,7 @@ export default function ProfileScreen({ navigation }) {
                     navigation.navigate("Profile", { screen: "CalendarAccess" })
                   }
                 />
-                <MenuItem
+                {/* <MenuItem
                   icon="bell-outline"
                   label={t("profile.notificationSettings")}
                   onPress={() =>
@@ -130,7 +130,7 @@ export default function ProfileScreen({ navigation }) {
                       screen: "NotificationSettings",
                     })
                   }
-                />
+                /> */}
                 <MenuItem
                   icon="translate"
                   label={t("profile.languageSettings")}

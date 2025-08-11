@@ -95,18 +95,20 @@
   "case": {
     "followUp": "Follow Up",
     "followUpSubtitle": "Track case progress and updates",
-    "empty": "{{common.empty.title}}",
-    "closedCases": "{{common.empty.subtitle}}",
-    "closedCasesSubtitle": "{{common.empty.subtitle}}",
+    "empty": "No data available",
+    "closedCases": {
+      "title": "Closed Cases",
+      "subtitle": "View closed cases"
+    },
     "details": "Case Details",
     "detailsSubtitle": "View detailed case information",
-    "emptyTitle": "{{common.empty.title}}",
-    "emptySubtitle": "{{common.empty.subtitle}}",
+    "emptyTitle": "No data available",
+    "emptySubtitle": "No data available",
     "caseInfo": {
       "title": "Case Information",
       "caseId": "Case ID",
-      "description": "{{common.description}}",
-      "status": "{{common.status}}",
+      "description": "Description",
+      "status": "Status",
       "priority": "Priority",
       "progressTrend": "Progress Trend",
       "currentLevel": "Current Level",
@@ -147,7 +149,7 @@
       "surveys": "Surveys",
       "appointments": "Appointments",
       "programs": "Programs",
-      "noData": "{{common.empty.title}}",
+      "noData": "No data available",
       "scoreFormat": "{{score}}/4.0"
     },
     "studentInfo": {
@@ -160,11 +162,11 @@
       "teacher": "Teacher"
     },
     "emptyState": {
-      "noCase": "{{common.empty.title}}",
+      "noCase": "No case assigned yet",
       "noCaseAssigned": "No case assigned yet",
-      "noCaseAssignedSubtitle": "{{common.empty.subtitle}}",
-      "allCasesClosed": "All cases have been {{common.completed}}",
-      "allCasesClosedSubtitle": "All cases have been processed and {{common.completed}}"
+      "noCaseAssignedSubtitle": "No case assigned yet",
+      "allCasesClosed": "All cases have been completed",
+      "allCasesClosedSubtitle": "All cases have been processed and completed"
     }
   },
   "common": {

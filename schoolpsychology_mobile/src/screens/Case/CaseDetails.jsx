@@ -663,7 +663,7 @@ const CaseDetails = ({ route, navigation }) => {
             {renderCaseInfo()}
             {renderStatistics()}
             {renderCharts()}
-            {/* {renderStudentInfo()} */}
+            {user?.role === "PARENTS" && renderStudentInfo()}
           </View>
         )}
       </ScrollView>

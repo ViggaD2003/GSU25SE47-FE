@@ -472,7 +472,7 @@ export default function CalendarAccess() {
                 </View>
               )}
 
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={[
                   styles.syncButton,
                   syncing && styles.syncButtonDisabled,
@@ -496,7 +496,7 @@ export default function CalendarAccess() {
                     <Text style={styles.syncButtonText}>Sync Now</Text>
                   </>
                 )}
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </>
           )}
         </View>

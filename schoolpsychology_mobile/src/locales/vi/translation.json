@@ -95,18 +95,20 @@
   "case": {
     "followUp": "Theo dõi",
     "followUpSubtitle": "Theo dõi tiến độ và cập nhật case",
-    "empty": "{{common.empty.title}}",
-    "closedCases": "{{common.empty.subtitle}}",
-    "emptySubtitle": "{{common.empty.subtitle}}",
+    "empty": "Không có dữ liệu",
+    "closedCases": {
+      "title": "Cases đã đóng",
+      "subtitle": "Xem chi tiết các case đã đóng"
+    },
     "details": "Chi tiết case",
     "detailsSubtitle": "Xem thông tin chi tiết case",
-    "emptyTitle": "{{common.empty.title}}",
-    "emptySubtitle": "{{common.empty.subtitle}}",
+    "emptyTitle": "Không có dữ liệu",
+    "emptySubtitle": "Không có dữ liệu để hiển thị",
     "caseInfo": {
       "title": "Thông tin case",
       "caseId": "Mã case",
-      "description": "{{common.description}}",
-      "status": "{{common.status}}",
+      "description": "Mô tả",
+      "status": "Trạng thái",
       "priority": "Mức độ ưu tiên",
       "progressTrend": "Xu hướng tiến triển",
       "currentLevel": "Mức độ hiện tại",
@@ -147,7 +149,7 @@
       "surveys": "Khảo sát",
       "appointments": "Lịch hẹn",
       "programs": "Chương trình",
-      "noData": "{{common.empty.title}}",
+      "noData": "Không có dữ liệu",
       "scoreFormat": "{{score}}/4.0"
     },
     "studentInfo": {
@@ -160,12 +162,11 @@
       "teacher": "Giáo viên"
     },
     "emptyState": {
-      "noCase": "{{common.empty.title}}",
-      "emptySubtitle": "{{common.empty.subtitle}}",
-      "noCaseAssigned": "Chưa có case được gán",
-      "noCaseAssignedSubtitle": "{{common.empty.subtitle}}",
-      "allCasesClosed": "Tất cả các case đã được xử lý {{common.completed}}",
-      "allCasesClosedSubtitle": "Tất cả các case đã được xử lý {{common.completed}}"
+      "noCase": "Không có case được gán",
+      "noCaseAssigned": "Không có case được gán",
+      "noCaseAssignedSubtitle": "Chưa có case được gán",
+      "allCasesClosed": "Tất cả các case đã được xử lý",
+      "allCasesClosedSubtitle": "Tất cả các case đã được xử lý"
     }
   },
   "common": {
