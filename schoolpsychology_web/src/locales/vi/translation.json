@@ -1292,6 +1292,11 @@
       "teacherCode": "Mã giáo viên",
       "teacherPhone": "Số điện thoại GV",
       "teacherEmail": "Email giáo viên",
+      "isActive": "Trạng thái",
+      "grade": "Khối lớp",
+      "numberOfstudents": "Số lượng học sinh",
+      "active": "Đang hoạt động",
+      "inactive": "Không hoạt động",
       "actions": "Thao tác"
     },
     "enroll": "Gán HS",

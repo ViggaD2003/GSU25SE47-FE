@@ -71,9 +71,9 @@ const Overview = ({ overview, isDarkMode, t }) => {
   )
 
   return (
-    <Row gutter={[16, 16]}>
+    <div className="flex flex-wrap items-center gap-8 mb-6">
       {items.map(item => (
-        <Col xs={24} sm={12} lg={6} xl={4} key={item.key}>
+        <div key={item.key}>
           <Card
             className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} shadow-md`}
           >
@@ -93,9 +93,9 @@ const Overview = ({ overview, isDarkMode, t }) => {
               />
             </div>
           </Card>
-        </Col>
+        </div>
       ))}
-    </Row>
+    </div>
   )
 }
 

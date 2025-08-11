@@ -1502,6 +1502,11 @@
       "teacherCode": "Teacher Code",
       "teacherPhone": "Teacher Phone",
       "teacherEmail": "Teacher Email",
+      "isActive": "Active",
+      "grade": "Grade",
+      "numberOfstudents": "Number of Students",
+      "active": "Active",
+      "inactive": "Inactive",
       "actions": "Actions"
     },
     "enroll": "Enroll",

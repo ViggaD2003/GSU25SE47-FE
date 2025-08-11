@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { Table, Button, Tag, Space, Typography, Tooltip } from 'antd'
 import {
   EyeOutlined,
@@ -23,49 +23,72 @@ const ClassTable = ({
   onEnroll,
 }) => {
   const { t } = useTranslation()
+  const canAddStudents = useCallback(
+    record => {
+      if (!record || !record.isActive || !record.teacher) return false
+      // Check school year is future or current
+      const schoolYear = dayjs(String(record.schoolYear).slice(0, 4)).year()
+      const currentYear = dayjs().year()
+      console.log('schoolYear:', schoolYear, 'currentYear:', currentYear)
+      console.log('isBefore:', dayjs(schoolYear).isBefore(currentYear))
+
+      if (!schoolYear || dayjs(schoolYear).isBefore(currentYear)) return false
+      return true
+    },
+    [data]
+  )
 
   const columns = [
     {
       title: t('classManagement.table.codeClass'),
-      dataIndex: 'codeClass',
+      dataIndex: ['grade', 'codeClass'],
       key: 'codeClass',
-      render: (text, _record) => (
-        <Space>
-          <BookOutlined className="text-blue-500" />
-          <Text strong>{text}</Text>
-        </Space>
+      render: (_, record) => (
+        <div className="flex justify-between items-center space-x-2">
+          <div>
+            <BookOutlined className="text-blue-500" />
+            <Text strong>{record.codeClass}</Text>
+          </div>
+          <Tag color="purple">{record.grade}</Tag>
+        </div>
       ),
-      width: 80,
+      width: 200,
       fixed: 'left',
       sorter: (a, b) => (a.codeClass || '').localeCompare(b.codeClass || ''),
+    },
+    {
+      title: t('classManagement.table.numberOfstudents'),
+      dataIndex: 'totalStudents',
+      key: 'totalStudents',
+      width: 150,
     },
     {
       title: t('classManagement.table.classYear'),
       dataIndex: 'schoolYear',
       key: 'schoolYear',
       render: classYear => {
-        const year = dayjs(classYear).year()
-        return <Tag color="blue">{year}</Tag>
+        const startYear = String(classYear).slice(0, 4)
+        const endYear = String(classYear).slice(5, 9)
+        return (
+          <Tag color="blue">
+            {startYear} - {endYear}
+          </Tag>
+        )
       },
-      width: 120,
+      width: 180,
       sorter: (a, b) => dayjs(a.classYear).unix() - dayjs(b.classYear).unix(),
     },
     {
-      title: t('classManagement.table.teacherName'),
-      dataIndex: ['teacher', 'fullName'],
-      key: 'teacherName',
-      render: (text, record) => (
-        <div>
-          <Text strong>{text}</Text>
-          <br />
-          <Text type="secondary" className="text-sm">
-            {record.teacher?.teacherCode}
-          </Text>
-        </div>
+      title: t('classManagement.table.isActive'),
+      dataIndex: 'isActive',
+      key: 'isActive',
+      render: v => (
+        <Tag color={v ? 'green' : 'red'}>
+          {v
+            ? t('classManagement.table.active')
+            : t('classManagement.table.inactive')}
+        </Tag>
       ),
-      width: 200,
-      sorter: (a, b) =>
-        (a.teacher?.fullName || '').localeCompare(b.teacher?.fullName || ''),
     },
     {
       title: t('classManagement.table.teacherEmail'),
@@ -73,23 +96,12 @@ const ClassTable = ({
       key: 'teacherEmail',
       render: text => (
         <Text copyable className="text-blue-600">
-          {text}
+          {text ?? '-'}
         </Text>
       ),
-      width: 200,
       ellipsis: true,
     },
-    {
-      title: t('classManagement.table.teacherPhone'),
-      dataIndex: ['teacher', 'phoneNumber'],
-      key: 'teacherPhone',
-      render: text => (
-        <Text copyable className="text-green-600">
-          {text}
-        </Text>
-      ),
-      width: 150,
-    },
+
     {
       key: 'action',
       fixed: 'right',
@@ -103,7 +115,7 @@ const ClassTable = ({
             size="small"
             className="text-blue-500 hover:text-blue-700"
           />
-          {onEnroll && (
+          {onEnroll && canAddStudents(record) && (
             <Tooltip title={t('classManagement.enroll')}>
               <Button
                 icon={<UserAddOutlined />}
