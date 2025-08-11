@@ -80,6 +80,15 @@ export default function ProgramDetail() {
   }, []);
 
   const handleJoinProgram = async () => {
+    // Check if program status is ACTIVE
+    if (!canJoinOrLeave()) {
+      Alert.alert(
+        t("common.errorTitle"),
+        t("program.detail.cannotJoinInactive")
+      );
+      return;
+    }
+
     try {
       setJoining(true);
       await joinProgram(programId);
@@ -95,6 +104,15 @@ export default function ProgramDetail() {
   };
 
   const handleLeaveProgram = async () => {
+    // Check if program status is ACTIVE
+    if (!canJoinOrLeave()) {
+      Alert.alert(
+        t("common.errorTitle"),
+        t("program.detail.cannotLeaveInactive")
+      );
+      return;
+    }
+
     Alert.alert(
       t("program.detail.leaveConfirmTitle"),
       t("program.detail.leaveConfirmMessage"),
@@ -106,7 +124,7 @@ export default function ProgramDetail() {
           onPress: async () => {
             try {
               setJoining(true);
-              await leaveProgram(programId);
+              await leaveProgram(programId, user.id);
               setIsJoined(false);
               Alert.alert(
                 t("common.success"),
@@ -230,6 +248,10 @@ export default function ProgramDetail() {
     }
   };
 
+  const canJoinOrLeave = () => {
+    return program && program.status === "ACTIVE";
+  };
+
   const renderSurveyProgress = () => {
     if (
       !program.student?.surveyRecord ||
@@ -247,9 +269,12 @@ export default function ProgramDetail() {
 
     return (
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>
-          {t("program.detail.surveyProgress.title")}
-        </Text>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="analytics-outline" size={24} color="#007AFF" />
+          <Text style={styles.sectionTitle}>
+            {t("program.detail.surveyProgress.title")}
+          </Text>
+        </View>
 
         <View style={styles.surveyProgressContainer}>
           {/* Entry Survey */}
@@ -261,6 +286,7 @@ export default function ProgramDetail() {
                   { backgroundColor: getSurveyIdentityColor("ENTRY") },
                 ]}
               >
+                <Ionicons name="enter-outline" size={16} color="#FFFFFF" />
                 <Text style={styles.surveyBadgeText}>
                   {t("program.detail.surveyProgress.entrySurvey")}
                 </Text>
@@ -331,6 +357,7 @@ export default function ProgramDetail() {
                   { backgroundColor: getSurveyIdentityColor("EXIT") },
                 ]}
               >
+                <Ionicons name="exit-outline" size={16} color="#FFFFFF" />
                 <Text style={styles.surveyBadgeText}>
                   {t("program.detail.surveyProgress.exitSurvey")}
                 </Text>
@@ -396,9 +423,12 @@ export default function ProgramDetail() {
         {/* Final Score */}
         {program.student?.finalScore !== undefined && (
           <View style={styles.finalScoreCard}>
-            <Text style={styles.finalScoreTitle}>
-              {t("program.detail.surveyProgress.finalScore")}
-            </Text>
+            <View style={styles.finalScoreHeader}>
+              <Ionicons name="trophy-outline" size={24} color="#FF9500" />
+              <Text style={styles.finalScoreTitle}>
+                {t("program.detail.surveyProgress.finalScore")}
+              </Text>
+            </View>
             <Text style={styles.finalScoreValue}>
               {program.student.finalScore}
             </Text>
@@ -455,108 +485,171 @@ export default function ProgramDetail() {
         }
       >
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-          {/* Program Image */}
-          <View style={styles.imageContainer}>
-            <Image
-              source={{
-                uri:
-                  program.thumbnail ||
-                  "https://via.placeholder.com/400x200?text=No+Image",
-              }}
-              style={styles.programImage}
-              resizeMode="cover"
-            />
-            <View style={styles.imageOverlay}>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: getStatusColor(program.status) },
-                ]}
-              >
-                <Text style={styles.statusText}>
-                  {getStatusText(program.status)}
+          {/* Hero Section with Image and Status */}
+          <View style={styles.heroSection}>
+            <View style={styles.imageContainer}>
+              <Image
+                source={{
+                  uri:
+                    program.thumbnail ||
+                    "https://via.placeholder.com/400x200?text=No+Image",
+                }}
+                style={styles.programImage}
+                resizeMode="cover"
+              />
+              <View style={styles.imageOverlay}>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: getStatusColor(program.status) },
+                  ]}
+                >
+                  <Ionicons
+                    name={
+                      program.status === "ACTIVE"
+                        ? "play-circle"
+                        : program.status === "ON_GOING"
+                        ? "time"
+                        : "checkmark-circle"
+                    }
+                    size={16}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.statusText}>
+                    {getStatusText(program.status)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Program Header Info */}
+            <View style={styles.programHeader}>
+              <View style={styles.titleSection}>
+                <Text style={styles.programTitle}>
+                  {program.name || t("program.list.empty.title")}
                 </Text>
+                <View style={styles.categoryContainer}>
+                  <View style={styles.categoryBadge}>
+                    <Ionicons name="pricetag" size={16} color="#007AFF" />
+                    <Text style={styles.categoryText}>
+                      {program.category?.name || "General"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Quick Stats */}
+              <View style={styles.quickStats}>
+                <View style={styles.statItem}>
+                  <Ionicons name="people" size={20} color="#007AFF" />
+                  <Text style={styles.statValue}>
+                    {program.participants || 0}
+                  </Text>
+                  <Text style={styles.statLabel}>
+                    {t("program.detail.participants")}
+                  </Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Ionicons name="time" size={20} color="#FF9500" />
+                  <Text style={styles.statValue}>
+                    {program.startTime ? formatTime(program.startTime) : "--"}
+                  </Text>
+                  <Text style={styles.statLabel}>
+                    {t("program.detail.startTime")}
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
 
-          {/* Program Info */}
-          <View style={styles.content}>
-            {/* Title and Category */}
-            <View style={styles.headerSection}>
-              <Text style={styles.programTitle}>
-                {program.name || t("program.list.empty.title")}
-              </Text>
-              <View style={styles.categoryContainer}>
-                <Ionicons name="pricetag" size={16} color="#007AFF" />
-                <Text style={styles.categoryText}>
-                  {program.category?.name || "General"}
+          {/* Main Content */}
+          <View style={styles.mainContent}>
+            {/* Description Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons
+                  name="document-text-outline"
+                  size={24}
+                  color="#007AFF"
+                />
+                <Text style={styles.sectionTitle}>
+                  {t("program.detail.description")}
+                </Text>
+              </View>
+              <View style={styles.descriptionCard}>
+                <Text style={styles.descriptionText}>
+                  {program.description || t("common.notAvailable")}
                 </Text>
               </View>
             </View>
 
-            {/* Description */}
+            {/* Schedule & Location Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("program.detail.description")}
-              </Text>
-              <Text style={styles.descriptionText}>
-                {program.description || t("common.notAvailable")}
-              </Text>
-            </View>
-
-            {/* Time and Location */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("program.detail.scheduleLocation")}
-              </Text>
-
-              <View style={styles.infoRow}>
-                <Ionicons name="calendar" size={20} color="#007AFF" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>
-                    {t("program.detail.startTime")}
-                  </Text>
-                  <Text style={styles.infoValue}>
-                    {program.startTime
-                      ? formatDateTime(program.startTime)
-                      : t("common.notAvailable")}
-                  </Text>
-                </View>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="calendar-outline" size={24} color="#007AFF" />
+                <Text style={styles.sectionTitle}>
+                  {t("program.detail.scheduleLocation")}
+                </Text>
               </View>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="time" size={20} color="#FF9500" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>
-                    {t("program.detail.endTime")}
-                  </Text>
-                  <Text style={styles.infoValue}>
-                    {program.endTime
-                      ? formatDateTime(program.endTime)
-                      : t("common.notAvailable")}
-                  </Text>
+              <View style={styles.scheduleCard}>
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIcon}>
+                    <Ionicons name="calendar" size={20} color="#007AFF" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>
+                      {t("program.detail.startTime")}
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {program.startTime
+                        ? formatDateTime(program.startTime)
+                        : t("common.notAvailable")}
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.infoRow}>
-                <Ionicons name="location" size={20} color="#34C759" />
-                <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>
-                    {t("program.detail.location")}
-                  </Text>
-                  <Text style={styles.infoValue}>
-                    {program.location || t("common.notAvailable")}
-                  </Text>
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIcon}>
+                    <Ionicons name="time" size={20} color="#FF9500" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>
+                      {t("program.detail.endTime")}
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {program.endTime
+                        ? formatDateTime(program.endTime)
+                        : t("common.notAvailable")}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <View style={styles.infoIcon}>
+                    <Ionicons name="location" size={20} color="#34C759" />
+                  </View>
+                  <View style={styles.infoContent}>
+                    <Text style={styles.infoLabel}>
+                      {t("program.detail.location")}
+                    </Text>
+                    <Text style={styles.infoValue}>
+                      {program.location || t("common.notAvailable")}
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
 
             {/* Host Information */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("program.detail.hostedBy")}
-              </Text>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="person-outline" size={24} color="#007AFF" />
+                <Text style={styles.sectionTitle}>
+                  {t("program.detail.hostedBy")}
+                </Text>
+              </View>
               <View style={styles.hostCard}>
                 <View style={styles.hostAvatar}>
                   <Ionicons name="person" size={24} color="#007AFF" />
@@ -575,48 +668,56 @@ export default function ProgramDetail() {
               </View>
             </View>
 
+            {/* Survey Progress */}
+            {renderSurveyProgress()}
+
             {/* Program Survey */}
             {program.surveyId && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>
-                  {t("program.detail.survey")}
-                </Text>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="clipboard-outline"
+                    size={24}
+                    color="#007AFF"
+                  />
+                  <Text style={styles.sectionTitle}>
+                    {t("program.detail.survey")}
+                  </Text>
+                </View>
                 <View style={styles.surveyCard}>
-                  <Text style={styles.surveyTitle}>
-                    {t("program.detail.survey")}
-                  </Text>
-                  <Text style={styles.surveyDescription}>
-                    {t("program.detail.survey")}
-                  </Text>
-                  <View style={styles.surveyDetails}>
-                    <View style={styles.surveyDetail}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={16}
-                        color="#34C759"
-                      />
-                      <Text style={styles.surveyDetailText}>
-                        {t("program.detail.required")}
-                      </Text>
-                    </View>
+                  <View style={styles.surveyInfo}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color="#34C759"
+                    />
+                    <Text style={styles.surveyRequired}>
+                      {t("program.detail.required")}
+                    </Text>
                   </View>
                 </View>
               </View>
             )}
 
-            {/* Survey Progress */}
-            {renderSurveyProgress()}
-
-            {/* Participants */}
+            {/* Participants Section */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {t("program.detail.participants")}
-              </Text>
-              <View style={styles.participantsInfo}>
-                <View style={styles.participantCount}>
-                  <Ionicons name="people" size={20} color="#007AFF" />
-                  <Text style={styles.participantText}>
-                    {program.participants || 0} / {program.maxParticipants || 0}{" "}
+              <View style={styles.sectionHeader}>
+                <Ionicons name="people-outline" size={24} color="#007AFF" />
+                <Text style={styles.sectionTitle}>
+                  {t("program.detail.participants")}
+                </Text>
+              </View>
+              <View style={styles.participantsCard}>
+                <View style={styles.participantsHeader}>
+                  <View style={styles.participantCount}>
+                    <Text style={styles.participantNumber}>
+                      {program.participants || 0}
+                    </Text>
+                    <Text style={styles.participantText}>
+                      / {program.maxParticipants || 0}
+                    </Text>
+                  </View>
+                  <Text style={styles.participantLabel}>
                     {t("program.detail.participants").toLowerCase()}
                   </Text>
                 </View>
@@ -640,7 +741,16 @@ export default function ProgramDetail() {
             {/* Student Status */}
             {program.student && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Your Status</Text>
+                <View style={styles.sectionHeader}>
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={24}
+                    color="#007AFF"
+                  />
+                  <Text style={styles.sectionTitle}>
+                    {t("program.detail.yourStatus")}
+                  </Text>
+                </View>
                 <View style={styles.studentStatusCard}>
                   <View
                     style={[
@@ -658,7 +768,8 @@ export default function ProgramDetail() {
                   </View>
                   {program.student.joinAt && (
                     <Text style={styles.joinDate}>
-                      Joined: {formatDateTime(program.student.joinAt)}
+                      {t("program.detail.joinedAt")}:{" "}
+                      {formatDateTime(program.student.joinAt)}
                     </Text>
                   )}
                 </View>
@@ -674,14 +785,18 @@ export default function ProgramDetail() {
           style={[
             styles.actionButton,
             isJoined ? styles.leaveButton : styles.joinButton,
-            joining && styles.disabledButton,
+            (joining || !canJoinOrLeave()) && styles.disabledButton,
           ]}
           onPress={isJoined ? handleLeaveProgram : handleJoinProgram}
-          disabled={joining}
+          disabled={joining || !canJoinOrLeave()}
         >
           {joining ? (
             <Text style={styles.actionButtonText}>
               {t("program.detail.loading")}
+            </Text>
+          ) : !canJoinOrLeave() ? (
+            <Text style={styles.actionButtonText}>
+              {t("program.detail.programNotActive")}
             </Text>
           ) : (
             <>
@@ -690,7 +805,11 @@ export default function ProgramDetail() {
                 size={20}
                 color={isJoined ? "#FF3B30" : "#FFFFFF"}
               />
-              <Text style={styles.actionButtonText}>
+              <Text
+                style={
+                  isJoined ? styles.leaveButtonText : styles.joinButtonText
+                }
+              >
                 {isJoined
                   ? t("program.detail.leaveProgram")
                   : t("program.detail.joinProgram")}
@@ -706,10 +825,28 @@ export default function ProgramDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#F8FAFC",
+  },
+  content: {
+    flex: 1,
+  },
+  heroSection: {
+    backgroundColor: "#FFFFFF",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 20,
   },
   imageContainer: {
     position: "relative",
-    height: 200,
+    height: 220,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    overflow: "hidden",
   },
   programImage: {
     width: "100%",
@@ -721,163 +858,230 @@ const styles = StyleSheet.create({
     right: 16,
   },
   statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
   },
   statusText: {
     color: "#FFFFFF",
     fontSize: 12,
     fontWeight: "600",
   },
-  statusBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  content: {
+  programHeader: {
     padding: 20,
   },
-  headerSection: {
-    marginBottom: 24,
+  titleSection: {
+    marginBottom: 16,
   },
   programTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "700",
     color: "#181A3D",
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 34,
   },
   categoryContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
+  categoryBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F0F9FF",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E0F2FE",
+  },
   categoryText: {
     fontSize: 14,
     color: "#007AFF",
-    marginLeft: 4,
-    fontWeight: "500",
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+  quickStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  statItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: "#E2E8F0",
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#181A3D",
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#6B7280",
+    textAlign: "center",
+  },
+  mainContent: {
+    paddingHorizontal: 20,
   },
   section: {
     marginBottom: 24,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    gap: 12,
+  },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
     color: "#181A3D",
-    marginBottom: 12,
+  },
+  descriptionCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   descriptionText: {
     fontSize: 16,
     color: "#374151",
     lineHeight: 24,
   },
+  scheduleCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   infoRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  infoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F0F9FF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
   },
   infoContent: {
     flex: 1,
-    marginLeft: 12,
   },
   infoLabel: {
     fontSize: 14,
     color: "#6B7280",
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: "500",
   },
   infoValue: {
     fontSize: 16,
     color: "#181A3D",
-    fontWeight: "500",
+    fontWeight: "600",
+    lineHeight: 22,
   },
   hostCard: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   hostAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#E3F2FD",
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 16,
   },
   hostInfo: {
     flex: 1,
-    marginLeft: 12,
+    justifyContent: "center",
   },
   hostName: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#181A3D",
-    marginBottom: 2,
-  },
-  hostRole: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 2,
-  },
-  hostEmail: {
-    fontSize: 14,
-    color: "#007AFF",
-    marginTop: 2,
-  },
-  meetLink: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  meetLinkText: {
-    fontSize: 14,
-    color: "#007AFF",
-    marginLeft: 4,
-    textDecorationLine: "underline",
-  },
-  surveyCard: {
-    backgroundColor: "#F8FAFC",
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    marginBottom: 16,
-  },
-  surveyTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
     color: "#181A3D",
     marginBottom: 4,
   },
-  surveyDescription: {
-    fontSize: 14,
-    color: "#374151",
-    marginBottom: 12,
-  },
-  surveyDetails: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  surveyDetail: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  surveyDetailText: {
+  hostRole: {
     fontSize: 14,
     color: "#6B7280",
-    marginLeft: 4,
+    marginBottom: 4,
+    fontWeight: "500",
+  },
+  hostEmail: {
+    fontSize: 14,
+    color: "#007AFF",
+    fontWeight: "500",
+  },
+  surveyCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  surveyInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  surveyRequired: {
+    fontSize: 16,
+    color: "#374151",
+    fontWeight: "500",
   },
   surveyProgressContainer: {
-    marginTop: 16,
-    marginBottom: 24,
+    gap: 16,
   },
   surveyBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    gap: 6,
   },
   surveyBadgeText: {
     fontSize: 12,
@@ -888,67 +1092,106 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  statusBadgeText: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "600",
   },
   surveyResults: {
-    marginTop: 8,
+    marginTop: 12,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
   },
   resultRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    marginBottom: 8,
   },
   resultLabel: {
     fontSize: 14,
     color: "#6B7280",
+    fontWeight: "500",
   },
   resultValue: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#181A3D",
   },
   resultDescription: {
     fontSize: 14,
     color: "#6B7280",
-    marginTop: 4,
+    marginTop: 8,
     lineHeight: 20,
+    fontStyle: "italic",
   },
   finalScoreCard: {
-    backgroundColor: "#F8FAFC",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    padding: 24,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#E2E8F0",
     alignItems: "center",
-    marginTop: 24,
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  finalScoreTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#181A3D",
-    marginBottom: 8,
-  },
-  finalScoreValue: {
-    fontSize: 36,
-    fontWeight: "700",
-    color: "#34C759",
-  },
-  participantsInfo: {
-    backgroundColor: "#F8FAFC",
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  participantCount: {
+  finalScoreHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 12,
+    gap: 8,
+  },
+  finalScoreTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#181A3D",
+  },
+  finalScoreValue: {
+    fontSize: 48,
+    fontWeight: "700",
+    color: "#34C759",
+  },
+  participantsCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  participantsHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  participantCount: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  participantNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#007AFF",
   },
   participantText: {
-    fontSize: 16,
-    color: "#181A3D",
-    marginLeft: 8,
+    fontSize: 18,
+    color: "#6B7280",
+    marginLeft: 4,
+  },
+  participantLabel: {
+    fontSize: 14,
+    color: "#6B7280",
     fontWeight: "500",
   },
   progressBar: {
@@ -960,48 +1203,66 @@ const styles = StyleSheet.create({
   progressFill: {
     height: "100%",
     backgroundColor: "#34C759",
+    borderRadius: 4,
   },
   studentStatusCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    padding: 20,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    marginTop: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+    flexWrap: "nowrap",
   },
   studentStatusBadge: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   studentStatusText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "500",
     color: "#FFFFFF",
   },
   joinDate: {
+    flex: 1,
     fontSize: 14,
     color: "#6B7280",
-    marginLeft: 12,
+    marginLeft: 16,
+    fontWeight: "500",
   },
   actionContainer: {
     padding: 20,
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
+    paddingVertical: 18,
+    borderRadius: 16,
+    gap: 10,
   },
   joinButton: {
     backgroundColor: "#007AFF",
+    shadowColor: "#007AFF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   leaveButton: {
     backgroundColor: "#FFE5E5",
@@ -1010,6 +1271,17 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
+    backgroundColor: "#E2E8F0",
+  },
+  joinButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  leaveButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FF3B30",
   },
   actionButtonText: {
     fontSize: 16,

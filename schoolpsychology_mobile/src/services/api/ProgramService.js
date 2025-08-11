@@ -52,13 +52,13 @@ export const joinProgram = async (programId) => {
 };
 
 // Leave a program
-export const leaveProgram = async (programId) => {
+export const leaveProgram = async (programId, studentId) => {
   try {
     if (!programId) {
       throw new Error("Program ID is required");
     }
-    const response = await api.delete(
-      `/api/v1/support-programs/participants/unregister?programId=${programId}`
+    const response = await api.post(
+      `/api/v1/support-programs/participants/unregister?supportProgramId=${programId}&studentId=${studentId}`
     );
     return response.data;
   } catch (error) {

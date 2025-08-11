@@ -298,9 +298,10 @@ export default function StudentHome({ user, navigation }) {
             {/* Featured Program Banner */}
             <View style={styles.featuredProgramBanner}>
               <View style={styles.bannerContent}>
+                {/* Header with badge and icon */}
                 <View style={styles.bannerHeader}>
                   <View style={styles.bannerIconContainer}>
-                    <MaterialIcons name="star" size={20} color="#F59E0B" />
+                    <MaterialIcons name="star" size={24} color="#F59E0B" />
                   </View>
                   <View style={styles.bannerBadge}>
                     <Text style={styles.bannerBadgeText}>
@@ -308,58 +309,64 @@ export default function StudentHome({ user, navigation }) {
                     </Text>
                   </View>
                 </View>
-                <Text style={styles.bannerTitle} numberOfLines={2}>
-                  {recommandedPrograms[0]?.title ||
-                    "Career Development Workshop"}
-                </Text>
-                <Text style={styles.bannerDescription} numberOfLines={2}>
-                  {recommandedPrograms[0]?.description ||
-                    t("home.recommendedPrograms.defaultDescription")}
-                </Text>
-                <View style={styles.bannerFooter}>
-                  <View style={styles.bannerStats}>
-                    <View style={styles.statItem}>
+
+                {/* Main content */}
+                <View style={styles.bannerMainContent}>
+                  <Text style={styles.bannerTitle} numberOfLines={2}>
+                    {recommandedPrograms[0]?.title ||
+                      "Career Development Workshop"}
+                  </Text>
+                  <Text style={styles.bannerDescription} numberOfLines={3}>
+                    {recommandedPrograms[0]?.description ||
+                      t("home.recommendedPrograms.defaultDescription")}
+                  </Text>
+                </View>
+
+                {/* Stats section */}
+                <View style={styles.bannerStatsContainer}>
+                  <View style={styles.statItem}>
+                    <View style={styles.statIconWrapper}>
                       <Ionicons
                         name="people-outline"
-                        size={14}
+                        size={16}
                         color="#6B7280"
                       />
-                      <Text style={styles.statText}>
-                        {t("home.recommendedPrograms.enrolled", {
-                          count: recommandedPrograms[0]?.participants ?? 0,
-                        })}
-                      </Text>
                     </View>
-                    <View style={styles.statItem}>
-                      <Ionicons name="time-outline" size={14} color="#6B7280" />
-                      <Text style={styles.statText}>
-                        {dayjs(recommandedPrograms[0]?.startDate).format(
-                          "DD/MM/YYYY"
-                        )}
-                      </Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.bannerButton}
-                    onPress={() => {
-                      navigation.navigate("Program", {
-                        screen: "ProgramDetail",
-                        params: {
-                          programId: recommandedPrograms[0]?.id,
-                        },
-                      });
-                    }}
-                  >
-                    <Text style={styles.bannerButtonText}>
-                      {t("home.recommendedPrograms.learnMore")}
+                    <Text style={styles.statText}>
+                      {t("home.recommendedPrograms.enrolled", {
+                        count: recommandedPrograms[0]?.participants ?? 0,
+                      })}
                     </Text>
-                  </TouchableOpacity>
+                  </View>
+                  <View style={styles.statItem}>
+                    <View style={styles.statIconWrapper}>
+                      <Ionicons name="time-outline" size={16} color="#6B7280" />
+                    </View>
+                    <Text style={styles.statText}>
+                      {dayjs(recommandedPrograms[0]?.startDate).format(
+                        "DD/MM/YYYY"
+                      )}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.bannerImageContainer}>
-                <View style={styles.bannerImagePlaceholder}>
-                  <MaterialIcons name="school" size={32} color="#F59E0B" />
-                </View>
+
+                {/* CTA Button */}
+                <TouchableOpacity
+                  style={styles.bannerButton}
+                  onPress={() => {
+                    navigation.navigate("Program", {
+                      screen: "ProgramDetail",
+                      params: {
+                        programId: recommandedPrograms[0]?.id,
+                      },
+                    });
+                  }}
+                >
+                  <Text style={styles.bannerButtonText}>
+                    {t("home.recommendedPrograms.learnMore")}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -912,13 +919,17 @@ const styles = StyleSheet.create({
   },
   // New styles for Recommended Programs section
   featuredProgramBanner: {
-    flexDirection: "row",
-    backgroundColor: "#FEF3C7",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
-    alignItems: "center",
-    gap: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
   },
   bannerContent: {
     flex: 1,
@@ -926,87 +937,101 @@ const styles = StyleSheet.create({
   bannerHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    marginBottom: 8,
+    gap: 12,
+    marginBottom: 16,
   },
   bannerIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFFBEB",
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(245, 158, 11, 0.1)",
     justifyContent: "center",
     alignItems: "center",
   },
   bannerBadge: {
-    backgroundColor: "#FDE68A",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
   },
   bannerBadgeText: {
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#92400E",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  bannerMainContent: {
+    marginBottom: 20,
   },
   bannerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
-    marginBottom: 4,
-    lineHeight: 24,
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#111827",
+    marginBottom: 8,
+    lineHeight: 28,
+    letterSpacing: -0.5,
   },
   bannerDescription: {
-    fontSize: 14,
-    color: "#6B7280",
-    marginBottom: 16,
-    lineHeight: 20,
+    fontSize: 15,
+    color: "#4B5563",
+    lineHeight: 22,
+    fontWeight: "400",
   },
-  bannerFooter: {
+  bannerStatsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 16,
-  },
-  bannerStats: {
-    flexDirection: "row",
-    gap: 16,
+    gap: 20,
+    marginBottom: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
   },
   statItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 8,
+    flex: 1,
+  },
+  statIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#E0F2FE",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#BAE6FD",
   },
   statText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
+    fontSize: 13,
+    color: "#374151",
+    fontWeight: "600",
+    flex: 1,
   },
   bannerButton: {
     backgroundColor: "#F59E0B",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#F59E0B",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   bannerButtonText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
     color: "#FFFFFF",
-  },
-  bannerImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
-    backgroundColor: "#FDE68A",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bannerImagePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#FFFBEB",
-    justifyContent: "center",
-    alignItems: "center",
+    letterSpacing: 0.5,
   },
   categoryBadge: {
     backgroundColor: "#E0F2FE",

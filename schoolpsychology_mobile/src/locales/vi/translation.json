@@ -40,8 +40,8 @@
     "mentalHealth": {
       "survey": {
         "title": "Thống kê Khảo sát",
-        "active": "Khảo sát Đang hoạt động",
-        "activeSubtitle": "Đang hoạt động",
+        "active": "Khảo sát đang được mở",
+        "activeSubtitle": "Đang được thực hiện",
         "completed": "Khảo sát Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
         "skips": "Khảo sát Bỏ qua",
@@ -51,7 +51,7 @@
       },
       "appointment": {
         "title": "Thống kê Lịch hẹn",
-        "active": "Lịch hẹn Đang hoạt động",
+        "active": "Lịch hẹn đang được mở",
         "activeSubtitle": "Đã lên lịch",
         "completed": "Lịch hẹn Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
@@ -62,7 +62,7 @@
       },
       "program": {
         "title": "Thống kê Chương trình",
-        "active": "Chương trình Đang hoạt động",
+        "active": "Chương trình đang được mở",
         "activeSubtitle": "Đang tham gia",
         "completed": "Chương trình Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
@@ -338,7 +338,7 @@
       "defaultDescription": "Nâng cao kỹ năng của bạn với chương trình đào tạo toàn diện",
       "enrolled": "{{count}} người tham gia",
       "learnMore": "Xem chi tiết",
-      "active": "Đang hoạt động",
+      "active": "Đang được mở",
       "professional": "Chuyên môn",
       "untitled": "Chương trình chưa đặt tên",
       "noDescription": "Chưa có mô tả",
@@ -385,6 +385,7 @@
       "recurring": "Định kỳ",
       "oneTime": "Một lần",
       "joinProgram": "Tham gia chương trình",
+      "joinedAt": "Tham gia lúc",
       "leaveProgram": "Rời chương trình",
       "loading": "Đang tải...",
       "programNotFound": "Không tìm thấy chương trình",
@@ -396,8 +397,12 @@
       "leaveConfirmMessage": "Bạn có chắc chắn muốn rời chương trình này?",
       "cancel": "Hủy",
       "leave": "Rời",
+      "cannotJoinInactive": "Không thể tham gia chương trình. Chương trình không hoạt động.",
+      "cannotLeaveInactive": "Không thể rời chương trình. Chương trình không hoạt động.",
+      "programNotActive": "Chương trình không hoạt động",
+      "yourStatus": "Trạng thái của bạn",
       "status": {
-        "active": "Đang hoạt động",
+        "active": "Đang được mở",
         "onGoing": "Đang diễn ra",
         "completed": "Đã hoàn thành"
       },

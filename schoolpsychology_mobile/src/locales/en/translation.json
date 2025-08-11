@@ -390,6 +390,7 @@
       "recurring": "Recurring",
       "oneTime": "One-time",
       "joinProgram": "Join Program",
+      "joinedAt": "Joined at",
       "leaveProgram": "Leave Program",
       "loading": "Loading...",
       "programNotFound": "Program not found",
@@ -401,6 +402,10 @@
       "leaveConfirmMessage": "Are you sure you want to leave this program?",
       "cancel": "Cancel",
       "leave": "Leave",
+      "cannotJoinInactive": "Cannot join program. Program is not active.",
+      "cannotLeaveInactive": "Cannot leave program. Program is not active.",
+      "programNotActive": "Program Not Active",
+      "yourStatus": "Your Status",
       "status": {
         "active": "Active",
         "onGoing": "Ongoing",
