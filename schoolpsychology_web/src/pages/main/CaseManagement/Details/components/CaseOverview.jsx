@@ -29,7 +29,6 @@ const { Title, Text, Paragraph } = Typography
 
 const CaseOverview = ({ caseInfo, _statistics }) => {
   const { t } = useTranslation()
-
   const formatDate = dateString => {
     return dayjs(dateString).format('DD/MM/YYYY')
   }
@@ -60,7 +59,7 @@ const CaseOverview = ({ caseInfo, _statistics }) => {
   }
 
   return (
-    <div>
+    <>
       <Row gutter={[24, 24]}>
         {/* Basic Case Information */}
         <Col xs={24} lg={14}>
@@ -193,7 +192,6 @@ const CaseOverview = ({ caseInfo, _statistics }) => {
           </Card>
         </Col>
       </Row>
-
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         {/* Student Information */}
         <Col xs={24} lg={12}>
@@ -336,7 +334,7 @@ const CaseOverview = ({ caseInfo, _statistics }) => {
           </Space>
         </Col>
       </Row>
-    </div>
+    </>
   )
 }
 

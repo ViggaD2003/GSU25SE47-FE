@@ -178,6 +178,7 @@ const UserTable = ({
           <Space>
             <Tooltip title={t('userTable.viewDetails')}>
               <Button
+                type="link"
                 icon={<EyeOutlined />}
                 size="small"
                 onClick={() => onView(record)}
@@ -186,6 +187,7 @@ const UserTable = ({
             {user?.role === 'teacher' && !record.hasActiveCases && (
               <Tooltip title={t('userTable.createCase')}>
                 <Button
+                  type="link"
                   icon={<PlusCircleOutlined />}
                   danger
                   size="small"

@@ -41,6 +41,7 @@ import { CaseOverview, CaseStatistics, CaseCharts } from './components'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAuth } from '@/contexts/AuthContext'
 import { getCaseById } from '@/store/actions'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -49,6 +50,7 @@ const CaseDetails = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { user } = useAuth()
+  const { isDarkMode } = useTheme()
   const {
     currentCase: caseData,
     loading: caseLoading,
@@ -269,7 +271,7 @@ const CaseDetails = () => {
     <div
       style={{
         padding: '24px',
-        backgroundColor: '#f0f2f5',
+        backgroundColor: isDarkMode ? '#1a1a1a' : '#f0f2f5',
         minHeight: '100vh',
       }}
     >

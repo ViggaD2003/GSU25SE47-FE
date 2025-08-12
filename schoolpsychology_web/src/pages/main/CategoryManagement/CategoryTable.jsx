@@ -163,11 +163,10 @@ const CategoryTable = ({
         <Space size="small">
           <Tooltip title={t('categoryManagement.table.viewDetails')}>
             <Button
-              type="text"
+              type="link"
               icon={<EyeOutlined />}
               size="small"
               onClick={() => onView && onView(record)}
-              className="text-blue-500 hover:text-blue-700"
             />
           </Tooltip>
           {/* <Tooltip title={t('categoryManagement.table.edit')}>
@@ -205,7 +204,6 @@ const CategoryTable = ({
       onChange={onChange}
       scroll={{ x: 1400 }}
       size="middle"
-      rowClassName="hover:bg-gray-50"
       // summary={() => (
       //   <Table.Summary.Row>
       //     <Table.Summary.Cell index={0}>

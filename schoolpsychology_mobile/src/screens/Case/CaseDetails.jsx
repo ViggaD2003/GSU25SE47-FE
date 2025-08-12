@@ -536,7 +536,7 @@ const CaseDetails = ({ route, navigation }) => {
   return (
     <Container>
       {from === "tab" ? (
-        <HeaderWithTab title={headerTitle} subtitle={subTitle} />
+        <HeaderWithTab title={t("case.tab.title")} subtitle={t} />
       ) : (
         <HeaderWithoutTab
           title={headerTitle}

@@ -158,8 +158,8 @@ const ClassTable = ({
       onChange={onChange}
       scroll={{ x: 1200, ...(isSmallScreen ? {} : { y: 400 }) }}
       size="middle"
-      className="class-table"
-      rowClassName="hover:bg-gray-50"
+      // className="class-table"
+      // rowClassName="hover:bg-gray-50"
     />
   )
 }
