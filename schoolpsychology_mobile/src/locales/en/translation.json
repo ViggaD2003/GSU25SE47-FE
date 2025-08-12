@@ -393,6 +393,19 @@
         "title": "No plans for today",
         "description": "You're all caught up! Check back later for new activities."
       }
+    },
+    "alerts": {
+      "surveyDisabled": {
+        "title": "Survey has been disabled",
+        "description": {
+          "student": "This feature has been turned off or is no longer effective at the current time.",
+          "other": "Please re-enable in settings if you want students to continue using it."
+        }
+      },
+      "caseCreated": {
+        "title": "You have been assigned a case by your homeroom teacher",
+        "description": "Please contact a counselor for support."
+      }
     }
   },
   "program": {

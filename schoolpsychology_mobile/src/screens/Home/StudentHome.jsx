@@ -223,6 +223,8 @@ export default function StudentHome({ user, navigation }) {
     return <Loading />;
   }
 
+  console.log("user", user);
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -235,12 +237,21 @@ export default function StudentHome({ user, navigation }) {
       {!isEnableSurvey && (
         <Alert
           type="warning"
-          title={"Khảo sát hiện đã bị vô hiệu hóa"}
+          title={t("home.alerts.surveyDisabled.title")}
           description={
             user.role === "STUDENT"
-              ? "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại."
-              : "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+              ? t("home.alerts.surveyDisabled.description.student")
+              : t("home.alerts.surveyDisabled.description.other")
           }
+          showCloseButton={false}
+        />
+      )}
+
+      {user?.caseId && (
+        <Alert
+          type="info"
+          title={t("home.alerts.caseCreated.title")}
+          description={t("home.alerts.caseCreated.description")}
           showCloseButton={false}
         />
       )}
@@ -267,181 +278,194 @@ export default function StudentHome({ user, navigation }) {
       </View>
 
       {/* Recommended Programs */}
-      <View style={styles.sectionContainer}>
-        <View style={styles.headerContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>
-              {t("home.recommendedPrograms.title")}
-            </Text>
-            <View style={styles.programCountContainer}>
-              <Text style={styles.programCountText}>
-                {t("home.recommendedPrograms.available", {
-                  count: recommandedPrograms.length,
-                })}
+      {user?.role === "STUDENT" && !user?.caseId && (
+        <View style={styles.sectionContainer}>
+          <View style={styles.headerContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                {t("home.recommendedPrograms.title")}
               </Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.viewAllContainer}
-            onPress={() => {
-              navigation.navigate("Program");
-            }}
-          >
-            <Text style={styles.viewAllText}>
-              {t("home.recommendedPrograms.viewAll")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {recommandedPrograms.length > 0 ? (
-          <>
-            {/* Featured Program Banner */}
-            <View style={styles.featuredProgramBanner}>
-              <View style={styles.bannerContent}>
-                {/* Header with badge and icon */}
-                <View style={styles.bannerHeader}>
-                  <View style={styles.bannerIconContainer}>
-                    <MaterialIcons name="star" size={24} color="#F59E0B" />
-                  </View>
-                  <View style={styles.bannerBadge}>
-                    <Text style={styles.bannerBadgeText}>
-                      {t("home.recommendedPrograms.featured")}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Main content */}
-                <View style={styles.bannerMainContent}>
-                  <Text style={styles.bannerTitle} numberOfLines={2}>
-                    {recommandedPrograms[0]?.title ||
-                      "Career Development Workshop"}
-                  </Text>
-                  <Text style={styles.bannerDescription} numberOfLines={3}>
-                    {recommandedPrograms[0]?.description ||
-                      t("home.recommendedPrograms.defaultDescription")}
-                  </Text>
-                </View>
-
-                {/* Stats section */}
-                <View style={styles.bannerStatsContainer}>
-                  <View style={styles.statItem}>
-                    <View style={styles.statIconWrapper}>
-                      <Ionicons
-                        name="people-outline"
-                        size={16}
-                        color="#6B7280"
-                      />
-                    </View>
-                    <Text style={styles.statText}>
-                      {t("home.recommendedPrograms.enrolled", {
-                        count: recommandedPrograms[0]?.participants ?? 0,
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <View style={styles.statIconWrapper}>
-                      <Ionicons name="time-outline" size={16} color="#6B7280" />
-                    </View>
-                    <Text style={styles.statText}>
-                      {dayjs(recommandedPrograms[0]?.startDate).format(
-                        "DD/MM/YYYY"
-                      )}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* CTA Button */}
-                <TouchableOpacity
-                  style={styles.bannerButton}
-                  onPress={() => {
-                    navigation.navigate("Program", {
-                      screen: "ProgramDetail",
-                      params: {
-                        programId: recommandedPrograms[0]?.id,
-                      },
-                    });
-                  }}
-                >
-                  <Text style={styles.bannerButtonText}>
-                    {t("home.recommendedPrograms.learnMore")}
-                  </Text>
-                  <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
-                </TouchableOpacity>
+              <View style={styles.programCountContainer}>
+                <Text style={styles.programCountText}>
+                  {t("home.recommendedPrograms.available", {
+                    count: recommandedPrograms.length,
+                  })}
+                </Text>
               </View>
             </View>
-
-            {/* Program Cards */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.programScrollContainer}
+            <TouchableOpacity
+              style={styles.viewAllContainer}
+              onPress={() => {
+                navigation.navigate("Program");
+              }}
             >
-              {recommandedPrograms.slice(1, 4).map((program, index) => (
-                <TouchableOpacity
-                  key={program.id || index}
-                  style={styles.programCard}
-                  onPress={() => {
-                    navigation.navigate("Program", {
-                      screen: "ProgramDetail",
-                      params: {
-                        programId: program.id,
-                      },
-                    });
-                  }}
-                >
-                  <View style={styles.programHeader}>
-                    <View style={styles.programIconContainer}>
-                      <MaterialIcons name="school" size={20} color="#F59E0B" />
+              <Text style={styles.viewAllText}>
+                {t("home.recommendedPrograms.viewAll")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {recommandedPrograms.length > 0 ? (
+            <>
+              {/* Featured Program Banner */}
+              <View style={styles.featuredProgramBanner}>
+                <View style={styles.bannerContent}>
+                  {/* Header with badge and icon */}
+                  <View style={styles.bannerHeader}>
+                    <View style={styles.bannerIconContainer}>
+                      <MaterialIcons name="star" size={24} color="#F59E0B" />
                     </View>
-                    <View style={styles.programStatus}>
-                      <Text style={styles.programStatusText}>
-                        {t("home.recommendedPrograms.active")}
+                    <View style={styles.bannerBadge}>
+                      <Text style={styles.bannerBadgeText}>
+                        {t("home.recommendedPrograms.featured")}
                       </Text>
                     </View>
                   </View>
 
-                  {/* Category Badge */}
-                  <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryText}>
-                      {program.category?.name ||
-                        t("home.recommendedPrograms.professional")}
+                  {/* Main content */}
+                  <View style={styles.bannerMainContent}>
+                    <Text style={styles.bannerTitle} numberOfLines={2}>
+                      {recommandedPrograms[0]?.title ||
+                        "Career Development Workshop"}
+                    </Text>
+                    <Text style={styles.bannerDescription} numberOfLines={3}>
+                      {recommandedPrograms[0]?.description ||
+                        t("home.recommendedPrograms.defaultDescription")}
                     </Text>
                   </View>
 
-                  <Text style={styles.programTitle} numberOfLines={2}>
-                    {program.title ||
-                      program.name ||
-                      t("home.recommendedPrograms.untitled")}
-                  </Text>
-                  <Text style={styles.programDescription} numberOfLines={2}>
-                    {program.description ||
-                      t("home.recommendedPrograms.noDescription")}
-                  </Text>
-
-                  {/* Progress Bar */}
-                  <View style={styles.progressContainer}>
-                    <View style={styles.progressBar}>
-                      <View
-                        style={[
-                          styles.progressFill,
-                          { width: `${(program.participants ?? 0) * 100}%` },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.progressText}>
-                      {t("home.recommendedPrograms.participants")}
-                    </Text>
-                  </View>
-
-                  <View style={styles.programFooter}>
-                    <View style={styles.programDuration}>
-                      <Ionicons name="time-outline" size={14} color="#6B7280" />
-                      <Text style={styles.programDurationText}>
-                        {program.duration ||
-                          t("home.recommendedPrograms.flexible")}
+                  {/* Stats section */}
+                  <View style={styles.bannerStatsContainer}>
+                    <View style={styles.statItem}>
+                      <View style={styles.statIconWrapper}>
+                        <Ionicons
+                          name="people-outline"
+                          size={16}
+                          color="#6B7280"
+                        />
+                      </View>
+                      <Text style={styles.statText}>
+                        {t("home.recommendedPrograms.enrolled", {
+                          count: recommandedPrograms[0]?.participants ?? 0,
+                        })}
                       </Text>
                     </View>
-                    {/* <TouchableOpacity
+                    <View style={styles.statItem}>
+                      <View style={styles.statIconWrapper}>
+                        <Ionicons
+                          name="time-outline"
+                          size={16}
+                          color="#6B7280"
+                        />
+                      </View>
+                      <Text style={styles.statText}>
+                        {dayjs(recommandedPrograms[0]?.startDate).format(
+                          "DD/MM/YYYY"
+                        )}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* CTA Button */}
+                  <TouchableOpacity
+                    style={styles.bannerButton}
+                    onPress={() => {
+                      navigation.navigate("Program", {
+                        screen: "ProgramDetail",
+                        params: {
+                          programId: recommandedPrograms[0]?.id,
+                        },
+                      });
+                    }}
+                  >
+                    <Text style={styles.bannerButtonText}>
+                      {t("home.recommendedPrograms.learnMore")}
+                    </Text>
+                    <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Program Cards */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.programScrollContainer}
+              >
+                {recommandedPrograms.slice(1, 4).map((program, index) => (
+                  <TouchableOpacity
+                    key={program.id || index}
+                    style={styles.programCard}
+                    onPress={() => {
+                      navigation.navigate("Program", {
+                        screen: "ProgramDetail",
+                        params: {
+                          programId: program.id,
+                        },
+                      });
+                    }}
+                  >
+                    <View style={styles.programHeader}>
+                      <View style={styles.programIconContainer}>
+                        <MaterialIcons
+                          name="school"
+                          size={20}
+                          color="#F59E0B"
+                        />
+                      </View>
+                      <View style={styles.programStatus}>
+                        <Text style={styles.programStatusText}>
+                          {t("home.recommendedPrograms.active")}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Category Badge */}
+                    <View style={styles.categoryBadge}>
+                      <Text style={styles.categoryText}>
+                        {program.category?.name ||
+                          t("home.recommendedPrograms.professional")}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.programTitle} numberOfLines={2}>
+                      {program.title ||
+                        program.name ||
+                        t("home.recommendedPrograms.untitled")}
+                    </Text>
+                    <Text style={styles.programDescription} numberOfLines={2}>
+                      {program.description ||
+                        t("home.recommendedPrograms.noDescription")}
+                    </Text>
+
+                    {/* Progress Bar */}
+                    <View style={styles.progressContainer}>
+                      <View style={styles.progressBar}>
+                        <View
+                          style={[
+                            styles.progressFill,
+                            { width: `${(program.participants ?? 0) * 100}%` },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.progressText}>
+                        {t("home.recommendedPrograms.participants")}
+                      </Text>
+                    </View>
+
+                    <View style={styles.programFooter}>
+                      <View style={styles.programDuration}>
+                        <Ionicons
+                          name="time-outline"
+                          size={14}
+                          color="#6B7280"
+                        />
+                        <Text style={styles.programDurationText}>
+                          {program.duration ||
+                            t("home.recommendedPrograms.flexible")}
+                        </Text>
+                      </View>
+                      {/* <TouchableOpacity
                       style={styles.joinButton}
                       onPress={() => {
                         joinProgram(program.id);
@@ -449,13 +473,13 @@ export default function StudentHome({ user, navigation }) {
                     >
                       <Text style={styles.joinButtonText}>Join</Text>
                     </TouchableOpacity> */}
-                  </View>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
-            {/* Quick Stats */}
-            {/* <View style={styles.programStats}>
+              {/* Quick Stats */}
+              {/* <View style={styles.programStats}>
               <View style={styles.statCard}>
                 <View style={styles.statIconContainer}>
                   <MaterialIcons name="trending-up" size={20} color="#10B981" />
@@ -484,26 +508,27 @@ export default function StudentHome({ user, navigation }) {
                 </View>
               </View>
             </View> */}
-          </>
-        ) : (
-          <View style={styles.programEmptyContainer}>
-            <View style={styles.programEmptyIconContainer}>
-              <MaterialIcons name="school" size={48} color="#9CA3AF" />
-            </View>
-            <Text style={styles.programEmptyText}>
-              {t("home.recommendedPrograms.empty.title")}
-            </Text>
-            <Text style={styles.programEmptySubText}>
-              {t("home.recommendedPrograms.empty.description")}
-            </Text>
-            {/* <TouchableOpacity style={styles.programEmptyButton}>
+            </>
+          ) : (
+            <View style={styles.programEmptyContainer}>
+              <View style={styles.programEmptyIconContainer}>
+                <MaterialIcons name="school" size={48} color="#9CA3AF" />
+              </View>
+              <Text style={styles.programEmptyText}>
+                {t("home.recommendedPrograms.empty.title")}
+              </Text>
+              <Text style={styles.programEmptySubText}>
+                {t("home.recommendedPrograms.empty.description")}
+              </Text>
+              {/* <TouchableOpacity style={styles.programEmptyButton}>
               <Text style={styles.programEmptyButtonText}>
                 {t("home.recommendedPrograms.browseAll")}
               </Text>
             </TouchableOpacity> */}
-          </View>
-        )}
-      </View>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Plan for today */}
       <View style={[styles.sectionContainer]}>

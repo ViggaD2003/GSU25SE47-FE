@@ -388,6 +388,19 @@
         "title": "Hôm nay không có kế hoạch",
         "description": "Bạn đã hoàn thành mọi việc! Quay lại sau để xem hoạt động mới."
       }
+    },
+    "alerts": {
+      "surveyDisabled": {
+        "title": "Khảo sát hiện đã bị vô hiệu hóa",
+        "description": {
+          "student": "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại.",
+          "other": "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+        }
+      },
+      "caseCreated": {
+        "title": "Bạn đã được GVCN tạo trường hợp để theo dõi",
+        "description": "Vui lòng liên hệ với tư vấn viên để được hỗ trợ."
+      }
     }
   },
   "program": {

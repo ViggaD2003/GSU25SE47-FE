@@ -188,5 +188,5 @@ export const formatEnumDisplay = value => {
 }
 
 export const getSurveyTypePermissions = userRole => {
-  return SURVEY_TYPE_PERMISSIONS[userRole] || []
+  return SURVEY_TYPE_PERMISSIONS[String(userRole).toLowerCase()] || []
 }
