@@ -52,16 +52,12 @@ export const caseAPI = {
   updateCase: async (caseId, caseData) => {
     if (!caseId || !caseData) return
     const requestBody = {
-      title: caseData.title,
-      description: caseData.description,
+      status: caseData.status ?? 'IN_PROGRESS',
       priority: caseData.priority,
       progressTrend: caseData.progressTrend,
-      studentId: caseData.studentId,
-      createBy: caseData.createBy,
       currentLevelId: caseData.currentLevelId,
-      initialLevelId: caseData.initialLevelId,
-      hostBy: caseData.hostBy,
     }
+    console.log(requestBody)
     const response = await api.put(`/api/v1/cases/${caseId}`, requestBody)
     return response.data
   },
@@ -77,7 +73,6 @@ export const caseAPI = {
     )
     return response.data
   },
-
   removeCasesFromSurvey: async data => {
     if (!data) return
     const params = {

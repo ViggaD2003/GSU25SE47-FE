@@ -200,8 +200,8 @@ export const WebSocketProvider = ({ children }) => {
         const body = {
           title,
           content,
-          notificationType,
           username,
+          notificationType,
           relatedEntityId,
         }
         stompClientRef.current.send(destination, {}, JSON.stringify(body))

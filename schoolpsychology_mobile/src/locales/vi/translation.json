@@ -96,6 +96,10 @@
     "followUp": "Theo dõi",
     "followUpSubtitle": "Theo dõi tiến độ và cập nhật case",
     "empty": "Không có dữ liệu",
+    "tab": {
+      "title": "Quản lý Case",
+      "subtitle": "Quản lý và theo dõi các case"
+    },
     "closedCases": {
       "title": "Cases đã đóng",
       "subtitle": "Xem chi tiết các case đã đóng"

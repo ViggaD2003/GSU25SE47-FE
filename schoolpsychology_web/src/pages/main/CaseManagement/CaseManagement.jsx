@@ -396,6 +396,25 @@ const CaseManagement = () => {
   const columns = useMemo(
     () => [
       {
+        title: t('caseManagement.table.student'),
+        dataIndex: 'student',
+        key: 'student',
+        render: student => (
+          <div>
+            <div className="font-medium flex items-center">
+              <UserOutlined className="mr-1" />
+              {student?.fullName}
+            </div>
+            <div className="text-xs text-gray-500">
+              {t('caseManagement.table.studentCode')}: {student?.studentCode}
+            </div>
+            <div className="text-xs text-gray-500">
+              {student?.classDto?.codeClass} - {student?.classDto?.schoolYear}
+            </div>
+          </div>
+        ),
+      },
+      {
         title: t('caseManagement.table.title'),
         dataIndex: 'title',
         key: 'title',
@@ -484,43 +503,6 @@ const CaseManagement = () => {
         },
       },
       {
-        title: t('caseManagement.table.student'),
-        dataIndex: 'student',
-        key: 'student',
-        render: student => (
-          <div>
-            <div className="font-medium flex items-center">
-              <UserOutlined className="mr-1" />
-              {student?.fullName}
-            </div>
-            <div className="text-xs text-gray-500">
-              {t('caseManagement.table.studentCode')}: {student?.studentCode}
-            </div>
-            <div className="text-xs text-gray-500">
-              {student?.classDto?.codeClass} - {student?.classDto?.schoolYear}
-            </div>
-          </div>
-        ),
-      },
-      {
-        title: t('caseManagement.table.createBy'),
-        dataIndex: 'createBy',
-        key: 'createBy',
-        render: createBy => (
-          <div>
-            <div className="font-medium flex items-center">
-              <UserOutlined className="mr-1" />
-              {createBy?.fullName}
-            </div>
-            <div className="text-xs text-gray-500">
-              {createBy?.teacherCode &&
-                `${t('caseManagement.table.teacherCode')}: ${createBy.teacherCode}`}
-            </div>
-          </div>
-        ),
-        hidden: user?.role === 'teacher',
-      },
-      {
         title: t('caseManagement.table.hostBy'),
         dataIndex: 'counselor',
         key: 'counselor',
@@ -563,6 +545,24 @@ const CaseManagement = () => {
         ),
       },
       {
+        title: t('caseManagement.table.createBy'),
+        dataIndex: 'createBy',
+        key: 'createBy',
+        render: createBy => (
+          <div>
+            <div className="font-medium flex items-center">
+              <UserOutlined className="mr-1" />
+              {createBy?.fullName}
+            </div>
+            <div className="text-xs text-gray-500">
+              {createBy?.teacherCode &&
+                `${t('caseManagement.table.teacherCode')}: ${createBy.teacherCode}`}
+            </div>
+          </div>
+        ),
+        hidden: user?.role === 'teacher',
+      },
+      {
         title: t('caseManagement.table.createdAt'),
         dataIndex: 'createdAt',
         key: 'createdAt',
@@ -577,7 +577,7 @@ const CaseManagement = () => {
             <Space size="small">
               <Tooltip title={t('common.view')}>
                 <Button
-                  type="text"
+                  type="link"
                   icon={<EyeOutlined />}
                   size="small"
                   onClick={() => handleViewCase(record)}
@@ -586,7 +586,7 @@ const CaseManagement = () => {
               {user?.role === 'manager' && record.status === 'NEW' && (
                 <Tooltip title={t('common.edit')}>
                   <Button
-                    type="text"
+                    type="link"
                     icon={<EditOutlined />}
                     size="small"
                     onClick={() => handleEditHostBy(record)}
@@ -598,7 +598,7 @@ const CaseManagement = () => {
             <Space size="small">
               <Tooltip title={t('common.save')}>
                 <Button
-                  type="text"
+                  type="link"
                   icon={<SaveOutlined />}
                   size="small"
                   onClick={() => handleSaveHostBy(record)}

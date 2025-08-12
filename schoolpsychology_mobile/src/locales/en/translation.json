@@ -96,6 +96,10 @@
     "followUp": "Follow Up",
     "followUpSubtitle": "Track case progress and updates",
     "empty": "No data available",
+    "tab": {
+      "title": "Case Management",
+      "subtitle": "Manage and track cases"
+    },
     "closedCases": {
       "title": "Closed Cases",
       "subtitle": "View closed cases"

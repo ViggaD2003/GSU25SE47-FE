@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -18,6 +18,9 @@ import {
   Empty,
   Modal,
   Badge,
+  Form,
+  Select,
+  Popconfirm,
 } from 'antd'
 import {
   ArrowLeftOutlined,
@@ -42,6 +45,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useAuth } from '@/contexts/AuthContext'
 import { getCaseById } from '@/store/actions'
 import { useTheme } from '@/contexts/ThemeContext'
+import { caseAPI } from '@/services/caseApi'
+import { categoriesAPI } from '@/services/categoryApi'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -62,29 +67,77 @@ const CaseDetails = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [form] = Form.useForm()
+  const [levels, setLevels] = useState([])
 
-  const userRole = user?.roleName // Use roleName from user object
+  const userRole = user?.role
 
-  // Get case data from Redux store
-  useEffect(() => {
-    const fetchCaseData = async () => {
-      if (id && (!caseData || caseData.caseInfo?.id !== parseInt(id))) {
-        setLoading(true)
-        try {
-          await dispatch(getCaseById(id)).unwrap()
-        } catch (error) {
-          console.error('Error fetching case:', error)
-          messageApi.error(t('caseManagement.messages.fetchError'))
-        } finally {
-          setLoading(false)
-        }
-      } else {
-        setLoading(false)
-      }
+  // Memoized options to prevent unnecessary re-renders
+  const priorityOptions = useMemo(() => {
+    return ['HIGH', 'MEDIUM', 'LOW'].map(priority => ({
+      label: t(`caseManagement.priorityOptions.${priority}`),
+      value: priority,
+    }))
+  }, [t])
+
+  const progressTrendOptions = useMemo(() => {
+    return ['IMPROVED', 'DECLINED', 'STABLE'].map(progressTrend => ({
+      label: t(`caseManagement.progressTrendOptions.${progressTrend}`),
+      value: progressTrend,
+    }))
+  }, [t])
+
+  // Memoized initial values to prevent unnecessary form resets
+  const initialValues = useMemo(() => {
+    if (!caseData?.caseInfo) return {}
+
+    return {
+      status: caseData.caseInfo.status,
+      priority: caseData.caseInfo.priority,
+      progressTrend: caseData.caseInfo.progressTrend,
+      currentLevelId: caseData.caseInfo.currentLevel?.id,
+    }
+  }, [caseData?.caseInfo])
+
+  const fetchCaseData = useCallback(async () => {
+    if (!id) {
+      setLoading(false)
+      return
     }
 
+    setLoading(true)
+    try {
+      await dispatch(getCaseById(id)).unwrap()
+    } catch (error) {
+      console.error('Error fetching case:', error)
+      messageApi.error(t('caseManagement.messages.fetchError'))
+    } finally {
+      setLoading(false)
+    }
+  }, [id, dispatch, messageApi, t])
+
+  const fetchLevelData = useCallback(async () => {
+    try {
+      const categoryId = caseData?.caseInfo?.categoryId
+      if (!categoryId) {
+        setLevels([])
+        return
+      }
+
+      const response = await categoriesAPI.getCategoryLevels(categoryId)
+      setLevels(response || [])
+    } catch (error) {
+      console.error('Error fetching levels:', error)
+      messageApi.error(t('caseManagement.messages.fetchError'))
+      setLevels([])
+    }
+  }, [caseData?.caseInfo?.categoryId, messageApi, t])
+
+  // Fetch case data on component mount
+  useEffect(() => {
     fetchCaseData()
-  }, [id, dispatch, messageApi, t, caseData])
+  }, [fetchCaseData])
 
   // Update loading state when Redux loading changes
   useEffect(() => {
@@ -98,104 +151,232 @@ const CaseDetails = () => {
     }
   }, [error, messageApi, t])
 
-  // Calculate statistics
+  // Fetch levels when update modal opens
+  useEffect(() => {
+    if (isUpdateModalVisible) {
+      fetchLevelData()
+      form.setFieldsValue(initialValues)
+    }
+  }, [isUpdateModalVisible, fetchLevelData, form, initialValues])
+
+  // Enhanced statistics calculation with proper error handling
   const statistics = useMemo(() => {
-    if (!caseData) return null
+    if (!caseData?.groupedStatic) return null
 
-    const { groupedStatic } = caseData
-    const allScores = [
-      ...groupedStatic.survey.dataSet,
-      ...groupedStatic.appointment.dataSet,
-      ...groupedStatic.program.dataSet,
-    ]
+    try {
+      const { groupedStatic } = caseData
 
-    const avgScore =
-      allScores.length > 0
-        ? allScores.reduce((sum, item) => sum + item.score, 0) /
-          allScores.length
-        : 0
+      // Safely extract data with fallbacks
+      const surveyData = groupedStatic.survey?.dataSet || []
+      const appointmentData = groupedStatic.appointment?.dataSet || []
+      const programData = groupedStatic.program?.dataSet || []
 
-    // Survey
-    const activeSurveys = groupedStatic.survey.activeSurveys ?? 0
-    const completedSurveys = groupedStatic.survey.completedSurveys ?? 0
-    const skippedSurveys = groupedStatic.survey.numberOfSkips ?? 0
+      const allScores = [...surveyData, ...appointmentData, ...programData]
 
-    //appointment
-    const activeAppointments = groupedStatic.appointment.activeAppointments ?? 0
-    const completedAppointments =
-      groupedStatic.appointment.completedAppointments ?? 0
-    const absentAppointments = groupedStatic.appointment.numOfAbsent ?? 0
+      // Calculate average score with proper validation
+      const avgScore =
+        allScores.length > 0
+          ? allScores.reduce((sum, item) => sum + (item.score || 0), 0) /
+            allScores.length
+          : 0
 
-    //program
-    const activePrograms = groupedStatic.program.activePrograms ?? 0
-    const completedPrograms = groupedStatic.program.completedPrograms ?? 0
-    const absentPrograms = groupedStatic.program.numOfAbsent ?? 0
+      // Extract counts with safe fallbacks
+      const activeSurveys = groupedStatic.survey?.activeSurveys || 0
+      const completedSurveys = groupedStatic.survey?.completedSurveys || 0
+      const skippedSurveys = groupedStatic.survey?.numberOfSkips || 0
 
-    return {
-      activeSurveys,
-      completedSurveys,
-      skippedSurveys,
-      activeAppointments,
-      completedAppointments,
-      absentAppointments,
-      activePrograms,
-      completedPrograms,
-      absentPrograms,
-      averageScore: avgScore,
+      const activeAppointments =
+        groupedStatic.appointment?.activeAppointments || 0
+      const completedAppointments =
+        groupedStatic.appointment?.completedAppointments || 0
+      const absentAppointments = groupedStatic.appointment?.numOfAbsent || 0
+
+      const activePrograms = groupedStatic.program?.activePrograms || 0
+      const completedPrograms = groupedStatic.program?.completedPrograms || 0
+      const absentPrograms = groupedStatic.program?.numOfAbsent || 0
+
+      // Calculate totals
+      const totalSurveys = activeSurveys + completedSurveys + skippedSurveys
+      const totalAppointments =
+        activeAppointments + completedAppointments + absentAppointments
+      const totalPrograms = activePrograms + completedPrograms + absentPrograms
+
+      return {
+        activeSurveys,
+        completedSurveys,
+        skippedSurveys,
+        totalSurveys,
+        activeAppointments,
+        completedAppointments,
+        absentAppointments,
+        totalAppointments,
+        activePrograms,
+        completedPrograms,
+        absentPrograms,
+        totalPrograms,
+        averageScore: Math.round(avgScore * 10) / 10, // Round to 1 decimal place
+      }
+    } catch (error) {
+      console.error('Error calculating statistics:', error)
+      return null
     }
   }, [caseData])
 
-  const handleGoBack = () => {
+  const handleGoBack = useCallback(() => {
     navigate(-1)
-  }
+  }, [navigate])
 
-  const handleUpdate = () => {
-    if (userRole === 'COUNSELOR') {
-      setIsUpdateModalVisible(true)
-    } else {
+  const handleUpdate = useCallback(() => {
+    if (userRole !== 'counselor') {
       messageApi.warning(t('caseManagement.details.updatePermissionDenied'))
+      return
+    }
+
+    if (caseData?.caseInfo?.status !== 'IN_PROGRESS') {
+      messageApi.warning(t('caseManagement.details.cannotUpdateClosedCase'))
+      return
+    }
+
+    setIsUpdateModalVisible(true)
+  }, [userRole, caseData?.caseInfo?.status, messageApi, t])
+
+  const handleUpdateCase = async values => {
+    if (!id) return
+
+    setIsUpdating(true)
+    try {
+      const updateData = {
+        priority: values.priority,
+        progressTrend: values.progressTrend,
+        currentLevelId: values.currentLevelId,
+      }
+
+      await caseAPI.updateCase(id, updateData)
+
+      messageApi.success(t('caseManagement.details.updateSuccess'))
+      setIsUpdateModalVisible(false)
+
+      // Refresh case data
+      await fetchCaseData()
+
+      // Reset form
+      form.resetFields()
+    } catch (error) {
+      console.error('Error updating case:', error)
+      messageApi.error(
+        t('caseManagement.details.updateError') || 'Cập nhật thất bại'
+      )
+    } finally {
+      setIsUpdating(false)
     }
   }
 
-  const getPriorityColor = priority => {
-    switch (priority) {
-      case 'HIGH':
-        return '#ff4d4f'
-      case 'MEDIUM':
-        return '#faad14'
-      case 'LOW':
-        return '#52c41a'
-      default:
-        return '#d9d9d9'
+  const handleCloseCase = async () => {
+    if (!id) return
+
+    setIsUpdating(true)
+    try {
+      const values = form.getFieldsValue()
+      const updateData = {
+        status: 'CLOSED',
+        priority: values.priority,
+        progressTrend: values.progressTrend,
+        currentLevelId: values.currentLevelId,
+      }
+
+      await caseAPI.updateCase(id, updateData)
+
+      messageApi.success(t('caseManagement.details.closeCaseSuccess'))
+      setIsUpdateModalVisible(false)
+
+      // Refresh case data
+      await fetchCaseData()
+
+      // Reset form
+      form.resetFields()
+    } catch (error) {
+      console.error('Error closing case:', error)
+      messageApi.error(
+        t('caseManagement.details.closeCaseError') || 'Đóng case thất bại'
+      )
+    } finally {
+      setIsUpdating(false)
     }
   }
 
-  const getStatusColor = status => {
-    switch (status) {
-      case 'NEW':
-        return '#1890ff'
-      case 'IN_PROGRESS':
-        return '#faad14'
-      case 'CLOSED':
-        return '#52c41a'
-      default:
-        return '#d9d9d9'
+  // Memoized utility functions to prevent unnecessary re-renders
+  const getPriorityColor = useCallback(priority => {
+    const colorMap = {
+      HIGH: '#ff4d4f',
+      MEDIUM: '#faad14',
+      LOW: '#52c41a',
     }
-  }
+    return colorMap[priority] || '#d9d9d9'
+  }, [])
 
-  const getProgressTrendIcon = trend => {
-    switch (trend) {
-      case 'IMPROVED':
-        return <RiseOutlined style={{ color: '#52c41a' }} />
-      case 'DECLINED':
-        return <FallOutlined style={{ color: '#ff4d4f' }} />
-      case 'STABLE':
-        return <MinusOutlined style={{ color: '#faad14' }} />
-      default:
-        return <MinusOutlined style={{ color: '#d9d9d9' }} />
+  const getStatusColor = useCallback(status => {
+    const colorMap = {
+      NEW: '#1890ff',
+      IN_PROGRESS: '#faad14',
+      CLOSED: '#52c41a',
     }
-  }
+    return colorMap[status] || '#d9d9d9'
+  }, [])
 
+  const getProgressTrendIcon = useCallback(trend => {
+    const iconMap = {
+      IMPROVED: <RiseOutlined style={{ color: '#52c41a' }} />,
+      DECLINED: <FallOutlined style={{ color: '#ff4d4f' }} />,
+      STABLE: <MinusOutlined style={{ color: '#faad14' }} />,
+    }
+    return iconMap[trend] || <MinusOutlined style={{ color: '#d9d9d9' }} />
+  }, [])
+
+  // Memoized tab items to prevent unnecessary re-renders
+  const tabItems = useMemo(
+    () => [
+      {
+        key: 'overview',
+        label: (
+          <Space>
+            <UserOutlined />
+            {t('caseManagement.details.tabs.overview')}
+          </Space>
+        ),
+        children: (
+          <CaseOverview caseInfo={caseData?.caseInfo} statistics={statistics} />
+        ),
+      },
+      {
+        key: 'statistics',
+        label: (
+          <Space>
+            <BarChartOutlined />
+            {t('caseManagement.details.tabs.statistics')}
+          </Space>
+        ),
+        children: (
+          <CaseStatistics
+            caseInfo={caseData?.caseInfo}
+            statistics={statistics}
+          />
+        ),
+      },
+      {
+        key: 'charts',
+        label: (
+          <Space>
+            <LineChartOutlined />
+            {t('caseManagement.details.tabs.charts')}
+          </Space>
+        ),
+        children: <CaseCharts caseData={caseData} statistics={statistics} />,
+      },
+    ],
+    [caseData, statistics, t]
+  )
+
+  // Loading state
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -207,6 +388,7 @@ const CaseDetails = () => {
     )
   }
 
+  // Error state
   if (!caseData) {
     return (
       <div style={{ textAlign: 'center', padding: '100px 0' }}>
@@ -223,49 +405,6 @@ const CaseDetails = () => {
   }
 
   const { caseInfo } = caseData
-
-  const tabItems = [
-    {
-      key: 'overview',
-      label: (
-        <Space>
-          <UserOutlined />
-          {t('caseManagement.details.tabs.overview')}
-        </Space>
-      ),
-      children: <CaseOverview caseInfo={caseInfo} statistics={statistics} />,
-    },
-    {
-      key: 'statistics',
-      label: (
-        <Space>
-          <BarChartOutlined />
-          {t('caseManagement.details.tabs.statistics')}
-        </Space>
-      ),
-      children: <CaseStatistics caseInfo={caseInfo} statistics={statistics} />,
-    },
-    {
-      key: 'charts',
-      label: (
-        <Space>
-          <LineChartOutlined />
-          {t('caseManagement.details.tabs.charts')}
-        </Space>
-      ),
-      children: <CaseCharts caseData={caseData} statistics={statistics} />,
-    },
-    // {
-    //   key: 'timeline',
-    //   label: (
-    //     <Space>
-    //       <ClockCircleOutlined />
-    //       {t('caseManagement.details.tabs.timeline')}
-    //     </Space>
-    //   ),
-    //   children: <CaseTimeline caseInfo={caseInfo} />,
-    // },
-  ]
 
   return (
     <div
@@ -317,7 +456,7 @@ const CaseDetails = () => {
             </Space>
           </Col>
           <Col>
-            {userRole === 'COUNSELOR' && (
+            {userRole === 'counselor' && caseInfo.status === 'IN_PROGRESS' && (
               <Button
                 type="primary"
                 icon={<EditOutlined />}
@@ -387,17 +526,181 @@ const CaseDetails = () => {
         />
       </Card>
 
-      {/* Update Modal - placeholder for future implementation */}
+      {/* Update Modal - Enhanced Design */}
       <Modal
-        title={t('caseManagement.details.updateCase')}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <EditOutlined style={{ color: '#1890ff' }} />
+            <span>{t('caseManagement.details.updateCase')}</span>
+          </div>
+        }
         open={isUpdateModalVisible}
-        onCancel={() => setIsUpdateModalVisible(false)}
+        onCancel={() => {
+          if (!isUpdating) {
+            setIsUpdateModalVisible(false)
+            form.resetFields()
+          }
+        }}
         footer={null}
         width={800}
+        centered
+        closable={!isUpdating}
+        maskClosable={!isUpdating}
+        styles={{
+          header: {
+            borderBottom: '1px solid #f0f0f0',
+            paddingBottom: 16,
+          },
+          body: {
+            padding: '24px 0',
+          },
+        }}
       >
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <Text>{t('caseManagement.details.updateModalPlaceholder')}</Text>
-        </div>
+        <Form
+          layout="vertical"
+          form={form}
+          initialValues={initialValues}
+          onFinish={handleUpdateCase}
+          disabled={isUpdating}
+        >
+          <Row gutter={[24, 16]}>
+            <Col xs={24} md={24}>
+              <Form.Item
+                name="priority"
+                label={
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <ExclamationCircleOutlined style={{ color: '#fa8c16' }} />
+                    <span>{t('caseManagement.details.priority')}</span>
+                  </div>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: t('caseManagement.details.priorityRequired'),
+                  },
+                ]}
+              >
+                <Select
+                  options={priorityOptions}
+                  placeholder={t('caseManagement.details.selectPriority')}
+                  size="large"
+                  showSearch
+                  filterOption={(input, option) =>
+                    option.label.toLowerCase().includes(input.toLowerCase())
+                  }
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="progressTrend"
+                label={
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <LineChartOutlined style={{ color: '#52c41a' }} />
+                    <span>{t('caseManagement.details.progressTrend')}</span>
+                  </div>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: t('caseManagement.details.progressTrendRequired'),
+                  },
+                ]}
+              >
+                <Select
+                  options={progressTrendOptions}
+                  placeholder={t('caseManagement.details.selectProgressTrend')}
+                  size="large"
+                  showSearch
+                  filterOption={(input, option) =>
+                    option.label.toLowerCase().includes(input.toLowerCase())
+                  }
+                />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="currentLevelId"
+                label={
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <TrophyOutlined style={{ color: '#722ed1' }} />
+                    <span>{t('caseManagement.details.currentLevel')}</span>
+                  </div>
+                }
+                rules={[
+                  {
+                    required: true,
+                    message: t('caseManagement.details.currentLevelRequired'),
+                  },
+                ]}
+              >
+                <Select
+                  options={levels}
+                  placeholder={t('caseManagement.details.selectCurrentLevel')}
+                  size="large"
+                  showSearch
+                  filterOption={(input, option) =>
+                    option.label.toLowerCase().includes(input.toLowerCase())
+                  }
+                  fieldNames={{ label: 'code', value: 'id' }}
+                  loading={levels.length === 0}
+                  notFoundContent={
+                    levels.length === 0
+                      ? t('caseManagement.details.loadingLevels')
+                      : t('caseManagement.details.noLevelFound')
+                  }
+                  optionRender={option => (
+                    <div>
+                      {t(`caseManagement.details.levelOptions.${option.label}`)}
+                    </div>
+                  )}
+                  labelRender={option => (
+                    <div>
+                      {t(`caseManagement.details.levelOptions.${option.label}`)}
+                    </div>
+                  )}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider />
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+            <Popconfirm
+              title={t('caseManagement.details.closeCaseConfirm')}
+              onConfirm={handleCloseCase}
+              disabled={isUpdating}
+            >
+              <Button
+                size="large"
+                style={{ minWidth: 100 }}
+                danger
+                loading={isUpdating}
+              >
+                {t('caseManagement.details.closeCase')}
+              </Button>
+            </Popconfirm>
+            <Button
+              type="primary"
+              htmlType="submit"
+              size="large"
+              icon={<CheckCircleOutlined />}
+              style={{ minWidth: 100 }}
+              loading={isUpdating}
+            >
+              {t('common.update')}
+            </Button>
+          </div>
+        </Form>
       </Modal>
     </div>
   )

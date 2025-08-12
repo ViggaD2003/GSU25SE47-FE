@@ -716,6 +716,48 @@
       "loading": "Loading case details...",
       "notFound": "Case not found",
       "updateCase": "Update Case",
+      "status": "Status",
+      "priority": "Priority",
+      "progressTrend": "Progress Trend",
+      "currentLevel": "Current Level",
+      "updateError": "Failed to update case",
+      "statusRequired": "Please select a status",
+      "priorityRequired": "Please select a priority",
+      "progressTrendRequired": "Please select a progress trend",
+      "currentLevelRequired": "Please select a current level",
+      "selectStatus": "Select status",
+      "selectPriority": "Select priority",
+      "selectProgressTrend": "Select progress trend",
+      "selectCurrentLevel": "Select current level",
+      "updateSuccess": "Case updated successfully",
+      "closeCase": "Close Case",
+      "closeCaseSuccess": "Case closed successfully",
+      "closeCaseError": "Failed to close case",
+      "closeCaseConfirm": "Are you sure you want to close this case?",
+      "loadingLevels": "Loading levels...",
+      "noLevelFound": "No level found",
+      "progressTrendOptions": {
+        "IMPROVED": "Improved",
+        "STABLE": "Stable",
+        "DECLINED": "Declined"
+      },
+      "priorityOptions": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "statusOptions": {
+        "NEW": "New",
+        "IN_PROGRESS": "In Progress",
+        "CLOSED": "Closed"
+      },
+      "levelOptions": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low",
+        "SEVERE": "Severe",
+        "CRITICAL": "Critical"
+      },
       "updatePermissionDenied": "Only counselors can update cases",
       "updateModalPlaceholder": "Update functionality will be implemented here",
       "quickStats": {
@@ -1450,6 +1492,7 @@
     "next": "Next",
     "creating": "Creating...",
     "edit": "Edit",
+    "update": "Update",
     "save": "Save",
     "loading": "Loading...",
     "showing": "Showing",

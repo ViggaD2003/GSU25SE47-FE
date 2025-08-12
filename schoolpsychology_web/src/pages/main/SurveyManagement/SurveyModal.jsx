@@ -43,12 +43,13 @@ const scrollbarStyles = `
   }
 `
 
-const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
+const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
   const { t } = useTranslation()
   const [form] = Form.useForm()
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
+  const userRole = user?.role?.toUpperCase()
 
   // Fetch categories when modal opens
   useEffect(() => {
@@ -62,11 +63,27 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, userRole }) => {
       setLoading(true)
       const response = await categoriesAPI.getCategories()
       if (response.length > 0) {
-        setCategories(response)
-        resetFormFields({
-          categoryId: response[0]?.id,
-        })
-        setSelectedCategory(response[0])
+        if (userRole === 'COUNSELOR') {
+          if (user.cateAvailable.length === 0) {
+            setCategories([])
+            return
+          }
+          const availableCategories = response.filter(category =>
+            user.cateAvailable.includes(category.id)
+          )
+
+          setCategories(availableCategories)
+          resetFormFields({
+            categoryId: availableCategories[0]?.id,
+          })
+          setSelectedCategory(availableCategories[0])
+        } else {
+          setCategories(response || [])
+          resetFormFields({
+            categoryId: response[0]?.id,
+          })
+          setSelectedCategory(response[0])
+        }
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error)

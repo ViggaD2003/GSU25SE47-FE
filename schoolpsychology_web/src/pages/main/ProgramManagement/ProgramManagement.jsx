@@ -42,7 +42,7 @@ import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
 import { useNavigate } from 'react-router-dom'
-import { useWebSocket } from '@/contexts/WebSocketContext'
+// import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -56,7 +56,7 @@ const ProgramModal = lazy(() => import('./ProgramModal'))
 const ProgramManagement = () => {
   const { user } = useAuth()
   const { t } = useTranslation()
-  const { sendMessage } = useWebSocket()
+  // const { sendMessage } = useWebSocket()
   const dispatch = useDispatch()
   const { programs, loading, error, pagination, filters, sortConfig } =
     useSelector(state => state.program)

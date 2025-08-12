@@ -31,6 +31,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
 import { createCase } from '@/store/actions'
+import { useWebSocket } from '@/contexts/WebSocketContext'
 const { Title, Text } = Typography
 const { Option } = Select
 const { Search } = Input
@@ -38,6 +39,7 @@ const UserModal = lazy(() => import('./UserModal'))
 
 const ClientManagement = () => {
   const { user } = useAuth()
+  const { sendMessage } = useWebSocket()
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [searchText, setSearchText] = useState('')
@@ -254,29 +256,36 @@ const ClientManagement = () => {
   }
 
   const handleModalOk = async requestData => {
-    try {
-      if (isCreateCase) {
-        await dispatch(createCase(requestData)).unwrap()
-        messageApi.success(t('clientManagement.messages.createCaseSuccess'))
-        // sendMessage({
-        //   title: 'New Case',
-        //   content: 'New case has been created by ' + user.fullName,
-        //   username: 'danhkvtse172932@fpt.edu.vn',
-        // })
-        setIsCreateCase(false)
-      } else {
-        messageApi.success(
-          isEdit
-            ? t('clientManagement.messages.editUserSuccess')
-            : t('clientManagement.messages.addUserSuccess')
-        )
-      }
-      setIsModalVisible(false)
-      loadData(pagination.current, pagination.pageSize)
-    } catch (error) {
-      console.log('ClientManagement handleModalOk error', error)
-      messageApi.error(error.message)
+    if (isCreateCase) {
+      await dispatch(createCase(requestData))
+        .then(data => {
+          console.log(data)
+
+          sendMessage({
+            relatedEntityId: data.id,
+            notificationType: 'CASE',
+            title: 'New Case',
+            content: 'New case has been created by ' + user.fullName,
+            username: 'danhkvtse172932@fpt.edu.vn',
+          })
+          messageApi.success(t('clientManagement.messages.createCaseSuccess'))
+        })
+        .catch(error => {
+          console.log(error)
+          messageApi.error(error.message)
+        })
+
+      // messageApi.success(t('clientManagement.messages.createCaseSuccess'))
+      setIsCreateCase(false)
+    } else {
+      messageApi.success(
+        isEdit
+          ? t('clientManagement.messages.editUserSuccess')
+          : t('clientManagement.messages.addUserSuccess')
+      )
     }
+    setIsModalVisible(false)
+    loadData(pagination.current, pagination.pageSize)
   }
 
   const handleModalCancel = () => {

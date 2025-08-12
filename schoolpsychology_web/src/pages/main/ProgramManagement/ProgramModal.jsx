@@ -25,7 +25,7 @@ import { ProgramCreationHelper } from '@/components'
 // import { RECURRING_CYCLE } from '@/constants/enums'
 import Title from 'antd/es/typography/Title'
 import QuestionTabs from '../SurveyManagement/QuestionTabs'
-import { useWebSocket } from '@/contexts/WebSocketContext'
+// import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -48,7 +48,7 @@ const ProgramModal = ({
   const [startTimeValue, setStartTimeValue] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [thumbnail, setThumbnail] = useState(null)
-  const { sendMessage } = useWebSocket()
+  // const { sendMessage } = useWebSocket()
 
   const uploadProps = {
     name: 'image',
@@ -175,15 +175,16 @@ const ProgramModal = ({
 
       // console.log('requestData', requestData)
 
-      const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
+      // const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
 
       await onOk(requestData)
-      sendMessage({
-        title: 'New Program',
-        content: `You have a new program ${values.name}`,
-        notificationType: 'PROGRAM',
-        username: selectedCounselor.email,
-      })
+      // sendMessage({
+      //   title: 'New Program',
+      //   content: `You have a new program ${values.name}`,
+      //   notificationType: 'PROGRAM',
+      //   username: selectedCounselor.email,
+      //   relatedEntityId: requestData.id,
+      // })
 
       handleCancel()
     } catch (error) {

@@ -41,15 +41,22 @@ const CaseDetails = ({ route, navigation }) => {
 
   const fetchCaseDetails = async () => {
     try {
-      if (!caseId && !user?.caseId && !selectedChild?.caseId) {
+      if (user?.role === "PARENTS" && !selectedChild) {
+        setCaseDetails(null);
+        return;
+      }
+      if (!caseId || !user?.caseId) {
         setCaseDetails(null);
         return;
       }
       setLoading(true);
 
-      const data = await getCaseByCaseId(
-        caseId || user?.caseId || selectedChild?.caseId
-      );
+      const id =
+        user?.role === "PARENTS" && selectedChild
+          ? selectedChild.caseId
+          : caseId || user?.caseId;
+
+      const data = await getCaseByCaseId(id);
       setCaseDetails(data);
 
       // Animate content appearance
@@ -536,10 +543,13 @@ const CaseDetails = ({ route, navigation }) => {
   return (
     <Container>
       {from === "tab" ? (
-        <HeaderWithTab title={t("case.tab.title")} subtitle={t} />
+        <HeaderWithTab
+          title={t("case.tab.title")}
+          subtitle={t("case.tab.subtitle") || subTitle}
+        />
       ) : (
         <HeaderWithoutTab
-          title={headerTitle}
+          title={headerTitle || t("case.details.title")}
           onBackPress={() => navigation.goBack()}
         />
       )}

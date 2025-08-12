@@ -243,7 +243,8 @@ const SurveyManagement = () => {
           >
             {t('surveyManagement.refresh')}
           </Button>
-          {(user?.hasActiveCases || user?.role === 'manager') && (
+          {((user?.role === 'counselor' && user?.cateAvailable.length > 0) ||
+            user?.role === 'manager') && (
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -349,7 +350,7 @@ const SurveyManagement = () => {
         onCancel={handleModalCancel}
         onOk={handleModalOk}
         messageApi={messageApi}
-        userRole={user?.role}
+        user={user}
       />
 
       <SurveyDetailModal

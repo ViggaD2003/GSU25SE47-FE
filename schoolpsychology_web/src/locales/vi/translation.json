@@ -755,8 +755,50 @@
       "loading": "Đang tải chi tiết ca tư vấn...",
       "notFound": "Không tìm thấy ca tư vấn",
       "updateCase": "Cập nhật ca tư vấn",
+      "updateError": "Không thể cập nhật ca tư vấn",
+      "status": "Trạng thái",
+      "priority": "Mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển",
+      "currentLevel": "Mức độ hiện tại",
+      "statusRequired": "Vui lòng chọn trạng thái",
+      "priorityRequired": "Vui lòng chọn mức độ ưu tiên",
+      "progressTrendRequired": "Vui lòng chọn xu hướng tiến triển",
+      "currentLevelRequired": "Vui lòng chọn mức độ hiện tại",
+      "selectStatus": "Chọn trạng thái",
+      "selectPriority": "Chọn mức độ ưu tiên",
+      "selectProgressTrend": "Chọn xu hướng tiến triển",
+      "selectCurrentLevel": "Chọn mức độ hiện tại",
+      "updateSuccess": "Cập nhật ca tư vấn thành công",
+      "closeCase": "Đóng ca tư vấn",
+      "closeCaseSuccess": "Đóng ca tư vấn thành công",
+      "closeCaseError": "Không thể đóng ca tư vấn",
+      "closeCaseConfirm": "Bạn có chắc chắn muốn đóng ca tư vấn này?",
       "updatePermissionDenied": "Chỉ tư vấn viên mới có thể cập nhật ca tư vấn",
       "updateModalPlaceholder": "Tính năng cập nhật sẽ được triển khai tại đây",
+      "loadingLevels": "Đang tải mức độ...",
+      "noLevelFound": "Không tìm thấy mức độ",
+      "progressTrendOptions": {
+        "IMPROVED": "Cải thiện",
+        "STABLE": "Ổn định",
+        "DECLINED": "Suy giảm"
+      },
+      "priorityOptions": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp"
+      },
+      "statusOptions": {
+        "NEW": "Mới",
+        "IN_PROGRESS": "Đang tiến hành",
+        "CLOSED": "Đã đóng"
+      },
+      "levelOptions": {
+        "HIGH": "Cao",
+        "MEDIUM": "Trung bình",
+        "LOW": "Thấp",
+        "SEVERE": "Nghiêm trọng",
+        "CRITICAL": "Rất nghiêm trọng"
+      },
       "quickStats": {
         "totalActivities": "Tổng hoạt động",
         "totalSurveys": "Tổng khảo sát",
@@ -1240,6 +1282,7 @@
     "next": "Tiếp theo",
     "creating": "Đang tạo...",
     "edit": "Sửa",
+    "update": "Cập nhật",
     "save": "Lưu",
     "loading": "Đang tải...",
     "showing": "Hiển thị",
