@@ -406,6 +406,7 @@
       "cannotLeaveInactive": "Cannot leave program. Program is not active.",
       "programNotActive": "Program Not Active",
       "yourStatus": "Your Status",
+      "programIsActive": "Program is active",
       "status": {
         "active": "Active",
         "onGoing": "Ongoing",
@@ -435,6 +436,13 @@
         "symptomsDescription": "Symptoms Description",
         "interventionRequired": "Intervention Required",
         "completedAt": "Completed At"
+      }
+    },
+    "record": {
+      "title": "Program Record",
+      "empty": {
+        "title": "No programs",
+        "description": "No programs have been created"
       }
     }
   },

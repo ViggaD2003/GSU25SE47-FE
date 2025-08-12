@@ -781,7 +781,14 @@ export default function ProgramDetail() {
 
       {/* Action Button */}
       {user?.role === "STUDENT" && (
-        <View style={styles.actionContainer}>
+        <View
+          style={[
+            styles.actionContainer,
+            !canJoinOrLeave() && {
+              padding: 0,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={[
               styles.actionButton,
@@ -797,7 +804,7 @@ export default function ProgramDetail() {
               </Text>
             ) : !canJoinOrLeave() ? (
               <Text style={styles.actionButtonText}>
-                {t("program.detail.programNotActive")}
+                {t("program.detail.programIsActive")}
               </Text>
             ) : (
               <>
@@ -1244,11 +1251,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: -2 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 8,
+    // elevation: 4,
   },
   actionButton: {
     flexDirection: "row",
@@ -1273,7 +1280,9 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "white",
+    borderWidth: 0,
+    borderColor: "transparent",
   },
   joinButtonText: {
     fontSize: 16,
@@ -1288,7 +1297,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFFFFF",
+    color: "#007AFF",
   },
   errorContainer: {
     flex: 1,

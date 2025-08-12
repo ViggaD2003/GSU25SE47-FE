@@ -31,7 +31,7 @@ const PAGE_SIZE = 2; // Number of records to fetch per page
 
 const SurveyRecord = ({ navigation }) => {
   const { user } = useAuth();
-  const { selectedChild } = useChildren();
+  const { selectedChild, children } = useChildren();
   const { t } = useTranslation();
   const [surveyRecords, setSurveyRecords] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -65,6 +65,9 @@ const SurveyRecord = ({ navigation }) => {
     currentSurveys: 0,
     completionRate: 0,
     scoreLevelDistribution: [],
+    levelDistribution: [],
+    surveyTypeDistribution: [],
+    averageScore: 0,
   });
 
   const calculateStatistics = useCallback(
@@ -242,42 +245,25 @@ const SurveyRecord = ({ navigation }) => {
           ...filters,
         };
 
-        if (
-          !user?.userId ||
-          !user?.id ||
-          !selectedChild?.id ||
-          !selectedChild?.userId
-        ) {
-          setInitialLoading(false);
-          setLoadingMore(false);
-          setRefreshing(false);
+        if (user?.role === "PARENTS") {
+          if (!selectedChild?.id) {
+            setSurveyRecords([]);
+            return;
+          }
+        }
+
+        if (!user?.userId || !user?.id) {
           setSurveyRecords([]);
-          setCurrentPage(1);
-          setTotalElements(0);
-          setNumberOfSkipped(0);
-          setHasNext(false);
-          setStatistics({
-            totalSurveys: 0,
-            currentSurveys: 0,
-            completionRate: 0,
-            scoreLevelDistribution: [],
-            levelDistribution: [],
-            surveyTypeDistribution: [],
-            averageScore: 0,
-          });
           return;
         }
 
         const userId =
           user?.role === "PARENTS"
-            ? selectedChild?.userId || selectedChild?.id
-            : user.id || user.userId;
-
-        console.log("Fetching survey records with params:", params);
+            ? selectedChild?.id
+            : user?.id || user?.userId;
 
         const response = await getSurveyRecordsByAccount(userId, params);
 
-        console.log("response", response);
         // console.log("API Response:", {
         //   page: response.page,
         //   totalElements: response.totalElements,
@@ -689,7 +675,11 @@ const SurveyRecord = ({ navigation }) => {
         }
       />
 
-      {user.role === "PARENTS" && <ChildSelector />}
+      {user?.role === "PARENTS" && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
 
       <ScrollView
         style={styles.scrollView}
@@ -815,6 +805,10 @@ const SurveyRecord = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  childSelectorContainer: {
+    marginHorizontal: 20,
+    marginTop: 16,
+  },
   container: {
     flex: 1,
     backgroundColor: "#F8FAFC",

@@ -80,3 +80,18 @@ export const saveProgramSurveyResult = async (surveyResult) => {
     throw error;
   }
 };
+
+// Get All Programs Reocord
+export const getAllProgramsRecord = async (studentId) => {
+  try {
+    const response = await api.get(
+      `/api/v1/support-programs/participants?studentId=${studentId}`
+    );
+    console.log("response", response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching all programs record:", error);
+    throw error;
+  }
+};

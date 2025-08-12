@@ -34,24 +34,29 @@ const AppointmentRecord = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
-  const { selectedChild } = useChildren();
+  const { selectedChild, children } = useChildren();
 
   // Fetch appointment records
   const fetchRecords = useCallback(async () => {
     try {
-      if (
-        !user?.userId ||
-        !user?.id ||
-        !selectedChild?.id ||
-        !selectedChild?.userId
-      )
+      if (user?.role === "PARENTS") {
+        if (!selectedChild?.id) {
+          setRecords([]);
+          return;
+        }
+      }
+      if (!user?.userId || !user?.id) {
+        setRecords([]);
         return;
+      }
       setLoading(true);
 
       const userId =
         user?.role === "PARENTS"
-          ? selectedChild?.userId || selectedChild?.id
-          : user.id || user.userId;
+          ? selectedChild?.id || selectedChild?.userId
+          : user?.id || user?.userId;
+
+      console.log("userId", userId);
 
       const response = await getPastAppointments(userId);
 
@@ -391,7 +396,11 @@ const AppointmentRecord = () => {
         onBackPress={() => navigation.goBack()}
       />
 
-      {user?.role === "PARENTS" && <ChildSelector />}
+      {user?.role === "PARENTS" && children && children.length > 0 && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
 
       {/* Content */}
       {loading ? (
@@ -485,6 +494,10 @@ const AppointmentRecord = () => {
 };
 
 const styles = StyleSheet.create({
+  childSelectorContainer: {
+    marginHorizontal: 20,
+    marginTop: 16,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

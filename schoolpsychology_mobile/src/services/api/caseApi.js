@@ -13,9 +13,12 @@ export const getCaseByCaseId = async (caseId) => {
   }
 };
 
-export const getClosedCases = async () => {
+export const getClosedCases = async (accountId) => {
   try {
-    const response = await api.get("/api/v1/cases?statusCase=CLOSED");
+    const statusCase = ["CLOSED"];
+    const response = await api.get(
+      `/api/v1/cases?accountId=${accountId}&statusCase=${statusCase.join(",")}`
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching closed cases:", error);

@@ -29,9 +29,21 @@ const ClosedCases = ({ navigation }) => {
     setLoading(true);
     setError(null);
     try {
-      const cases = await getClosedCases(
-        user?.userId || user?.id || selectedChild?.id || selectedChild?.userId
-      );
+      if (user?.role === "PARENTS") {
+        if (!selectedChild?.id) {
+          setClosedCases([]);
+          return;
+        }
+      }
+      if (!user?.userId || !user?.id) {
+        setClosedCases([]);
+        return;
+      }
+
+      const userId =
+        user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
+
+      const cases = await getClosedCases(userId);
       setClosedCases(cases || []);
     } catch (error) {
       console.error("Error fetching closed cases:", error);

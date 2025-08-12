@@ -76,8 +76,24 @@ export const getSurveyRecordById = async (surveyRecordId) => {
 // Post survey result
 export const postSurveyResult = async (result) => {
   try {
-    const response = await api.post("/api/v1/survey-records", result);
-    return response.data;
+    if (result.surveyRecordType === "PROGRAM") {
+      const { programId, ...rest } = result;
+      if (!programId) {
+        throw new Error("Program ID is required");
+      }
+      console.log("Submit Survey Program");
+
+      const response = await api.post(
+        `/api/v1/support-programs/save-survey-record?programId=${programId}`,
+        rest
+      );
+      return response.data;
+    } else {
+      console.log("Submit Survey");
+
+      const response = await api.post("/api/v1/survey-records", result);
+      return response.data;
+    }
   } catch (error) {
     console.error("Lỗi khi gửi kết quả khảo sát:", error);
     throw error;

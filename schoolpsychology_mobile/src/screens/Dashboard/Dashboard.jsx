@@ -257,7 +257,10 @@ const DashboardScreen = () => {
         subtitle={t("dashboard.mobileSubtitle")}
       />
 
-      {user.role === "PARENTS" && <ChildSelector />}
+      <View style={styles.childSelectorContainer}>
+        {/* <ChildSelector /> */}
+        {user.role === "PARENTS" && <ChildSelector />}
+      </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>

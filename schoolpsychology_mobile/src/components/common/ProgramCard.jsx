@@ -16,11 +16,17 @@ const ProgramCard = ({ program, onPress }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "ACTIVE":
-        return "#34C759";
-      case "INACTIVE":
-        return "#FF3B30";
-      case "PENDING":
         return "#FF9500";
+      case "COMPLETED":
+        return "#34C759";
+      case "ON_GOING":
+        return "#007AFF";
+      case "ENROLLED":
+        return "#FF9500";
+      case "ABSENT":
+        return "#FF3B30";
+      case "IN_PROGRESS":
+        return "#007AFF";
       default:
         return "#8E8E93";
     }
@@ -29,11 +35,17 @@ const ProgramCard = ({ program, onPress }) => {
   const getStatusText = (status) => {
     switch (status) {
       case "ACTIVE":
-        return "Hoạt động";
-      case "INACTIVE":
-        return "Không hoạt động";
-      case "PENDING":
-        return "Chờ xác nhận";
+        return "Đang mở";
+      case "COMPLETED":
+        return "Đã kết thúc";
+      case "ON_GOING":
+        return "Đang diễn ra";
+      case "ENROLLED":
+        return "Đã đăng ký";
+      case "ABSENT":
+        return "Vắng mặt";
+      case "IN_PROGRESS":
+        return "Đang tham dự";
       default:
         return "Không xác định";
     }
@@ -59,8 +71,24 @@ const ProgramCard = ({ program, onPress }) => {
               { backgroundColor: getStatusColor(program.status || "INACTIVE") },
             ]}
           >
+            <Ionicons name="easel" size={14} color={"#FFFFFF"} />
             <Text style={styles.statusText}>
               {getStatusText(program.status || "INACTIVE")}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: getStatusColor(
+                  program.registrationStatus || "INACTIVE"
+                ),
+              },
+            ]}
+          >
+            <Ionicons name="person" size={14} color={"#FFFFFF"} />
+            <Text style={styles.statusText}>
+              {getStatusText(program.registrationStatus || "INACTIVE")}
             </Text>
           </View>
         </View>
@@ -153,8 +181,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     right: 12,
+    flexDirection: "column",
+    gap: 4,
   },
   statusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

@@ -41,6 +41,10 @@ const CaseDetails = ({ route, navigation }) => {
 
   const fetchCaseDetails = async () => {
     try {
+      if (!caseId && !user?.caseId && !selectedChild?.caseId) {
+        setCaseDetails(null);
+        return;
+      }
       setLoading(true);
 
       const data = await getCaseByCaseId(
@@ -541,11 +545,14 @@ const CaseDetails = ({ route, navigation }) => {
       )}
 
       {/* Child selector */}
-      {user?.role === "PARENTS" && children && children.length > 0 && (
-        <View style={styles.childSelectionContainer}>
-          <ChildSelector style={styles.childSelector} />
-        </View>
-      )}
+      {user?.role === "PARENTS" &&
+        children &&
+        children.length > 0 &&
+        from === "tab" && (
+          <View style={styles.childSelectorContainer}>
+            <ChildSelector style={styles.childSelector} />
+          </View>
+        )}
 
       {loading ? (
         <Loading />
@@ -574,9 +581,13 @@ const CaseDetails = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  childSelector: {
-    marginTop: 0,
+  childSelectorContainer: {
+    marginHorizontal: 20,
+    marginTop: 16,
   },
+  // childSelector: {
+  //   marginTop: ,
+  // },
   // childSelectionContainer: {
   //   paddingHorizontal: 16,
   //   minHeight: 150,

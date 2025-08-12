@@ -527,7 +527,7 @@ const createConfirmationMessage = (
 // Main component
 const BookingScreen = ({ navigation }) => {
   const { user, loading: authLoading } = useAuth();
-  const { selectedChild } = useChildren();
+  const { selectedChild, children } = useChildren();
   const { t } = useTranslation();
 
   // Debug selectedChild from context
@@ -1376,7 +1376,11 @@ const BookingScreen = ({ navigation }) => {
         title={t("appointment.booking.title")}
         onBackPress={handleBackPress}
       />
-      {user?.role === "PARENTS" && <ChildSelector />}
+      {user?.role === "PARENTS" && children.length > 0 && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
 
       <ScrollView
         style={styles.content}
@@ -1441,6 +1445,10 @@ const BookingScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  childSelectorContainer: {
+    marginHorizontal: 20,
+    marginTop: 16,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

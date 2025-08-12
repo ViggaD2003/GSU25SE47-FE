@@ -24,7 +24,7 @@ import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
 
 const SurveyTaking = ({ route, navigation }) => {
-  const { survey } = route.params || {};
+  const { survey, programId } = route.params || {};
   const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -416,13 +416,10 @@ const SurveyTaking = ({ route, navigation }) => {
         totalScore: totalScore, // Sử dụng totalScore đã tính toán
         surveyRecordType: survey?.surveyType,
         answerRecordRequests: answerRecordRequests,
+        programId: programId,
       };
 
-      console.log("Survey submitted:", surveyResult);
-      console.log(surveyResult);
-
       const response = await postSurveyResult(surveyResult);
-      console.log("response", response);
 
       // Navigate to result screen
       if (response) {

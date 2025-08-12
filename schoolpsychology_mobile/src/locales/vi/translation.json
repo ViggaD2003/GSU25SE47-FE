@@ -401,6 +401,7 @@
       "cannotLeaveInactive": "Không thể rời chương trình. Chương trình không hoạt động.",
       "programNotActive": "Chương trình không hoạt động",
       "yourStatus": "Trạng thái của bạn",
+      "programIsActive": "Chương trình đang hoạt động",
       "status": {
         "active": "Đang được mở",
         "onGoing": "Đang diễn ra",
@@ -430,6 +431,13 @@
         "symptomsDescription": "Mô tả triệu chứng",
         "interventionRequired": "Can thiệp cần thiết",
         "completedAt": "Hoàn thành lúc"
+      }
+    },
+    "record": {
+      "title": "Lịch sử chương trình",
+      "empty": {
+        "title": "Không có chương trình",
+        "description": "Chưa có chương trình nào được tạo"
       }
     }
   },

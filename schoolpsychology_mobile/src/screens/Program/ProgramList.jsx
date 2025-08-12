@@ -13,12 +13,13 @@ import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import ProgramCard from "../../components/common/ProgramCard";
 import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 import { useTranslation } from "react-i18next";
 
 export default function ProgramList() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { selectedChild, children } = useChildren();
   const navigation = useNavigation();
   const [programs, setPrograms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +33,20 @@ export default function ProgramList() {
   const fetchPrograms = async () => {
     try {
       setLoading(true);
-      const data = await fetchAllRecommendedPrograms(user?.id);
+      if (user?.role === "PARENTS") {
+        if (selectedChild && !selectedChild?.id) {
+          setPrograms([]);
+          return;
+        }
+      }
+      const userId = user?.role === "PARENTS" ? selectedChild?.id : user?.id;
+      if (!userId) {
+        setPrograms([]);
+        return;
+      }
+      const data = await fetchAllRecommendedPrograms(userId);
+      console.log(data);
+
       setPrograms(data);
     } catch (error) {
       console.error("Error fetching programs:", error);
