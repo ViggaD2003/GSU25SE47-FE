@@ -51,6 +51,8 @@ export default function ProgramRecord() {
 
       const userId =
         user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
+
+      console.log(userId);
       const data = await getAllProgramsRecord(userId);
       console.log(data);
 

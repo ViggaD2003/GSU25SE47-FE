@@ -625,6 +625,7 @@
       "priority": "Priority",
       "progressTrend": "Progress Trend",
       "student": "Student",
+      "category": "Category",
       "studentCode": "Student Code",
       "createBy": "Created By",
       "teacherCode": "Teacher Code",

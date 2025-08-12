@@ -399,12 +399,22 @@ const CaseManagement = () => {
         title: t('caseManagement.table.student'),
         dataIndex: 'student',
         key: 'student',
+        width: 220,
         render: student => (
           <div>
             <div className="font-medium flex items-center">
               <UserOutlined className="mr-1" />
               {student?.fullName}
             </div>
+            <Tooltip title={student?.email}>
+              <Text
+                type="secondary"
+                className="text-xs text-gray-500 "
+                ellipsis
+              >
+                {student?.email}
+              </Text>
+            </Tooltip>
             <div className="text-xs text-gray-500">
               {t('caseManagement.table.studentCode')}: {student?.studentCode}
             </div>
@@ -430,6 +440,17 @@ const CaseManagement = () => {
                 {record.description || t('caseManagement.table.noDescription')}
               </Text>
             </Tooltip>
+          </div>
+        ),
+      },
+      {
+        title: t('caseManagement.table.category'),
+        dataIndex: 'category',
+        key: 'category',
+        render: (text, record) => (
+          <div>
+            <div className="font-medium">{record.categoryName}</div>
+            <div className="text-xs text-gray-500">{record.codeCategory}</div>
           </div>
         ),
       },

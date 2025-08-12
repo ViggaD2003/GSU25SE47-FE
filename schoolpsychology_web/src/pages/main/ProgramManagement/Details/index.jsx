@@ -670,10 +670,16 @@ const ProgramDetails = () => {
                         <div
                           style={{ fontWeight: 'bold', marginBottom: '4px' }}
                         >
-                          {caseItem.title} - {caseItem.student?.fullName}
+                          {caseItem?.student?.fullName} - {caseItem?.title}
+                        </div>
+                        <Text type="secondary" ellipsis>
+                          {caseItem?.student?.email}
+                        </Text>
+                        <div style={{ color: '#666', fontSize: '14px' }}>
+                          {caseItem?.categoryName} - {caseItem?.codeCategory}
                         </div>
                         <div style={{ color: '#666', fontSize: '14px' }}>
-                          {caseItem.description}
+                          {caseItem?.description}
                         </div>
                       </div>
                     </List.Item>

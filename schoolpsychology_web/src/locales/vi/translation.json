@@ -661,6 +661,7 @@
       "title": "Tiêu đề",
       "description": "Mô tả",
       "status": "Trạng thái",
+      "category": "Danh mục",
       "priority": "Mức độ ưu tiên",
       "progressTrend": "Xu hướng tiến triển",
       "student": "Học sinh",
