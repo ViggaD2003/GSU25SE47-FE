@@ -773,7 +773,6 @@ const AppointmentManagement = () => {
                   className="shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 border-0 hover:from-blue-600 hover:to-blue-700"
                 >
                   <span className="flex items-center space-x-2">
-                    <PlusOutlined />
                     <span>{t('appointment.createButton.title')}</span>
                   </span>
                 </Button>
@@ -938,7 +937,6 @@ const AppointmentManagement = () => {
                       className="shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 border-0 hover:from-blue-600 hover:to-blue-700"
                     >
                       <span className="flex items-center space-x-2">
-                        <PlusOutlined />
                         <span>{t('appointment.createButton.title')}</span>
                       </span>
                     </Button>

@@ -77,13 +77,9 @@ const DashboardScreen = () => {
 
   // Get the student ID based on user role
   const getStudentId = () => {
-    if (!user || !selectedChild) return null;
-
-    if (user.role === "PARENTS") {
-      return selectedChild?.id || selectedChild?.userId;
-    } else if (user.role === "STUDENT") {
-      return user.userId || user.id;
-    }
+    if (!user) return null;
+    if (user.role === "PARENTS" && selectedChild) return selectedChild.id;
+    if (user.role === "STUDENT") return user.userId || user.id;
     return null;
   };
 

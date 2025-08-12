@@ -46,6 +46,7 @@ import {
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { QUESTION_TYPE } from '../../../constants/enums'
 import { IMPROVED_SCORING_SYSTEM } from '../../../constants/improvedAssessmentScoring'
+import { useTheme } from '../../../contexts/ThemeContext'
 
 const { Option } = Select
 const { Text } = Typography
@@ -59,6 +60,7 @@ const QuestionTabs = ({
   messageApi,
 }) => {
   const [activeKey, setActiveKey] = useState()
+  const { isDarkMode } = useTheme()
 
   // Function to get current category data
   const getCurrentCategory = useCallback(() => {
@@ -93,7 +95,7 @@ const QuestionTabs = ({
   const getCategoryScoringRange = useCallback(() => {
     const category = getCurrentCategory()
     if (!category) {
-      return { minScore: 0, maxScore: 5 } // Default range
+      return { minScore: 0, maxScore: 3 } // Default range
     }
 
     // Use category's minScore and maxScore properties
@@ -102,7 +104,7 @@ const QuestionTabs = ({
     }
 
     // Fallback to default range
-    return { minScore: 0, maxScore: 5 }
+    return { minScore: 0, maxScore: 3 }
   }, [getCurrentCategory])
 
   // Function to generate answer text based on score
@@ -115,9 +117,9 @@ const QuestionTabs = ({
 
     // Normalize score to 0-5 range for text generation
     const normalizedScore = Math.round(
-      ((score - minScore) * 5) / (maxScore - minScore)
+      ((score - minScore) * 3) / (maxScore - minScore)
     )
-    const clampedScore = Math.max(0, Math.min(5, normalizedScore))
+    const clampedScore = Math.max(0, Math.min(3, normalizedScore))
 
     // Get severity level text
     const severityText =
@@ -372,7 +374,7 @@ const QuestionTabs = ({
           </Col>
         </Row>
 
-        <Row gutter={16} className="flex items-end">
+        {/* <Row gutter={16} className="flex items-end">
           <Col span={12}>
             <Form.Item
               {...fieldProps}
@@ -403,7 +405,7 @@ const QuestionTabs = ({
               <Checkbox>Required</Checkbox>
             </Form.Item>
           </Col>
-        </Row>
+        </Row> */}
 
         {/* Answers Section */}
         <Form.List name={[field.name, 'answers']}>
@@ -520,14 +522,27 @@ const QuestionTabs = ({
           style={{
             marginBottom: 16,
             padding: 12,
-            backgroundColor: '#f6ffed',
-            border: '1px solid #b7eb8f',
+            backgroundColor: isDarkMode ? '#1a3a1a' : '#f6ffed',
+            border: `1px solid ${isDarkMode ? '#4caf50' : '#b7eb8f'}`,
             borderRadius: 6,
+            color: isDarkMode ? '#e8f5e8' : '#000000d9',
           }}
         >
-          <Text strong>Scoring System Information:</Text>
+          <Text
+            strong
+            style={{
+              color: isDarkMode ? '#e8f5e8' : '#000000d9',
+            }}
+          >
+            Scoring System Information:
+          </Text>
           <br />
-          <Text type="secondary">
+          <Text
+            type="secondary"
+            style={{
+              color: isDarkMode ? '#a0a0a0' : '#00000073',
+            }}
+          >
             Current category uses score range:{' '}
             {getCategoryScoringRange().minScore} -{' '}
             {getCategoryScoringRange().maxScore}
@@ -550,13 +565,24 @@ const QuestionTabs = ({
                   <Text
                     strong
                     style={{
-                      color: validation.isValid ? '#52c41a' : '#ff4d4f',
+                      color: validation.isValid
+                        ? isDarkMode
+                          ? '#4caf50'
+                          : '#52c41a'
+                        : isDarkMode
+                          ? '#ff6b6b'
+                          : '#ff4d4f',
                     }}
                   >
                     Question Limitations:
                   </Text>
                   <br />
-                  <Text type="secondary">
+                  <Text
+                    type="secondary"
+                    style={{
+                      color: isDarkMode ? '#a0a0a0' : '#00000073',
+                    }}
+                  >
                     This survey type ({code}) requires exactly {questionLength}{' '}
                     questions.
                     <br />
@@ -564,7 +590,11 @@ const QuestionTabs = ({
                     {!validation.isValid && (
                       <Text
                         type="danger"
-                        style={{ display: 'block', marginTop: 4 }}
+                        style={{
+                          display: 'block',
+                          marginTop: 4,
+                          color: isDarkMode ? '#ff6b6b' : '#ff4d4f',
+                        }}
                       >
                         ⚠️ {validation.message}
                       </Text>
