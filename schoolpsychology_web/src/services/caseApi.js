@@ -5,7 +5,7 @@ export const caseAPI = {
     const statusCase = data?.statusCase || ''
     const surveyId = data?.surveyId || ''
     const response = await api.get(
-      `/api/v1/cases?statusCase=${statusCase}${data?.categoryId ? '&categoryId=' + data.categoryId : ''}${surveyId ? '&surveyId=' + surveyId : ''}`
+      `/api/v1/cases?accountId=${data?.accountId}&statusCase=${statusCase}${data?.categoryId ? '&categoryId=' + data.categoryId : ''}${surveyId ? '&surveyId=' + surveyId : ''}`
     )
     return response.data
   },

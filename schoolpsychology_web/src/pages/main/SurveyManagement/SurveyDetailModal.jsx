@@ -293,7 +293,7 @@ const SurveyDetailModal = ({
   const [selectedRemovedCases, setSelectedRemovedCases] = useState([])
   const [selectedAddedCases, setSelectedAddedCases] = useState([])
   const { cases, loading: casesLoading } = useSelector(state => state.case)
-
+  const { user } = useSelector(state => state.auth)
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
@@ -622,9 +622,10 @@ const SurveyDetailModal = ({
       categoryId: survey?.category?.id,
       statusCase: ['IN_PROGRESS'],
       surveyId: survey?.surveyId || surveyId,
+      accountId: user.id,
     }
     dispatch(getCases(params))
-  }, [survey, dispatch, userRole, surveyId])
+  }, [survey, dispatch, userRole, surveyId, user.id])
 
   useEffect(() => {
     if (!survey) return

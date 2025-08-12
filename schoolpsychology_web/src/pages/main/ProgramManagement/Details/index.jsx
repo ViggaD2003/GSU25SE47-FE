@@ -65,7 +65,7 @@ const ProgramDetails = () => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
   const [messageApi, contextHolder] = message.useMessage()
-
+  const { user } = useSelector(state => state.auth)
   const { program, loading, error } = useSelector(state => state.program)
   const [activeTab, setActiveTab] = useState('overview')
   const [isInitialized, setIsInitialized] = useState(false)
@@ -194,6 +194,7 @@ const ProgramDetails = () => {
       const data = await caseAPI.getCases({
         statusCase: ['IN_PROGRESS'],
         categoryId: program?.category?.id,
+        accountId: user.id,
       })
       // console.log('Fetched cases:', data)
       // console.log('participants', program.participants)

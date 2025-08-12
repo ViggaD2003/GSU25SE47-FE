@@ -56,7 +56,7 @@ const CreateAppointmentModal = ({ isOpen, onClose, onSuccess }) => {
   // Effects
   useEffect(() => {
     if (isOpen) {
-      dispatch(getCases({ statusCase: ['IN_PROGRESS'] }))
+      dispatch(getCases({ statusCase: ['IN_PROGRESS'], accountId: user.id }))
       dispatch(fetchSlots(user.id))
     }
   }, [isOpen, dispatch, user.id])

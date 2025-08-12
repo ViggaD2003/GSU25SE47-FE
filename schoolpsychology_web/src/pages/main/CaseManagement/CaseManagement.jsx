@@ -131,8 +131,8 @@ const CaseManagement = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    dispatch(getCases())
-  }, [dispatch])
+    dispatch(getCases({ accountId: user.id }))
+  }, [dispatch, user.id])
 
   useEffect(() => {
     if (error) {
@@ -235,8 +235,8 @@ const CaseManagement = () => {
   }, [])
 
   const handleRefresh = useCallback(() => {
-    dispatch(getCases())
-  }, [dispatch])
+    dispatch(getCases({ accountId: user.id }))
+  }, [dispatch, user.id])
 
   // Modal handlers
   // const handleAdd = useCallback(() => {
@@ -272,7 +272,7 @@ const CaseManagement = () => {
         ).unwrap()
         messageApi.success(t('caseManagement.messages.assignSuccess'))
         // Refresh data to reflect latest state
-        await dispatch(getCases())
+        await dispatch(getCases({ accountId: user.id })).unwrap()
         setEditingHostBy(null)
         setTempHostBy(null)
       } catch {
@@ -382,7 +382,7 @@ const CaseManagement = () => {
         })
       ).unwrap()
       messageApi.success(t('caseManagement.messages.assignSuccess'))
-      await dispatch(getCases())
+      await dispatch(getCases({ accountId: user.id })).unwrap()
       setSelectedRowKeys([])
       setBulkCounselorId(null)
     } catch {
@@ -390,7 +390,7 @@ const CaseManagement = () => {
     } finally {
       setBulkAssignLoading(false)
     }
-  }, [bulkCounselorId, selectedRowKeys, dispatch, messageApi, t])
+  }, [bulkCounselorId, selectedRowKeys, dispatch, messageApi, t, user.id])
 
   // Table columns
   const columns = useMemo(
