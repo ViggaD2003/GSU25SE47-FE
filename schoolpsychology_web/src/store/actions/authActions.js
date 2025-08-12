@@ -212,6 +212,23 @@ export const logoutUser = createAsyncThunk(
   }
 )
 
+// Force logout without API call - for cases like 403 with valid token
+export const forceLogout = createAsyncThunk(
+  'auth/forceLogout',
+  async (_, { dispatch }) => {
+    console.log('🔄 Force logout - clearing auth data without API call')
+
+    // Clear localStorage using centralized helpers
+    clearAuthData()
+
+    // Update Redux state
+    dispatch(logoutAction())
+
+    console.log('✅ Force logout completed')
+    return true
+  }
+)
+
 // Async thunk for Google OAuth login
 export const loginWithGoogleToken = createAsyncThunk(
   'auth/loginWithGoogleToken',

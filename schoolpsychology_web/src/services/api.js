@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { store } from '../store'
 import {
+  forceLogout,
   logoutUser,
   refreshToken as refreshTokenAction,
 } from '../store/actions/authActions'
@@ -260,12 +261,31 @@ api.interceptors.response.use(
     ) {
       console.log('⚠️ Response: 403 Forbidden - access denied')
 
-      // For 403, we don't try to refresh - just show error
-      notificationService.error({
-        message: 'Quyền truy cập bị từ chối',
-        description: 'Bạn không có quyền thực hiện hành động này.',
-        duration: 4,
-      })
+      // Check if token is still valid but getting 403 - might be invalidated on server
+      const currentToken = getToken()
+      if (currentToken && !isTokenExpired(currentToken)) {
+        console.log(
+          '⚠️ 403 with valid token - token might be invalidated on server'
+        )
+
+        // Clear storage and force logout user without API call
+        store.dispatch(forceLogout())
+
+        // Show notification about session termination
+        notificationService.error({
+          message: 'Phiên làm việc đã kết thúc',
+          description:
+            'Tài khoản của bạn đã bị vô hiệu hóa hoặc thay đổi quyền. Vui lòng đăng nhập lại.',
+          duration: 6,
+        })
+      } else {
+        // Normal 403 - just show error
+        notificationService.error({
+          message: 'Quyền truy cập bị từ chối',
+          description: 'Bạn không có quyền thực hiện hành động này.',
+          duration: 4,
+        })
+      }
     }
 
     // Handle other errors
