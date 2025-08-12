@@ -7,11 +7,11 @@ const { width: screenWidth } = Dimensions.get("window");
 const ReusableBarChart = ({
   data = [],
   title = "Chart",
-  yAxisMax = 100,
+  yAxisMax = 4.0,
   barColor = GlobalStyles.colors.primary,
   height = 200,
   showGrid = true,
-  valueFormatter = (value) => `${value}%`,
+  valueFormatter = (value) => `${value}`,
 }) => {
   if (!data || data.length === 0) {
     return (
@@ -39,10 +39,12 @@ const ReusableBarChart = ({
     backgroundColor: "#ffffff",
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    decimalPlaces: 0,
+    decimalPlaces: 1,
     color: (opacity = 1) => `rgba(${hexToRgb(barColor)}, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(31, 41, 55, ${opacity})`,
-
+    style: {
+      borderRadius: 16,
+    },
     propsForDots: {
       r: "6",
       strokeWidth: "2",
@@ -53,10 +55,14 @@ const ReusableBarChart = ({
       stroke: "#F1F5F9",
       strokeWidth: 1,
     },
-    barPercentage: yAxisMax / 100,
+    barPercentage: 0.7,
     fillShadowGradient: barColor,
-    fillShadowGradientOpacity: 1,
-    yAxisInterval: Math.ceil(yAxisMax / 5),
+    fillShadowGradientOpacity: 0.8,
+    yAxisInterval: Math.ceil(yAxisMax / 4),
+    formatYLabel: (value) => {
+      const numValue = parseFloat(value);
+      return isNaN(numValue) ? value : numValue.toFixed(1);
+    },
   };
 
   return (
@@ -65,16 +71,24 @@ const ReusableBarChart = ({
       <View style={styles.chartContainer}>
         <BarChart
           data={chartData}
-          width={screenWidth - 100}
+          width={screenWidth - 80}
           height={height}
           chartConfig={chartConfig}
           verticalLabelRotation={0}
-          showBarTops={false}
+          showBarTops={true}
           fromZero={true}
-          segments={5}
+          segments={4}
           showValuesOnTopOfBars={true}
           withInnerLines={showGrid}
-          formatYLabel={valueFormatter}
+          withVerticalLabels={true}
+          withHorizontalLabels={true}
+          withDots={false}
+          withShadow={true}
+          withScrollableDot={false}
+          yAxisSuffix=""
+          yAxisLabel=""
+          yLabelsOffset={10}
+          xLabelsOffset={-10}
         />
       </View>
     </View>
@@ -96,11 +110,22 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 20,
     borderColor: "#F1F5F9",
+    borderWidth: 1,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#1F2937",
     marginBottom: 20,

@@ -294,6 +294,7 @@ const DashboardScreen = () => {
               Object.keys(dashboardData.mentalStatistic).length > 0 &&
               getStudentId() && (
                 <MentalHealthSection
+                  t={t}
                   mentalStatistic={dashboardData.mentalStatistic}
                   key={`mental-health-${getStudentId()}`}
                 />

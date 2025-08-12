@@ -38,16 +38,38 @@
       "casesSubtitle": "Total cases"
     },
     "mentalHealth": {
+      "combined": {
+        "title": "Mental Health Overview",
+        "chartTitle": "Combined Analytics Dashboard",
+        "trendTitle": "Score Trend Over Time",
+        "averageTitle": "Average Score by Category",
+        "detailsTitle": "Data Details",
+        "overallProgress": "Overall Progress",
+        "performanceMetrics": "Performance Metrics"
+      },
+      "type": {
+        "survey": "Survey",
+        "appointment": "Appointment",
+        "program": "Program"
+      },
       "survey": {
         "title": "Survey Statistics",
         "active": "Active Surveys",
         "activeSubtitle": "Currently active",
         "completed": "Completed Surveys",
         "completedSubtitle": "Successfully finished",
+        "averageScore": "Average Score",
+        "averageSubtitle": "Mean performance",
+        "highestScore": "Highest Score",
+        "highestSubtitle": "Best performance",
+        "lowestScore": "Lowest Score",
+        "lowestSubtitle": "Needs improvement",
         "skips": "Skipped Surveys",
         "skipsSubtitle": "Number of skips",
         "chartTitle": "Survey Progress Over Time",
-        "noData": "No survey data available"
+        "noData": "No survey data available",
+        "scoreAnalysis": "Score Analysis",
+        "trendAnalysis": "Trend Analysis"
       },
       "appointment": {
         "title": "Appointment Statistics",
@@ -55,10 +77,18 @@
         "activeSubtitle": "Currently scheduled",
         "completed": "Completed Appointments",
         "completedSubtitle": "Successfully finished",
+        "averageScore": "Average Score",
+        "averageSubtitle": "Mean performance",
+        "highestScore": "Highest Score",
+        "highestSubtitle": "Best performance",
+        "lowestScore": "Lowest Score",
+        "lowestSubtitle": "Needs improvement",
         "absent": "Absent Appointments",
         "absentSubtitle": "Number of absences",
         "chartTitle": "Appointment Progress Over Time",
-        "noData": "No appointment data available"
+        "noData": "No appointment data available",
+        "attendanceRate": "Attendance Rate",
+        "performanceTrend": "Performance Trend"
       },
       "program": {
         "title": "Program Statistics",
@@ -66,10 +96,18 @@
         "activeSubtitle": "Currently enrolled",
         "completed": "Completed Programs",
         "completedSubtitle": "Successfully finished",
+        "averageScore": "Average Score",
+        "averageSubtitle": "Mean performance",
+        "highestScore": "Highest Score",
+        "highestSubtitle": "Best performance",
+        "lowestScore": "Lowest Score",
+        "lowestSubtitle": "Needs improvement",
         "absent": "Absent Programs",
         "absentSubtitle": "Number of absences",
         "chartTitle": "Program Progress Over Time",
-        "noData": "No program data available"
+        "noData": "No program data available",
+        "enrollmentStatus": "Enrollment Status",
+        "completionRate": "Completion Rate"
       }
     },
     "dateRanges": {
@@ -94,30 +132,7 @@
   },
   "case": {
     "followUp": "Follow Up",
-    "followUpSubtitle": "Track case progress and updates",
-    "empty": "No data available",
-    "tab": {
-      "title": "Case Management",
-      "subtitle": "Manage and track cases"
-    },
-    "closedCases": {
-      "title": "Closed Cases",
-      "subtitle": "View closed cases"
-    },
-    "details": "Case Details",
-    "detailsSubtitle": "View detailed case information",
-    "emptyTitle": "No data available",
-    "emptySubtitle": "No data available",
-    "caseInfo": {
-      "title": "Case Information",
-      "caseId": "Case ID",
-      "description": "Description",
-      "status": "Status",
-      "priority": "Priority",
-      "progressTrend": "Progress Trend",
-      "currentLevel": "Current Level",
-      "initialLevel": "Initial Level"
-    },
+    "emptyTitle": "No Case Found",
     "status": {
       "new": "New",
       "inProgress": "In Progress",
@@ -141,36 +156,45 @@
       "current": "Current Level",
       "initial": "Initial Level"
     },
-    "statistics": {
-      "title": "Statistics",
-      "surveys": "Surveys",
-      "appointments": "Appointments",
-      "programs": "Programs",
-      "completed": "{{common.completed}}"
-    },
-    "charts": {
-      "title": "Charts",
-      "surveys": "Surveys",
-      "appointments": "Appointments",
-      "programs": "Programs",
-      "noData": "No data available",
-      "scoreFormat": "{{score}}/4.0"
-    },
     "studentInfo": {
-      "title": "Student Information",
-      "fullName": "Full Name",
-      "email": "{{auth.email}}",
-      "phoneNumber": "Phone Number",
-      "class": "Class",
-      "schoolYear": "School Year",
       "teacher": "Teacher"
     },
     "emptyState": {
-      "noCase": "No case assigned yet",
-      "noCaseAssigned": "No case assigned yet",
-      "noCaseAssignedSubtitle": "No case assigned yet",
-      "allCasesClosed": "All cases have been completed",
-      "allCasesClosedSubtitle": "All cases have been processed and completed"
+      "allCasesClosed": "All Cases Closed",
+      "allCasesClosedSubtitle": "Great job! All your cases have been successfully resolved.",
+      "noCase": "No Case Found",
+      "noCaseAssigned": "No Case Assigned",
+      "noCaseAssignedSubtitle": "You don't have any cases assigned at the moment."
+    },
+    "closedCases": {
+      "title": "Closed Cases",
+      "description": "View your successfully resolved cases and their details"
+    },
+    "caseInfo": {
+      "priority": "Priority",
+      "progressTrend": "Progress Trend"
+    },
+    "statistics": {
+      "title": "Case Statistics",
+      "surveys": "Surveys",
+      "appointments": "Appointments",
+      "programs": "Programs",
+      "completed": "Completed"
+    },
+    "charts": {
+      "title": "Performance Charts",
+      "surveys": "Survey Scores",
+      "appointments": "Appointment Scores",
+      "programs": "Program Scores",
+      "scoreFormat": "Score: {{score}}",
+      "noData": "No Data"
+    },
+    "tab": {
+      "title": "Case Details",
+      "subtitle": "Case Information"
+    },
+    "details": {
+      "title": "Case Details"
     }
   },
   "common": {

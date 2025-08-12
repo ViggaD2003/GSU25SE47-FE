@@ -38,16 +38,38 @@
       "casesSubtitle": "Tổng số ca tư vấn"
     },
     "mentalHealth": {
+      "combined": {
+        "title": "Tổng quan sức khỏe tâm thần",
+        "chartTitle": "Bảng điều khiển phân tích tổng hợp",
+        "trendTitle": "Xu hướng điểm số theo thời gian",
+        "averageTitle": "Điểm trung bình theo danh mục",
+        "detailsTitle": "Chi tiết dữ liệu",
+        "overallProgress": "Tiến độ tổng thể",
+        "performanceMetrics": "Chỉ số hiệu suất"
+      },
+      "type": {
+        "survey": "Khảo sát",
+        "appointment": "Lịch hẹn",
+        "program": "Chương trình"
+      },
       "survey": {
         "title": "Thống kê Khảo sát",
         "active": "Khảo sát đang được mở",
         "activeSubtitle": "Đang được thực hiện",
         "completed": "Khảo sát Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
+        "averageScore": "Điểm trung bình",
+        "averageSubtitle": "Hiệu suất trung bình",
+        "highestScore": "Điểm cao nhất",
+        "highestSubtitle": "Hiệu suất tốt nhất",
+        "lowestScore": "Điểm thấp nhất",
+        "lowestSubtitle": "Cần cải thiện",
         "skips": "Khảo sát Bỏ qua",
         "skipsSubtitle": "Số lần bỏ qua",
         "chartTitle": "Tiến độ Khảo sát Theo thời gian",
-        "noData": "Không có dữ liệu khảo sát"
+        "noData": "Không có dữ liệu khảo sát",
+        "scoreAnalysis": "Phân tích điểm số",
+        "trendAnalysis": "Phân tích xu hướng"
       },
       "appointment": {
         "title": "Thống kê Lịch hẹn",
@@ -55,10 +77,18 @@
         "activeSubtitle": "Đã lên lịch",
         "completed": "Lịch hẹn Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
+        "averageScore": "Điểm trung bình",
+        "averageSubtitle": "Hiệu suất trung bình",
+        "highestScore": "Điểm cao nhất",
+        "highestSubtitle": "Hiệu suất tốt nhất",
+        "lowestScore": "Điểm thấp nhất",
+        "lowestSubtitle": "Cần cải thiện",
         "absent": "Lịch hẹn Vắng mặt",
         "absentSubtitle": "Số lần vắng mặt",
         "chartTitle": "Tiến độ Lịch hẹn Theo thời gian",
-        "noData": "Không có dữ liệu lịch hẹn"
+        "noData": "Không có dữ liệu lịch hẹn",
+        "attendanceRate": "Tỷ lệ tham dự",
+        "performanceTrend": "Xu hướng hiệu suất"
       },
       "program": {
         "title": "Thống kê Chương trình",
@@ -66,10 +96,18 @@
         "activeSubtitle": "Đang tham gia",
         "completed": "Chương trình Hoàn thành",
         "completedSubtitle": "Đã hoàn thành thành công",
+        "averageScore": "Điểm trung bình",
+        "averageSubtitle": "Hiệu suất trung bình",
+        "highestScore": "Điểm cao nhất",
+        "highestSubtitle": "Hiệu suất tốt nhất",
+        "lowestScore": "Điểm thấp nhất",
+        "lowestSubtitle": "Cần cải thiện",
         "absent": "Chương trình Vắng mặt",
         "absentSubtitle": "Số lần vắng mặt",
         "chartTitle": "Tiến độ Chương trình Theo thời gian",
-        "noData": "Không có dữ liệu chương trình"
+        "noData": "Không có dữ liệu chương trình",
+        "enrollmentStatus": "Trạng thái đăng ký",
+        "completionRate": "Tỷ lệ hoàn thành"
       }
     },
     "dateRanges": {
@@ -94,30 +132,7 @@
   },
   "case": {
     "followUp": "Theo dõi",
-    "followUpSubtitle": "Theo dõi tiến độ và cập nhật case",
-    "empty": "Không có dữ liệu",
-    "tab": {
-      "title": "Quản lý Case",
-      "subtitle": "Quản lý và theo dõi các case"
-    },
-    "closedCases": {
-      "title": "Cases đã đóng",
-      "subtitle": "Xem chi tiết các case đã đóng"
-    },
-    "details": "Chi tiết case",
-    "detailsSubtitle": "Xem thông tin chi tiết case",
-    "emptyTitle": "Không có dữ liệu",
-    "emptySubtitle": "Không có dữ liệu để hiển thị",
-    "caseInfo": {
-      "title": "Thông tin case",
-      "caseId": "Mã case",
-      "description": "Mô tả",
-      "status": "Trạng thái",
-      "priority": "Mức độ ưu tiên",
-      "progressTrend": "Xu hướng tiến triển",
-      "currentLevel": "Mức độ hiện tại",
-      "initialLevel": "Mức độ ban đầu"
-    },
+    "emptyTitle": "Không tìm thấy trường hợp",
     "status": {
       "new": "Mới",
       "inProgress": "Đang xử lý",
@@ -133,7 +148,7 @@
     "progressTrend": {
       "improved": "Cải thiện",
       "stable": "Ổn định",
-      "declined": "Giảm sút",
+      "declined": "Suy giảm",
       "unknown": "Không xác định"
     },
     "level": {
@@ -141,36 +156,45 @@
       "current": "Mức độ hiện tại",
       "initial": "Mức độ ban đầu"
     },
-    "statistics": {
-      "title": "Thống kê",
-      "surveys": "Khảo sát",
-      "appointments": "Lịch hẹn",
-      "programs": "Chương trình",
-      "completed": "{{common.completed}}"
-    },
-    "charts": {
-      "title": "Biểu đồ",
-      "surveys": "Khảo sát",
-      "appointments": "Lịch hẹn",
-      "programs": "Chương trình",
-      "noData": "Không có dữ liệu",
-      "scoreFormat": "{{score}}/4.0"
-    },
     "studentInfo": {
-      "title": "Thông tin học sinh",
-      "fullName": "Họ tên",
-      "email": "{{auth.email}}",
-      "phoneNumber": "Số điện thoại",
-      "class": "Lớp",
-      "schoolYear": "Năm học",
       "teacher": "Giáo viên"
     },
     "emptyState": {
-      "noCase": "Không có case được gán",
-      "noCaseAssigned": "Không có case được gán",
-      "noCaseAssignedSubtitle": "Chưa có case được gán",
-      "allCasesClosed": "Tất cả các case đã được xử lý",
-      "allCasesClosedSubtitle": "Tất cả các case đã được xử lý"
+      "allCasesClosed": "Tất cả trường hợp đã đóng",
+      "allCasesClosedSubtitle": "Tuyệt vời! Tất cả trường hợp của bạn đã được giải quyết thành công.",
+      "noCase": "Không tìm thấy trường hợp",
+      "noCaseAssigned": "Không có trường hợp được tạo",
+      "noCaseAssignedSubtitle": "Bạn không có trường hợp nào được tạo vào lúc này."
+    },
+    "closedCases": {
+      "title": "Trường hợp đã đóng",
+      "description": "Xem các trường hợp đã được giải quyết thành công và chi tiết của chúng"
+    },
+    "caseInfo": {
+      "priority": "Mức độ ưu tiên",
+      "progressTrend": "Xu hướng tiến triển"
+    },
+    "statistics": {
+      "title": "Thống kê trường hợp",
+      "surveys": "Khảo sát",
+      "appointments": "Lịch hẹn",
+      "programs": "Chương trình",
+      "completed": "Hoàn thành"
+    },
+    "charts": {
+      "title": "Biểu đồ hiệu suất",
+      "surveys": "Điểm khảo sát",
+      "appointments": "Điểm lịch hẹn",
+      "programs": "Điểm chương trình",
+      "scoreFormat": "Điểm: {{score}}",
+      "noData": "Không có dữ liệu"
+    },
+    "tab": {
+      "title": "Trường hợp đang được xử lý",
+      "subtitle": "Thông tin trường hợp"
+    },
+    "details": {
+      "title": "Chi tiết trường hợp"
     }
   },
   "common": {

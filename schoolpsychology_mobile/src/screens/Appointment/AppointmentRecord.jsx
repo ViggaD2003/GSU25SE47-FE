@@ -17,7 +17,7 @@ import {
   ChildSelector,
 } from "../../components";
 import { StatisticsCard } from "../../components/dashboard";
-import { ReusableBarChart } from "../../components/charts";
+import { ReusableBarChart } from "../../components";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { getPastAppointments } from "@/services/api/AppointmentService";

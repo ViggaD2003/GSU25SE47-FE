@@ -7,7 +7,7 @@ import {
   RefreshControl,
   Animated,
 } from "react-native";
-import { Card, Text } from "react-native-paper";
+import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
@@ -27,8 +27,6 @@ import ChildSelector, {
 } from "@/components/common/ChildSelector";
 import { useFocusEffect } from "@react-navigation/native";
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
-
 const CaseDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -45,7 +43,13 @@ const CaseDetails = ({ route, navigation }) => {
         setCaseDetails(null);
         return;
       }
-      if (!caseId || !user?.caseId) {
+
+      if (from !== "tab" && !caseId) {
+        setCaseDetails(null);
+        return;
+      }
+
+      if (!user?.caseId) {
         setCaseDetails(null);
         return;
       }
@@ -230,11 +234,21 @@ const CaseDetails = ({ route, navigation }) => {
 
   const renderCaseInfo = () => {
     const { caseInfo } = caseDetails;
+
+    // Safety check for caseInfo
+    if (!caseInfo) {
+      return null;
+    }
+
     const statusConfig = getStatusConfig(caseInfo.status);
     const priorityConfig = getPriorityConfig(caseInfo.priority);
     const progressConfig = getProgressTrendConfig(caseInfo.progressTrend);
-    const currentLevelConfig = getLevelConfig(caseInfo.currentLevel?.levelType);
-    const initialLevelConfig = getLevelConfig(caseInfo.initialLevel?.levelType);
+    const currentLevelConfig = getLevelConfig(
+      caseInfo.currentLevel?.levelType || caseInfo.currentLevel?.code
+    );
+    const initialLevelConfig = getLevelConfig(
+      caseInfo.initialLevel?.levelType || caseInfo.initialLevel?.code
+    );
 
     return (
       <Animated.View style={{ opacity: fadeAnim }}>
@@ -401,6 +415,11 @@ const CaseDetails = ({ route, navigation }) => {
   const renderStatistics = () => {
     const { groupedStatic } = caseDetails;
 
+    // Safety check for groupedStatic
+    if (!groupedStatic) {
+      return null;
+    }
+
     return (
       <Animated.View style={[styles.statisticsSection, { opacity: fadeAnim }]}>
         <Text style={styles.sectionTitle}>{t("case.statistics.title")}</Text>
@@ -414,10 +433,10 @@ const CaseDetails = ({ route, navigation }) => {
             <StatisticsCard
               title={t("case.statistics.surveys")}
               value={
-                groupedStatic.survey.activeSurveys +
-                groupedStatic.survey.completedSurveys
+                (groupedStatic.survey?.activeSurveys || 0) +
+                (groupedStatic.survey?.completedSurveys || 0)
               }
-              subtitle={`${groupedStatic.survey.completedSurveys} ${t(
+              subtitle={`${groupedStatic.survey?.completedSurveys || 0} ${t(
                 "case.statistics.completed"
               )}`}
               icon="document-text"
@@ -430,12 +449,12 @@ const CaseDetails = ({ route, navigation }) => {
             <StatisticsCard
               title={t("case.statistics.appointments")}
               value={
-                groupedStatic.appointment.activeAppointments +
-                groupedStatic.appointment.completedAppointments
+                (groupedStatic.appointment?.activeAppointments || 0) +
+                (groupedStatic.appointment?.completedAppointments || 0)
               }
-              subtitle={`${groupedStatic.appointment.completedAppointments} ${t(
-                "case.statistics.completed"
-              )}`}
+              subtitle={`${
+                groupedStatic.appointment?.completedAppointments || 0
+              } ${t("case.statistics.completed")}`}
               icon="calendar"
               iconColor="#10B981"
               valueColor="#10B981"
@@ -446,10 +465,10 @@ const CaseDetails = ({ route, navigation }) => {
             <StatisticsCard
               title={t("case.statistics.programs")}
               value={
-                groupedStatic.program.activePrograms +
-                groupedStatic.program.completedPrograms
+                (groupedStatic.program?.activePrograms || 0) +
+                (groupedStatic.program?.completedPrograms || 0)
               }
-              subtitle={`${groupedStatic.program.completedPrograms} ${t(
+              subtitle={`${groupedStatic.program?.completedPrograms || 0} ${t(
                 "case.statistics.completed"
               )}`}
               icon="school"
@@ -465,6 +484,11 @@ const CaseDetails = ({ route, navigation }) => {
 
   const renderCharts = () => {
     const { groupedStatic } = caseDetails;
+
+    // Safety check for groupedStatic
+    if (!groupedStatic) {
+      return null;
+    }
 
     // Prepare chart data with proper formatting for 0.0-4.0 scale
     const formatChartData = (dataSet, title) => {
@@ -482,15 +506,15 @@ const CaseDetails = ({ route, navigation }) => {
     };
 
     const surveyData = formatChartData(
-      groupedStatic.survey.dataSet,
+      groupedStatic.survey?.dataSet,
       "Khảo sát"
     );
     const appointmentData = formatChartData(
-      groupedStatic.appointment.dataSet,
+      groupedStatic.appointment?.dataSet,
       "Lịch hẹn"
     );
     const programData = formatChartData(
-      groupedStatic.program.dataSet,
+      groupedStatic.program?.dataSet,
       "Chương trình"
     );
 
@@ -503,11 +527,12 @@ const CaseDetails = ({ route, navigation }) => {
             data={surveyData}
             title={t("case.charts.surveys")}
             barColor="#3B82F6"
-            height={150}
+            height={180}
             yAxisMax={4.0}
             valueFormatter={(value) =>
               t("case.charts.scoreFormat", { score: value.toFixed(1) })
             }
+            showGrid={true}
           />
         </View>
 
@@ -516,11 +541,12 @@ const CaseDetails = ({ route, navigation }) => {
             data={appointmentData}
             title={t("case.charts.appointments")}
             barColor="#10B981"
-            height={150}
+            height={180}
             yAxisMax={4.0}
             valueFormatter={(value) =>
               t("case.charts.scoreFormat", { score: value.toFixed(1) })
             }
+            showGrid={true}
           />
         </View>
 
@@ -529,11 +555,12 @@ const CaseDetails = ({ route, navigation }) => {
             data={programData}
             title={t("case.charts.programs")}
             barColor="#F59E0B"
-            height={150}
+            height={180}
             yAxisMax={4.0}
             valueFormatter={(value) =>
               t("case.charts.scoreFormat", { score: value.toFixed(1) })
             }
+            showGrid={true}
           />
         </View>
       </Animated.View>
@@ -549,7 +576,7 @@ const CaseDetails = ({ route, navigation }) => {
         />
       ) : (
         <HeaderWithoutTab
-          title={headerTitle || t("case.details.title")}
+          title={t("case.details.title") || headerTitle}
           onBackPress={() => navigation.goBack()}
         />
       )}

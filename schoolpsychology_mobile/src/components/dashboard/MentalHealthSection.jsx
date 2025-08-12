@@ -3,29 +3,44 @@ import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import StatisticsCard from "./StatisticsCard";
 import MentalHealthChart from "../charts/MentalHealthChart";
+import CombinedChart from "../charts/CombinedChart";
 import { Ionicons } from "@expo/vector-icons";
 
 const MentalHealthSection = ({ mentalStatistic = {} }) => {
   const { t } = useTranslation();
-  
+
   // Safety check for translation function
-  if (!t || typeof t !== 'function') {
-    console.error('Translation function not available');
+  if (!t || typeof t !== "function") {
+    console.error("Translation function not available");
     return (
-      <View style={{ padding: 20, backgroundColor: '#fef2f2', margin: 20, borderRadius: 8 }}>
-        <Text style={{ color: '#dc2626', textAlign: 'center' }}>
+      <View
+        style={{
+          padding: 20,
+          backgroundColor: "#fef2f2",
+          margin: 20,
+          borderRadius: 8,
+        }}
+      >
+        <Text style={{ color: "#dc2626", textAlign: "center" }}>
           Translation system not available
         </Text>
       </View>
     );
   }
-  
+
   // Safety check for mentalStatistic prop
-  if (!mentalStatistic || typeof mentalStatistic !== 'object') {
-    console.error('Invalid mentalStatistic prop:', mentalStatistic);
+  if (!mentalStatistic || typeof mentalStatistic !== "object") {
+    console.error("Invalid mentalStatistic prop:", mentalStatistic);
     return (
-      <View style={{ padding: 20, backgroundColor: '#fef2f2', margin: 20, borderRadius: 8 }}>
-        <Text style={{ color: '#dc2626', textAlign: 'center' }}>
+      <View
+        style={{
+          padding: 20,
+          backgroundColor: "#fef2f2",
+          margin: 20,
+          borderRadius: 8,
+        }}
+      >
+        <Text style={{ color: "#dc2626", textAlign: "center" }}>
           Invalid data provided
         </Text>
       </View>
@@ -33,6 +48,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
   }
 
   const formatNumber = (num) => {
+    console.log(num);
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
@@ -50,6 +66,27 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
   const getAbsentPercentage = (total, absent) => {
     if (total === 0) return 0;
     return Math.round((absent / total) * 100);
+  };
+
+  // Tính điểm trung bình cho từng loại
+  const calculateAverageScore = (dataSet) => {
+    if (!dataSet || dataSet.length === 0) return 0;
+    const total = dataSet.reduce((sum, item) => sum + (item.score || 0), 0);
+    return Math.round((total / dataSet.length) * 100);
+  };
+
+  // Tính điểm cao nhất
+  const calculateHighestScore = (dataSet) => {
+    if (!dataSet || dataSet.length === 0) return 0;
+    const maxScore = Math.max(...dataSet.map((item) => item.score || 0));
+    return Math.round(maxScore * 100);
+  };
+
+  // Tính điểm thấp nhất
+  const calculateLowestScore = (dataSet) => {
+    if (!dataSet || dataSet.length === 0) return 0;
+    const minScore = Math.min(...dataSet.map((item) => item.score || 0));
+    return Math.round(minScore * 100);
   };
 
   const surveyStats = [
@@ -73,6 +110,14 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       subtitle: t("dashboard.mentalHealth.survey.completedSubtitle"),
       icon: "checkmark-circle-outline",
       color: "#10B981",
+    },
+    {
+      key: "average",
+      title: t("dashboard.mentalHealth.survey.averageScore"),
+      value: `${calculateAverageScore(mentalStatistic.survey?.dataSet)}%`,
+      subtitle: t("dashboard.mentalHealth.survey.averageSubtitle"),
+      icon: "analytics-outline",
+      color: "#8B5CF6",
     },
     {
       key: "skips",
@@ -114,6 +159,14 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       color: "#10B981",
     },
     {
+      key: "average",
+      title: t("dashboard.mentalHealth.appointment.averageScore"),
+      value: `${calculateAverageScore(mentalStatistic.appointment?.dataSet)}%`,
+      subtitle: t("dashboard.mentalHealth.appointment.averageSubtitle"),
+      icon: "analytics-outline",
+      color: "#8B5CF6",
+    },
+    {
       key: "absent",
       title: t("dashboard.mentalHealth.appointment.absent"),
       value: formatNumber(mentalStatistic.appointment?.numOfAbsent || 0),
@@ -151,6 +204,14 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       color: "#10B981",
     },
     {
+      key: "average",
+      title: t("dashboard.mentalHealth.program.averageScore"),
+      value: `${calculateAverageScore(mentalStatistic.program?.dataSet)}%`,
+      subtitle: t("dashboard.mentalHealth.program.averageSubtitle"),
+      icon: "analytics-outline",
+      color: "#8B5CF6",
+    },
+    {
       key: "absent",
       title: t("dashboard.mentalHealth.program.absent"),
       value: formatNumber(mentalStatistic.program?.numOfAbsent || 0),
@@ -165,8 +226,33 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
     },
   ];
 
+  console.log(mentalStatistic);
+  console.log(mentalStatistic.survey?.dataSet);
+
   return (
     <View style={styles.container}>
+      {/* Combined Chart Section */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <View style={[styles.sectionIcon, { backgroundColor: "#F3F4F6" }]}>
+              <Ionicons name="analytics-outline" size={20} color="#6B7280" />
+            </View>
+            <Text style={styles.sectionTitle}>
+              {t("dashboard.mentalHealth.combined.title")}
+            </Text>
+          </View>
+        </View>
+
+        <CombinedChart
+          t={t}
+          appointmentData={mentalStatistic.appointment?.dataSet || []}
+          programData={mentalStatistic.program?.dataSet || []}
+          surveyData={mentalStatistic.survey?.dataSet || []}
+          title={t("dashboard.mentalHealth.combined.chartTitle")}
+        />
+      </View>
+
       {/* Survey Section */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -351,4 +437,3 @@ const styles = StyleSheet.create({
 });
 
 export default MentalHealthSection;
-
