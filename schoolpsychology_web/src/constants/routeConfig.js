@@ -130,18 +130,18 @@ export const ROUTE_CONFIG = [
     labelKey: 'navigation.staffManagement.title',
     allowedRoles: ['manager'],
     children: [
-      {
-        key: '/counselor-management',
-        labelKey: 'navigation.staffManagement.counselorList',
-        element: 'StaffManagement',
-        allowedRoles: ['manager'],
-      },
-      {
-        key: '/teacher-management',
-        labelKey: 'navigation.staffManagement.teacherList',
-        element: 'StaffManagement',
-        allowedRoles: ['manager'],
-      },
+      // {
+      //   key: '/counselor-management',
+      //   labelKey: 'navigation.staffManagement.counselorList',
+      //   element: 'StaffManagement',
+      //   allowedRoles: ['manager'],
+      // },
+      // {
+      //   key: '/teacher-management',
+      //   labelKey: 'navigation.staffManagement.teacherList',
+      //   element: 'StaffManagement',
+      //   allowedRoles: ['manager'],
+      // },
       {
         key: '/slot-management',
         labelKey: 'navigation.slotManagement',

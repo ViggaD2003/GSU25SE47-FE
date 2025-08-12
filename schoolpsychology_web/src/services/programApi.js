@@ -63,4 +63,10 @@ export const programAPI = {
       throw error // Ném lỗi để component Upload xử lý trạng thái 'error'
     }
   },
+  openSurvey: async supportProgramId => {
+    const response = await api.patch(
+      `/api/v1/support-programs/open-survey?supportProgramId=${supportProgramId}`
+    )
+    return response.data
+  },
 }

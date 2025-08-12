@@ -498,7 +498,7 @@ const AppointmentManagement = () => {
                 <Space size="small">
                   <Tooltip title={t('common.viewDetails')}>
                     <Button
-                      type="text"
+                      type="link"
                       icon={<EyeOutlined />}
                       onClick={() => handleViewDetails(record)}
                       className="text-blue-600 hover:text-blue-800"
@@ -687,7 +687,7 @@ const AppointmentManagement = () => {
           <Space size="small">
             <Tooltip title={t('common.viewDetails')}>
               <Button
-                type="text"
+                type="link"
                 icon={<EyeOutlined />}
                 onClick={() => handleViewDetails(record)}
                 className="text-blue-600 hover:text-blue-800"

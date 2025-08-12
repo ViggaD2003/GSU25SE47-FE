@@ -198,32 +198,130 @@ export const getSlotTypeText = (type, t) => {
 
 /**
  * Generate 30-minute time slots between start and end time
+ * @param {string} slotId - Slot ID
  * @param {Date} startTime - Start time
  * @param {Date} endTime - End time
+ * @param {boolean} includePastSlots - Whether to include past time slots (default: false)
  * @returns {Array} Array of time slots
  */
-export const generateTimeSlots = (startTime, endTime) => {
+export const generateTimeSlots = (
+  slotId,
+  startTime,
+  endTime,
+  includePastSlots = false
+) => {
+  // Validate input parameters
+  if (!slotId || !startTime || !endTime) {
+    console.error('Invalid parameters for generateTimeSlots:', {
+      slotId,
+      startTime,
+      endTime,
+    })
+    return []
+  }
+
   const slots = []
   const current = new Date(startTime)
   const end = new Date(endTime)
+  const now = new Date()
+
+  // Validate that start time is before end time
+  if (current >= end) {
+    console.error('Start time must be before end time:', { startTime, endTime })
+    return []
+  }
+
+  // Store original slot time range for validation
+  const originalSlotStart = new Date(startTime)
+  const originalSlotEnd = new Date(endTime)
+
+  // If not including past slots, adjust start time to current time
+  if (!includePastSlots) {
+    const currentTime = new Date()
+    if (current < currentTime) {
+      current.setTime(currentTime.getTime())
+    }
+  }
 
   while (current < end) {
     const slotStart = new Date(current)
     const slotEnd = new Date(current.getTime() + 30 * 60 * 1000) // 30 minutes
 
     if (slotEnd <= end) {
+      // Check if this slot is in the past
+      const isPastSlot = slotStart < now
+
       slots.push({
+        slotId,
         startTime: slotStart,
         endTime: slotEnd,
         duration: 30,
-        isAvailable: true,
+        isAvailable: !isPastSlot, // Mark past slots as unavailable
+        isPastSlot, // Add flag to identify past slots
+        // Store original slot time range for validation
+        slotStartTime: originalSlotStart,
+        slotEndTime: originalSlotEnd,
       })
     }
 
     current.setTime(current.getTime() + 30 * 60 * 1000)
   }
 
+  // Debug logging
+  console.log(`Generated ${slots.length} time slots for slot ${slotId}:`, {
+    originalStart: originalSlotStart.toISOString(),
+    originalEnd: originalSlotEnd.toISOString(),
+    firstSlot: slots[0]?.startTime?.toISOString(),
+    lastSlot: slots[slots.length - 1]?.endTime?.toISOString(),
+  })
+
   return slots
+}
+
+/**
+ * Validate that a time slot is within the original slot time range
+ * @param {Object} timeSlot - Time slot object
+ * @returns {boolean} True if valid, false otherwise
+ */
+export const validateTimeSlotRange = timeSlot => {
+  if (
+    !timeSlot.slotStartTime ||
+    !timeSlot.slotEndTime ||
+    !timeSlot.startTime ||
+    !timeSlot.endTime
+  ) {
+    console.warn('Missing required time slot properties:', timeSlot)
+    return false
+  }
+
+  const slotStart = new Date(timeSlot.slotStartTime)
+  const slotEnd = new Date(timeSlot.slotEndTime)
+  const appointmentStart = new Date(timeSlot.startTime)
+  const appointmentEnd = new Date(timeSlot.endTime)
+
+  // Check if dates are valid
+  if (
+    isNaN(slotStart.getTime()) ||
+    isNaN(slotEnd.getTime()) ||
+    isNaN(appointmentStart.getTime()) ||
+    isNaN(appointmentEnd.getTime())
+  ) {
+    console.warn('Invalid date values in time slot:', timeSlot)
+    return false
+  }
+
+  const isValid = appointmentStart >= slotStart && appointmentEnd <= slotEnd
+
+  // Debug logging
+  console.log('Time slot validation:', {
+    slotStart: slotStart.toISOString(),
+    slotEnd: slotEnd.toISOString(),
+    appointmentStart: appointmentStart.toISOString(),
+    appointmentEnd: appointmentEnd.toISOString(),
+    isValid,
+  })
+
+  return isValid
 }
 
 /**
@@ -234,6 +332,15 @@ export const generateTimeSlots = (startTime, endTime) => {
  */
 export const markBookedSlots = (timeSlots, bookedSlots) => {
   return timeSlots.map(slot => {
+    // Past slots are always unavailable
+    if (slot.isPastSlot) {
+      return {
+        ...slot,
+        isAvailable: false,
+        reason: 'past',
+      }
+    }
+
     const isBooked = bookedSlots.some(booked => {
       const bookedStart = new Date(booked.startDateTime)
       const bookedEnd = new Date(booked.endDateTime)
@@ -243,6 +350,7 @@ export const markBookedSlots = (timeSlots, bookedSlots) => {
     return {
       ...slot,
       isAvailable: !isBooked,
+      reason: isBooked ? 'booked' : 'available',
     }
   })
 }

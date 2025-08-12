@@ -425,6 +425,12 @@
       "editProgram": "Chỉnh sửa chương trình",
       "deleteProgram": "Xóa chương trình",
       "overview": "Tổng quan",
+      "openSurvey": "Mở khảo sát",
+      "openSurveySuccess": "Mở khảo sát thành công",
+      "openSurveyError": "Không thể mở khảo sát",
+      "closeSurvey": "Đóng khảo sát",
+      "closeSurveySuccess": "Đóng khảo sát thành công",
+      "closeSurveyError": "Không thể đóng khảo sát",
       "assessment": "Điểm đánh giá",
       "participants": "Học viên",
       "noParticipants": "Không có học viên",
@@ -1409,12 +1415,20 @@
     "create": "Tạo lịch hẹn",
     "createSuccess": "Tạo lịch hẹn thành công!",
     "createError": "Có lỗi xảy ra khi tạo lịch hẹn",
+    "reasonBooking": "Lý do đặt lịch",
+    "reasonPlaceholder": "Nhập lý do đặt lịch...",
     "createButton": {
       "title": "Tạo cuộc hẹn mới",
       "description": "Tạo cuộc hẹn mới cho học sinh",
       "tooltip": "Nhấn để tạo cuộc hẹn mới"
     },
     "form": {
+      "slotBooked": "Khung giờ đã được đặt",
+      "clickToSelect": "Nhấn để chọn khung giờ",
+      "locationDetails": "Địa điểm cụ thể",
+      "confirmTitle": "Xác nhận thông tin",
+      "confirmDescription": "Vui lòng kiểm tra lại thông tin trước khi tạo cuộc hẹn",
+      "appointmentSummary": "Tóm tắt cuộc hẹn",
       "title": "Tạo cuộc hẹn mới",
       "subtitle": "Lên lịch buổi tư vấn cho học sinh",
       "studentSection": "Thông tin học sinh",
@@ -1452,8 +1466,10 @@
       "selectDate": "Chọn ngày",
       "selectTime": "Chọn giờ",
       "reasonBooking": "Lý do đặt lịch",
-      "reasonPlaceholder": "Nhập lý do đặt lịch..."
+      "reasonPlaceholder": "Nhập lý do đặt lịch...",
+      "timeRangeError": "Thời gian bắt đầu và kết thúc phải nằm trong khoảng thời gian của khung giờ"
     },
+    "createdSuccessfully": "Tạo lịch hẹn thành công",
     "tabs": {
       "active": "Cuộc hẹn đang hoạt động",
       "past": "Cuộc hẹn đã qua",
@@ -1533,7 +1549,6 @@
       "title": "Đặt lịch hẹn",
       "selectStudent": "Chọn học sinh để đặt lịch",
       "selectHost": "Chọn loại người tư vấn",
-      "selectCounselor": "Chọn tư vấn viên",
       "form": {
         "mode": "Hình thức tư vấn",
         "reasonLabel": "Lý do tư vấn",

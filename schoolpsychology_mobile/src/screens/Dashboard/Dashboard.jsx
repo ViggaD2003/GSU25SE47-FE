@@ -271,7 +271,7 @@ const DashboardScreen = () => {
               onRangeChange={handleRangeChange}
               customStartDate={customStartDate}
               customEndDate={customEndDate}
-              // onCustomDateChange={handleCustomDateChange}
+              onCustomDateChange={handleCustomDateChange}
             />
           </View>
 

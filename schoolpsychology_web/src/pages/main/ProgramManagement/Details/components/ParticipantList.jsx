@@ -224,7 +224,7 @@ const ParticipantList = ({
       key: 'performance',
       width: 120,
       render: (_, record) => (
-        <Space direction="vertical" size="small" align="center">
+        <Space direction="vertical" size="small">
           <div>
             <Text type="secondary" style={{ fontSize: '12px' }}>
               {t('programManagement.participants.finalScore')}:

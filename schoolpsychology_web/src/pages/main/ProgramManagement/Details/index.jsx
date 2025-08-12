@@ -54,6 +54,7 @@ import {
   ProgramCharts,
 } from './components'
 import { caseAPI } from '@/services/caseApi'
+import { programAPI } from '@/services/programApi'
 
 const { Title, Text, Paragraph } = Typography
 const { TabPane } = Tabs
@@ -257,6 +258,20 @@ const ProgramDetails = () => {
     [availableCases]
   )
 
+  const handleOpenSurvey = useCallback(async () => {
+    if (!program?.id) {
+      messageApi.error(t('common.error'))
+      return
+    }
+    try {
+      await programAPI.openSurvey(id)
+      messageApi.success(t('programManagement.details.openSurveySuccess'))
+      dispatch(getProgramById(id))
+    } catch {
+      messageApi.error(t('programManagement.details.openSurveyError'))
+    }
+  }, [program?.id, messageApi, t, dispatch, id])
+
   const filteredCases = useMemo(() => {
     if (!availableCases || !Array.isArray(availableCases)) return []
     if (!searchText) return availableCases
@@ -423,20 +438,22 @@ const ProgramDetails = () => {
               </Space>
             </Space>
           </Col>
-          {/* <Col>
-            <Space>
-              <Button
-                icon={<EditOutlined />}
-                onClick={handleEdit}
-                type="primary"
-              >
-                {t('programManagement.details.editProgram')}
-              </Button>
-              <Button icon={<DeleteOutlined />} onClick={handleDelete} danger>
-                {t('programManagement.details.deleteProgram')}
-              </Button>
-            </Space>
-          </Col> */}
+          {program.status !== 'COMPLETED' && (
+            <Col>
+              <Space>
+                <Button
+                  icon={<EditOutlined />}
+                  onClick={handleOpenSurvey}
+                  type="primary"
+                  danger={program.isActiveSurvey}
+                >
+                  {program.isActiveSurvey
+                    ? t('programManagement.details.closeSurvey')
+                    : t('programManagement.details.openSurvey')}
+                </Button>
+              </Space>
+            </Col>
+          )}
         </Row>
       </Card>
 
@@ -653,7 +670,7 @@ const ProgramDetails = () => {
                         <div
                           style={{ fontWeight: 'bold', marginBottom: '4px' }}
                         >
-                          {caseItem.name}
+                          {caseItem.title} - {caseItem.student?.fullName}
                         </div>
                         <div style={{ color: '#666', fontSize: '14px' }}>
                           {caseItem.description}
