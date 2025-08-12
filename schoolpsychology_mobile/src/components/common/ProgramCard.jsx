@@ -76,21 +76,23 @@ const ProgramCard = ({ program, onPress }) => {
               {getStatusText(program.status || "INACTIVE")}
             </Text>
           </View>
-          <View
-            style={[
-              styles.statusBadge,
-              {
-                backgroundColor: getStatusColor(
-                  program.registrationStatus || "INACTIVE"
-                ),
-              },
-            ]}
-          >
-            <Ionicons name="person" size={14} color={"#FFFFFF"} />
-            <Text style={styles.statusText}>
-              {getStatusText(program.registrationStatus || "INACTIVE")}
-            </Text>
-          </View>
+          {program.registrationStatus && (
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: getStatusColor(
+                    program.registrationStatus || "INACTIVE"
+                  ),
+                },
+              ]}
+            >
+              <Ionicons name="person" size={14} color={"#FFFFFF"} />
+              <Text style={styles.statusText}>
+                {getStatusText(program.registrationStatus || "INACTIVE")}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 

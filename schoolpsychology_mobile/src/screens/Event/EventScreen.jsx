@@ -71,7 +71,17 @@ const EventScreen = ({ route, navigation }) => {
     async (weekIndex) => {
       setLoading(true);
       try {
-        if (!user?.id || !selectedChild) {
+        if (user?.role === "PARENTS") {
+          if (!selectedChild && !selectedChild?.id) {
+            setEvents([]);
+            setLoading(false);
+            return;
+          }
+        }
+        const userId =
+          user?.role === "PARENTS" ? selectedChild?.userId : user?.id;
+
+        if (!userId) {
           setEvents([]);
           setLoading(false);
           return;
@@ -87,13 +97,10 @@ const EventScreen = ({ route, navigation }) => {
           `Loading events for week ${weekIndex}: ${effectiveStartDate} to ${endDate}`
         );
 
-        const data = await EventService.getEvents(
-          user?.role === "PARENTS" ? selectedChild?.userId : user.id,
-          {
-            startDate: effectiveStartDate,
-            endDate,
-          }
-        );
+        const data = await EventService.getEvents(userId, {
+          startDate: effectiveStartDate,
+          endDate,
+        });
 
         setEvents(data || []);
       } catch (error) {

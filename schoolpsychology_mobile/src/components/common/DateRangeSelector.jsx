@@ -17,7 +17,7 @@ const DateRangeSelector = ({
     { key: "7d", label: "dashboard.dateRanges.last7Days", days: 7 },
     { key: "30d", label: "dashboard.dateRanges.last30Days", days: 30 },
     { key: "90d", label: "dashboard.dateRanges.last90Days", days: 90 },
-    { key: "custom", label: "dashboard.dateRanges.custom", days: null },
+    // { key: "custom", label: "dashboard.dateRanges.custom", days: null },
   ];
 
   const getCurrentRangeLabel = () => {
@@ -203,4 +203,3 @@ const styles = StyleSheet.create({
 });
 
 export default DateRangeSelector;
-

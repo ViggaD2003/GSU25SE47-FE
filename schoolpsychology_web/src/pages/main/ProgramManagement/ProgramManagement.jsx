@@ -247,7 +247,7 @@ const ProgramManagement = () => {
       try {
         await dispatch(createProgram(programData)).unwrap()
         messageApi.success(t('programManagement.messages.createSuccess'))
-        sendMessage({})
+        // sendMessage({})
         setIsModalVisible(false)
         // dispatch(getAllPrograms()) // Refresh list
       } catch (error) {
