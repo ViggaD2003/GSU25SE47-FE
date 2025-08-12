@@ -378,7 +378,7 @@ const NotificationScreen = ({ navigation }) => {
       />
 
       {/* WebSocket Debug Component - Only in development */}
-      <WebSocketDebug />
+      {/* <WebSocketDebug /> */}
     </Container>
   );
 };

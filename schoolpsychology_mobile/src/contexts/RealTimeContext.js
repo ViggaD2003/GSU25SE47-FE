@@ -12,192 +12,478 @@ import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import { APP_CONFIG } from "../constants";
+import { Client } from "@stomp/stompjs";
 
 const RealTimeContext = createContext(null);
 
 export const RealTimeProvider = ({ children }) => {
   const { user } = useAuth();
   const token = user?.accessToken || user?.token;
-  const tokenRef = useRef(token);
 
+  console.log("🔧 RealTimeProvider render - Token:", !!token, "User:", !!user);
+
+  // State management
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastMessage, setLastMessage] = useState(null);
   const [error, setError] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [notifications, setNotifications] = useState([]);
 
-  const wsRef = useRef(null);
+  // Refs for stable references
+  const clientRef = useRef(null);
   const reconnectTimeout = useRef(null);
-  const isRealDevice = Device.isDevice;
-  const isExpoGo = Constants?.appOwnership === "expo";
+  const messageHandlersRef = useRef(new Map());
+  const mountedRef = useRef(true);
+  const tokenRef = useRef(token);
+  const stateUpdateScheduled = useRef(false);
 
+  // Device info - computed once
+  const deviceInfo = useMemo(
+    () => ({
+      isRealDevice: Device.isDevice,
+      isExpoGo: Constants?.appOwnership === "expo",
+    }),
+    []
+  );
+
+  // Token ref update
   useEffect(() => {
+    console.log("🔄 Token changed:", !!token, "Previous:", !!tokenRef.current);
     tokenRef.current = token;
   }, [token]);
 
+  // Component mount/unmount tracking
+  useEffect(() => {
+    console.log("🚀 RealTimeProvider mounted");
+    mountedRef.current = true;
+    return () => {
+      console.log("💀 RealTimeProvider unmounting");
+      mountedRef.current = false;
+      // Cleanup on unmount
+      if (clientRef.current) {
+        try {
+          clientRef.current.deactivate();
+        } catch (e) {}
+        clientRef.current = null;
+      }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+        reconnectTimeout.current = null;
+      }
+    };
+  }, []);
+
+  // Batched state updates to prevent excessive re-renders
+  const batchedSetState = useCallback((updates) => {
+    if (!mountedRef.current || stateUpdateScheduled.current) return;
+
+    stateUpdateScheduled.current = true;
+
+    // Use React's automatic batching
+    Promise.resolve().then(() => {
+      if (mountedRef.current) {
+        if (updates.isConnected !== undefined)
+          setIsConnected(updates.isConnected);
+        if (updates.isConnecting !== undefined)
+          setIsConnecting(updates.isConnecting);
+        if (updates.error !== undefined) setError(updates.error);
+        if (updates.lastMessage !== undefined)
+          setLastMessage(updates.lastMessage);
+        if (updates.notificationCount !== undefined)
+          setNotificationCount(updates.notificationCount);
+        if (updates.notifications !== undefined)
+          setNotifications(updates.notifications);
+      }
+      stateUpdateScheduled.current = false;
+    });
+  }, []);
+
+  // Utility functions - memoized
+  const isConnectionReady = useCallback(() => {
+    const ready = isConnected && clientRef.current?.connected;
+    console.log(
+      "🔍 Connection ready check:",
+      ready,
+      "isConnected:",
+      isConnected,
+      "clientConnected:",
+      clientRef.current?.connected
+    );
+    return ready;
+  }, [isConnected]);
+
   const resetNotificationCount = useCallback(async () => {
+    if (!mountedRef.current) return;
+
+    console.log("🔄 Resetting notification count");
     setNotificationCount(0);
+
     try {
-      if (!isExpoGo) {
+      if (!deviceInfo.isExpoGo && deviceInfo.isRealDevice) {
         await Notifications.setBadgeCountAsync(0);
       }
     } catch (err) {
-      console.warn("Failed to reset badge count", err);
+      // Silent fail
     }
-  }, [isExpoGo]);
+  }, [deviceInfo.isExpoGo, deviceInfo.isRealDevice]);
 
   const showLocalNotification = useCallback(
     async (title, content) => {
-      if (!isRealDevice || isExpoGo || !title || !content) return;
+      if (
+        !deviceInfo.isRealDevice ||
+        deviceInfo.isExpoGo ||
+        !title ||
+        !content
+      ) {
+        return;
+      }
+
+      console.log("📱 Showing local notification:", { title, content });
+
       try {
         await Notifications.scheduleNotificationAsync({
-          content: {
-            title,
-            body: content,
-            sound: true,
-          },
+          content: { title, body: content, sound: true },
           trigger: null,
         });
       } catch (err) {
-        console.warn("Failed to show notification", err);
+        console.error("❌ Failed to show local notification:", err);
       }
     },
-    [isExpoGo, isRealDevice]
+    [deviceInfo.isRealDevice, deviceInfo.isExpoGo]
   );
 
-  const subscribeToNotifications = useCallback(() => {
-    // Trong WebSocket thuần, không cần subscribe kiểu STOMP,
-    // chỉ cần xử lý `onmessage`
-    // Hàm này giữ lại để không phá API cũ
-  }, []);
-
-  const connect = useCallback(() => {
-    if (isConnecting || isConnected || !tokenRef.current) return;
-
-    try {
-      setIsConnecting(true);
-      const ws = new WebSocket(
-        `${APP_CONFIG.WEBSOCKET_URL}?token=${tokenRef.current}`
-      );
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        // console.log("✅ WebSocket connected");
-        setIsConnected(true);
-        setIsConnecting(false);
-        subscribeToNotifications();
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log("📩 Message received:", data);
-
-          setLastMessage({
-            topic: "/user/queue/notifications",
-            data,
-            timestamp: Date.now(),
-          });
-
-          setNotificationCount((count) => count + 1);
-          showLocalNotification(data.title, data.content);
-        } catch (err) {
-          console.error("Error parsing message:", err);
-        }
-      };
-
-      ws.onerror = (e) => {
-        // console.error("❌ WebSocket error:", e.message);
-        setError(e);
-        setIsConnected(false);
-        setIsConnecting(false);
-      };
-
-      ws.onclose = (e) => {
-        // console.warn("🔌 WebSocket closed", e.code, e.reason);
-        setIsConnected(false);
-        setIsConnecting(false);
-
-        // Auto reconnect
-        reconnectTimeout.current = setTimeout(() => {
-          // console.log("🔁 Reconnecting WebSocket...");
-          connect();
-        }, 5000);
-      };
-    } catch (err) {
-      console.error("Connection error:", err);
-      setError(err);
-      setIsConnecting(false);
+  const addMessageHandler = useCallback((type, callback) => {
+    if (!type || typeof callback !== "function") {
+      return null;
     }
-    // }, [isConnecting, isConnected, subscribeToNotifications]);
+
+    console.log("➕ Adding message handler for type:", type);
+    // Don't check connection ready here to avoid circular dependency
+    messageHandlersRef.current.set(type, callback);
+
+    return () => {
+      if (messageHandlersRef.current.has(type)) {
+        console.log("➖ Removing message handler for type:", type);
+        messageHandlersRef.current.delete(type);
+      }
+    };
   }, []);
 
-  const disconnect = useCallback(() => {
-    console.log("🔌 Disconnecting...");
-    try {
-      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
-      wsRef.current?.close();
-    } catch (err) {
-      console.warn("Error disconnecting", err);
-    }
-    wsRef.current = null;
-    setIsConnected(false);
-    setIsConnecting(false);
-  }, []);
+  // Message handler - optimized
+  const handleNotificationMessage = useCallback(
+    (message) => {
+      if (!message?.body || !mountedRef.current) return;
 
-  const sendMessage = useCallback(async (messageData, retries = 2) => {
-    for (let attempt = 1; attempt <= retries; attempt++) {
+      console.log("📨 Received notification message:", message);
+
       try {
-        const ws = wsRef.current;
-        if (!ws || ws.readyState !== WebSocket.OPEN) {
-          throw new Error("Not connected");
-        }
+        const body = JSON.parse(message.body);
+        const timestamp = Date.now();
+        const currentTime = new Date(timestamp);
 
-        const { destination = "/app/send", ...data } = messageData;
-        ws.send(JSON.stringify({ destination, ...data }));
-        console.log(`✅ Message sent to ${destination || "default"}`);
-        return;
+        const notification = {
+          ...body,
+          createdAt: currentTime.toISOString(),
+          updatedAt: currentTime.toISOString(),
+        };
+
+        console.log("📝 Processed notification:", notification);
+
+        // Batch state updates
+        setNotifications((prev) => [notification, ...prev]);
+        setLastMessage({
+          topic: "/user/queue/notifications",
+          data: body,
+          timestamp,
+        });
+        setNotificationCount((count) => count + 1);
+
+        // Show local notification
+        if (body?.title && body?.content) {
+          showLocalNotification(body.title, body.content);
+        }
       } catch (err) {
-        console.error(`❌ Attempt ${attempt} failed`, err);
-        if (attempt === retries) throw err;
-        await new Promise((res) => setTimeout(res, 1000 * attempt));
+        console.error("❌ Error parsing notification message:", err);
+      }
+    },
+    [showLocalNotification]
+  );
+
+  // Connection management - stable
+  const connectToServer = useCallback(() => {
+    const currentToken = tokenRef.current;
+
+    if (!currentToken || !mountedRef.current) {
+      console.log("❌ Cannot connect: no token or not mounted");
+      return;
+    }
+
+    // Prevent multiple concurrent connections
+    if (isConnecting || isConnected) {
+      console.log(
+        "⚠️ Already connecting or connected, skipping connection attempt"
+      );
+      return;
+    }
+
+    console.log("🔌 Attempting to connect to STOMP server...");
+    setIsConnecting(true);
+
+    try {
+      // Cleanup existing client
+      if (clientRef.current) {
+        try {
+          clientRef.current.deactivate();
+        } catch (e) {}
+        clientRef.current = null;
+      }
+
+      const client = new Client({
+        brokerURL: APP_CONFIG.WEBSOCKET_URL,
+        connectHeaders: {
+          Authorization: `Bearer ${currentToken}`,
+        },
+        debug: () => {}, // Silent debug
+        reconnectDelay: 0, // Manual reconnection control
+        heartbeatIncoming: 4000,
+        heartbeatOutgoing: 4000,
+
+        onConnect: (frame) => {
+          if (!mountedRef.current) return;
+
+          console.log("✅ STOMP connected successfully:", frame);
+          setIsConnected(true);
+          setIsConnecting(false);
+          setError(null);
+
+          // Subscribe to notifications
+          try {
+            client.subscribe(
+              "/user/queue/notifications",
+              handleNotificationMessage
+            );
+            console.log("📡 Subscribed to notifications queue");
+          } catch (subscribeError) {
+            console.warn(
+              "❌ Failed to subscribe to notifications:",
+              subscribeError
+            );
+          }
+        },
+
+        onStompError: (frame) => {
+          if (!mountedRef.current) return;
+
+          const errorMessage =
+            frame.headers?.message || "STOMP connection error";
+          console.error("❌ STOMP error:", frame);
+          setError(new Error(errorMessage));
+          setIsConnecting(false);
+          setIsConnected(false);
+        },
+
+        onWebSocketError: (event) => {
+          if (!mountedRef.current) return;
+
+          console.error("❌ WebSocket error:", event);
+          setError(new Error("WebSocket connection error"));
+          setIsConnecting(false);
+          setIsConnected(false);
+        },
+
+        onWebSocketClose: (event) => {
+          if (!mountedRef.current) return;
+
+          console.log("🔌 WebSocket closed:", event.code, event.reason);
+          setIsConnected(false);
+          setIsConnecting(false);
+
+          // Auto reconnect for unexpected closures
+          if (event.code !== 1000 && tokenRef.current && mountedRef.current) {
+            console.log("🔄 Scheduling auto-reconnect in 5 seconds...");
+            reconnectTimeout.current = setTimeout(() => {
+              if (mountedRef.current && tokenRef.current) {
+                console.log("🔄 Auto-reconnecting...");
+                connectToServer();
+              }
+            }, 5000);
+          }
+        },
+
+        onDisconnect: () => {
+          if (!mountedRef.current) return;
+
+          console.log("🔌 STOMP disconnected");
+          setIsConnected(false);
+          setIsConnecting(false);
+        },
+      });
+
+      clientRef.current = client;
+      console.log("🚀 Activating STOMP client...");
+      client.activate();
+    } catch (err) {
+      console.error("❌ Error creating STOMP client:", err);
+      if (mountedRef.current) {
+        setError(err);
+        setIsConnecting(false);
+        setIsConnected(false);
       }
     }
+  }, []); // No dependencies to avoid re-creation
+
+  const disconnect = useCallback(() => {
+    console.log("🔌 Disconnecting from server...");
+
+    // Clear reconnect timeout
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
+
+    // Clear message handlers
+    messageHandlersRef.current.clear();
+
+    // Deactivate client
+    if (clientRef.current) {
+      try {
+        clientRef.current.deactivate();
+      } catch (e) {}
+      clientRef.current = null;
+    }
+
+    // Update state if mounted
+    if (mountedRef.current) {
+      setIsConnected(false);
+      setIsConnecting(false);
+      setError(null);
+    }
   }, []);
+
+  const sendMessage = useCallback(
+    async (messageData) => {
+      if (!isConnectionReady() || !messageData) {
+        console.log("❌ Cannot send message: not connected or invalid data");
+        throw new Error("Not connected or invalid message data");
+      }
+
+      console.log("📤 Sending message:", messageData);
+
+      try {
+        const { destination = "/app/send", ...data } = messageData;
+
+        clientRef.current.publish({
+          destination,
+          body: JSON.stringify(data),
+          headers: {},
+        });
+
+        console.log("✅ Message sent successfully to:", destination);
+        return Promise.resolve();
+      } catch (err) {
+        console.error("❌ Failed to send message:", err);
+        throw new Error(`Failed to send message: ${err.message}`);
+      }
+    },
+    [isConnectionReady]
+  );
+
+  const sendAuth = useCallback(() => {
+    // With STOMP, auth is handled via headers during connection
+    const ready = isConnectionReady();
+    console.log("🔐 Auth check:", ready);
+    return ready;
+  }, [isConnectionReady]);
 
   const forceReconnect = useCallback(async () => {
-    // console.log("🔌 Force reconnecting...");
-    disconnect();
-    await new Promise((res) => setTimeout(res, 1000));
-    connect();
-    // console.log("🔁 Reconnected");
-    // }, [connect, disconnect]);
-  }, []);
+    console.log("🔄 Force reconnecting...");
 
-  // useEffect(() => {
-  //   resetNotificationCount();
+    // Disconnect first
+    if (clientRef.current) {
+      try {
+        clientRef.current.deactivate();
+      } catch (e) {}
+      clientRef.current = null;
+    }
 
-  //   if (token) {
-  //     connect();
-  //   }
+    if (reconnectTimeout.current) {
+      clearTimeout(reconnectTimeout.current);
+      reconnectTimeout.current = null;
+    }
 
-  //   return () => disconnect();
-  // // }, [token]);
-  // }, []);
+    if (mountedRef.current) {
+      setIsConnected(false);
+      setIsConnecting(false);
+      setError(null);
+    }
 
-  const value = useMemo(
+    // Wait before reconnecting
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Reconnect if still mounted and has token
+    if (mountedRef.current && tokenRef.current) {
+      connectToServer();
+    }
+  }, [connectToServer]);
+
+  // Connection effect - simplified
+  useEffect(() => {
+    console.log(
+      "🔌 Connection effect triggered - Token:",
+      !!token,
+      "Mounted:",
+      mountedRef.current
+    );
+
+    if (token && mountedRef.current) {
+      connectToServer();
+    } else {
+      disconnect();
+    }
+
+    return () => {
+      disconnect();
+    };
+  }, [token]); // Only depend on token
+
+  // Log state changes
+  useEffect(() => {
+    console.log("📊 State updated:", {
+      isConnected,
+      isConnecting,
+      error: error?.message,
+      notificationCount,
+      notificationsCount: notifications.length,
+    });
+  }, [
+    isConnected,
+    isConnecting,
+    error,
+    notificationCount,
+    notifications.length,
+  ]);
+
+  // Stable context value
+  const contextValue = useMemo(
     () => ({
+      // State values
       isWebSocketConnected: isConnected,
       isConnecting,
       lastMessage,
       error,
       notificationCount,
-      isRealDevice,
+      notifications,
+      isRealDevice: deviceInfo.isRealDevice,
 
-      connect,
+      // Functions
+      isConnectionReady,
+      connect: connectToServer,
       disconnect,
-      sendMessage,
       forceReconnect,
+      sendMessage,
+      sendAuth,
+      addMessageHandler,
       resetNotificationCount,
       setNotificationCount,
     }),
@@ -207,16 +493,21 @@ export const RealTimeProvider = ({ children }) => {
       lastMessage,
       error,
       notificationCount,
-      connect,
+      notifications,
+      deviceInfo.isRealDevice,
+      isConnectionReady,
+      connectToServer,
       disconnect,
-      sendMessage,
       forceReconnect,
+      sendMessage,
+      sendAuth,
+      addMessageHandler,
       resetNotificationCount,
     ]
   );
 
   return (
-    <RealTimeContext.Provider value={value}>
+    <RealTimeContext.Provider value={contextValue}>
       {children}
     </RealTimeContext.Provider>
   );

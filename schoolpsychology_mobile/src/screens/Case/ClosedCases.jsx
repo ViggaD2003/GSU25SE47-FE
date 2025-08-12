@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import { formatDate } from "@/utils/helpers";
 import { getLevelConfig } from "@/constants/levelConfig";
+import { useAuth, useChildren } from "@/contexts";
 
 const ClosedCases = ({ navigation }) => {
   const { t } = useTranslation();
@@ -21,12 +22,16 @@ const ClosedCases = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
+  const { selectedChild } = useChildren();
 
   const fetchClosedCases = async () => {
     setLoading(true);
     setError(null);
     try {
-      const cases = await getClosedCases();
+      const cases = await getClosedCases(
+        user?.userId || user?.id || selectedChild?.id || selectedChild?.userId
+      );
       setClosedCases(cases || []);
     } catch (error) {
       console.error("Error fetching closed cases:", error);

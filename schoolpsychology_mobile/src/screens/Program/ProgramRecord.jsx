@@ -1,13 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Container } from "../../components";
+import { ChildSelector, Container } from "../../components";
 import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useAuth, useChildren } from "@/contexts";
 
 export default function ProgramRecord() {
   const navigation = useNavigation();
+  const { user } = useAuth();
+  const { selectedChild } = useChildren();
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -17,6 +20,8 @@ export default function ProgramRecord() {
     <Container>
       {/* Header */}
       <HeaderWithoutTab title="Program Record" onBackPress={handleBackPress} />
+
+      {user.role === "PARENTS" && <ChildSelector />}
 
       {/* Content */}
       <View style={styles.content}>

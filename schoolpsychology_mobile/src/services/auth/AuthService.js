@@ -52,7 +52,7 @@ export const login = async (email, password) => {
         ...decoded,
         accessToken,
         token: accessToken,
-        userId: decoded["user-id"],
+        userId: decoded["user-id"] || decoded.id,
         id: decoded["user-id"],
         role: decoded.role,
         email: decoded.sub,

@@ -780,44 +780,46 @@ export default function ProgramDetail() {
       </ScrollView>
 
       {/* Action Button */}
-      <View style={styles.actionContainer}>
-        <TouchableOpacity
-          style={[
-            styles.actionButton,
-            isJoined ? styles.leaveButton : styles.joinButton,
-            (joining || !canJoinOrLeave()) && styles.disabledButton,
-          ]}
-          onPress={isJoined ? handleLeaveProgram : handleJoinProgram}
-          disabled={joining || !canJoinOrLeave()}
-        >
-          {joining ? (
-            <Text style={styles.actionButtonText}>
-              {t("program.detail.loading")}
-            </Text>
-          ) : !canJoinOrLeave() ? (
-            <Text style={styles.actionButtonText}>
-              {t("program.detail.programNotActive")}
-            </Text>
-          ) : (
-            <>
-              <Ionicons
-                name={isJoined ? "exit" : "add"}
-                size={20}
-                color={isJoined ? "#FF3B30" : "#FFFFFF"}
-              />
-              <Text
-                style={
-                  isJoined ? styles.leaveButtonText : styles.joinButtonText
-                }
-              >
-                {isJoined
-                  ? t("program.detail.leaveProgram")
-                  : t("program.detail.joinProgram")}
+      {user?.role === "STUDENT" && (
+        <View style={styles.actionContainer}>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              isJoined ? styles.leaveButton : styles.joinButton,
+              (joining || !canJoinOrLeave()) && styles.disabledButton,
+            ]}
+            onPress={isJoined ? handleLeaveProgram : handleJoinProgram}
+            disabled={joining || !canJoinOrLeave()}
+          >
+            {joining ? (
+              <Text style={styles.actionButtonText}>
+                {t("program.detail.loading")}
               </Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </View>
+            ) : !canJoinOrLeave() ? (
+              <Text style={styles.actionButtonText}>
+                {t("program.detail.programNotActive")}
+              </Text>
+            ) : (
+              <>
+                <Ionicons
+                  name={isJoined ? "exit" : "add"}
+                  size={20}
+                  color={isJoined ? "#FF3B30" : "#FFFFFF"}
+                />
+                <Text
+                  style={
+                    isJoined ? styles.leaveButtonText : styles.joinButtonText
+                  }
+                >
+                  {isJoined
+                    ? t("program.detail.leaveProgram")
+                    : t("program.detail.joinProgram")}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
     </Container>
   );
 }

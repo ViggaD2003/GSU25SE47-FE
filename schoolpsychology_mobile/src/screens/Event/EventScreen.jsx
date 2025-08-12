@@ -14,13 +14,14 @@ import { Container } from "../../components";
 import { WeekCalendar, EventCard } from "../../components/common";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import EventService from "@/services/api/EventService";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 
 const EventScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
+  const { selectedChild } = useChildren();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -70,8 +71,9 @@ const EventScreen = ({ route, navigation }) => {
     async (weekIndex) => {
       setLoading(true);
       try {
-        if (!user?.id) {
+        if (!user?.id || !selectedChild) {
           setEvents([]);
+          setLoading(false);
           return;
         }
 
@@ -85,10 +87,13 @@ const EventScreen = ({ route, navigation }) => {
           `Loading events for week ${weekIndex}: ${effectiveStartDate} to ${endDate}`
         );
 
-        const data = await EventService.getEvents(user.id, {
-          startDate: effectiveStartDate,
-          endDate,
-        });
+        const data = await EventService.getEvents(
+          user?.role === "PARENTS" ? selectedChild?.userId : user.id,
+          {
+            startDate: effectiveStartDate,
+            endDate,
+          }
+        );
 
         setEvents(data || []);
       } catch (error) {

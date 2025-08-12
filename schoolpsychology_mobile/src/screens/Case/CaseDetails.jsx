@@ -44,7 +44,7 @@ const CaseDetails = ({ route, navigation }) => {
       setLoading(true);
 
       const data = await getCaseByCaseId(
-        caseId || user?.caseId || selectedChild?.id
+        caseId || user?.caseId || selectedChild?.caseId
       );
       setCaseDetails(data);
 
@@ -70,8 +70,7 @@ const CaseDetails = ({ route, navigation }) => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log("selectedChild", selectedChild);
-      if (!caseId && !user?.caseId && !selectedChild?.id) {
+      if (!caseId && !user?.caseId && !selectedChild?.caseId) {
         setLoading(false);
         return;
       }

@@ -45,7 +45,7 @@ export const ChildrenProvider = ({ children }) => {
       setChildrenList(childrenData);
       setSelectedChild(childrenData[0]); // Chọn child đầu tiên làm mặc định
     }
-  }, []);
+  }, [user]);
 
   // Thêm child mới
   const addChild = useCallback(

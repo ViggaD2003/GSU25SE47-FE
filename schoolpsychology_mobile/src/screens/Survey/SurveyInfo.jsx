@@ -19,10 +19,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 
 const SurveyInfo = ({ route, navigation }) => {
+  const { user } = useAuth();
   const { surveyId, progressSaved } = route.params || {};
   const { t } = useTranslation();
   const [survey, setSurvey] = useState(null);
@@ -393,24 +395,26 @@ const SurveyInfo = ({ route, navigation }) => {
         </View>
 
         {/* Start Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={handleStartSurvey}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={hasSavedProgress ? "play" : "play-circle"}
-              size={24}
-              color="#fff"
-            />
-            <Text style={styles.startButtonText}>
-              {hasSavedProgress
-                ? t("survey.info.continue")
-                : t("survey.info.start")}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        {user?.role === "STUDENT" && (
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={handleStartSurvey}
+              activeOpacity={0.8}
+            >
+              <Ionicons
+                name={hasSavedProgress ? "play" : "play-circle"}
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.startButtonText}>
+                {hasSavedProgress
+                  ? t("survey.info.continue")
+                  : t("survey.info.start")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
 
       {/* Toast */}

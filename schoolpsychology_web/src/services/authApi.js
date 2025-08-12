@@ -6,6 +6,7 @@ import api from './api'
 export const authAPI = {
   login: async (email, password) => {
     try {
+      localStorage.removeItem('auth') // Clear any existing auth data
       console.log('🔐 Making login request for:', email)
 
       const response = await api.post('/api/v1/auth/login', {

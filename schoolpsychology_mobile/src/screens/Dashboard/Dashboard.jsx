@@ -77,9 +77,9 @@ const DashboardScreen = () => {
 
   // Get the student ID based on user role
   const getStudentId = () => {
-    if (!user) return null;
+    if (!user || !selectedChild) return null;
 
-    if (user.role === "PARENT") {
+    if (user.role === "PARENTS") {
       return selectedChild?.id || selectedChild?.userId;
     } else if (user.role === "STUDENT") {
       return user.userId || user.id;
@@ -212,21 +212,6 @@ const DashboardScreen = () => {
     }
   }, [customStartDate, customEndDate]);
 
-  // Show loading state
-  if (loading && !dashboardData) {
-    return (
-      <Container>
-        <HeaderWithTab
-          title={t("tabs.dashboard")}
-          subtitle={t("dashboard.mobileSubtitle")}
-        />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
-      </Container>
-    );
-  }
-
   // Show initialization loading state
   if (!customStartDate || !customEndDate) {
     return (
@@ -244,23 +229,8 @@ const DashboardScreen = () => {
     );
   }
 
-  // Show auth loading state
-  if (authLoading || !user) {
-    return (
-      <Container>
-        <HeaderWithTab
-          title={t("tabs.dashboard")}
-          subtitle={t("dashboard.mobileSubtitle")}
-        />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
-      </Container>
-    );
-  }
-
   // Show no child selected state for parents
-  if (user.role === "PARENT" && !selectedChild) {
+  if (user.role === "PARENTS" && !selectedChild) {
     return (
       <Container>
         <HeaderWithTab
@@ -279,26 +249,6 @@ const DashboardScreen = () => {
     );
   }
 
-  // Show no student ID state for students
-  if (user.role === "STUDENT" && !user.userId) {
-    return (
-      <Container>
-        <HeaderWithTab
-          title={t("tabs.dashboard")}
-          subtitle={t("dashboard.mobileSubtitle")}
-        />
-        <View style={styles.noChildContainer}>
-          <Text style={styles.noChildTitle}>
-            {t("dashboard.noStudent.title")}
-          </Text>
-          <Text style={styles.noChildSubtitle}>
-            {t("dashboard.noStudent.subtitle")}
-          </Text>
-        </View>
-      </Container>
-    );
-  }
-
   return (
     <Container>
       {/* Header */}
@@ -307,73 +257,81 @@ const DashboardScreen = () => {
         subtitle={t("dashboard.mobileSubtitle")}
       />
 
-      {/* Child Selector - Only for Parents */}
-      {user.role === "PARENT" && (
-        <View style={styles.childSelectorContainer}>
-          <ChildSelector />
+      {user.role === "PARENTS" && <ChildSelector />}
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
-      )}
-
-      {/* Date Range Selector */}
-      <View style={styles.dateRangeContainer}>
-        <DateRangeSelector
-          selectedRange={selectedRange}
-          onRangeChange={handleRangeChange}
-          customStartDate={customStartDate}
-          customEndDate={customEndDate}
-          onCustomDateChange={handleCustomDateChange}
-        />
-      </View>
-
-      {/* Content */}
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={styles.contentContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Dashboard Overview */}
-        {dashboardData?.overview && (
-          <DashboardOverview overview={dashboardData.overview} />
-        )}
-
-        {/* Mental Health Statistics */}
-        {dashboardData?.mentalStatistic &&
-          Object.keys(dashboardData.mentalStatistic).length > 0 &&
-          getStudentId() && (
-            <MentalHealthSection
-              mentalStatistic={dashboardData.mentalStatistic}
-              key={`mental-health-${getStudentId()}`}
+      ) : (
+        <>
+          {/* Date Range Selector */}
+          <View style={styles.dateRangeContainer}>
+            <DateRangeSelector
+              selectedRange={selectedRange}
+              onRangeChange={handleRangeChange}
+              customStartDate={customStartDate}
+              customEndDate={customEndDate}
+              onCustomDateChange={handleCustomDateChange}
             />
-          )}
-
-        {/* Empty State */}
-        {!dashboardData && !error && (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>{t("dashboard.empty.title")}</Text>
-            <Text style={styles.emptySubtitle}>
-              {t("dashboard.empty.subtitle")}
-            </Text>
           </View>
-        )}
 
-        {/* Error State */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorTitle}>
-              {t("dashboard.error.title") || "Error Loading Dashboard"}
-            </Text>
-            <Text style={styles.errorSubtitle}>{error}</Text>
-            <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
-              <Text style={styles.retryButtonText}>
-                {t("common.retry") || "Retry"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </ScrollView>
+          {/* Content */}
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={styles.contentContainer}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Dashboard Overview */}
+            {dashboardData?.overview && (
+              <DashboardOverview overview={dashboardData.overview} />
+            )}
+
+            {/* Mental Health Statistics */}
+            {dashboardData?.mentalStatistic &&
+              Object.keys(dashboardData.mentalStatistic).length > 0 &&
+              getStudentId() && (
+                <MentalHealthSection
+                  mentalStatistic={dashboardData.mentalStatistic}
+                  key={`mental-health-${getStudentId()}`}
+                />
+              )}
+
+            {/* Empty State */}
+            {!dashboardData && !error && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyTitle}>
+                  {t("dashboard.empty.title")}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {t("dashboard.empty.subtitle")}
+                </Text>
+              </View>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorTitle}>
+                  {t("dashboard.error.title") || "Error Loading Dashboard"}
+                </Text>
+                <Text style={styles.errorSubtitle}>{error}</Text>
+                <TouchableOpacity
+                  style={styles.retryButton}
+                  onPress={handleRetry}
+                >
+                  <Text style={styles.retryButtonText}>
+                    {t("common.retry") || "Retry"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </ScrollView>
+        </>
+      )}
     </Container>
   );
 };

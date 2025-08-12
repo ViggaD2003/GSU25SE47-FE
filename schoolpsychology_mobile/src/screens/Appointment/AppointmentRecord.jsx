@@ -10,13 +10,18 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { Container, Loading, LazyLoader } from "../../components";
+import {
+  Container,
+  Loading,
+  LazyLoader,
+  ChildSelector,
+} from "../../components";
 import { StatisticsCard } from "../../components/dashboard";
 import { ReusableBarChart } from "../../components/charts";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import { getPastAppointments } from "@/services/api/AppointmentService";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
 
@@ -29,12 +34,28 @@ const AppointmentRecord = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
+  const { selectedChild } = useChildren();
 
   // Fetch appointment records
   const fetchRecords = useCallback(async () => {
     try {
+      if (
+        !user?.userId ||
+        !user?.id ||
+        !selectedChild?.id ||
+        !selectedChild?.userId
+      )
+        return;
       setLoading(true);
-      const response = await getPastAppointments(user?.userId || user?.id);
+
+      const userId =
+        user?.role === "PARENTS"
+          ? selectedChild?.userId || selectedChild?.id
+          : user.id || user.userId;
+
+      const response = await getPastAppointments(userId);
+
+      console.log("response", response);
       const recordsData = Array.isArray(response)
         ? response
         : response.data || [];
@@ -369,6 +390,8 @@ const AppointmentRecord = () => {
         title={t("appointment.record.title")}
         onBackPress={() => navigation.goBack()}
       />
+
+      {user?.role === "PARENTS" && <ChildSelector />}
 
       {/* Content */}
       {loading ? (

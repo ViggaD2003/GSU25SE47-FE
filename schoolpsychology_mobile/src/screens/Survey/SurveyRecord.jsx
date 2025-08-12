@@ -18,10 +18,11 @@ import {
   Container,
   FilterSortModal,
   SurveyRecordCard,
+  ChildSelector,
 } from "../../components";
 import { getSurveyRecordsByAccount } from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
-import { useAuth } from "../../contexts";
+import { useAuth, useChildren } from "../../contexts";
 import { filterSurveyTypes } from "../../utils/helpers";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,7 @@ const PAGE_SIZE = 2; // Number of records to fetch per page
 
 const SurveyRecord = ({ navigation }) => {
   const { user } = useAuth();
+  const { selectedChild } = useChildren();
   const { t } = useTranslation();
   const [surveyRecords, setSurveyRecords] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -240,9 +242,42 @@ const SurveyRecord = ({ navigation }) => {
           ...filters,
         };
 
+        if (
+          !user?.userId ||
+          !user?.id ||
+          !selectedChild?.id ||
+          !selectedChild?.userId
+        ) {
+          setInitialLoading(false);
+          setLoadingMore(false);
+          setRefreshing(false);
+          setSurveyRecords([]);
+          setCurrentPage(1);
+          setTotalElements(0);
+          setNumberOfSkipped(0);
+          setHasNext(false);
+          setStatistics({
+            totalSurveys: 0,
+            currentSurveys: 0,
+            completionRate: 0,
+            scoreLevelDistribution: [],
+            levelDistribution: [],
+            surveyTypeDistribution: [],
+            averageScore: 0,
+          });
+          return;
+        }
+
+        const userId =
+          user?.role === "PARENTS"
+            ? selectedChild?.userId || selectedChild?.id
+            : user.id || user.userId;
+
         console.log("Fetching survey records with params:", params);
 
-        const response = await getSurveyRecordsByAccount(user.userId, params);
+        const response = await getSurveyRecordsByAccount(userId, params);
+
+        console.log("response", response);
         // console.log("API Response:", {
         //   page: response.page,
         //   totalElements: response.totalElements,
@@ -654,6 +689,8 @@ const SurveyRecord = ({ navigation }) => {
         }
       />
 
+      {user.role === "PARENTS" && <ChildSelector />}
+
       <ScrollView
         style={styles.scrollView}
         refreshControl={
@@ -703,25 +740,27 @@ const SurveyRecord = ({ navigation }) => {
               <Text style={styles.emptySubtitle}>
                 {t("survey.record.emptySubtitle")}
               </Text>
-              <TouchableOpacity
-                style={styles.emptyButton}
-                onPress={() =>
-                  navigation.navigate("Event", {
-                    screen: "EventList",
-                    params: { type: "SURVEY" },
-                  })
-                }
-              >
-                <Ionicons
-                  name="add-circle"
-                  size={18}
-                  color="#fff"
-                  style={{ marginRight: 8 }}
-                />
-                <Text style={styles.emptyButtonText}>
-                  {t("survey.record.goToSurvey")}
-                </Text>
-              </TouchableOpacity>
+              {user?.role === "STUDENT" && (
+                <TouchableOpacity
+                  style={styles.emptyButton}
+                  onPress={() =>
+                    navigation.navigate("Event", {
+                      screen: "EventList",
+                      params: { type: "SURVEY" },
+                    })
+                  }
+                >
+                  <Ionicons
+                    name="add-circle"
+                    size={18}
+                    color="#fff"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={styles.emptyButtonText}>
+                    {t("survey.record.goToSurvey")}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           ) : (
             <>

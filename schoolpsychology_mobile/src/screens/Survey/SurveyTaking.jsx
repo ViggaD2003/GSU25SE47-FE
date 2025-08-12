@@ -408,19 +408,21 @@ const SurveyTaking = ({ route, navigation }) => {
           console.log("Fallback scores calculated:", totalScore);
         }
       }
+      console.log("survey?.surveyType", survey?.surveyType);
 
       const surveyResult = {
         surveyId: survey?.surveyId,
         isSkipped: false,
         totalScore: totalScore, // Sử dụng totalScore đã tính toán
+        surveyRecordType: survey?.surveyType,
         answerRecordRequests: answerRecordRequests,
-        surveyResultType: survey?.surveyType,
       };
 
+      console.log("Survey submitted:", surveyResult);
       console.log(surveyResult);
-      // console.log("Survey submitted:", surveyResult);
+
       const response = await postSurveyResult(surveyResult);
-      // console.log("response", response);
+      console.log("response", response);
 
       // Navigate to result screen
       if (response) {

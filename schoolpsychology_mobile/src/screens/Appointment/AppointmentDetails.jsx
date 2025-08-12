@@ -282,7 +282,7 @@ const AppointmentDetails = ({ route, navigation }) => {
   };
 
   const canCancel = () => {
-    if (!appointmentData) return false;
+    if (!appointmentData || user?.role === "PARENTS") return false;
 
     const now = dayjs();
     const startTime = dayjs(appointmentData.startDateTime);
@@ -293,7 +293,7 @@ const AppointmentDetails = ({ route, navigation }) => {
   };
 
   const canConfirmOrReject = () => {
-    if (!appointmentData) return false;
+    if (!appointmentData || user?.role === "PARENTS") return false;
     return appointmentData.status === "PENDING";
   };
 
@@ -945,7 +945,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       </ScrollView>
 
       {/* Warning Card - chỉ hiển thị khi không thể hủy lịch hẹn */}
-      {!canCancel() && (
+      {!canCancel() && user?.role === "STUDENT" && (
         <View style={styles.warningCard}>
           <View style={styles.warningHeader}>
             <Ionicons name="warning" size={24} color="#F59E0B" />
