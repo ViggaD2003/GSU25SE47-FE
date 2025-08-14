@@ -269,7 +269,10 @@ export default function ProgramDetail() {
   };
 
   const canJoinOrLeave = () => {
-    return program && program.status === "ACTIVE";
+    return (
+      (program && program.status === "ACTIVE") ||
+      program.student?.surveyRecord?.length === 0
+    );
   };
 
   const renderSurveyProgress = () => {
