@@ -70,7 +70,7 @@ const AppointmentRecord = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.userId, user?.id]);
+  }, [selectedChild, user?.id]);
 
   // Refresh data
   const onRefresh = useCallback(async () => {

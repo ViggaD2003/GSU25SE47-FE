@@ -1,6 +1,13 @@
-import { AppointmentCard, Container, SurveyCard, Loading } from "@/components";
+import {
+  AppointmentCard,
+  Container,
+  SurveyCard,
+  Loading,
+  ProgramCard,
+  ChildSelector,
+} from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 import { getActiveAppointments } from "@/services/api/AppointmentService";
 import { getPublishedSurveys } from "@/services/api/SurveyService";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -8,6 +15,10 @@ import { useCallback, useState } from "react";
 import { StyleSheet, View, FlatList, Text, RefreshControl } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import {
+  fetchAllRecommendedPrograms,
+  getAllProgramsRecord,
+} from "@/services/api/ProgramService";
 
 const EventList = ({ route, navigation }) => {
   const { user, loading: authLoading } = useAuth();
@@ -28,9 +39,26 @@ const EventList = ({ route, navigation }) => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
+  const { selectedChild, children } = useChildren();
+  console.log(selectedChild);
 
   const fetchByType = async (isRefresh = false) => {
     try {
+      if (user?.role === "STUDENT" && !user?.id) {
+        setEvents([]);
+        return;
+      }
+      if (user?.role === "PARENTS") {
+        if (selectedChild && !selectedChild?.id) {
+          setEvents([]);
+          return;
+        }
+      }
+
+      const userId =
+        user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
+
+      console.log(userId);
       if (isRefresh) {
         setRefreshing(true);
       } else {
@@ -41,16 +69,17 @@ const EventList = ({ route, navigation }) => {
       let data;
       switch (type) {
         case "APPOINTMENT":
-          data = await getActiveAppointments(user.id);
+          data = await getActiveAppointments(userId);
           setEvents(data || []);
           break;
         case "SURVEY":
-          data = await getPublishedSurveys();
+          data = await getPublishedSurveys(userId);
 
           setEvents(data || []);
           break;
         case "PROGRAM":
-          setEvents([]);
+          data = await getAllProgramsRecord(userId);
+          setEvents(data || []);
           break;
         default:
           setEvents([]);
@@ -94,7 +123,17 @@ const EventList = ({ route, navigation }) => {
           />
         );
       case "PROGRAM":
-        return null;
+        return (
+          <ProgramCard
+            program={item}
+            onPress={() =>
+              navigation.navigate("Program", {
+                screen: "ProgramDetail",
+                params: { programId: item.id },
+              })
+            }
+          />
+        );
       default:
         return null;
     }
@@ -176,20 +215,8 @@ const EventList = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchByType();
-    }, [type])
+    }, [type, selectedChild, user?.id])
   );
-
-  if (loading && !refreshing) {
-    return (
-      <Container>
-        <HeaderWithoutTab
-          title={getTitle()}
-          onBackPress={() => navigation?.goBack()}
-        />
-        <Loading />
-      </Container>
-    );
-  }
 
   return (
     <Container>
@@ -197,23 +224,38 @@ const EventList = ({ route, navigation }) => {
         title={getTitle()}
         onBackPress={() => navigation?.goBack()}
       />
+      {user?.role === "PARENTS" && children.length > 0 && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
 
-      <FlatList
-        data={events}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
-        contentContainerStyle={styles.listContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={renderEmptyComponent}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading && !refreshing ? (
+        <Loading />
+      ) : (
+        <FlatList
+          data={events}
+          renderItem={renderItem}
+          keyExtractor={(item) =>
+            item.id?.toString() || Math.random().toString()
+          }
+          contentContainerStyle={styles.listContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={renderEmptyComponent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </Container>
   );
 };
 
 const styles = StyleSheet.create({
+  childSelectorContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
   listContainer: {
     flexGrow: 1,
     paddingHorizontal: 16,

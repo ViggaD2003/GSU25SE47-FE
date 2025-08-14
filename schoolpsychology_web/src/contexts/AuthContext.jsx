@@ -70,17 +70,17 @@ export const AuthProvider = ({ children }) => {
     async token => {
       try {
         if (hasProcessedGoogleCallback.current || isProcessingAuth.current) {
-          console.log('Google callback already processed or in progress')
+          // console.log('Google callback already processed or in progress')
           return { success: false, error: 'Already processed' }
         }
 
         isProcessingAuth.current = true
         hasProcessedGoogleCallback.current = true
 
-        console.log(
-          'Processing Google callback with token:',
-          token ? 'Present' : 'Missing'
-        )
+        // console.log(
+        //   'Processing Google callback with token:',
+        //   token ? 'Present' : 'Missing'
+        // )
 
         if (!token) {
           showNotificationOnce('error', {
@@ -100,7 +100,7 @@ export const AuthProvider = ({ children }) => {
           token.includes('duplicate') ||
           token.includes('Query did not return a unique result')
         ) {
-          console.error('Backend error detected in token:', token)
+          // console.error('Backend error detected in token:', token)
 
           let errorMessage = 'Authentication failed due to a backend error.'
           let description = 'Please contact support or try again later.'
@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }) => {
           decodedToken = decodeJWT(token)
         } catch (decodeError) {
           console.error('Token decode failed:', decodeError)
-          console.log('Token content (might be error message):', token)
+          // console.log('Token content (might be error message):', token)
 
           // Check if token is actually an error message
           if (
@@ -171,11 +171,11 @@ export const AuthProvider = ({ children }) => {
           return { success: false, error: 'Invalid token' }
         }
 
-        console.log('Decoded token:', decodedToken)
+        // console.log('Decoded token:', decodedToken)
 
         // Tạo standardized user object
         const userData = createStandardizedUser(decodedToken)
-        console.log('Standardized user data:', userData)
+        // console.log('Standardized user data:', userData)
 
         // Kiểm tra quyền truy cập
         if (!isAuthorizedRole(userData.role)) {
@@ -196,7 +196,7 @@ export const AuthProvider = ({ children }) => {
 
         // Tạo và lưu auth data với refresh token
         const authData = saveAuthData(token, userData, token)
-        console.log('Auth data saved:', authData)
+        // console.log('Auth data saved:', authData)
 
         // Sử dụng loginSuccess từ Redux store để cập nhật state
         dispatch(loginSuccess(authData))
@@ -213,7 +213,7 @@ export const AuthProvider = ({ children }) => {
 
         return { success: true, data: authData }
       } catch (error) {
-        console.error('Error processing Google callback:', error)
+        // console.error('Error processing Google callback:', error)
 
         // Check if it's a backend error
         if (
@@ -294,14 +294,14 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(
     async (email, password) => {
       try {
-        console.log('🔐 AuthContext: Starting login for:', email)
+        // console.log('🔐 AuthContext: Starting login for:', email)
 
         const result = await dispatch(loginUser({ email, password })).unwrap()
-        console.log('📡 AuthContext: Login result:', result)
+        // console.log('📡 AuthContext: Login result:', result)
 
         // Check if this was an OAuth redirect (Manager role)
         if (result?.isOAuthRedirect) {
-          console.log('🔐 Manager role detected, OAuth redirect initiated')
+          // console.log('🔐 Manager role detected, OAuth redirect initiated')
           return {
             success: true,
             isOAuthRedirect: true,
@@ -311,11 +311,11 @@ export const AuthProvider = ({ children }) => {
 
         // Normal login (Counselor/Teacher role)
         if (result?.user?.role) {
-          console.log('👤 Normal login successful for role:', result.user.role)
+          // console.log('👤 Normal login successful for role:', result.user.role)
 
           // Validate role authorization
           if (!isAuthorizedRole(result.user.role)) {
-            console.error('❌ Unauthorized role:', result.user.role)
+            //  console.error('❌ Unauthorized role:', result.user.role)
             dispatch(logoutUser())
             clearAuthData()
             notificationService.error({
@@ -337,16 +337,16 @@ export const AuthProvider = ({ children }) => {
             duration: NOTIFICATION_DURATIONS.SUCCESS,
           })
 
-          console.log(
-            '✅ Login completed successfully for:',
-            result.user.fullName
-          )
+          // console.log(
+          //   '✅ Login completed successfully for:',
+          //   result.user.fullName
+          // )
           return { success: true, data: result }
         } else {
           throw new Error('Invalid login response: missing user data')
         }
       } catch (error) {
-        console.error('❌ AuthContext: Login failed:', error)
+        // console.error('❌ AuthContext: Login failed:', error)
 
         // Handle different types of errors
         let errorMessage = 'Login failed. Please try again.'
@@ -359,7 +359,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'The server is experiencing issues. Please try again later or contact support.'
           shouldNavigateToLogin = true
-          console.error('🔥 Server error detected during login:', error)
+          // console.error('🔥 Server error detected during login:', error)
         }
         // Check for service unavailable errors
         else if (error?.isServiceError) {
@@ -367,10 +367,10 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'The authentication service is temporarily unavailable. Please try again later.'
           shouldNavigateToLogin = true
-          console.error(
-            '🔥 Service unavailable error detected during login:',
-            error
-          )
+          // console.error(
+          //   '🔥 Service unavailable error detected during login:',
+          //   error
+          // )
         }
         // Check for network errors
         else if (error?.isNetworkError) {
@@ -378,7 +378,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'Unable to connect to the server. Please check your internet connection.'
           shouldNavigateToLogin = true
-          console.error('🔥 Network error detected during login:', error)
+          // console.error('🔥 Network error detected during login:', error)
         }
         // Check for client errors (400, 401, 403)
         else if (error?.isClientError || error?.isAuthError) {
@@ -386,7 +386,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'Invalid credentials or access denied.'
           shouldNavigateToLogin = false // Don't navigate for client errors, let user retry
-          console.error('🔥 Client error detected during login:', error)
+          // console.error('🔥 Client error detected during login:', error)
         }
         // Check for HTTP errors
         else if (error?.isHttpError) {
@@ -394,7 +394,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'An error occurred during authentication.'
           shouldNavigateToLogin = error?.status >= 500 // Navigate for server errors
-          console.error('🔥 HTTP error detected during login:', error)
+          // console.error('🔥 HTTP error detected during login:', error)
         }
         // Check for duplicate account errors
         else if (
@@ -407,10 +407,10 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'Multiple accounts found with the same email. Please contact support to resolve this issue.'
           shouldNavigateToLogin = true
-          console.error(
-            '🔥 Duplicate account error detected during login:',
-            error
-          )
+          // console.error(
+          //   '🔥 Duplicate account error detected during login:',
+          //   error
+          // )
         }
         // Generic error handling
         else {
@@ -418,7 +418,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'Invalid credentials. Please try again.'
           shouldNavigateToLogin = false
-          console.error('🔥 Generic error detected during login:', error)
+          // console.error('🔥 Generic error detected during login:', error)
         }
 
         // Show error notification

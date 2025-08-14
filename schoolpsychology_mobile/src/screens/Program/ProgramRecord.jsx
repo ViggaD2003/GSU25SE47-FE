@@ -32,7 +32,7 @@ export default function ProgramRecord() {
   useFocusEffect(
     React.useCallback(() => {
       fetchPrograms();
-    }, [])
+    }, [selectedChild, user?.id])
   );
   const fetchPrograms = async () => {
     try {
@@ -96,18 +96,6 @@ export default function ProgramRecord() {
     </View>
   );
 
-  if (loading) {
-    return (
-      <Container>
-        <HeaderWithoutTab
-          title={t("program.record.title")}
-          onBackPress={handleBackPress}
-        />
-        <Loading />
-      </Container>
-    );
-  }
-
   return (
     <Container>
       <HeaderWithoutTab
@@ -121,17 +109,21 @@ export default function ProgramRecord() {
         </View>
       )}
 
-      <FlatList
-        data={programs}
-        renderItem={renderProgramCard}
-        keyExtractor={(item) => item?.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={renderEmptyState}
-      />
+      {loading && !refreshing ? (
+        <Loading />
+      ) : (
+        <FlatList
+          data={programs}
+          renderItem={renderProgramCard}
+          keyExtractor={(item) => item?.id}
+          contentContainerStyle={styles.listContainer}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={renderEmptyState}
+        />
+      )}
     </Container>
   );
 }

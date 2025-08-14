@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, use } from "react";
 import {
   StyleSheet,
   View,
@@ -22,6 +22,7 @@ import {
 } from "../../services/api/SurveyService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey, programId } = route.params || {};
@@ -36,6 +37,7 @@ const SurveyTaking = ({ route, navigation }) => {
     message: "",
     type: "info",
   });
+  const { user } = useAuth();
 
   // Note: Removed automatic answer cleaning to prevent useInsertionEffect warnings
   // Answers are now only cleaned when loading saved progress
@@ -417,6 +419,7 @@ const SurveyTaking = ({ route, navigation }) => {
         surveyRecordType: survey?.surveyType,
         answerRecordRequests: answerRecordRequests,
         programId: programId,
+        userId: user?.id,
       };
 
       const response = await postSurveyResult(surveyResult);

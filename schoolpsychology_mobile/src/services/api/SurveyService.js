@@ -3,9 +3,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getCurrentUser } from "../auth/AuthService";
 import { surveyRecords, surveys } from "@/constants";
 
-export const getPublishedSurveys = async () => {
+export const getPublishedSurveys = async (userId) => {
   try {
-    const response = await api.get("/api/v1/survey/published");
+    const response = await api.get(
+      `/api/v1/survey/published?studentId=${userId}`
+    );
 
     return response.data;
   } catch (err) {
@@ -81,10 +83,12 @@ export const postSurveyResult = async (result) => {
       if (!programId) {
         throw new Error("Program ID is required");
       }
-      console.log("Submit Survey Program");
+      if (!result.userId) {
+        throw new Error("User ID is required");
+      }
 
       const response = await api.post(
-        `/api/v1/support-programs/save-survey-record?programId=${programId}`,
+        `/api/v1/support-programs/save-survey-record?programId=${programId}&studentId=${result.userId}`,
         rest
       );
       return response.data;

@@ -1388,7 +1388,7 @@ const BookingScreen = ({ navigation }) => {
         contentContainerStyle={styles.contentContainer}
       >
         {renderWarningCard()}
-        {renderChildSelection()}
+        {/* {renderChildSelection()} */}
         {renderHostSelection()}
         {renderCounselorSelection()}
         {renderAppointmentDetails()}

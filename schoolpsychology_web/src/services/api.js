@@ -169,7 +169,7 @@ api.interceptors.request.use(
           const newToken = await handleTokenRefresh()
           if (newToken) {
             config.headers.Authorization = `Bearer ${newToken}`
-            console.log('✅ Request: Token refreshed proactively')
+            // console.log('✅ Request: Token refreshed proactively')
           }
         } catch {
           console.error(
@@ -180,7 +180,7 @@ api.interceptors.request.use(
       } else {
         // Token is valid, add to request
         config.headers.Authorization = `Bearer ${token}`
-        console.log('✅ Request: Adding valid token to request')
+        // console.log('✅ Request: Adding valid token to request')
       }
     }
 

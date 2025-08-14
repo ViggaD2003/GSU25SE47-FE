@@ -39,11 +39,18 @@ export default function ProgramList() {
           return;
         }
       }
-      const userId = user?.role === "PARENTS" ? selectedChild?.id : user?.id;
-      if (!userId) {
+      if (!user?.id) {
         setPrograms([]);
         return;
       }
+
+      const userId =
+        user?.role === "PARENTS"
+          ? selectedChild?.id
+          : user?.id || user?.childId;
+
+      console.log("userId", userId);
+
       const data = await fetchAllRecommendedPrograms(userId);
       console.log(data);
 

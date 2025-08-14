@@ -65,10 +65,6 @@ import {
   SESSION_FLOW,
   STUDENT_COOP_LEVEL,
 } from '../../../constants/enums'
-import {
-  IMPROVED_SCORING_SYSTEM,
-  calculateCompositeScore,
-} from '../../../constants/improvedAssessmentScoring'
 import { categoriesAPI } from '@/services/categoryApi'
 
 const { Title, Text, Paragraph } = Typography
@@ -218,181 +214,6 @@ const MemoizedHostTypeTag = memo(({ hostType, t }) => {
   )
 })
 
-// Enhanced Risk Level Component with improved scoring
-const RiskLevelCard = memo(
-  ({ score, t, isDarkMode, assessmentScores = [], enhancedScoring = null }) => {
-    const getRiskConfig = useCallback(score => {
-      if (score >= 7)
-        return {
-          level: 'high',
-          color: 'red',
-          percent: 100,
-          icon: <ExclamationCircleOutlined />,
-          severity: 'critical',
-          intervention: 'immediate',
-          description:
-            IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS[5]?.description ||
-            'Critical risk level',
-        }
-      if (score >= 4)
-        return {
-          level: 'medium',
-          color: 'orange',
-          percent: 60,
-          icon: <WarningOutlined />,
-          severity: 'moderate',
-          intervention: 'urgent',
-          description:
-            IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS[4]?.description ||
-            'Moderate risk level',
-        }
-      return {
-        level: 'low',
-        color: 'green',
-        percent: 30,
-        icon: <CheckCircleOutlined />,
-        severity: 'mild',
-        intervention: 'monitoring',
-        description:
-          IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS[2]?.description ||
-          'Low risk level',
-      }
-    }, [])
-
-    const calculateEnhancedScore = useCallback(() => {
-      // Use enhanced scoring data if available
-      if (enhancedScoring && enhancedScoring.compositeScore !== undefined) {
-        return enhancedScoring.compositeScore
-      }
-
-      if (!assessmentScores || assessmentScores.length === 0) {
-        return score || 0
-      }
-
-      // Use improved scoring system if available
-      let enhancedScore = 0
-      assessmentScores.forEach(assessment => {
-        const issue =
-          IMPROVED_SCORING_SYSTEM.MENTAL_HEALTH_ISSUES[assessment.issueId]
-        if (issue) {
-          enhancedScore += calculateCompositeScore(
-            issue.baseScore,
-            assessment.frequency || 2,
-            assessment.impairment || 2,
-            assessment.duration || 2,
-            assessment.comorbidities || [],
-            assessment.culturalFactors || {}
-          )
-        }
-      })
-
-      return Math.round(enhancedScore * 10) / 10
-    }, [assessmentScores, score, enhancedScoring])
-
-    const enhancedScore = calculateEnhancedScore()
-
-    if (!enhancedScore && enhancedScore !== 0) {
-      return (
-        <Card
-          className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} text-center shadow-lg`}
-        >
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={t('appointmentRecord.noScore')}
-          />
-        </Card>
-      )
-    }
-
-    const riskConfig = getRiskConfig(enhancedScore)
-
-    return (
-      <Card
-        className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
-        title={
-          <div className="flex items-center gap-2">
-            <SafetyOutlined className="text-blue-500" />
-            {t('appointmentRecord.riskAssessment')}
-            {enhancedScoring?.scoringSystem && (
-              <Tag color="blue" size="small">
-                {enhancedScoring.scoringSystem} v{enhancedScoring.version}
-              </Tag>
-            )}
-          </div>
-        }
-        style={{
-          height: '100%',
-        }}
-      >
-        {score !== 0 ? (
-          <div className="text-center">
-            <Progress
-              type="circle"
-              percent={riskConfig.percent || 0}
-              strokeColor={
-                riskConfig.color === 'red'
-                  ? '#ff4d4f'
-                  : riskConfig.color === 'orange'
-                    ? '#faad14'
-                    : '#52c41a'
-              }
-              format={() => (
-                <div>
-                  <Title
-                    level={2}
-                    style={{
-                      margin: 0,
-                      padding: 0,
-                      color:
-                        riskConfig.color === 'red'
-                          ? '#ff4d4f'
-                          : riskConfig.color === 'orange'
-                            ? '#faad14'
-                            : '#52c41a',
-                    }}
-                  >
-                    {enhancedScore}
-                  </Title>
-                  <Text type="secondary" className="text-xs">
-                    {t('appointmentRecord.totalScore')}
-                  </Text>
-                </div>
-              )}
-              size={120}
-            />
-            <div className="mt-4 space-y-2">
-              <Tag
-                color={riskConfig.color}
-                className="text-sm font-medium"
-                icon={riskConfig.icon}
-              >
-                {t(`appointmentRecord.riskLevels.${riskConfig.level}`)}
-              </Tag>
-              <div className="text-xs text-gray-500 mb-2">
-                {t(
-                  `appointmentRecord.intervention.${riskConfig.intervention || 'noIntervention'}`
-                )}
-              </div>
-              {riskConfig.description && (
-                <div className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  {riskConfig.description}
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center">
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t('appointmentRecord.noRiskAssessment')}
-            />
-          </div>
-        )}
-      </Card>
-    )
-  }
-)
-
 // Enhanced Session Information Component
 const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
   const getFlowConfig = useCallback(
@@ -511,90 +332,6 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
     </Card>
   )
 })
-
-// Enhanced Appointment Timeline Component
-// const AppointmentTimeline = memo(({ appointment, t, isDarkMode }) => {
-//   const timelineItems = useMemo(() => {
-//     const items = []
-
-//     if (appointment.createdAt) {
-//       items.push({
-//         color: 'blue',
-//         children: (
-//           <div>
-//             <Text strong>{t('appointmentRecord.timeline.created')}</Text>
-//             <br />
-//             <Text type="secondary" className="text-xs">
-//               {dayjs(appointment.createdAt).format('DD/MM/YYYY HH:mm')}
-//             </Text>
-//           </div>
-//         ),
-//       })
-//     }
-
-//     if (appointment.status === APPOINTMENT_STATUS.CONFIRMED) {
-//       items.push({
-//         color: 'green',
-//         children: (
-//           <div>
-//             <Text strong>{t('appointmentRecord.timeline.confirmed')}</Text>
-//             <br />
-//             <Text type="secondary" className="text-xs">
-//               {dayjs(appointment.startDateTime).format('DD/MM/YYYY HH:mm')}
-//             </Text>
-//           </div>
-//         ),
-//       })
-//     }
-
-//     if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
-//       items.push({
-//         color: 'purple',
-//         children: (
-//           <div>
-//             <Text strong>{t('appointmentRecord.timeline.inProgress')}</Text>
-//             <br />
-//             <Text type="secondary" className="text-xs">
-//               {dayjs().format('DD/MM/YYYY HH:mm')}
-//             </Text>
-//           </div>
-//         ),
-//       })
-//     }
-
-//     if (appointment.status === APPOINTMENT_STATUS.COMPLETED) {
-//       items.push({
-//         color: 'green',
-//         children: (
-//           <div>
-//             <Text strong>{t('appointmentRecord.timeline.completed')}</Text>
-//             <br />
-//             <Text type="secondary" className="text-xs">
-//               {dayjs(appointment.endDateTime).format('DD/MM/YYYY HH:mm')}
-//             </Text>
-//           </div>
-//         ),
-//       })
-//     }
-
-//     return items
-//   }, [appointment, t])
-
-//   return (
-//     <Card
-//       title={
-//         <div className="flex items-center gap-2">
-//           <ClockCircleOutlined className="text-blue-500" />
-//           {t('appointmentRecord.timeline.title')}
-//         </div>
-//       }
-//       className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'} shadow-lg`}
-//       styles={{ body: { width: '100%' } }}
-//     >
-//       <Timeline items={timelineItems} />
-//     </Card>
-//   )
-// })
 
 const AppointmentDetails = () => {
   const navigate = useNavigate()
@@ -870,9 +607,11 @@ const AppointmentDetails = () => {
     setShowAssessmentForm(false)
   }, [])
 
-  const handleJoinMeeting = useCallback(() => {
-    if (appointment?.linkMeet) {
-      window.open(appointment.linkMeet, '_blank')
+  const handleJoinMeeting = useCallback(async () => {
+    if (appointment?.location) {
+      window.open(appointment.location, '_blank', 'noopener,noreferrer')
+      await handleUpdateStatus()
+      setShowAssessmentForm(true)
     } else {
       messageApi.info(t('appointmentDetails.noMeetingLink'))
     }
@@ -1084,6 +823,18 @@ const AppointmentDetails = () => {
         {renderActionButtons()}
       </div>
 
+      {appointment.isOnline && (
+        <Button
+          type="link"
+          onClick={() =>
+            window.open(appointment.location, '_blank', 'noopener,noreferrer')
+          }
+          // disabled={showAssessmentForm || updatingStatus}
+        >
+          {appointment.location}
+        </Button>
+      )}
+
       {/* Manager View Only Notice */}
       {userRole === 'MANAGER' && !isAppointmentRecord && (
         <Alert
@@ -1204,10 +955,7 @@ const AppointmentDetails = () => {
 
                 <Descriptions.Item label={t('appointmentDetails.location')}>
                   <Text>
-                    {appointment.isOnline
-                      ? 'Online Meeting'
-                      : appointment.location ||
-                        t('appointmentDetails.noLocation')}
+                    {appointment.location || t('appointmentDetails.noLocation')}
                   </Text>
                 </Descriptions.Item>
 
@@ -1226,17 +974,17 @@ const AppointmentDetails = () => {
               {/* Enhanced Risk Level Card */}
               <Col xs={24} lg={12}>
                 {/* Enhanced Risk Level Card */}
-                <RiskLevelCard
+                {/* <RiskLevelCard
                   score={currentData.totalScore || 0}
                   t={t}
                   isDarkMode={isDarkMode}
                   assessmentScores={currentData.assessmentScores || []}
                   enhancedScoring={currentData.enhancedScoring || []}
-                />
+                /> */}
               </Col>
 
               {/* Enhanced Session Information */}
-              <Col xs={24} lg={12}>
+              <Col xs={24} lg={24}>
                 <SessionInfoCard
                   record={currentData}
                   t={t}

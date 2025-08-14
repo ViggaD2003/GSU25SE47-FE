@@ -304,10 +304,10 @@ export const initializeAuth = () => {
     const authData = getAuthData()
 
     if (authData) {
-      console.log('Auth system initialized with existing data')
+      // console.log('Auth system initialized with existing data')
       return authData
     } else {
-      console.log('Auth system initialized with no existing data')
+      // console.log('Auth system initialized with no existing data')
       return null
     }
   } catch (error) {

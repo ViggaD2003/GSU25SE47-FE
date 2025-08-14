@@ -17,17 +17,21 @@ const { Title, Text } = Typography
 const AssessmentScores = memo(({ assessmentScores, isDarkMode, t }) => {
   const calculateTotalScore = useMemo(() => {
     if (!assessmentScores || assessmentScores.length === 0) return 0
-    return assessmentScores.reduce(
-      (total, score) => total + (score.compositeScore || 0),
-      0
+    return (
+      assessmentScores.reduce(
+        (total, score) => total + (score.compositeScore || 0),
+        0
+      ) / assessmentScores.length
     )
   }, [assessmentScores])
 
   const getRiskLevel = useMemo(() => {
-    if (calculateTotalScore >= 7)
-      return { level: 'high', color: '#ff4d4f', percent: 100 }
-    if (calculateTotalScore >= 4)
-      return { level: 'medium', color: '#faad14', percent: 60 }
+    if (calculateTotalScore >= 3.9)
+      return { level: 'critical', color: '#ff4d4f', percent: 100 }
+    if (calculateTotalScore >= 2.9)
+      return { level: 'high', color: '#FA7014FF', percent: 60 }
+    if (calculateTotalScore >= 1.9)
+      return { level: 'moderate', color: '#F6D920FF', percent: 30 }
     return { level: 'low', color: '#52c41a', percent: 30 }
   }, [calculateTotalScore])
 
@@ -42,6 +46,7 @@ const AssessmentScores = memo(({ assessmentScores, isDarkMode, t }) => {
     if (score >= 4) return t('assessment.scoreLevel.critical', 'Critical')
     if (score >= 3) return t('assessment.scoreLevel.high', 'High')
     if (score >= 2) return t('assessment.scoreLevel.moderate', 'Moderate')
+    if (score >= 1) return t('assessment.scoreLevel.low', 'Low')
     return t('assessment.scoreLevel.low', 'Low')
   }
 

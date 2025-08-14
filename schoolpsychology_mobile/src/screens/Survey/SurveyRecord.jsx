@@ -19,6 +19,7 @@ import {
   FilterSortModal,
   SurveyRecordCard,
   ChildSelector,
+  Loading,
 } from "../../components";
 import { getSurveyRecordsByAccount } from "../../services/api/SurveyService";
 import { useFocusEffect } from "@react-navigation/native";
@@ -332,7 +333,7 @@ const SurveyRecord = ({ navigation }) => {
         setLoadingMore(false);
       }
     },
-    [user?.userId, sort, filters]
+    [selectedChild, sort, filters]
   );
 
   const onRefresh = useCallback(async () => {
@@ -644,24 +645,6 @@ const SurveyRecord = ({ navigation }) => {
     [statistics]
   );
 
-  if (initialLoading) {
-    return (
-      <Container>
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-            <Ionicons name="arrow-back" size={24} color="#1A1A1A" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t("survey.record.title")}</Text>
-          <View style={styles.headerSpacer} />
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={GlobalStyles.colors.primary} />
-          <Text style={styles.loadingText}>{t("survey.record.loading")}</Text>
-        </View>
-      </Container>
-    );
-  }
-
   return (
     <Container>
       {/* Header */}
@@ -681,108 +664,112 @@ const SurveyRecord = ({ navigation }) => {
         </View>
       )}
 
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Statistics Section */}
-        {renderStatisticsSection()}
+      {initialLoading && !refreshing ? (
+        <Loading />
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Statistics Section */}
+          {renderStatisticsSection()}
 
-        {/* Detailed Statistics Section */}
-        {(statistics.levelDistribution.length > 0 ||
-          statistics.surveyTypeDistribution.length > 0 ||
-          statistics.averageScore > 0) &&
-          renderDetailedStatisticsSection()}
+          {/* Detailed Statistics Section */}
+          {(statistics.levelDistribution.length > 0 ||
+            statistics.surveyTypeDistribution.length > 0 ||
+            statistics.averageScore > 0) &&
+            renderDetailedStatisticsSection()}
 
-        {/* Survey Records */}
-        <View style={styles.recordsSection}>
-          <View style={styles.recordsHeader}>
-            <Text style={styles.sectionTitle}>Danh sách khảo sát</Text>
-            <View style={styles.recordsCountContainer}>
-              <View style={styles.recordsCountSkipped}>
-                <Text style={styles.recordsCountTextSkipped}>
-                  {numberOfSkipped} bài bỏ qua
-                </Text>
-              </View>
-              <View style={styles.recordsCount}>
-                <Text style={styles.recordsCountText}>
-                  {statistics.currentSurveys} / {totalElements} bài
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {surveyRecords.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <View style={styles.emptyIconContainer}>
-                <Ionicons
-                  name="document-text-outline"
-                  size={64}
-                  color="#9CA3AF"
-                />
-              </View>
-              <Text style={styles.emptyTitle}>
-                {t("survey.record.emptyTitle")}
-              </Text>
-              <Text style={styles.emptySubtitle}>
-                {t("survey.record.emptySubtitle")}
-              </Text>
-              {user?.role === "STUDENT" && (
-                <TouchableOpacity
-                  style={styles.emptyButton}
-                  onPress={() =>
-                    navigation.navigate("Event", {
-                      screen: "EventList",
-                      params: { type: "SURVEY" },
-                    })
-                  }
-                >
-                  <Ionicons
-                    name="add-circle"
-                    size={18}
-                    color="#fff"
-                    style={{ marginRight: 8 }}
-                  />
-                  <Text style={styles.emptyButtonText}>
-                    {t("survey.record.goToSurvey")}
+          {/* Survey Records */}
+          <View style={styles.recordsSection}>
+            <View style={styles.recordsHeader}>
+              <Text style={styles.sectionTitle}>Danh sách khảo sát</Text>
+              <View style={styles.recordsCountContainer}>
+                <View style={styles.recordsCountSkipped}>
+                  <Text style={styles.recordsCountTextSkipped}>
+                    {numberOfSkipped} bài bỏ qua
                   </Text>
-                </TouchableOpacity>
-              )}
+                </View>
+                <View style={styles.recordsCount}>
+                  <Text style={styles.recordsCountText}>
+                    {statistics.currentSurveys} / {totalElements} bài
+                  </Text>
+                </View>
+              </View>
             </View>
-          ) : (
-            <>
-              {surveyRecords.map((record, index) =>
-                renderSurveyRecord(record, index)
-              )}
 
-              {/* Load More Button */}
-              {hasNext && (
-                <TouchableOpacity
-                  style={styles.loadMoreButton}
-                  onPress={loadMore}
-                  disabled={loadingMore}
-                >
-                  {loadingMore ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <>
-                      <Text style={styles.loadMoreText}>
-                        {t("survey.record.loadMore", {
-                          count: totalElements - surveyRecords.length,
-                        })}
-                      </Text>
-                      <Ionicons name="chevron-down" size={16} color="#fff" />
-                    </>
-                  )}
-                </TouchableOpacity>
-              )}
-            </>
-          )}
-        </View>
-      </ScrollView>
+            {surveyRecords.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIconContainer}>
+                  <Ionicons
+                    name="document-text-outline"
+                    size={64}
+                    color="#9CA3AF"
+                  />
+                </View>
+                <Text style={styles.emptyTitle}>
+                  {t("survey.record.emptyTitle")}
+                </Text>
+                <Text style={styles.emptySubtitle}>
+                  {t("survey.record.emptySubtitle")}
+                </Text>
+                {user?.role === "STUDENT" && (
+                  <TouchableOpacity
+                    style={styles.emptyButton}
+                    onPress={() =>
+                      navigation.navigate("Event", {
+                        screen: "EventList",
+                        params: { type: "SURVEY" },
+                      })
+                    }
+                  >
+                    <Ionicons
+                      name="add-circle"
+                      size={18}
+                      color="#fff"
+                      style={{ marginRight: 8 }}
+                    />
+                    <Text style={styles.emptyButtonText}>
+                      {t("survey.record.goToSurvey")}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ) : (
+              <>
+                {surveyRecords.map((record, index) =>
+                  renderSurveyRecord(record, index)
+                )}
+
+                {/* Load More Button */}
+                {hasNext && (
+                  <TouchableOpacity
+                    style={styles.loadMoreButton}
+                    onPress={loadMore}
+                    disabled={loadingMore}
+                  >
+                    {loadingMore ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <Text style={styles.loadMoreText}>
+                          {t("survey.record.loadMore", {
+                            count: totalElements - surveyRecords.length,
+                          })}
+                        </Text>
+                        <Ionicons name="chevron-down" size={16} color="#fff" />
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </View>
+        </ScrollView>
+      )}
 
       {/* Filter & Sort Modal */}
       <FilterSortModal

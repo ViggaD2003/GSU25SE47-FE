@@ -45,7 +45,7 @@ const DashboardScreen = () => {
 
   // Initialize date range
   useEffect(() => {
-    console.log("Dashboard: Initializing date range...");
+    // console.log("Dashboard: Initializing date range...");
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
@@ -53,12 +53,12 @@ const DashboardScreen = () => {
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
 
-    console.log("Dashboard: Date initialization complete:", {
-      startDateStr,
-      endDateStr,
-      startDateISO: startDate.toISOString(),
-      endDateISO: endDate.toISOString(),
-    });
+    // console.log("Dashboard: Date initialization complete:", {
+    //   startDateStr,
+    //   endDateStr,
+    //   startDateISO: startDate.toISOString(),
+    //   endDateISO: endDate.toISOString(),
+    // });
 
     setCustomStartDate(startDateStr);
     setCustomEndDate(endDateStr);
@@ -66,13 +66,13 @@ const DashboardScreen = () => {
 
   // Monitor date state changes
   useEffect(() => {
-    console.log("Dashboard: Date state updated:", {
-      customStartDate,
-      customEndDate,
-      hasUser: !!user,
-      hasSelectedChild: !!selectedChild,
-      studentId: getStudentId(),
-    });
+    // console.log("Dashboard: Date state updated:", {
+    //   customStartDate,
+    //   customEndDate,
+    //   hasUser: !!user,
+    //   hasSelectedChild: !!selectedChild,
+    //   studentId: getStudentId(),
+    // });
   }, [customStartDate, customEndDate, user, selectedChild]);
 
   // Get the student ID based on user role
@@ -87,13 +87,13 @@ const DashboardScreen = () => {
   const isReadyToFetch = useCallback(() => {
     const ready = user && customStartDate && customEndDate && getStudentId();
     if (ready) {
-      console.log("Dashboard component ready to fetch data:", {
-        hasUser: !!user,
-        hasStartDate: !!customStartDate,
-        hasEndDate: !!customEndDate,
-        studentId: getStudentId(),
-        userRole: user?.role,
-      });
+      // console.log("Dashboard component ready to fetch data:", {
+      //   hasUser: !!user,
+      //   hasStartDate: !!customStartDate,
+      //   hasEndDate: !!customEndDate,
+      //   studentId: getStudentId(),
+      //   userRole: user?.role,
+      // });
     }
     return ready;
   }, [user, customStartDate, customEndDate, selectedChild]);
@@ -101,12 +101,12 @@ const DashboardScreen = () => {
   // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (!isReadyToFetch()) {
-      console.log("Component not ready to fetch data:", {
-        hasUser: !!user,
-        hasStartDate: !!customStartDate,
-        hasEndDate: !!customEndDate,
-        studentId: getStudentId(),
-      });
+      // console.log("Component not ready to fetch data:", {
+      //   hasUser: !!user,
+      //   hasStartDate: !!customStartDate,
+      //   hasEndDate: !!customEndDate,
+      //   studentId: getStudentId(),
+      // });
       return;
     }
 
@@ -189,7 +189,7 @@ const DashboardScreen = () => {
 
   // Handle custom date change
   const handleCustomDateChange = (startDate, endDate) => {
-    console.log("Dashboard: Date range changed:", { startDate, endDate });
+    // console.log("Dashboard: Date range changed:", { startDate, endDate });
     setCustomStartDate(startDate);
     setCustomEndDate(endDate);
   };
@@ -203,7 +203,7 @@ const DashboardScreen = () => {
       getStudentId() &&
       !loading
     ) {
-      console.log("Dashboard: Dates changed, auto-fetching data");
+      // console.log("Dashboard: Dates changed, auto-fetching data");
       fetchDashboardData();
     }
   }, [customStartDate, customEndDate]);

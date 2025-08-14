@@ -11,7 +11,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
 import { Container } from "../../components";
-import { WeekCalendar, EventCard } from "../../components/common";
+import {
+  WeekCalendar,
+  EventCard,
+  ChildSelector,
+} from "../../components/common";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import EventService from "@/services/api/EventService";
 import { useAuth, useChildren } from "@/contexts";
@@ -21,7 +25,7 @@ import { useTranslation } from "react-i18next";
 const EventScreen = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, loading: authLoading } = useAuth();
-  const { selectedChild } = useChildren();
+  const { selectedChild, children } = useChildren();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -78,8 +82,7 @@ const EventScreen = ({ route, navigation }) => {
             return;
           }
         }
-        const userId =
-          user?.role === "PARENTS" ? selectedChild?.userId : user?.id;
+        const userId = user?.role === "PARENTS" ? selectedChild?.id : user?.id;
 
         if (!userId) {
           setEvents([]);
@@ -110,7 +113,7 @@ const EventScreen = ({ route, navigation }) => {
         setLoading(false);
       }
     },
-    [getWeekDateRange, user?.id]
+    [getWeekDateRange, selectedChild, user?.id]
   );
 
   // Load events data (for backward compatibility)
@@ -230,6 +233,12 @@ const EventScreen = ({ route, navigation }) => {
         title={t("events.title")}
         onBackPress={() => navigation.goBack()}
       />
+
+      {user?.role === "PARENTS" && children.length > 0 && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
 
       <ScrollView
         style={styles.container}

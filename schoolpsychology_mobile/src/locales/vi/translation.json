@@ -940,7 +940,7 @@
       "description": "Theo dõi các buổi tư vấn và lịch sử cuộc hẹn"
     },
     "program": {
-      "title": "Chương trình đã hoàn thành",
+      "title": "Chương trình đã tham gia",
       "description": "Theo dõi việc tham gia các chương trình hỗ trợ và hoạt động"
     },
     "closedCases": {

@@ -22,7 +22,7 @@ import {
   leaveProgram,
 } from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
-import { useAuth } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 
@@ -32,6 +32,7 @@ export default function ProgramDetail() {
   const { programId } = route.params;
   const { user, loading: authLoading } = useAuth();
   const { t } = useTranslation();
+  const { selectedChild } = useChildren();
 
   const [program, setProgram] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -42,7 +43,11 @@ export default function ProgramDetail() {
 
   // Show loading state while auth is loading
   if (authLoading || !user) {
-    return null;
+    return (
+      <Container>
+        <Loading />
+      </Container>
+    );
   }
 
   useEffect(() => {
@@ -61,8 +66,19 @@ export default function ProgramDetail() {
 
   const fetchProgramData = async () => {
     try {
+      if (!user?.id) {
+        setProgram(null);
+        return;
+      }
+
+      const userId =
+        user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
+
       setLoading(true);
-      const data = await fetchProgramDetails(programId, user.id);
+      const data = await fetchProgramDetails(programId, userId);
+
+      console.log("data", data);
+
       setProgram(data);
       setIsJoined(data.student ? true : false);
     } catch (error) {
@@ -151,7 +167,9 @@ export default function ProgramDetail() {
   };
 
   const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
+    if (isNaN(date.getTime())) return "";
     return date.toLocaleString("vi-VN", {
       weekday: "long",
       year: "numeric",
@@ -163,7 +181,9 @@ export default function ProgramDetail() {
   };
 
   const formatTime = (dateTimeString) => {
+    if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
+    if (isNaN(date.getTime())) return "";
     return date.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -253,19 +273,18 @@ export default function ProgramDetail() {
   };
 
   const renderSurveyProgress = () => {
-    if (
-      !program.student?.surveyRecord ||
-      program.student.surveyRecord.length === 0
-    ) {
+    if (!program.student || !program.student.surveyRecord) {
       return null;
     }
 
-    const entrySurvey = program.student.surveyRecord.find(
+    const entrySurvey = program.student?.surveyRecord?.find(
       (s) => s.identify === "ENTRY"
     );
-    const exitSurvey = program.student.surveyRecord.find(
+    const exitSurvey = program.student?.surveyRecord?.find(
       (s) => s.identify === "EXIT"
     );
+
+    const isActiveSurvey = program.isActiveSurvey;
 
     return (
       <View style={styles.section}>
@@ -277,7 +296,6 @@ export default function ProgramDetail() {
         </View>
 
         <View style={styles.surveyProgressContainer}>
-          {/* Entry Survey */}
           <View style={styles.surveyCard}>
             <View style={styles.surveyHeader}>
               <View
@@ -296,30 +314,37 @@ export default function ProgramDetail() {
                   style={[
                     styles.statusBadge,
                     {
-                      backgroundColor: entrySurvey.isSkipped
-                        ? "#FF3B30"
-                        : "#34C759",
+                      backgroundColor: isActiveSurvey ? "#34C759" : "#007AFF",
                     },
                   ]}
                 >
                   <Text style={styles.statusBadgeText}>
-                    {entrySurvey.isSkipped
-                      ? t("program.detail.surveyProgress.surveySkipped")
-                      : t("program.detail.surveyProgress.surveyCompleted")}
+                    {t("program.detail.surveyProgress.surveyCompleted")}
                   </Text>
                 </View>
               ) : (
-                <View
-                  style={[styles.statusBadge, { backgroundColor: "#007AFF" }]}
-                >
-                  <Text style={styles.statusBadgeText}>
-                    {t("program.detail.surveyProgress.takeSurvey")}
-                  </Text>
-                </View>
+                user.role === "STUDENT" && (
+                  <TouchableOpacity
+                    style={[styles.statusBadge, { backgroundColor: "#007AFF" }]}
+                    onPress={() => {
+                      console.log(user.token);
+
+                      navigation.navigate("Survey", {
+                        screen: "SurveyInfo",
+                        params: { surveyId: program.surveyId, programId },
+                      });
+                    }}
+                    disabled={!isActiveSurvey || entrySurvey}
+                  >
+                    <Text style={styles.statusBadgeText}>
+                      {t("program.detail.surveyProgress.takeSurvey")}
+                    </Text>
+                  </TouchableOpacity>
+                )
               )}
             </View>
 
-            {entrySurvey && !entrySurvey.isSkipped && (
+            {entrySurvey && (
               <View style={styles.surveyResults}>
                 <View style={styles.resultRow}>
                   <Text style={styles.resultLabel}>
@@ -349,79 +374,89 @@ export default function ProgramDetail() {
           </View>
 
           {/* Exit Survey */}
-          <View style={styles.surveyCard}>
-            <View style={styles.surveyHeader}>
-              <View
-                style={[
-                  styles.surveyBadge,
-                  { backgroundColor: getSurveyIdentityColor("EXIT") },
-                ]}
-              >
-                <Ionicons name="exit-outline" size={16} color="#FFFFFF" />
-                <Text style={styles.surveyBadgeText}>
-                  {t("program.detail.surveyProgress.exitSurvey")}
-                </Text>
-              </View>
-              {exitSurvey ? (
+          {entrySurvey && isActiveSurvey && (
+            <View style={styles.surveyCard}>
+              <View style={styles.surveyHeader}>
                 <View
                   style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor: exitSurvey.isSkipped
-                        ? "#FF3B30"
-                        : "#34C759",
-                    },
+                    styles.surveyBadge,
+                    { backgroundColor: getSurveyIdentityColor("EXIT") },
                   ]}
                 >
-                  <Text style={styles.statusBadgeText}>
-                    {exitSurvey.isSkipped
-                      ? t("program.detail.surveyProgress.surveySkipped")
-                      : t("program.detail.surveyProgress.surveyCompleted")}
+                  <Ionicons name="exit-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.surveyBadgeText}>
+                    {t("program.detail.surveyProgress.exitSurvey")}
                   </Text>
                 </View>
-              ) : (
-                <View
-                  style={[styles.statusBadge, { backgroundColor: "#007AFF" }]}
-                >
-                  <Text style={styles.statusBadgeText}>
-                    {t("program.detail.surveyProgress.takeSurvey")}
-                  </Text>
+                {exitSurvey ? (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: isActiveSurvey ? "#34C759" : "#007AFF",
+                      },
+                    ]}
+                  >
+                    <Text style={styles.statusBadgeText}>
+                      {t("program.detail.surveyProgress.surveyCompleted")}
+                    </Text>
+                  </View>
+                ) : (
+                  user.role === "STUDENT" && (
+                    <TouchableOpacity
+                      style={[
+                        styles.statusBadge,
+                        { backgroundColor: "#007AFF" },
+                      ]}
+                      onPress={() => {
+                        navigation.navigate("Survey", {
+                          screen: "SurveyInfo",
+                          params: { surveyId: program.surveyId, programId },
+                        });
+                      }}
+                      disabled={!isActiveSurvey || exitSurvey}
+                    >
+                      <Text style={styles.statusBadgeText}>
+                        {t("program.detail.surveyProgress.takeSurvey")}
+                      </Text>
+                    </TouchableOpacity>
+                  )
+                )}
+              </View>
+
+              {exitSurvey && (
+                <View style={styles.surveyResults}>
+                  <View style={styles.resultRow}>
+                    <Text style={styles.resultLabel}>
+                      {t("program.detail.surveyProgress.totalScore")}:
+                    </Text>
+                    <Text style={styles.resultValue}>
+                      {exitSurvey.totalScore}
+                    </Text>
+                  </View>
+                  {exitSurvey.level && (
+                    <>
+                      <View style={styles.resultRow}>
+                        <Text style={styles.resultLabel}>
+                          {t("program.detail.surveyProgress.level")}:
+                        </Text>
+                        <Text style={styles.resultValue}>
+                          {exitSurvey.level.label}
+                        </Text>
+                      </View>
+                      <Text style={styles.resultDescription}>
+                        {exitSurvey.level.description}
+                      </Text>
+                    </>
+                  )}
                 </View>
               )}
             </View>
-
-            {exitSurvey && !exitSurvey.isSkipped && (
-              <View style={styles.surveyResults}>
-                <View style={styles.resultRow}>
-                  <Text style={styles.resultLabel}>
-                    {t("program.detail.surveyProgress.totalScore")}:
-                  </Text>
-                  <Text style={styles.resultValue}>
-                    {exitSurvey.totalScore}
-                  </Text>
-                </View>
-                {exitSurvey.level && (
-                  <>
-                    <View style={styles.resultRow}>
-                      <Text style={styles.resultLabel}>
-                        {t("program.detail.surveyProgress.level")}:
-                      </Text>
-                      <Text style={styles.resultValue}>
-                        {exitSurvey.level.label}
-                      </Text>
-                    </View>
-                    <Text style={styles.resultDescription}>
-                      {exitSurvey.level.description}
-                    </Text>
-                  </>
-                )}
-              </View>
-            )}
-          </View>
+          )}
         </View>
 
         {/* Final Score */}
-        {program.student?.finalScore !== undefined && (
+        {program.student?.finalScore > 0 && (
           <View style={styles.finalScoreCard}>
             <View style={styles.finalScoreHeader}>
               <Ionicons name="trophy-outline" size={24} color="#FF9500" />
@@ -501,7 +536,11 @@ export default function ProgramDetail() {
                 <View
                   style={[
                     styles.statusBadge,
-                    { backgroundColor: getStatusColor(program.status) },
+                    {
+                      backgroundColor: getStatusColor(
+                        program.status || "UNKNOWN"
+                      ),
+                    },
                   ]}
                 >
                   <Ionicons
@@ -516,7 +555,7 @@ export default function ProgramDetail() {
                     color="#FFFFFF"
                   />
                   <Text style={styles.statusText}>
-                    {getStatusText(program.status)}
+                    {getStatusText(program.status || "UNKNOWN")}
                   </Text>
                 </View>
               </View>
@@ -669,7 +708,9 @@ export default function ProgramDetail() {
             </View>
 
             {/* Survey Progress */}
-            {renderSurveyProgress()}
+            <View style={styles.section}>
+              {program?.student && renderSurveyProgress()}
+            </View>
 
             {/* Program Survey */}
             {program.surveyId && (
@@ -757,13 +798,15 @@ export default function ProgramDetail() {
                       styles.studentStatusBadge,
                       {
                         backgroundColor: getStudentStatusColor(
-                          program.student.status
+                          program.student.status || "UNKNOWN"
                         ),
                       },
                     ]}
                   >
                     <Text style={styles.studentStatusText}>
-                      {getStudentStatusText(program.student.status)}
+                      {getStudentStatusText(
+                        program.student.status || "UNKNOWN"
+                      )}
                     </Text>
                   </View>
                   {program.student.joinAt && (

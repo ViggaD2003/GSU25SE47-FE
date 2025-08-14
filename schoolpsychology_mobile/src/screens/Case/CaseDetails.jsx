@@ -39,17 +39,17 @@ const CaseDetails = ({ route, navigation }) => {
 
   const fetchCaseDetails = async () => {
     try {
-      if (user?.role === "PARENTS" && !selectedChild) {
-        setCaseDetails(null);
-        return;
-      }
-
       if (from !== "tab" && !caseId) {
         setCaseDetails(null);
         return;
       }
 
-      if (!user?.caseId) {
+      if (user?.role === "PARENTS" && !selectedChild?.caseId) {
+        setCaseDetails(null);
+        return;
+      }
+
+      if (user?.role === "STUDENT" && !user?.caseId) {
         setCaseDetails(null);
         return;
       }
@@ -61,6 +61,7 @@ const CaseDetails = ({ route, navigation }) => {
           : caseId || user?.caseId;
 
       const data = await getCaseByCaseId(id);
+
       setCaseDetails(data);
 
       // Animate content appearance
@@ -83,12 +84,12 @@ const CaseDetails = ({ route, navigation }) => {
     setRefreshing(false);
   };
 
+  useEffect(() => {
+    fetchCaseDetails();
+  }, [selectedChild, user?.caseId, caseId]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!caseId && !user?.caseId && !selectedChild?.caseId) {
-        setLoading(false);
-        return;
-      }
       fetchCaseDetails();
     }, [selectedChild, user?.caseId, caseId])
   );

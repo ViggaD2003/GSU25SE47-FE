@@ -2,6 +2,8 @@ import api from "./axios";
 
 export const getCaseByCaseId = async (caseId) => {
   try {
+    console.log("caseId", caseId);
+
     if (!caseId) {
       throw new Error("Case ID is required");
     }

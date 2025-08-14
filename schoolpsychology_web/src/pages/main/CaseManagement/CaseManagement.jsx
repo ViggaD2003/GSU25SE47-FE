@@ -399,7 +399,6 @@ const CaseManagement = () => {
         title: t('caseManagement.table.student'),
         dataIndex: 'student',
         key: 'student',
-        width: 220,
         render: student => (
           <div>
             <div className="font-medium flex items-center">
@@ -587,7 +586,7 @@ const CaseManagement = () => {
         title: t('caseManagement.table.createdAt'),
         dataIndex: 'createdAt',
         key: 'createdAt',
-        render: date => dayjs(date).format('DD/MM/YYYY'),
+        render: date => dayjs(date).format('DD/MM/YYYY HH:mm'),
         sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
       },
       {
@@ -714,39 +713,8 @@ const CaseManagement = () => {
         </Col>
       </Row>
 
-      {/* Status Statistics */}
-      {/* <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} lg={8}>
-          <Card>
-            <Statistic
-              title={t('caseManagement.statistics.newStatus')}
-              value={statistics.newStatus}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Card>
-            <Statistic
-              title={t('caseManagement.statistics.inProgressStatus')}
-              value={statistics.inProgressStatus}
-              valueStyle={{ color: '#fa8c16' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={8}>
-          <Card>
-            <Statistic
-              title={t('caseManagement.statistics.closedStatus')}
-              value={statistics.closedStatus}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row> */}
-
       {/* Filters */}
-      <Card className="mb-6">
+      <Card style={{ marginBottom: '16px' }}>
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} lg={6}>
             <Search
@@ -756,7 +724,7 @@ const CaseManagement = () => {
               allowClear
             />
           </Col>
-          <Col xs={24} sm={12} lg={6}>
+          <Col xs={24} sm={12} lg={8}>
             <RangePicker
               value={dateRange}
               onChange={setDateRange}
@@ -766,9 +734,11 @@ const CaseManagement = () => {
           </Col>
           <Col xs={24} sm={12} lg={4}>
             <Space>
-              <Button icon={<ClearOutlined />} onClick={handleClearFilters}>
-                {t('common.clear')}
-              </Button>
+              {(searchText || dateRange) && (
+                <Button icon={<ClearOutlined />} onClick={handleClearFilters}>
+                  {t('common.clear')}
+                </Button>
+              )}
               <Button
                 icon={<ReloadOutlined />}
                 onClick={handleRefresh}

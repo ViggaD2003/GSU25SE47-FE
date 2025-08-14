@@ -154,11 +154,12 @@ const CaseInfoCard = React.memo(
   )
 )
 
-const CreateAppointmentModal = ({ isOpen, onClose, onSuccess }) => {
+// Wrapper component to ensure useForm is only called when modal is mounted
+const CreateAppointmentModalContent = ({ isOpen, onClose, onSuccess }) => {
   const { t } = useTranslation()
   const dispatch = useDispatch()
-  const [form] = Form.useForm()
   const { isDarkMode } = useTheme()
+  const [form] = Form.useForm()
 
   // Refs for stable references
   const isOpenRef = useRef(isOpen)
@@ -996,6 +997,19 @@ const CreateAppointmentModal = ({ isOpen, onClose, onSuccess }) => {
         </Form>
       </div>
     </Modal>
+  )
+}
+
+// Main component that conditionally renders the content
+const CreateAppointmentModal = ({ isOpen, onClose, onSuccess }) => {
+  if (!isOpen) return null
+
+  return (
+    <CreateAppointmentModalContent
+      isOpen={isOpen}
+      onClose={onClose}
+      onSuccess={onSuccess}
+    />
   )
 }
 

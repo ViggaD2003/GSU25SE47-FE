@@ -4,6 +4,7 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useMemo,
 } from "react";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -25,9 +26,15 @@ export const useChildren = () => {
 export const ChildrenProvider = ({ children }) => {
   const { t } = useTranslation();
   const [childrenList, setChildrenList] = useState([]);
-  const [selectedChild, setSelectedChild] = useState(null);
+  const [selectedChildId, setSelectedChildId] = useState(null);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+
+  // Sử dụng useMemo để tránh tạo mới object mỗi lần render
+  const selectedChild = useMemo(() => {
+    if (!selectedChildId) return null;
+    return childrenList.find((child) => child.id === selectedChildId) || null;
+  }, [selectedChildId, childrenList]);
 
   // Khởi tạo dữ liệu mẫu khi component mount
   useEffect(() => {
@@ -43,7 +50,9 @@ export const ChildrenProvider = ({ children }) => {
       }));
 
       setChildrenList(childrenData);
-      setSelectedChild(childrenData[0]); // Chọn child đầu tiên làm mặc định
+      if (childrenData.length > 0) {
+        setSelectedChildId(childrenData[0].id); // Chỉ lưu ID thay vì object
+      }
     }
   }, [user]);
 
@@ -60,7 +69,7 @@ export const ChildrenProvider = ({ children }) => {
 
       // Nếu đây là child đầu tiên, tự động chọn
       if (childrenList.length === 0) {
-        setSelectedChild(newChild);
+        setSelectedChildId(newChild.id);
       }
 
       return newChild;
@@ -69,23 +78,15 @@ export const ChildrenProvider = ({ children }) => {
   );
 
   // Cập nhật thông tin child
-  const updateChild = useCallback(
-    (childId, updates) => {
-      setChildrenList((prev) =>
-        prev.map((child) =>
-          child.id === childId
-            ? { ...child, ...updates, updatedAt: new Date().toISOString() }
-            : child
-        )
-      );
-
-      // Cập nhật selectedChild nếu cần
-      if (selectedChild?.id === childId) {
-        setSelectedChild((prev) => ({ ...prev, ...updates }));
-      }
-    },
-    [selectedChild]
-  );
+  const updateChild = useCallback((childId, updates) => {
+    setChildrenList((prev) =>
+      prev.map((child) =>
+        child.id === childId
+          ? { ...child, ...updates, updatedAt: new Date().toISOString() }
+          : child
+      )
+    );
+  }, []);
 
   // Xóa child
   const removeChild = useCallback(
@@ -104,14 +105,14 @@ export const ChildrenProvider = ({ children }) => {
               );
 
               // Nếu đang chọn child bị xóa, chuyển sang child khác
-              if (selectedChild?.id === childId) {
+              if (selectedChildId === childId) {
                 const remainingChildren = childrenList.filter(
                   (child) => child.id !== childId
                 );
                 if (remainingChildren.length > 0) {
-                  setSelectedChild(remainingChildren[0]);
+                  setSelectedChildId(remainingChildren[0].id);
                 } else {
-                  setSelectedChild(null);
+                  setSelectedChildId(null);
                 }
               }
             },
@@ -119,12 +120,12 @@ export const ChildrenProvider = ({ children }) => {
         ]
       );
     },
-    [childrenList, selectedChild, t]
+    [childrenList, selectedChildId, t]
   );
 
   // Chọn child
   const selectChild = useCallback((child) => {
-    setSelectedChild(child);
+    setSelectedChildId(child.id);
   }, []);
 
   // Chuyển đổi child
@@ -133,7 +134,7 @@ export const ChildrenProvider = ({ children }) => {
       if (childrenList.length <= 1) return;
 
       const currentIndex = childrenList.findIndex(
-        (child) => child.id === selectedChild?.id
+        (child) => child.id === selectedChildId
       );
       let newIndex;
 
@@ -144,9 +145,9 @@ export const ChildrenProvider = ({ children }) => {
           currentIndex === 0 ? childrenList.length - 1 : currentIndex - 1;
       }
 
-      setSelectedChild(childrenList[newIndex]);
+      setSelectedChildId(childrenList[newIndex].id);
     },
-    [childrenList, selectedChild]
+    [childrenList, selectedChildId]
   );
 
   // Toggle trạng thái active của child
@@ -187,21 +188,38 @@ export const ChildrenProvider = ({ children }) => {
   );
 
   // Context value
-  const contextValue = {
-    children: childrenList,
-    selectedChild,
-    loading,
-    addChild,
-    updateChild,
-    removeChild,
-    selectChild,
-    switchChild,
-    toggleChildStatus,
-    toggleSurveyStatus,
-    getChildById,
-    filterChildren,
-    setLoading,
-  };
+  const contextValue = useMemo(
+    () => ({
+      children: childrenList,
+      selectedChild,
+      loading,
+      addChild,
+      updateChild,
+      removeChild,
+      selectChild,
+      switchChild,
+      toggleChildStatus,
+      toggleSurveyStatus,
+      getChildById,
+      filterChildren,
+      setLoading,
+    }),
+    [
+      childrenList,
+      selectedChild,
+      loading,
+      addChild,
+      updateChild,
+      removeChild,
+      selectChild,
+      switchChild,
+      toggleChildStatus,
+      toggleSurveyStatus,
+      getChildById,
+      filterChildren,
+      setLoading,
+    ]
+  );
 
   return (
     <ChildrenContext.Provider value={contextValue}>

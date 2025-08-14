@@ -317,7 +317,8 @@
       "date": "Ngày & Giờ",
       "status": "Trạng thái",
       "actions": "Thao tác",
-      "addCase": "Thêm trường hợp đang theo dõi"
+      "addCase": "Thêm trường hợp đang theo dõi",
+      "createdAt": "Ngày tạo"
     },
     "status": {
       "PLANNING": "Đang lên kế hoạch",
@@ -1523,7 +1524,7 @@
       "label": "Trạng thái",
       "pending": "Chờ xác nhận",
       "confirmed": "Đã xác nhận",
-      "in_progress": "Đang tiến hành",
+      "inProgress": "Đang tiến hành",
       "completed": "Hoàn thành",
       "canceled": "Đã hủy",
       "absent": "Vắng mặt",
@@ -2021,6 +2022,8 @@
       "unknown": "Không xác định"
     },
     "form": {
+      "assessement": "Đánh giá",
+
       "title": "Đánh Giá Tình Trạng Học Sinh",
       "sessionNotes": "Ghi chú phiên tư vấn",
       "sessionNotesPlaceholder": "Ghi chú về hành vi của học sinh trong buổi tư vấn",

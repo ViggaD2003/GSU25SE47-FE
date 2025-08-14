@@ -51,7 +51,6 @@ import {
   clearSelectedAppointment,
   clearAppointmentDetails,
 } from '../../../store/slices/appointmentSlice'
-import StatisticsCard from '../../../components/dashboard/StatisticsCard'
 import {
   APPOINTMENT_STATUS,
   SESSION_FLOW,
@@ -179,7 +178,8 @@ const AppointmentManagement = () => {
 
   // Check if user is manager (read-only access)
   const isManager = user?.role === 'manager'
-  const isCounselor = user?.role === 'counselor'
+  const isCounselor =
+    user?.role === 'counselor' && user?.cateAvailable.length > 0
 
   // Memoized utility functions
   const formatDateTime = useCallback(dateTime => {
@@ -197,12 +197,16 @@ const AppointmentManagement = () => {
 
   // Load appointments on component mount
   useEffect(() => {
-    dispatch(clearSelectedAppointment())
-    dispatch(clearAppointmentDetails())
+    Promise.all([
+      dispatch(clearSelectedAppointment()),
+      dispatch(clearAppointmentDetails()),
+    ])
     // Use user.id from Redux instead of mock account ID
     if (user?.id) {
-      dispatch(getActiveAppointments(user.id))
-      dispatch(getPastAppointments(user.id))
+      Promise.all([
+        dispatch(getActiveAppointments(user.id)),
+        dispatch(getPastAppointments(user.id)),
+      ])
     }
   }, [])
 
@@ -227,63 +231,100 @@ const AppointmentManagement = () => {
     setCreateModalVisible(false)
     // Refresh appointments
     if (user?.id) {
-      dispatch(getActiveAppointments(user.id))
-      dispatch(getPastAppointments(user.id))
+      Promise.all([
+        dispatch(getActiveAppointments(user.id)),
+        dispatch(getPastAppointments(user.id)),
+      ])
     }
     messageApi.success(t('appointment.createdSuccessfully'))
   }
 
-  // Filter appointments by date range and search text
+  // Filter appointments by date range and search text with tab-specific logic
   const filterAppointments = useCallback(
-    appointments => {
+    (appointments, tabType = 'active') => {
+      if (!appointments || appointments.length === 0) {
+        return []
+      }
+
       let filtered = appointments
 
-      // Filter by date range
+      // Filter by date range with tab-specific logic
       if (dateRange && dateRange.length === 2) {
         const [startDate, endDate] = dateRange
         filtered = filtered.filter(appointment => {
+          if (!appointment.startDateTime) return false
+
           const appointmentDate = dayjs(appointment.startDateTime)
-          return (
+          const isInRange =
             appointmentDate.isAfter(startDate, 'day') &&
             appointmentDate.isBefore(endDate.add(1, 'day'), 'day')
-          )
+
+          // For active tab, also check if appointment is not in the past
+          if (tabType === 'active') {
+            const now = dayjs()
+            return isInRange && appointmentDate.isAfter(now, 'day')
+          }
+
+          // For past tab, check if appointment is in the past
+          if (tabType === 'past') {
+            const now = dayjs()
+            return isInRange && appointmentDate.isBefore(now, 'day')
+          }
+
+          return isInRange
         })
+      } else {
+        // If no date range is selected, apply tab-specific date filtering
+        if (tabType === 'active') {
+          const now = dayjs()
+          filtered = filtered.filter(appointment => {
+            if (!appointment.startDateTime) return false
+            const appointmentDate = dayjs(appointment.startDateTime)
+            return appointmentDate.isAfter(now, 'day')
+          })
+        } else if (tabType === 'past') {
+          const now = dayjs()
+          filtered = filtered.filter(appointment => {
+            if (!appointment.startDateTime) return false
+            const appointmentDate = dayjs(appointment.startDateTime)
+            return appointmentDate.isBefore(now, 'day')
+          })
+        }
       }
 
-      // Filter by search text
+      // Filter by search text with enhanced search logic
       if (searchText.trim()) {
         const searchLower = searchText.toLowerCase()
         filtered = filtered.filter(appointment => {
-          return (
-            appointment.hostedBy?.fullName
-              ?.toLowerCase()
-              .includes(searchLower) ||
-            appointment.bookedBy?.fullName
-              ?.toLowerCase()
-              .includes(searchLower) ||
-            appointment.bookedFor?.fullName
-              ?.toLowerCase()
-              .includes(searchLower) ||
-            appointment.reasonBooking?.toLowerCase().includes(searchLower) ||
-            appointment.noteSummary?.toLowerCase().includes(searchLower) ||
-            appointment.noteSuggestion?.toLowerCase().includes(searchLower)
+          const searchableFields = [
+            appointment.hostedBy?.fullName,
+            appointment.bookedBy?.fullName,
+            appointment.bookedFor?.fullName,
+            // Add host type search
+            t(
+              `appointment.hostType.${appointment.hostType?.toLowerCase() || 'teacher'}`
+            ),
+          ].filter(Boolean) // Remove undefined values
+
+          return searchableFields.some(field =>
+            field.toLowerCase().includes(searchLower)
           )
         })
       }
 
       return filtered
     },
-    [dateRange, searchText]
+    [dateRange, searchText, t]
   )
 
   // Memoized filtered appointments
   const filteredActiveAppointments = useMemo(() => {
-    return filterAppointments(activeAppointments)
+    return filterAppointments(activeAppointments, 'active')
   }, [activeAppointments, filterAppointments])
 
   // Memoized filtered past appointments
   const filteredPastAppointments = useMemo(() => {
-    return filterAppointments(pastAppointments)
+    return filterAppointments(pastAppointments, 'past')
   }, [pastAppointments, filterAppointments])
 
   // Get current tab data
@@ -307,9 +348,16 @@ const AppointmentManagement = () => {
         dispatch(getPastAppointments(user.id))
       }
     }
-  }, [activeTab])
+  }, [activeTab, dispatch, user?.id])
 
   const handleSearch = useCallback(value => {
+    setSearchText(value)
+    setPagination(prev => ({ ...prev, current: 1 }))
+  }, [])
+
+  // Enhanced search with debouncing
+  const handleSearchChange = useCallback(e => {
+    const value = e.target.value
     setSearchText(value)
     setPagination(prev => ({ ...prev, current: 1 }))
   }, [])
@@ -321,12 +369,10 @@ const AppointmentManagement = () => {
 
   const handleViewDetails = useCallback(
     item => {
-      // Use startTransition for smooth navigation
       React.startTransition(() => {
-        // Handle both appointment and appointment record objects
         const appointment = item.appointment || item
         const appointmentId = appointment.id || item.id
-        dispatch(setSelectedAppointment(item))
+        dispatch(setSelectedAppointment(appointment))
         navigate(`/appointment-management/details/${appointmentId}`)
       })
     },
@@ -348,8 +394,6 @@ const AppointmentManagement = () => {
       React.startTransition(() => {
         setActiveTab(key)
         setPagination(prev => ({ ...prev, current: 1 }))
-
-        // Load data for the new tab
         if (user?.id) {
           if (key === 'active') {
             dispatch(getActiveAppointments(user.id))
@@ -762,7 +806,6 @@ const AppointmentManagement = () => {
             </Text>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-3">
             {isCounselor && (
               <Tooltip title={t('appointment.createButton.tooltip')}>
@@ -800,47 +843,6 @@ const AppointmentManagement = () => {
         )}
       </div>
 
-      {/* Statistics Overview */}
-      <div className="mb-6">
-        <Card
-          className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
-        >
-          <Row gutter={[16, 16]} align="middle">
-            <Col xs={24} sm={12} md={8}>
-              <div className="text-center p-4">
-                <div className="text-3xl font-bold text-blue-600 mb-2">
-                  {filteredActiveAppointments.length}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">
-                  {t('appointment.tabs.active')}
-                </div>
-              </div>
-            </Col>
-            <Col xs={24} sm={12} md={8}>
-              <div className="text-center p-4">
-                <div className="text-3xl font-bold text-orange-600 mb-2">
-                  {filteredPastAppointments.length}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">
-                  {t('appointment.tabs.past')}
-                </div>
-              </div>
-            </Col>
-            <Col xs={24} sm={24} md={8}>
-              <div className="text-center p-4">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  {filteredActiveAppointments.length +
-                    filteredPastAppointments.length}
-                </div>
-                <div className="text-sm text-gray-600 font-medium">
-                  {t('appointment.statistics.total')}
-                </div>
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      </div>
-
       {/* Filters Section */}
       <Card
         className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
@@ -849,15 +851,17 @@ const AppointmentManagement = () => {
         <Row gutter={[16, 16]} align="middle">
           <Col xs={24} sm={12} md={8}>
             <Search
+              value={searchText}
               placeholder={t('appointment.searchStudent')}
               allowClear
               onSearch={handleSearch}
-              onChange={e => setSearchText(e.target.value)}
+              onChange={handleSearchChange}
               prefix={<SearchOutlined />}
             />
           </Col>
           <Col xs={24} sm={12} md={8}>
             <DatePicker.RangePicker
+              value={dateRange}
               placeholder={[
                 t('appointment.filter.startDate'),
                 t('appointment.filter.endDate'),
@@ -868,21 +872,22 @@ const AppointmentManagement = () => {
               style={{ width: '100%' }}
             />
           </Col>
-          <Col xs={24} sm={24} md={8}>
-            <div className="flex justify-end">
-              <Button
-                onClick={() => {
-                  setSearchText('')
-                  setDateRange([])
-                  setPagination(prev => ({ ...prev, current: 1 }))
-                }}
-                s
-                className="hover:bg-gray-50 transition-all duration-200"
-              >
-                {t('appointment.filter.clearFilters')}
-              </Button>
-            </div>
-          </Col>
+          {(searchText || dateRange.length > 0) && (
+            <Col>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => {
+                    setSearchText('')
+                    setDateRange([])
+                    setPagination(prev => ({ ...prev, current: 1 }))
+                  }}
+                  className="hover:bg-gray-50 transition-all duration-200"
+                >
+                  {t('appointment.filter.clearFilters')}
+                </Button>
+              </div>
+            </Col>
+          )}
         </Row>
       </Card>
 
@@ -921,7 +926,6 @@ const AppointmentManagement = () => {
                 `${range[0]}-${range[1]} of ${total} items`,
               onChange: handlePaginationChange,
             }}
-            scroll={{ x: 1200 }}
             size="middle"
             locale={{
               emptyText: (
@@ -929,18 +933,6 @@ const AppointmentManagement = () => {
                   <div className="text-gray-400 text-lg mb-4">
                     {t('appointment.messages.noData')}
                   </div>
-                  {isCounselor && (
-                    <Button
-                      type="primary"
-                      icon={<PlusOutlined />}
-                      onClick={handleCreateAppointment}
-                      className="shadow-md hover:shadow-lg transition-all duration-200 bg-gradient-to-r from-blue-500 to-blue-600 border-0 hover:from-blue-600 hover:to-blue-700"
-                    >
-                      <span className="flex items-center space-x-2">
-                        <span>{t('appointment.createButton.title')}</span>
-                      </span>
-                    </Button>
-                  )}
                 </div>
               ),
             }}
@@ -953,7 +945,6 @@ const AppointmentManagement = () => {
         isOpen={createModalVisible}
         onClose={handleCreateModalCancel}
         onSuccess={handleCreateAppointmentSuccess}
-        messageApi={messageApi}
       />
     </div>
   )

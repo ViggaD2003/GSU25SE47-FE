@@ -317,10 +317,14 @@ const SlotManagement = () => {
           )}
         </div>
       </div>
-      <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <Row gutter={[16, 16]} className="mb-4">
+
+      <Card
+        style={{ marginBottom: '16px', marginTop: '16px' }}
+        className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
+      >
+        <Row gutter={[16, 16]}>
           {user?.role === 'manager' && (
-            <Col xs={24} sm={12} md={8} lg={6}>
+            <Col span={12}>
               <Search
                 placeholder={t('slotManagement.search')}
                 allowClear
@@ -330,7 +334,7 @@ const SlotManagement = () => {
               />
             </Col>
           )}
-          <Col xs={24} sm={12} md={8} lg={6}>
+          <Col span={12}>
             <RangePicker
               className="w-full"
               onChange={handleDateRangeChange}
@@ -343,23 +347,21 @@ const SlotManagement = () => {
           </Col>
         </Row>
       </Card>
-      <Card className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}>
-        <Table
-          columns={columns.filter(col => !col.hidden)}
-          dataSource={paginatedSlots}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            ...pagination,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `${range[0]}-${range[1]} of ${total} items`,
-          }}
-          onChange={handleTableChange}
-          scroll={{ x: 900 }}
-        />
-      </Card>
+
+      <Table
+        columns={columns.filter(col => !col.hidden)}
+        dataSource={paginatedSlots}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          ...pagination,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
+        onChange={handleTableChange}
+      />
 
       <SlotModal
         visible={isModalVisible}

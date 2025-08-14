@@ -316,7 +316,8 @@
       "date": "Date & Time",
       "status": "Status",
       "actions": "Actions",
-      "addCase": "Add Cases"
+      "addCase": "Add Cases",
+      "createdAt": "Created At"
     },
     "status": {
       "PLANNING": "Planning",
@@ -1247,7 +1248,7 @@
       "label": "Status",
       "pending": "Pending",
       "confirmed": "Confirmed",
-      "in_progress": "In Progress",
+      "inPSrogress": "In Progress",
       "completed": "Completed",
       "canceled": "Canceled",
       "absent": "Absent",
@@ -1938,6 +1939,7 @@
       "unknown": "Unknown"
     },
     "form": {
+      "assessement": "Assessment",
       "title": "Student Assessment Form",
       "sessionNotes": "Session Notes",
       "sessionNotesPlaceholder": "Notes about student behavior during the counseling session",

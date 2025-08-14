@@ -25,7 +25,7 @@ const { width } = Dimensions.get("window");
 
 const SurveyInfo = ({ route, navigation }) => {
   const { user } = useAuth();
-  const { surveyId, progressSaved } = route.params || {};
+  const { surveyId, progressSaved, programId } = route.params || {};
   const { t } = useTranslation();
   const [survey, setSurvey] = useState(null);
   const [hasSavedProgress, setHasSavedProgress] = useState(false);
@@ -88,7 +88,7 @@ const SurveyInfo = ({ route, navigation }) => {
         navigation.navigate("SurveyTaking", { survey });
       }, 1000);
     } else {
-      navigation.navigate("SurveyTaking", { survey });
+      navigation.navigate("SurveyTaking", { survey, programId });
     }
   }, [hasSavedProgress, showToast, navigation, survey]);
 

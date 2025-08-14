@@ -72,14 +72,6 @@ const ProgramTable = ({
     [t]
   )
 
-  // Get participant progress color
-  const getParticipantProgressColor = useCallback((_current, _max) => {
-    // const percentage = (current / max) * 100
-    // if (percentage >= 80) return '#52c41a' // Green
-    // if (percentage >= 60) return '#faad14' // Orange
-    return '#688EFFFF' // Red
-  }, [])
-
   const handleEdit = useCallback(
     program => {
       setEditingId(program.id)
@@ -121,18 +113,22 @@ const ProgramTable = ({
             rules={[{ required: true, message: t('common.required') }]}
           >
             <Select placeholder={t('programManagement.selectStatus')}>
-              <Select.Option value="PLANNING">
+              {/* <Select.Option value="PLANNING">
                 {t('programManagement.status.PLANNING')}
-              </Select.Option>
-              <Select.Option value="ACTIVE">
+              </Select.Option> */}
+              {/* <Select.Option value="ACTIVE">
                 {t('programManagement.status.ACTIVE')}
-              </Select.Option>
-              <Select.Option value="ON_GOING">
-                {t('programManagement.status.ON_GOING')}
-              </Select.Option>
-              <Select.Option value="COMPLETED">
-                {t('programManagement.status.COMPLETED')}
-              </Select.Option>
+              </Select.Option> */}
+              {program.status === 'ACTIVE' && (
+                <Select.Option value="ON_GOING">
+                  {t('programManagement.status.ON_GOING')}
+                </Select.Option>
+              )}
+              {program.status === 'ON_GOING' && (
+                <Select.Option value="COMPLETED">
+                  {t('programManagement.status.COMPLETED')}
+                </Select.Option>
+              )}
             </Select>
           </Form.Item>
         </Form>
@@ -156,12 +152,22 @@ const ProgramTable = ({
           sortConfig?.field === 'name' ? sortConfig.direction : undefined,
         render: (text, record) => (
           <div>
-            <Text strong className="text-primary">
-              {text}
-            </Text>
+            <div className="flex items-center gap-2">
+              <Text strong className="text-primary">
+                {text}
+              </Text>
+              {record.category?.code && (
+                <Tag color="blue">({record.category.code})</Tag>
+              )}
+            </div>
+
             {record.description && (
               <div>
-                <Text type="secondary" className="text-xs">
+                <Text
+                  type="secondary"
+                  className="text-xs"
+                  ellipsis={{ rows: 2 }}
+                >
                   {record.description.length > 50
                     ? `${record.description.substring(0, 50)}...`
                     : record.description}
@@ -190,7 +196,7 @@ const ProgramTable = ({
               <Progress
                 percent={percentage}
                 size="small"
-                strokeColor={getParticipantProgressColor(current, max)}
+                strokeColor={'#688EFFFF'}
                 showInfo={false}
                 className="mt-1"
               />
@@ -199,43 +205,33 @@ const ProgramTable = ({
         },
       },
       {
-        title: t('programManagement.table.category'),
-        dataIndex: ['category', 'name'],
-        key: 'category',
-        width: 120,
-        render: (text, record) => (
-          <div>
-            <Text>{text}</Text>
-            {record.category?.code && (
-              <div>
-                <Text type="secondary" className="text-xs">
-                  ({record.category.code})
-                </Text>
-              </div>
-            )}
-          </div>
-        ),
-      },
-      {
         title: t('programManagement.table.date'),
-        dataIndex: 'startDate',
+        dataIndex: 'startTime',
         key: 'date',
         width: 120,
         sorter: true,
         sortOrder:
-          sortConfig?.field === 'startDate' ? sortConfig.direction : undefined,
-        render: (date, record) => (
-          <div>
-            <Text>{dayjs(date).format('DD/MM/YYYY')}</Text>
-            {record.startTime && record.endTime && (
-              <div>
-                <Text type="secondary" className="text-xs">
-                  {record.startTime} - {record.endTime}
-                </Text>
-              </div>
-            )}
-          </div>
-        ),
+          sortConfig?.field === 'startTime' ? sortConfig.direction : undefined,
+        render: (_, record) => {
+          const startTime = record.startTime
+            ? dayjs(record.startTime).format('HH:mm')
+            : ''
+          const endTime = record.endTime
+            ? dayjs(record.endTime).format('HH:mm')
+            : ''
+          return (
+            <div>
+              <Text>{dayjs(startTime).format('DD/MM/YYYY')}</Text>
+              {startTime && endTime && (
+                <div>
+                  <Text type="secondary" className="text-xs">
+                    {startTime} - {endTime}
+                  </Text>
+                </div>
+              )}
+            </div>
+          )
+        },
       },
       {
         title: t('programManagement.table.status'),
@@ -251,8 +247,19 @@ const ProgramTable = ({
         render: (_, record) => renderEditForm(record),
       },
       {
+        title: t('programManagement.table.createdAt'),
+        dataIndex: 'createdAt',
+        key: 'createdAt',
+        width: 120,
+        render: (_, record) => (
+          <div>
+            <Text>{dayjs(record.createdAt).format('DD/MM/YYYY')}</Text>
+          </div>
+        ),
+      },
+      {
         key: 'actions',
-        width: 80,
+        width: 60,
         align: 'center',
         fixed: 'right',
         render: (_, record) => {
@@ -268,16 +275,15 @@ const ProgramTable = ({
                   size="small"
                 />
               </Tooltip>
-              {isManager && (
-                <Tooltip title={t('programManagement.actions.edit')}>
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(record)}
-                    size="small"
-                  />
-                </Tooltip>
-              )}
+
+              <Tooltip title={t('programManagement.actions.edit')}>
+                <Button
+                  type="link"
+                  icon={<EditOutlined />}
+                  onClick={() => handleEdit(record)}
+                  size="small"
+                />
+              </Tooltip>
             </Space>
           ) : (
             <Space size="small">
@@ -304,7 +310,6 @@ const ProgramTable = ({
       t,
       sortConfig,
       getStatusConfig,
-      getParticipantProgressColor,
       onView,
       isManager,
       editingId,
@@ -360,8 +365,6 @@ const ProgramTable = ({
       }}
       onChange={handleTableChange}
       rowKey="id"
-      scroll={{ x: 1200 }}
-      size="middle"
       className="program-table"
     />
   )
