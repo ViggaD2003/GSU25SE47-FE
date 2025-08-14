@@ -68,27 +68,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
     return Math.round((absent / total) * 100);
   };
 
-  // Tính điểm trung bình cho từng loại
-  const calculateAverageScore = (dataSet) => {
-    if (!dataSet || dataSet.length === 0) return 0;
-    const total = dataSet.reduce((sum, item) => sum + (item.score || 0), 0);
-    return Math.round((total / dataSet.length) * 100);
-  };
-
-  // Tính điểm cao nhất
-  const calculateHighestScore = (dataSet) => {
-    if (!dataSet || dataSet.length === 0) return 0;
-    const maxScore = Math.max(...dataSet.map((item) => item.score || 0));
-    return Math.round(maxScore * 100);
-  };
-
-  // Tính điểm thấp nhất
-  const calculateLowestScore = (dataSet) => {
-    if (!dataSet || dataSet.length === 0) return 0;
-    const minScore = Math.min(...dataSet.map((item) => item.score || 0));
-    return Math.round(minScore * 100);
-  };
-
   const surveyStats = [
     {
       key: "active",
@@ -110,14 +89,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       subtitle: t("dashboard.mentalHealth.survey.completedSubtitle"),
       icon: "checkmark-circle-outline",
       color: "#10B981",
-    },
-    {
-      key: "average",
-      title: t("dashboard.mentalHealth.survey.averageScore"),
-      value: `${calculateAverageScore(mentalStatistic.survey?.dataSet)}%`,
-      subtitle: t("dashboard.mentalHealth.survey.averageSubtitle"),
-      icon: "analytics-outline",
-      color: "#8B5CF6",
     },
     {
       key: "skips",
@@ -159,14 +130,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       color: "#10B981",
     },
     {
-      key: "average",
-      title: t("dashboard.mentalHealth.appointment.averageScore"),
-      value: `${calculateAverageScore(mentalStatistic.appointment?.dataSet)}%`,
-      subtitle: t("dashboard.mentalHealth.appointment.averageSubtitle"),
-      icon: "analytics-outline",
-      color: "#8B5CF6",
-    },
-    {
       key: "absent",
       title: t("dashboard.mentalHealth.appointment.absent"),
       value: formatNumber(mentalStatistic.appointment?.numOfAbsent || 0),
@@ -204,14 +167,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       color: "#10B981",
     },
     {
-      key: "average",
-      title: t("dashboard.mentalHealth.program.averageScore"),
-      value: `${calculateAverageScore(mentalStatistic.program?.dataSet)}%`,
-      subtitle: t("dashboard.mentalHealth.program.averageSubtitle"),
-      icon: "analytics-outline",
-      color: "#8B5CF6",
-    },
-    {
       key: "absent",
       title: t("dashboard.mentalHealth.program.absent"),
       value: formatNumber(mentalStatistic.program?.numOfAbsent || 0),
@@ -225,9 +180,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
       ),
     },
   ];
-
-  console.log(mentalStatistic);
-  console.log(mentalStatistic.survey?.dataSet);
 
   return (
     <View style={styles.container}>

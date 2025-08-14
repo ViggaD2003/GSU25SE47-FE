@@ -21,6 +21,8 @@ export default function UpdateProfile({ route }) {
   const navigation = useNavigation();
   const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const profileData = route?.params?.profileData;
+
   // Form state
   const [formData, setFormData] = useState({
     fullName: "",
@@ -29,6 +31,8 @@ export default function UpdateProfile({ route }) {
     dob: "",
     isEnableSurvey: false,
   });
+
+  console.log(route);
 
   // Class information (read-only)
   const [classInfo, setClassInfo] = useState({
@@ -52,7 +56,6 @@ export default function UpdateProfile({ route }) {
 
   useFocusEffect(
     React.useCallback(() => {
-      const profileData = route?.params?.data;
       if (profileData) {
         setFormData({
           fullName: profileData.fullName || "",

@@ -166,7 +166,7 @@ export default function MainTabs() {
   const ProfileStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="EditProfile" component={UpdateProfileScreen} />
+        <Stack.Screen name="UpdateProfile" component={UpdateProfileScreen} />
         <Stack.Screen name="MyChildren" component={MyChildrenScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
         <Stack.Screen name="CalendarAccess" component={CalendarAccess} />

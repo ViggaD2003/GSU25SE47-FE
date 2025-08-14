@@ -355,7 +355,8 @@
     "actions": {
       "booking": "Đặt lịch",
       "blog": "Tài liệu & Blog",
-      "history": "Lịch sử"
+      "history": "Lịch sử",
+      "event": "Sự kiện"
     },
     "quickActions": "Tác vụ nhanh",
     "recommendedPrograms": {

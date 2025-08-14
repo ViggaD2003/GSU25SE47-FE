@@ -47,6 +47,14 @@ export default function ParentHome({ user, navigation }) {
         },
       },
       {
+        title: t("home.actions.event"),
+        key: "event",
+        icon: "calendar",
+        onPress: () => {
+          navigation.navigate("Event");
+        },
+      },
+      {
         title: t("home.actions.blog"),
         key: "doc-blog",
         icon: "book",
@@ -242,7 +250,11 @@ export default function ParentHome({ user, navigation }) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
           </View>
-          <View style={styles.connectRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.connectRow}
+          >
             {actionItems.map((item) => (
               <TouchableOpacity
                 key={item.key}
@@ -255,7 +267,7 @@ export default function ParentHome({ user, navigation }) {
                 <Text style={styles.connectTitle}>{item.title}</Text>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Plan for today */}
@@ -493,8 +505,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    padding: 16,
-    gap: 12,
+    padding: 12,
+    gap: 5,
+    width: 110,
   },
   iconContainer: {
     width: 48,

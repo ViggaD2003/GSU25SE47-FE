@@ -43,9 +43,17 @@ export default function StudentHome({ user, navigation }) {
       {
         title: t("home.actions.booking"),
         key: "booking",
-        icon: "calendar",
+        icon: "users",
         onPress: () => {
           navigation.navigate("Appointment");
+        },
+      },
+      {
+        title: t("home.actions.event"),
+        key: "event",
+        icon: "calendar",
+        onPress: () => {
+          navigation.navigate("Event");
         },
       },
       {
@@ -261,7 +269,11 @@ export default function StudentHome({ user, navigation }) {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>{t("home.quickActions")}</Text>
         </View>
-        <View style={styles.connectRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.connectRow}
+        >
           {actionItems.map((item) => (
             <TouchableOpacity
               key={item.key}
@@ -274,7 +286,7 @@ export default function StudentHome({ user, navigation }) {
               <Text style={styles.connectTitle}>{item.title}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
 
       {/* Recommended Programs */}
@@ -735,8 +747,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    padding: 16,
-    gap: 12,
+    padding: 12,
+    gap: 5,
+    width: 110,
   },
   iconContainer: {
     width: 48,

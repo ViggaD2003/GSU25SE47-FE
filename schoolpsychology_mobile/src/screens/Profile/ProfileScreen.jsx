@@ -53,7 +53,7 @@ export default function ProfileScreen({ navigation }) {
   const navigateToEditProfile = () => {
     navigation.navigate("Profile", {
       screen: "UpdateProfile",
-      params: { data: profile },
+      params: { profileData: profile },
     });
   };
 
@@ -142,10 +142,6 @@ export default function ProfileScreen({ navigation }) {
                 />
               </View>
             )}
-            {/* <MenuItem
-              icon="help-circle-outline"
-              label={t("profile.needHelp")}
-            /> */}
 
             {/* Logout */}
             <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>

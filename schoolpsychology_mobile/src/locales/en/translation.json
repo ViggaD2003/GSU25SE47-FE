@@ -360,7 +360,8 @@
     "actions": {
       "booking": "Booking",
       "blog": "Doc & Blog",
-      "history": "History"
+      "history": "History",
+      "event": "Event"
     },
     "quickActions": "Quick Actions",
     "recommendedPrograms": {
