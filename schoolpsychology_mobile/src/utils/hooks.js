@@ -348,7 +348,7 @@ export const useApiCall = (handleTokenError) => {
  */
 export const useNotifications = () => {
   const { user } = useAuth();
-  const { notificationCount, clearNotificationCount } = useRealTime();
+  // const { notificationCount, clearNotificationCount } = useRealTime();
 
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -407,7 +407,7 @@ export const useNotifications = () => {
     try {
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
-      clearNotificationCount();
+      // clearNotificationCount();
 
       // TODO: Add API call to mark all as read on server
       // await NotificationAPI.markAllAsRead();
@@ -415,7 +415,7 @@ export const useNotifications = () => {
       console.error("Error marking all notifications as read:", err);
       fetchNotifications();
     }
-  }, [clearNotificationCount, fetchNotifications]);
+  }, [fetchNotifications]);
 
   // Refresh notifications
   const refreshNotifications = useCallback(async () => {
@@ -430,11 +430,11 @@ export const useNotifications = () => {
   }, [user?.id, fetchNotifications]);
 
   // Update unread count when notificationCount changes from RealTimeContext
-  useEffect(() => {
-    if (notificationCount > 0) {
-      setUnreadCount((prev) => prev + notificationCount);
-    }
-  }, [notificationCount]);
+  // useEffect(() => {
+  //   if (notificationCount > 0) {
+  //     setUnreadCount((prev) => prev + notificationCount);
+  //   }
+  // }, [notificationCount]);
 
   return {
     notifications,

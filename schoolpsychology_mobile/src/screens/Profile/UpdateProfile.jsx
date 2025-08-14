@@ -92,18 +92,12 @@ export default function UpdateProfile({ route }) {
         gender: formData.gender,
         dob: formData.dob,
       };
-
-      await api.patch(
-        `/api/v1/account/update-able-survey/${user?.userId}?isAbleSurvey=${formData.isEnableSurvey}`
-      );
-
       const response = await api.put("/api/v1/account", payload);
       console.log("Update Profile:", response.data);
 
       // Update user context with new data
       setFormData({
         ...response.data,
-        isEnableSurvey: formData.isEnableSurvey,
       });
 
       // Update class information if available
@@ -407,28 +401,6 @@ export default function UpdateProfile({ route }) {
                 </Text>
               </View>
             </>
-          )}
-
-          {/* Enable Survey (Student only) */}
-          {user?.role === "STUDENT" && (
-            <View style={styles.inputGroup}>
-              <View style={styles.switchContainer}>
-                <View>
-                  <Text style={styles.label}>Bật khảo sát</Text>
-                  <Text style={styles.helperText}>
-                    Cho phép tham gia các cuộc khảo sát
-                  </Text>
-                </View>
-                <Switch
-                  value={formData.isEnableSurvey}
-                  onValueChange={(value) =>
-                    updateFormData("isEnableSurvey", value)
-                  }
-                  trackColor={{ false: "#E5E7EB", true: "#10B981" }}
-                  thumbColor={formData.isEnableSurvey ? "#FFFFFF" : "#FFFFFF"}
-                />
-              </View>
-            </View>
           )}
 
           {/* Save Button */}

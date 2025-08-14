@@ -395,7 +395,7 @@
         "title": "Khảo sát hiện đã bị vô hiệu hóa",
         "description": {
           "student": "Tính năng này đã bị tắt hoặc không còn hiệu lực vào thời điểm hiện tại.",
-          "other": "Vui lòng bật lại trong phần cài đặt nếu muốn học viên tiếp tục sử dụng."
+          "other": "Vui lòng bật lại trong phần cài đặt nếu muốn học sinh tiếp tục sử dụng."
         }
       },
       "caseCreated": {

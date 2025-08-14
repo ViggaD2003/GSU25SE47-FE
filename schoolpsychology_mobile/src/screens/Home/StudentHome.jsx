@@ -246,11 +246,7 @@ export default function StudentHome({ user, navigation }) {
         <Alert
           type="warning"
           title={t("home.alerts.surveyDisabled.title")}
-          description={
-            user.role === "STUDENT"
-              ? t("home.alerts.surveyDisabled.description.student")
-              : t("home.alerts.surveyDisabled.description.other")
-          }
+          description={t("home.alerts.surveyDisabled.description.student")}
           showCloseButton={false}
         />
       )}

@@ -8,59 +8,25 @@ import {
   RefreshControl,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons as Icon, Ionicons } from "@expo/vector-icons";
 import { Container } from "../../components";
 import { useNavigation } from "@react-navigation/native";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
+import { updateIsAbleSurvey } from "@/services/api/account";
+import { useChildren } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 
 export default function MyChildren({ route }) {
   const { t } = useTranslation();
-  const { data, onRefresh: onRefreshParent } = route?.params || {};
+  const { onRefresh: onRefreshParent } = route?.params || {};
   const navigation = useNavigation();
-  const [children, setChildren] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  useEffect(() => {
-    console.log("data", data);
-
-    // Add null checks for data
-    if (!data) {
-      setChildren([]);
-      setLoading(false);
-      return;
-    }
-
-    // Handle different data structures
-    let students = [];
-
-    if (data.student && Array.isArray(data.student)) {
-      students = data.student.map((student, idx) => ({
-        ...student,
-        id: student.studentCode || student.userId || idx.toString(),
-      }));
-    } else if (Array.isArray(data)) {
-      // If data is directly an array
-      students = data.map((student, idx) => ({
-        ...student,
-        id: student.studentCode || student.userId || idx.toString(),
-      }));
-    } else if (data.children && Array.isArray(data.children)) {
-      // If data has children property
-      students = data.children.map((child, idx) => ({
-        ...child,
-        id: child.studentCode || child.userId || idx.toString(),
-      }));
-    }
-
-    setChildren(students);
-    setLoading(false);
-  }, [data]);
+  const { children, updateChild } = useChildren();
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -92,15 +58,45 @@ export default function MyChildren({ route }) {
     return gender ? t("common.male") : t("common.female");
   };
 
+  const handleUpdateIsEnableSurvey = async (childId) => {
+    const child = children.find(
+      (child) => child.id || child.userId === childId
+    );
+    if (!child) return;
+    try {
+      await updateIsAbleSurvey(child.id || child.userId, !child.isEnableSurvey);
+      updateChild(childId, {
+        ...child,
+        isEnableSurvey: !child.isEnableSurvey,
+      });
+
+      Alert.alert("Thành công", "Cập nhật trạng thái thành công", [
+        {
+          text: "OK",
+          onPress: () => {
+            onRefresh();
+          },
+        },
+      ]);
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
+
   return (
     <Container>
       {/* Header */}
       <HeaderWithoutTab
         title={t("profile.myChildren")}
         onBackPress={handleBackPress}
+        rightComponent={
+          <TouchableOpacity onPress={() => navigation.navigate("AddChild")}>
+            <Icon name="plus" size={24} color="#10B981" />
+          </TouchableOpacity>
+        }
       />
 
-      {loading ? (
+      {refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
           <Text style={styles.loadingText}>Đang tải thông tin...</Text>
@@ -146,6 +142,7 @@ export default function MyChildren({ route }) {
               getGenderIcon={getGenderIcon}
               getGenderColor={getGenderColor}
               getGenderText={getGenderText}
+              handleUpdateIsEnableSurvey={handleUpdateIsEnableSurvey}
             />
           ))}
         </ScrollView>
@@ -161,6 +158,7 @@ function ChildCard({
   getGenderIcon,
   getGenderColor,
   getGenderText,
+  handleUpdateIsEnableSurvey,
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -212,24 +210,47 @@ function ChildCard({
       </View>
 
       {/* Basic Info */}
-      <View style={styles.basicInfo}>
-        <View style={styles.infoRow}>
-          <Ionicons name="mail-outline" size={16} color="#6B7280" />
-          <Text style={styles.infoText} numberOfLines={1}>
-            {child.email || "N/A"}
-          </Text>
+      <View style={styles.basicInfoContainer}>
+        <View style={styles.basicInfo}>
+          <View style={styles.infoRow}>
+            <Ionicons name="mail-outline" size={16} color="#6B7280" />
+            <Text style={styles.infoText} numberOfLines={1}>
+              {child.email || "N/A"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons name="call-outline" size={16} color="#6B7280" />
+            <Text style={styles.infoText}>
+              {child.phoneNumber || "Chưa có"}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Ionicons
+              name={getGenderIcon(child.gender)}
+              size={16}
+              color={getGenderColor(child.gender)}
+            />
+            <Text style={styles.infoText}>{getGenderText(child.gender)}</Text>
+          </View>
         </View>
-        <View style={styles.infoRow}>
-          <Ionicons name="call-outline" size={16} color="#6B7280" />
-          <Text style={styles.infoText}>{child.phoneNumber || "Chưa có"}</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Ionicons
-            name={getGenderIcon(child.gender)}
-            size={16}
-            color={getGenderColor(child.gender)}
-          />
-          <Text style={styles.infoText}>{getGenderText(child.gender)}</Text>
+        <View
+          style={[
+            styles.inputGroup,
+            { borderColor: !child.isEnableSurvey ? "#10B981" : "#EF4444" },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => handleUpdateIsEnableSurvey(child.id || child.userId)}
+          >
+            <Text
+              style={[
+                styles.switchText,
+                { color: !child.isEnableSurvey ? "#10B981" : "#EF4444" },
+              ]}
+            >
+              {!child.isEnableSurvey ? "Bật" : "Tắt"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -305,6 +326,13 @@ function ChildCard({
 }
 
 const styles = StyleSheet.create({
+  inputGroup: {
+    marginRight: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -454,10 +482,17 @@ const styles = StyleSheet.create({
   expandButton: {
     padding: 4,
   },
+  basicInfoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+  },
   basicInfo: {
+    flex: 1,
     gap: 8,
   },
   infoRow: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,

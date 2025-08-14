@@ -35,6 +35,7 @@ export default function ParentHome({ user, navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const { selectedChild, children } = useChildren();
+  const isEnableSurvey = false;
 
   const actionItems = useMemo(
     () => [
@@ -245,6 +246,15 @@ export default function ParentHome({ user, navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {!isEnableSurvey && (
+          <Alert
+            type="warning"
+            title={t("home.alerts.surveyDisabled.title")}
+            description={t("home.alerts.surveyDisabled.description.other")}
+            showCloseButton={false}
+          />
+        )}
+
         {/* Quick Actions */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
