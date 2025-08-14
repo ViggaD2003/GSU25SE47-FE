@@ -10,6 +10,8 @@ import {
   FileTextOutlined,
   ExclamationCircleOutlined,
   PlusCircleOutlined,
+  FlagFilled,
+  WarningOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
@@ -45,30 +47,33 @@ const UserTable = ({
         key: 'fullName',
         render: (text, record) => (
           <Space>
-            <Avatar icon={<UserOutlined />} />
+            <Tooltip title={record.hasActiveCases && t('userTable.activeCase')}>
+              {record.hasActiveCases && (
+                <FlagFilled style={{ color: 'red', marginRight: 4 }} />
+              )}
+            </Tooltip>
+
             <div>
-              <div style={{ fontWeight: 500 }}>{text}</div>
+              <Tooltip title={text}>
+                <div
+                  style={{
+                    fontWeight: 500,
+                    maxWidth: 100,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {text}
+                </div>
+              </Tooltip>
               <div style={{ fontSize: '12px', color: '#666' }}>
-                ID: {record.id}
+                ID: {record.studentCode}
               </div>
             </div>
           </Space>
         ),
-        width: 150,
         fixed: 'left',
-      },
-      {
-        title: t('userTable.studentCode'),
-        dataIndex: 'studentCode',
-        key: 'studentCode',
-        render: text => (
-          <Space>
-            <IdcardOutlined style={{ color: '#1890ff' }} />
-            {text}
-          </Space>
-        ),
-        width: 120,
-        hidden: hideColumnsWithoutStudentData,
       },
       {
         title: t('userTable.gender'),
@@ -79,43 +84,20 @@ const UserTable = ({
             {gender ? t('dashboard.gender.male') : t('dashboard.gender.female')}
           </Tag>
         ),
-        width: 100,
       },
-      {
-        title: t('userTable.dob'),
-        dataIndex: 'dob',
-        key: 'dob',
-        render: dob => (
-          <Space>
-            <CalendarOutlined style={{ color: '#52c41a' }} />
-            {dob ? new Date(dob).toLocaleDateString() : '-'}
-          </Space>
-        ),
-        width: 120,
-      },
+
       {
         title: t('userTable.email'),
         dataIndex: 'email',
         key: 'email',
         render: email =>
           email ? (
-            <Link href={`mailto:${email}`}>{email}</Link>
+            <Tooltip title={email}>
+              <Link href={`mailto:${email}`}>{email}</Link>
+            </Tooltip>
           ) : (
             <span style={{ color: '#999' }}>-</span>
           ),
-        width: 200,
-      },
-      {
-        title: t('userTable.phone'),
-        dataIndex: 'phoneNumber',
-        key: 'phoneNumber',
-        render: phone =>
-          phone ? (
-            <Link href={`tel:${phone}`}>{phone}</Link>
-          ) : (
-            <span style={{ color: '#999' }}>-</span>
-          ),
-        width: 150,
       },
       {
         title: t('userTable.surveyStatus'),
@@ -129,32 +111,9 @@ const UserTable = ({
               : t('userTable.surveyDisabled')}
           </Tag>
         ),
-        width: 140,
         hidden: hideColumnsWithoutStudentData,
       },
-      {
-        title: t('userTable.caseStatus'),
-        dataIndex: 'hasActiveCases',
-        key: 'hasActiveCases',
-        render: hasActiveCases => (
-          <Tooltip
-            title={
-              hasActiveCases
-                ? t('userTable.hasActiveCases')
-                : t('userTable.noActiveCases')
-            }
-          >
-            <Tag color={hasActiveCases ? 'red' : 'green'}>
-              <ExclamationCircleOutlined style={{ marginRight: 4 }} />
-              {hasActiveCases
-                ? t('userTable.activeCases')
-                : t('userTable.noCases')}
-            </Tag>
-          </Tooltip>
-        ),
-        width: 140,
-        hidden: hideColumnsWithoutStudentData,
-      },
+
       {
         title: t('userTable.latestSurvey'),
         dataIndex: 'latestSurveyRecord',
@@ -166,14 +125,12 @@ const UserTable = ({
               : t('userTable.noSurveyRecord')}
           </span>
         ),
-        width: 140,
         hidden: hideColumnsWithoutStudentData,
       },
       {
         title: '',
         key: 'action',
         fixed: 'right',
-        width: 100,
         render: (_, record) => (
           <Space>
             <Tooltip title={t('userTable.viewDetails')}>
@@ -210,7 +167,7 @@ const UserTable = ({
       loading={loading}
       pagination={pagination}
       onChange={onChange}
-      scroll={{ x: 1450, y: 400 }} // Increased width for new columns
+      scroll={{ x: 'auto' }} // Increased width for new columns
       size="middle"
     />
   )

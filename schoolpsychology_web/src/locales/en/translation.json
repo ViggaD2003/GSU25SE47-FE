@@ -279,7 +279,7 @@
     "surveyEnabled": "Enabled",
     "surveyDisabled": "Disabled",
     "caseStatus": "Case Status",
-    "activeCases": "Active Cases",
+    "activeCase": "Active Case",
     "noCases": "No Cases",
     "hasActiveCases": "Has active support cases",
     "noActiveCases": "No active support cases",

@@ -280,7 +280,7 @@
     "surveyEnabled": "Bật",
     "surveyDisabled": "Tắt",
     "caseStatus": "Trạng thái trường hợp cần theo dõi",
-    "activeCases": "Đã tạo",
+    "activeCase": "Đang được giám sát",
     "noCases": "Chưa tạo",
     "hasActiveCases": "Có trường hợp đang hoạt động",
     "noActiveCases": "Không có trường hợp nào đang hoạt động",
