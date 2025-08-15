@@ -174,13 +174,14 @@ export const WebSocketProvider = ({ children }) => {
         console.log('[WebSocket] Cleanup completed')
       })
 
-      const socket = new WebSocket(
-        `ws://spmss-api.ocgi.space/ws?token=${jwtToken}`
-      )
+      const socket = new WebSocket(`ws://spmss-api.ocgi.space/ws?token=${jwtToken}`)
       socketRef.current = socket
 
       const stompClient = Stomp.over(socket)
-      stompClient.debug = null
+      stompClient.debug = (msg) => {
+        console.log('[WebSocket] STOMP debug:', msg);
+
+      } // Tắt log debug của STOMP
 
       // Xử lý sự kiện WebSocket
       socket.onopen = () => {
@@ -202,29 +203,23 @@ export const WebSocketProvider = ({ children }) => {
 
       // Kết nối STOMP
       stompClient.connect(
-        {
-          Authorization: `Bearer ${jwtToken}`,
-          heartbeat: {
-            outgoing: 30000,
-            incoming: 30000,
-          },
-        },
-        () => {
-          console.log('[WebSocket] STOMP connected successfully')
-          stompClientRef.current = stompClient
-          setIsConnected(true)
-          setIsConnecting(false)
-
-          // Bắt đầu heartbeat để duy trì kết nối
-          startHeartbeat()
+        {},
+        frame => {
+          // Đây là callback khi CONNECTED thành công
+          console.log('[WebSocket] ✅ STOMP connected successfully:', frame);
+          stompClientRef.current = stompClient;
+          setIsConnected(true);
+          setIsConnecting(false);
         },
         error => {
-          console.error('[WebSocket] STOMP connection error:', error)
-          setIsConnected(false)
-          setIsConnecting(false)
-          safeCleanup()
+          // Đây mới là lỗi thật sự
+          console.error('[WebSocket] ❌ STOMP connection error:', error);
+          setIsConnected(false);
+          setIsConnecting(false);
+          safeCleanup();
         }
-      )
+      );
+
     } catch (error) {
       console.error('[WebSocket] Failed to create connection:', error)
       setIsConnected(false)
