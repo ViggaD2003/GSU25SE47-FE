@@ -36,24 +36,24 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    return (
-      stompClientRef.current &&
-      socketRef.current &&
-      socketRef.current.readyState === WebSocket.OPEN &&
-      isConnected
-    )
+    console.log('🔍 isConnectionReady', stompClientRef.current?.connected)
+    return stompClientRef?.current?.connected
   }, [isConnected])
 
   // Hàm cleanup an toàn - không cần dependencies
   const safeCleanup = useCallback(() => {
+    console.log('🔍 safeCleanup')
+
     // Clear heartbeat interval
     if (heartbeatIntervalRef.current) {
+      console.log('🔍 clear heartbeat interval')
       clearInterval(heartbeatIntervalRef.current)
       heartbeatIntervalRef.current = null
     }
 
     // Clear timeout
     if (reconnectTimeoutRef.current) {
+      console.log('🔍 clear reconnect timeout')
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
@@ -61,6 +61,7 @@ export const WebSocketProvider = ({ children }) => {
     // Unsubscribe
     if (subscriptionRef.current) {
       try {
+        console.log('🔍 unsubscribe')
         subscriptionRef.current.unsubscribe()
       } catch (error) {
         console.warn('[WebSocket] Error unsubscribing:', error)
@@ -71,6 +72,7 @@ export const WebSocketProvider = ({ children }) => {
     // Disconnect STOMP client
     if (stompClientRef.current) {
       try {
+        console.log('🔍 disconnect STOMP client')
         stompClientRef.current.disconnect(() => {
           console.log('[WebSocket] STOMP client disconnected')
         })
@@ -83,6 +85,7 @@ export const WebSocketProvider = ({ children }) => {
     // Close WebSocket
     if (socketRef.current) {
       try {
+        console.log('🔍 close WebSocket')
         socketRef.current.close()
       } catch (error) {
         console.warn('[WebSocket] Error closing WebSocket:', error)
@@ -95,33 +98,23 @@ export const WebSocketProvider = ({ children }) => {
   }, [])
 
   // Định nghĩa subscribeToTopic với kiểm tra trạng thái
-  // Hàm bắt đầu heartbeat để duy trì kết nối
   const startHeartbeat = useCallback(() => {
-    // Clear heartbeat cũ nếu có
     if (heartbeatIntervalRef.current) {
       clearInterval(heartbeatIntervalRef.current)
     }
-
-    // Gửi heartbeat mỗi 30 giây
     heartbeatIntervalRef.current = setInterval(() => {
       if (isConnectionReady()) {
         try {
-          // Gửi heartbeat message để duy trì kết nối
-          stompClientRef.current.send(
-            '/app/send',
-            {},
-            JSON.stringify({
-              title: 'Heartbeat',
-              content: 'Heartbeat',
-              username: '',
-              notificationType: 'HEARTBEAT',
-              relatedEntityId: '0',
-            })
-          )
-          console.log('[WebSocket] Heartbeat sent')
+          sendMessage({
+            title: 'Heartbeat',
+            content: 'Heartbeat',
+            username: '',
+            notificationType: 'PING',
+            relatedEntityId: '0',
+          })
+          console.log('[WebSocket] Heartbeat PING sent')
         } catch (error) {
           console.warn('[WebSocket] Heartbeat failed:', error)
-          // Nếu heartbeat thất bại, có thể kết nối đã bị đứt
           safeCleanup()
         }
       } else {
@@ -129,10 +122,10 @@ export const WebSocketProvider = ({ children }) => {
         clearInterval(heartbeatIntervalRef.current)
         heartbeatIntervalRef.current = null
       }
-    }, 30000) // 30 giây
+    }, 30000) // gửi mỗi 30 giây
 
     console.log('[WebSocket] Heartbeat started')
-  }, [isConnectionReady, safeCleanup])
+  }, [isConnectionReady])
 
   const subscribeToTopic = useCallback(
     (topic, callback) => {
@@ -211,6 +204,10 @@ export const WebSocketProvider = ({ children }) => {
       stompClient.connect(
         {
           Authorization: `Bearer ${jwtToken}`,
+          heartbeat: {
+            outgoing: 30000,
+            incoming: 30000,
+          },
         },
         () => {
           console.log('[WebSocket] STOMP connected successfully')
@@ -238,12 +235,11 @@ export const WebSocketProvider = ({ children }) => {
 
   const sendMessage = useCallback(
     (
-      destination = '/app/send',
       body = {
         title: 'Hello from client!',
         content: `${userRef.current?.fullName || 'User'} sent you a message`,
-        // username: userRef.current?.sub,
-        username: 'trucmy952003@gmail.com',
+        username: userRef.current?.sub,
+        // username: 'vinhnguyen12346767@gmail.com',
         notificationType: 'TEST_MESSAGE',
         relatedEntityId: '0',
       }
@@ -254,6 +250,8 @@ export const WebSocketProvider = ({ children }) => {
       }
 
       try {
+        // console.log('🔍 sendMessage', body)
+        const destination = '/app/send'
         const bodyData = {
           title: body.title,
           content: body.content,
@@ -262,7 +260,7 @@ export const WebSocketProvider = ({ children }) => {
           relatedEntityId: body.relatedEntityId,
         }
         stompClientRef.current.send(destination, {}, JSON.stringify(bodyData))
-        console.log('[WebSocket] Message sent to:', destination)
+        // console.log('[WebSocket] Message sent to:', destination)
       } catch (error) {
         console.error('[WebSocket] Error sending message:', error)
         throw new Error('Failed to send message')
@@ -286,6 +284,10 @@ export const WebSocketProvider = ({ children }) => {
       subscriptionRef.current = subscribeToTopic(
         '/user/queue/notifications',
         data => {
+          if (data.type === 'PING') {
+            console.log('[WebSocket] Heartbeat PING received')
+            return
+          }
           console.log('📩 Thông báo từ server:', data)
 
           // Thêm timestamp hiện tại cho notification mới với độ chính xác cao

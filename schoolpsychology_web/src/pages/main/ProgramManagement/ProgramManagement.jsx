@@ -247,17 +247,16 @@ const ProgramManagement = () => {
     async (programData, email) => {
       try {
         const data = await dispatch(createProgram(programData)).unwrap()
-        sendMessage({
+        const body = {
           relatedEntityId: data.id,
           title: 'New Program Created',
           username: email,
           notificationType: 'PROGRAM',
           content: `A new program has been created: ${data.name}`,
-        })
+        }
+        sendMessage(body)
         messageApi.success(t('programManagement.messages.createSuccess'))
-        // sendMessage({})
         setIsModalVisible(false)
-        // dispatch(getAllPrograms()) // Refresh list
       } catch (error) {
         messageApi.error(t('programManagement.messages.createError'))
         throw error

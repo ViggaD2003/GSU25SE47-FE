@@ -529,24 +529,6 @@ const SurveyRecord = ({ navigation }) => {
                   valueFormatter={(value) => `${value}%`}
                 />
               )}
-
-              {/* Average Score Trend Chart */}
-              {statistics.averageScore > 0 && (
-                <ReusableBarChart
-                  key="average-score"
-                  data={[
-                    {
-                      x: "Điểm TB",
-                      y: Math.min(statistics.averageScore, 100),
-                    },
-                  ]}
-                  title="Điểm trung bình"
-                  yAxisMax={100}
-                  barColor="#F59E0B"
-                  height={200}
-                  valueFormatter={(value) => `${value} điểm`}
-                />
-              )}
             </HorizontalChartCarousel>
           </View>
         )}
