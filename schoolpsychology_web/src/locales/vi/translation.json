@@ -37,7 +37,9 @@
     "systemConfig": "Cấu hình hệ thống",
     "assessmentDemo": "Phòng thí nghiệm đánh giá",
     "login": "Đăng nhập",
-    "logout": "Đăng xuất"
+    "logout": "Đăng xuất",
+    "createClass": "Tạo lớp",
+    "createMultipleClasses": "Tạo nhiều lớp học"
   },
   "auth": {
     "login": {
@@ -1282,6 +1284,7 @@
     "endDate": "Ngày kết thúc",
     "back": "Quay lại",
     "next": "Tiếp theo",
+    "previous": "Trước đó",
     "creating": "Đang tạo...",
     "edit": "Sửa",
     "update": "Cập nhật",
@@ -1327,6 +1330,16 @@
       "showing": "Hiển thị",
       "of": "trên tổng số",
       "items": "mục"
+    },
+    "notifications": {
+      "classCreated": "Tạo lớp học thành công",
+      "classesCreated": "Tạo nhiều lớp học thành công",
+      "classUpdated": "Cập nhật lớp học thành công",
+      "classDeleted": "Xóa lớp học thành công",
+      "teacherAssigned": "Phân công giáo viên thành công",
+      "validationFailed": "Vui lòng kiểm tra thông tin nhập và thử lại",
+      "networkError": "Lỗi mạng. Vui lòng thử lại",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau"
     }
   },
   "classManagement": {
@@ -1393,6 +1406,9 @@
       "grade10": "Khối 10",
       "grade11": "Khối 11",
       "grade12": "Khối 12",
+      "grade_10": "Khối 10",
+      "grade_11": "Khối 11",
+      "grade_12": "Khối 12",
       "numberOfClasses": "Số lượng lớp",
       "numberOfClassesRequired": "Vui lòng nhập số lượng lớp",
       "numberOfClassesPlaceholder": "Nhập số lượng lớp",
@@ -1431,11 +1447,78 @@
       "deleteConfirm": "Bạn có chắc chắn muốn xóa lớp học này?",
       "deleteTitle": "Xóa lớp học",
       "fetchTeachersError": "Không thể tải danh sách giáo viên",
-      "createError": "Không thể tạo lớp học"
+      "createError": "Không thể tạo lớp học",
+      "createMultipleSuccess": "Tạo nhiều lớp học thành công",
+      "validationError": "Vui lòng kiểm tra thông tin nhập và thử lại",
+      "teacherAssignmentRequired": "Vui lòng phân công giáo viên cho tất cả các lớp",
+      "timeValidationError": "Thời gian kết thúc phải sau thời gian bắt đầu",
+      "dateValidationError": "Vui lòng chọn ngày hợp lệ",
+      "completeCurrentStep": "Vui lòng hoàn thành bước hiện tại trước khi tiếp tục"
     },
     "filters": {
       "classYear": "Lọc theo năm học",
       "teacher": "Lọc theo giáo viên"
+    },
+    "steps": {
+      "generalConfig": "Cấu hình chung",
+      "generalConfigDesc": "Thiết lập thông tin cơ bản của lớp",
+      "timeConfig": "Cấu hình thời gian",
+      "timeConfigDesc": "Thiết lập lịch học",
+      "teacherAssignment": "Phân công giáo viên",
+      "teacherAssignmentDesc": "Gán giáo viên cho các lớp"
+    },
+    "progress": "Tiến độ",
+    "step": "Bước",
+    "completeCurrentStep": "Vui lòng hoàn thành bước hiện tại trước khi tiếp tục",
+    "previewClasses": "Xem trước các lớp",
+    "pending": "Chờ xử lý",
+    "timeConfig": "Cấu hình thời gian",
+    "timeValidation": "Kiểm tra thời gian",
+    "startDate": "Ngày bắt đầu",
+    "endDate": "Ngày kết thúc",
+    "duration": "Thời lượng",
+    "days": "ngày",
+    "teacherAssignment": "Phân công giáo viên",
+    "refreshTeachers": "Làm mới danh sách giáo viên",
+    "teachersAvailable": "Giáo viên có sẵn",
+    "selectedTeacher": "Giáo viên đã chọn",
+    "description": "Mô tả",
+    "descriptionPlaceholder": "Nhập mô tả lớp học (tùy chọn)",
+    "noClassesToAssign": "Không có lớp nào để phân công giáo viên",
+    "classCode": "Mã lớp",
+    "classCodePlaceholder": "Nhập mã lớp",
+    "classCodeRequired": "Vui lòng nhập mã lớp",
+    "classYear": "Năm học",
+    "classYearRequired": "Vui lòng chọn năm học",
+    "teacherInfo": "Thông tin giáo viên",
+    "teacherCode": "Mã giáo viên",
+    "teacherCodePlaceholder": "Nhập mã giáo viên",
+    "teacherCodeRequired": "Vui lòng nhập mã giáo viên",
+    "teacherName": "Tên giáo viên",
+    "teacherNamePlaceholder": "Nhập tên giáo viên",
+    "teacherNameRequired": "Vui lòng nhập tên giáo viên",
+    "teacherPhone": "Số điện thoại giáo viên",
+    "teacherPhonePlaceholder": "Nhập số điện thoại giáo viên",
+    "teacherPhoneRequired": "Vui lòng nhập số điện thoại giáo viên",
+    "teacherEmail": "Email giáo viên",
+    "teacherEmailPlaceholder": "Nhập email giáo viên",
+    "teacherEmailRequired": "Vui lòng nhập email giáo viên",
+    "teacherEmailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+    "tooltips": {
+      "gradeSelection": "Chọn khối lớp cho các lớp học",
+      "numberOfClasses": "Chọn số lượng lớp cần tạo (1-10)",
+      "schoolYear": "Nhập năm học (ví dụ: 2024-2025)",
+      "startTime": "Chọn thời gian bắt đầu các lớp",
+      "endTime": "Chọn thời gian kết thúc các lớp",
+      "teacherAssignment": "Phân công giáo viên cho mỗi lớp",
+      "classDescription": "Mô tả tùy chọn cho lớp học",
+      "classStatus": "Bật/tắt để kích hoạt/vô hiệu hóa lớp"
+    },
+    "placeholders": {
+      "searchTeacher": "Tìm kiếm giáo viên theo tên hoặc mã...",
+      "enterDescription": "Nhập mô tả lớp học...",
+      "selectDate": "Chọn ngày và giờ...",
+      "enterYear": "Nhập năm (ví dụ: 2024-2025)..."
     }
   },
   "appointment": {

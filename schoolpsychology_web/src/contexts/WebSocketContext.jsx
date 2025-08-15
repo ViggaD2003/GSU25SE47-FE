@@ -177,9 +177,13 @@ export const WebSocketProvider = ({ children }) => {
 
     try {
       // Cleanup trước khi tạo kết nối mới
-      safeCleanup()
+      Promise.all([safeCleanup()]).then(() => {
+        console.log('[WebSocket] Cleanup completed')
+      })
 
-      const socket = new WebSocket('ws://spmss-api.ocgi.space/ws')
+      const socket = new WebSocket(
+        `ws://spmss-api.ocgi.space/ws?token=${jwtToken}`
+      )
       socketRef.current = socket
 
       const stompClient = Stomp.over(socket)
@@ -200,6 +204,7 @@ export const WebSocketProvider = ({ children }) => {
         console.error('[WebSocket] WebSocket error:', error)
         setIsConnected(false)
         setIsConnecting(false)
+        safeCleanup()
       }
 
       // Kết nối STOMP
@@ -237,8 +242,8 @@ export const WebSocketProvider = ({ children }) => {
       body = {
         title: 'Hello from client!',
         content: `${userRef.current?.fullName || 'User'} sent you a message`,
-        username: 'teacher@school.com',
-        // username: 'trucmy952003@gmail.com',
+        // username: userRef.current?.sub,
+        username: 'trucmy952003@gmail.com',
         notificationType: 'TEST_MESSAGE',
         relatedEntityId: '0',
       }

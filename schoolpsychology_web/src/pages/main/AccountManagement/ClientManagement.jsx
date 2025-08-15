@@ -32,6 +32,7 @@ import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
 import { createCase } from '@/store/actions'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { useNavigate } from 'react-router-dom'
 const { Title, Text } = Typography
 const { Option } = Select
 const { Search } = Input
@@ -44,7 +45,6 @@ const ClientManagement = () => {
   const { isDarkMode } = useTheme()
   const [searchText, setSearchText] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
-  const [isEdit, setIsEdit] = useState(false)
   const [isCreateCase, setIsCreateCase] = useState(false)
   const [messageApi, contextHolder] = message.useMessage()
   const [deletedUser, setDeletedUser] = useState(null)
@@ -54,6 +54,7 @@ const ClientManagement = () => {
   )
   const [categories, setCategories] = useState([])
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   // Redux selectors - using individual selectors to avoid new object references
   const classById = useSelector(state => state.class.classById)
@@ -119,28 +120,13 @@ const ClientManagement = () => {
     if (!selectedYear) {
       return classes
     }
-    // console.log('Debug - selectedYear:', selectedYear)
-    // console.log('Debug - classes:', classes)
-    // console.log(
-    //   'Debug - classes schoolYear values:',
-    //   classes.map(c => c.schoolYear)
-    // )
 
     const filtered = classes.filter(classItem => {
-      // console.log(
-      //   'Comparing:',
-      //   classItem.schoolYear,
-      //   '===',
-      //   selectedYear,
-      //   'Result:',
-      //   classItem.schoolYear === selectedYear
-      // )
-      return classItem.schoolYear === selectedYear
+      return classItem.schoolYear.name === selectedYear
     })
 
     // If no exact match found, try to find classes with similar year format
     if (filtered.length === 0 && classes.length > 0) {
-      // console.log('No exact match found, trying to find similar year format')
       const currentYear = new Date().getFullYear()
       const fallbackFiltered = classes.filter(classItem => {
         // Try different year formats
@@ -151,13 +137,11 @@ const ClientManagement = () => {
           currentYear.toString(),
           (currentYear + 1).toString(),
         ]
-        return yearFormats.includes(classItem.schoolYear)
+        return yearFormats.includes(classItem.schoolYear.name)
       })
-      // console.log('Fallback filtered classes:', fallbackFiltered)
       return fallbackFiltered
     }
 
-    // console.log('Debug - filteredClasses:', filtered)
     return filtered
   }, [classes, selectedYear])
 
@@ -189,7 +173,7 @@ const ClientManagement = () => {
     const years = [
       currentYear + '-' + (currentYear + 1),
       ...classes
-        .map(classItem => classItem.schoolYear)
+        .map(classItem => classItem.schoolYear.name)
         .filter((year, index, self) => self.indexOf(year) === index)
         .sort((a, b) => b - a),
     ]
@@ -246,9 +230,10 @@ const ClientManagement = () => {
     setSearchText(value)
   }
 
-  const handleView = record => {
-    setSelectedUser(record)
-    setIsEdit(false)
+  const handleView = (id, type) => {
+    if (type === 'case') {
+      navigate(`case-management/details/${id}`)
+    }
   }
 
   const handleModalOk = async requestData => {
@@ -276,11 +261,7 @@ const ClientManagement = () => {
       // messageApi.success(t('clientManagement.messages.createCaseSuccess'))
       setIsCreateCase(false)
     } else {
-      messageApi.success(
-        isEdit
-          ? t('clientManagement.messages.editUserSuccess')
-          : t('clientManagement.messages.addUserSuccess')
-      )
+      messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
     loadData(pagination.current, pagination.pageSize)
   }
@@ -310,8 +291,6 @@ const ClientManagement = () => {
     }
     return null
   }, [user?.role, classById, selectedClass])
-
-  // console.log(currentClassInfo)
 
   return (
     <>
@@ -381,7 +360,7 @@ const ClientManagement = () => {
                     options={filteredClasses.map(classItem => ({
                       label: classItem.codeClass,
                       value: classItem.codeClass,
-                      schoolYear: classItem.schoolYear,
+                      schoolYear: classItem.schoolYear.name,
                     }))}
                     placeholder={
                       selectedYear

@@ -37,7 +37,9 @@
     "systemConfig": "System Config",
     "assessmentDemo": "Assessment Demo Lab",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "createClass": "Create Class",
+    "createMultipleClasses": "Create Multiple Classes"
   },
   "auth": {
     "login": {
@@ -1493,6 +1495,7 @@
     "endDate": "End Date",
     "back": "Back",
     "next": "Next",
+    "previous": "Previous",
     "creating": "Creating...",
     "edit": "Edit",
     "update": "Update",
@@ -1538,6 +1541,16 @@
       "showing": "Showing",
       "of": "of",
       "items": "items"
+    },
+    "notifications": {
+      "classCreated": "Class created successfully",
+      "classesCreated": "Classes created successfully",
+      "classUpdated": "Class updated successfully",
+      "classDeleted": "Class deleted successfully",
+      "teacherAssigned": "Teacher assigned successfully",
+      "validationFailed": "Please check your input and try again",
+      "networkError": "Network error. Please try again",
+      "serverError": "Server error. Please try again later"
     }
   },
   "classManagement": {
@@ -1604,6 +1617,9 @@
       "grade10": "Grade 10",
       "grade11": "Grade 11",
       "grade12": "Grade 12",
+      "grade_10": "Grade 10",
+      "grade_11": "Grade 11",
+      "grade_12": "Grade 12",
       "numberOfClasses": "Number of Classes",
       "numberOfClassesRequired": "Please enter number of classes",
       "numberOfClassesPlaceholder": "Enter number of classes",
@@ -1642,11 +1658,78 @@
       "deleteConfirm": "Are you sure you want to delete this class?",
       "deleteTitle": "Delete Class",
       "fetchTeachersError": "Failed to fetch teachers",
-      "createError": "Failed to create classes"
+      "createError": "Failed to create classes",
+      "createMultipleSuccess": "Multiple classes created successfully",
+      "validationError": "Please check your input and try again",
+      "teacherAssignmentRequired": "Please assign teachers to all classes",
+      "timeValidationError": "End time must be after start time",
+      "dateValidationError": "Please select valid dates",
+      "completeCurrentStep": "Please complete the current step before proceeding"
     },
     "filters": {
       "classYear": "Filter by Class Year",
       "teacher": "Filter by Teacher"
+    },
+    "steps": {
+      "generalConfig": "General Configuration",
+      "generalConfigDesc": "Set up basic class information",
+      "timeConfig": "Time Configuration",
+      "timeConfigDesc": "Configure class schedule",
+      "teacherAssignment": "Teacher Assignment",
+      "teacherAssignmentDesc": "Assign teachers to classes"
+    },
+    "progress": "Progress",
+    "step": "Step",
+    "completeCurrentStep": "Please complete the current step before proceeding",
+    "previewClasses": "Preview Classes",
+    "pending": "Pending",
+    "timeConfig": "Time Configuration",
+    "timeValidation": "Time Validation",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "duration": "Duration",
+    "days": "days",
+    "teacherAssignment": "Teacher Assignment",
+    "refreshTeachers": "Refresh Teachers",
+    "teachersAvailable": "Teachers Available",
+    "selectedTeacher": "Selected Teacher",
+    "description": "Description",
+    "descriptionPlaceholder": "Enter class description (optional)",
+    "noClassesToAssign": "No classes to assign teachers to",
+    "classCode": "Class Code",
+    "classCodePlaceholder": "Enter class code",
+    "classCodeRequired": "Please enter class code",
+    "classYear": "Class Year",
+    "classYearRequired": "Please select class year",
+    "teacherInfo": "Teacher Information",
+    "teacherCode": "Teacher Code",
+    "teacherCodePlaceholder": "Enter teacher code",
+    "teacherCodeRequired": "Please enter teacher code",
+    "teacherName": "Teacher Name",
+    "teacherNamePlaceholder": "Enter teacher name",
+    "teacherNameRequired": "Please enter teacher name",
+    "teacherPhone": "Teacher Phone",
+    "teacherPhonePlaceholder": "Enter teacher phone",
+    "teacherPhoneRequired": "Please enter teacher phone",
+    "teacherEmail": "Teacher Email",
+    "teacherEmailPlaceholder": "Enter teacher email",
+    "teacherEmailRequired": "Please enter teacher email",
+    "teacherEmailInvalid": "Please enter valid email address",
+    "tooltips": {
+      "gradeSelection": "Select the grade level for the classes",
+      "numberOfClasses": "Choose how many classes to create (1-10)",
+      "schoolYear": "Enter the academic year (e.g., 2024-2025)",
+      "startTime": "Select when the classes will start",
+      "endTime": "Select when the classes will end",
+      "teacherAssignment": "Assign a teacher to each class",
+      "classDescription": "Optional description for the class",
+      "classStatus": "Toggle to activate/deactivate the class"
+    },
+    "placeholders": {
+      "searchTeacher": "Search teachers by name or code...",
+      "enterDescription": "Enter class description...",
+      "selectDate": "Select date and time...",
+      "enterYear": "Enter year (e.g., 2024-2025)..."
     }
   },
   "appointmentDetails": {

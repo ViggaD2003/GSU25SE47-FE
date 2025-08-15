@@ -139,6 +139,10 @@ const ClassManagement = createLazyComponent(
   () => import('@/pages/main/ClassManagement/ClassManagement'),
   'ClassManagement'
 )
+const CreateClass = createLazyComponent(
+  () => import('@/pages/main/ClassManagement/CreateClass'),
+  'CreateClass'
+)
 const CategoryManagement = createLazyComponent(
   () => import('@/pages/main/CategoryManagement/CategoryManagement'),
   'CategoryManagement'
@@ -162,6 +166,7 @@ const AppRouter = () => {
     SystemConfigManagement,
     AppointmentDetails,
     ClassManagement,
+    CreateClass,
     CategoryManagement,
     CaseDetails,
   }
