@@ -5,7 +5,6 @@ import {
   saveAuthData,
   clearAuthData,
   getToken,
-  getRefreshToken,
   createStandardizedUser,
   isAuthorizedRole,
 } from '../../utils/authHelpers'
@@ -80,7 +79,6 @@ export const loginUser = createAsyncThunk(
         const authData = {
           user,
           token: response.data.token,
-          refreshToken: response.data.refreshToken || response.data.token, // Fallback to token if no refresh token
         }
 
         // console.log('💾 Saving auth data:', {
@@ -90,7 +88,7 @@ export const loginUser = createAsyncThunk(
         // hasRefreshToken: !!authData.refreshToken,
         // })
 
-        saveAuthData(response.data.token, user, response.data.token)
+        saveAuthData(response.data.token, user)
         dispatch(loginSuccess(authData))
 
         // console.log('✅ Login successful for user:', user.fullName)
@@ -123,9 +121,8 @@ export const refreshToken = createAsyncThunk(
 
       // Get refresh token using centralized helpers
       const currentToken = getToken()
-      const refreshTokenValue = getRefreshToken()
 
-      if (!currentToken || !refreshTokenValue) {
+      if (!currentToken) {
         throw new Error('No auth data found in storage')
       }
 
@@ -138,7 +135,7 @@ export const refreshToken = createAsyncThunk(
       }
 
       // Try to refresh the token using refresh token
-      const response = await authAPI.refreshToken(refreshTokenValue)
+      const response = await authAPI.refreshToken(currentToken)
       // console.log('[refreshToken] Response:', response)
 
       if (response.status === 200 && response.success && response.data?.token) {
@@ -159,7 +156,7 @@ export const refreshToken = createAsyncThunk(
             user: createStandardizedUser(decodedNewToken),
           }
 
-          saveAuthData(newToken, updatedAuthData.user, newToken)
+          saveAuthData(newToken, updatedAuthData.user)
           // Use loginSuccess to ensure isRestoredFromStorage is set to false
           dispatch(loginSuccess(updatedAuthData))
         }

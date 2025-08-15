@@ -31,7 +31,8 @@ export const createProgram = createAsyncThunk(
   'program/createProgram',
   async (programData, { rejectWithValue }) => {
     try {
-      return await programAPI.createProgram(programData)
+      const response = await programAPI.createProgram(programData)
+      return response
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message)
     }

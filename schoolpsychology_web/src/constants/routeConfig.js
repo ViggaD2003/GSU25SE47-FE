@@ -77,6 +77,12 @@ export const ROUTE_CONFIG = [
         element: 'ClassManagement',
       },
       {
+        key: '/create-class',
+        labelKey: 'navigation.createClass',
+        allowedRoles: ['manager'],
+        element: 'CreateClass',
+      },
+      {
         key: '/student-management',
         labelKey: 'navigation.studentManagement',
         allowedRoles: ['manager'],

@@ -42,6 +42,7 @@ import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
 import { useNavigate } from 'react-router-dom'
+import { useWebSocket } from '@/contexts/WebSocketContext'
 // import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text } = Typography
@@ -56,7 +57,7 @@ const ProgramModal = lazy(() => import('./ProgramModal'))
 const ProgramManagement = () => {
   const { user } = useAuth()
   const { t } = useTranslation()
-  // const { sendMessage } = useWebSocket()
+  const { sendMessage } = useWebSocket()
   const dispatch = useDispatch()
   const { programs, loading, error, pagination, filters, sortConfig } =
     useSelector(state => state.program)
@@ -243,13 +244,19 @@ const ProgramManagement = () => {
 
   // Handle save program (create/update)
   const handleSave = useCallback(
-    async programData => {
+    async (programData, email) => {
       try {
-        await dispatch(createProgram(programData)).unwrap()
+        const data = await dispatch(createProgram(programData)).unwrap()
+        const body = {
+          relatedEntityId: data.id,
+          title: 'New Program Created',
+          username: email,
+          notificationType: 'PROGRAM',
+          content: `A new program has been created: ${data.name}`,
+        }
+        sendMessage(body)
         messageApi.success(t('programManagement.messages.createSuccess'))
-        // sendMessage({})
         setIsModalVisible(false)
-        // dispatch(getAllPrograms()) // Refresh list
       } catch (error) {
         messageApi.error(t('programManagement.messages.createError'))
         throw error

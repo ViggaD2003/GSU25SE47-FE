@@ -273,23 +273,6 @@ const AppointmentManagement = () => {
 
           return isInRange
         })
-      } else {
-        // If no date range is selected, apply tab-specific date filtering
-        if (tabType === 'active') {
-          const now = dayjs()
-          filtered = filtered.filter(appointment => {
-            if (!appointment.startDateTime) return false
-            const appointmentDate = dayjs(appointment.startDateTime)
-            return appointmentDate.isAfter(now, 'day')
-          })
-        } else if (tabType === 'past') {
-          const now = dayjs()
-          filtered = filtered.filter(appointment => {
-            if (!appointment.startDateTime) return false
-            const appointmentDate = dayjs(appointment.startDateTime)
-            return appointmentDate.isBefore(now, 'day')
-          })
-        }
       }
 
       // Filter by search text with enhanced search logic
@@ -311,7 +294,7 @@ const AppointmentManagement = () => {
           )
         })
       }
-
+      console.log('filtered', filtered)
       return filtered
     },
     [dateRange, searchText, t]

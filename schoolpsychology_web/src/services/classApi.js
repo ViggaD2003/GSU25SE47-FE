@@ -37,4 +37,9 @@ export const classAPI = {
     )
     return response.data
   },
+
+  getSchoolYears: async () => {
+    const response = await api.get('/api/v1/school-years')
+    return response.data
+  },
 }

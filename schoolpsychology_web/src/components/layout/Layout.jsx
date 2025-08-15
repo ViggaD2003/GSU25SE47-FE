@@ -15,7 +15,6 @@ import {
   UserOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  BellOutlined,
 } from '@ant-design/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
@@ -43,7 +42,7 @@ const LayoutComponent = () => {
   const [messageApi, contextHolder] = message.useMessage()
   const [collapsed, setCollapsed] = useState(false)
   const [lastNotificationCount, setLastNotificationCount] = useState(0)
-  const { notifications, setNotifications } = useWebSocket()
+  const { notifications, setNotifications, sendMessage } = useWebSocket()
 
   const fetchNotifications = useCallback(async () => {
     const notifications = await getNotifications(user.id || user.userId)
@@ -263,14 +262,14 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
-              {/* <Button
+              <Button
                 onClick={() => {
                   sendMessage()
                 }}
                 className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 Test notification
-              </Button> */}
+              </Button>
 
               {/* Notifications */}
               <NotificationBell />

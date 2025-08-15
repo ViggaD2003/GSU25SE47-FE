@@ -1,21 +1,13 @@
 import React, { useMemo } from 'react'
-import { Table, Button, Tag, Avatar, Space, Tooltip } from 'antd'
+import { Table, Button, Tag, Space, Tooltip } from 'antd'
 import {
   EyeOutlined,
-  EditOutlined,
-  BlockOutlined,
-  UserOutlined,
-  CalendarOutlined,
-  IdcardOutlined,
   FileTextOutlined,
-  ExclamationCircleOutlined,
   PlusCircleOutlined,
   FlagFilled,
-  WarningOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
-import CaseModal from '../CaseManagement/CaseModal'
 
 const UserTable = ({
   user,
@@ -49,7 +41,11 @@ const UserTable = ({
           <Space>
             <Tooltip title={record.hasActiveCases && t('userTable.activeCase')}>
               {record.hasActiveCases && (
-                <FlagFilled style={{ color: 'red', marginRight: 4 }} />
+                <Button
+                  type="link"
+                  icon={<FlagFilled style={{ color: 'red' }} />}
+                  onClick={() => onView(record, 'case')}
+                />
               )}
             </Tooltip>
 

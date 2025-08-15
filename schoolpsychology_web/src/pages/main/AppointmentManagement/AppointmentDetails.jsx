@@ -221,22 +221,22 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
       const configs = {
         [SESSION_FLOW.GOOD]: {
           color: 'green',
-          text: t('appointmentRecord.sessionFlow.good'),
+          text: t('assessmentForm.options.sessionFlow.GOOD'),
           icon: <CheckCircleOutlined />,
         },
         [SESSION_FLOW.AVERAGE]: {
           color: 'orange',
-          text: t('appointmentRecord.sessionFlow.average'),
+          text: t('assessmentForm.options.sessionFlow.AVERAGE'),
           icon: <WarningOutlined />,
         },
-        [SESSION_FLOW.POOR]: {
+        [SESSION_FLOW.LOW]: {
           color: 'red',
-          text: t('appointmentRecord.sessionFlow.poor'),
+          text: t('assessmentForm.options.sessionFlow.LOW'),
           icon: <ExclamationCircleOutlined />,
         },
         [SESSION_FLOW.UNKNOWN]: {
           color: 'gray',
-          text: t('appointmentRecord.sessionFlow.unknown'),
+          text: t('assessmentForm.options.sessionFlow.UNKNOWN'),
           icon: <InfoCircleOutlined />,
         },
       }
@@ -248,24 +248,24 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
   const getCoopConfig = useCallback(
     level => {
       const configs = {
-        [STUDENT_COOP_LEVEL.HIGH]: {
+        [STUDENT_COOP_LEVEL.GOOD]: {
           color: 'green',
-          text: t('appointmentRecord.cooperationLevel.high'),
+          text: t('assessmentForm.options.cooperationLevel.GOOD'),
           icon: <TrophyOutlined />,
         },
         [STUDENT_COOP_LEVEL.MEDIUM]: {
           color: 'orange',
-          text: t('appointmentRecord.cooperationLevel.medium'),
+          text: t('assessmentForm.options.cooperationLevel.MEDIUM'),
           icon: <TeamOutlined />,
         },
         [STUDENT_COOP_LEVEL.LOW]: {
           color: 'red',
-          text: t('appointmentRecord.cooperationLevel.low'),
+          text: t('assessmentForm.options.cooperationLevel.LOW'),
           icon: <ExclamationCircleOutlined />,
         },
         [STUDENT_COOP_LEVEL.UNKNOWN]: {
           color: 'gray',
-          text: t('appointmentRecord.cooperationLevel.unknown'),
+          text: t('assessmentForm.options.cooperationLevel.UNKNOWN'),
           icon: <InfoCircleOutlined />,
         },
       }
@@ -294,7 +294,7 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
       styles={{ body: { width: '100%' } }}
     >
       <Space direction="vertical" size="middle" className="w-full">
-        <div>
+        <div className="flex items-center gap-2">
           <Text strong className="block mb-2">
             {t('appointmentRecord.sessionFlowTitle')}
           </Text>
@@ -306,7 +306,7 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
             {flowConfig.text}
           </Tag>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <Text strong className="block mb-2">
             {t('appointmentRecord.cooperationLevelTitle')}
           </Text>
@@ -318,7 +318,7 @@ const SessionInfoCard = memo(({ record, t, isDarkMode }) => {
             {coopConfig.text}
           </Tag>
         </div>
-        <div>
+        <div className="flex items-center gap-2">
           <Text strong className="block mb-2">
             {t('appointmentRecord.statusTitle')}
           </Text>
@@ -350,7 +350,7 @@ const AppointmentDetails = () => {
 
   // Local state
   const [isEditing, setIsEditing] = useState(false)
-  const [editedAppointment, setEditedAppointment] = useState(null)
+  // const [editedAppointment, setEditedAppointment] = useState(null)
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [submittingAssessment, setSubmittingAssessment] = useState(false)
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -620,12 +620,12 @@ const AppointmentDetails = () => {
   // Edit handlers
   const handleEdit = useCallback(() => {
     setIsEditing(true)
-    setEditedAppointment({ ...appointment })
+    // setEditedAppointment({ ...appointment })
   }, [appointment])
 
   const handleCancel = useCallback(() => {
     setIsEditing(false)
-    setEditedAppointment(null)
+    // setEditedAppointment(null)
   }, [])
 
   // const handleSave = useCallback(async () => {
@@ -643,12 +643,12 @@ const AppointmentDetails = () => {
   //   }
   // }, [dispatch, editedAppointment, messageApi, t, appointment])
 
-  const handleLocationChange = useCallback(e => {
-    setEditedAppointment(prev => ({
-      ...prev,
-      location: e.target.value,
-    }))
-  }, [])
+  // const handleLocationChange = useCallback(e => {
+  // setEditedAppointment(prev => ({
+  //   ...prev,
+  //   location: e.target.value,
+  // }))
+  // }, [])
 
   // Loading state with better UI
   if (loading) {
@@ -823,7 +823,7 @@ const AppointmentDetails = () => {
         {renderActionButtons()}
       </div>
 
-      {appointment.isOnline && (
+      {/* {appointment.isOnline && (
         <Button
           type="link"
           onClick={() =>
@@ -833,7 +833,7 @@ const AppointmentDetails = () => {
         >
           {appointment.location}
         </Button>
-      )}
+      )} */}
 
       {/* Manager View Only Notice */}
       {userRole === 'MANAGER' && !isAppointmentRecord && (
@@ -938,6 +938,28 @@ const AppointmentDetails = () => {
                   </div>
                 </Descriptions.Item>
 
+                <Descriptions.Item label={t('appointmentDetails.location')}>
+                  {!appointment.isOnline ? (
+                    appointment.location || t('appointmentDetails.noLocation')
+                  ) : (
+                    <Button
+                      type="link"
+                      onClick={() =>
+                        window.open(
+                          appointment.location,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                      disabled={['COMPLETED', 'CANCELED', 'ABSENT'].includes(
+                        appointment.status
+                      )}
+                    >
+                      {appointment.location}
+                    </Button>
+                  )}
+                </Descriptions.Item>
+
                 <Descriptions.Item label={t('appointmentDetails.meetingType')}>
                   <div className="flex items-center gap-2">
                     {appointment.isOnline ? (
@@ -953,12 +975,6 @@ const AppointmentDetails = () => {
                   </div>
                 </Descriptions.Item>
 
-                <Descriptions.Item label={t('appointmentDetails.location')}>
-                  <Text>
-                    {appointment.location || t('appointmentDetails.noLocation')}
-                  </Text>
-                </Descriptions.Item>
-
                 <Descriptions.Item label={t('appointment.table.reason')}>
                   <Text>
                     {appointment.reasonBooking
@@ -971,18 +987,6 @@ const AppointmentDetails = () => {
           </Col>
           {appointment.status === APPOINTMENT_STATUS.COMPLETED && (
             <>
-              {/* Enhanced Risk Level Card */}
-              <Col xs={24} lg={12}>
-                {/* Enhanced Risk Level Card */}
-                {/* <RiskLevelCard
-                  score={currentData.totalScore || 0}
-                  t={t}
-                  isDarkMode={isDarkMode}
-                  assessmentScores={currentData.assessmentScores || []}
-                  enhancedScoring={currentData.enhancedScoring || []}
-                /> */}
-              </Col>
-
               {/* Enhanced Session Information */}
               <Col xs={24} lg={24}>
                 <SessionInfoCard
@@ -1196,6 +1200,28 @@ const AppointmentDetails = () => {
                   </div>
                 </Descriptions.Item>
 
+                <Descriptions.Item label={t('appointmentDetails.location')}>
+                  {!appointment.isOnline ? (
+                    appointment.location || t('appointmentDetails.noLocation')
+                  ) : (
+                    <Button
+                      type="link"
+                      onClick={() =>
+                        window.open(
+                          appointment.location,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                      disabled={['COMPLETED', 'CANCELED'].includes(
+                        appointment.status
+                      )}
+                    >
+                      {appointment.location}
+                    </Button>
+                  )}
+                </Descriptions.Item>
+
                 <Descriptions.Item label={t('appointmentDetails.meetingType')}>
                   <div className="flex items-center gap-2">
                     {appointment.isOnline ? (
@@ -1209,23 +1235,6 @@ const AppointmentDetails = () => {
                         : t('appointment.formality.offline')}
                     </Text>
                   </div>
-                </Descriptions.Item>
-
-                <Descriptions.Item label={t('appointmentDetails.location')}>
-                  {isEditing ? (
-                    <Input
-                      placeholder={t('appointmentDetails.noLocation')}
-                      value={editedAppointment?.location}
-                      onChange={handleLocationChange}
-                    />
-                  ) : (
-                    <Text>
-                      {!appointment.isOnline
-                        ? appointment.location ||
-                          t('appointmentDetails.noLocation')
-                        : 'Online Meeting'}
-                    </Text>
-                  )}
                 </Descriptions.Item>
 
                 {appointment.reasonBooking && (

@@ -41,6 +41,7 @@ const CategoryTable = ({
       title: t('categoryManagement.table.name'),
       dataIndex: 'name',
       key: 'name',
+      width: 300,
       render: (text, record) => (
         <Space direction="vertical" size={2}>
           <Space>
@@ -202,7 +203,7 @@ const CategoryTable = ({
       loading={loading}
       pagination={pagination}
       onChange={onChange}
-      scroll={{ x: 1400 }}
+      scroll={{ x: 'auto' }}
       size="middle"
       // summary={() => (
       //   <Table.Summary.Row>

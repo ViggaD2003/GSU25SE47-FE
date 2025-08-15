@@ -32,6 +32,7 @@ import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
 import { createCase } from '@/store/actions'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { useNavigate } from 'react-router-dom'
 const { Title, Text } = Typography
 const { Option } = Select
 const { Search } = Input
@@ -44,8 +45,6 @@ const ClientManagement = () => {
   const { isDarkMode } = useTheme()
   const [searchText, setSearchText] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
-  const [isModalVisible, setIsModalVisible] = useState(false)
-  const [isEdit, setIsEdit] = useState(false)
   const [isCreateCase, setIsCreateCase] = useState(false)
   const [messageApi, contextHolder] = message.useMessage()
   const [deletedUser, setDeletedUser] = useState(null)
@@ -55,6 +54,7 @@ const ClientManagement = () => {
   )
   const [categories, setCategories] = useState([])
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   // Redux selectors - using individual selectors to avoid new object references
   const classById = useSelector(state => state.class.classById)
@@ -72,11 +72,17 @@ const ClientManagement = () => {
   // Load classes on component mount
   useEffect(() => {
     if (user?.role === 'teacher' && user?.classId) {
-      dispatch(getClassById(user.classId))
-      fetchCategories()
+      Promise.all([
+        dispatch(getClassById(user.classId)),
+        fetchCategories(),
+      ]).then(() => {
+        console.log('Classes loaded')
+      })
     } else if (user?.role === 'manager') {
       // Load all classes for manager to populate the dropdown
-      dispatch(getAllClasses())
+      Promise.all([dispatch(getAllClasses()), fetchCategories()]).then(() => {
+        console.log('Classes loaded')
+      })
     }
   }, [dispatch, user])
 
@@ -105,10 +111,6 @@ const ClientManagement = () => {
       setSelectedYear(year)
       // Reset class selection when year changes
       setSelectedClassCode(null)
-      // Clear selected class data when year changes
-      if (year !== selectedYear) {
-        // This will trigger a re-render and clear the students list
-      }
     },
     [selectedYear, classes]
   )
@@ -118,28 +120,13 @@ const ClientManagement = () => {
     if (!selectedYear) {
       return classes
     }
-    // console.log('Debug - selectedYear:', selectedYear)
-    // console.log('Debug - classes:', classes)
-    // console.log(
-    //   'Debug - classes schoolYear values:',
-    //   classes.map(c => c.schoolYear)
-    // )
 
     const filtered = classes.filter(classItem => {
-      // console.log(
-      //   'Comparing:',
-      //   classItem.schoolYear,
-      //   '===',
-      //   selectedYear,
-      //   'Result:',
-      //   classItem.schoolYear === selectedYear
-      // )
-      return classItem.schoolYear === selectedYear
+      return classItem.schoolYear.name === selectedYear
     })
 
     // If no exact match found, try to find classes with similar year format
     if (filtered.length === 0 && classes.length > 0) {
-      // console.log('No exact match found, trying to find similar year format')
       const currentYear = new Date().getFullYear()
       const fallbackFiltered = classes.filter(classItem => {
         // Try different year formats
@@ -150,25 +137,16 @@ const ClientManagement = () => {
           currentYear.toString(),
           (currentYear + 1).toString(),
         ]
-        return yearFormats.includes(classItem.schoolYear)
+        return yearFormats.includes(classItem.schoolYear.name)
       })
-      // console.log('Fallback filtered classes:', fallbackFiltered)
       return fallbackFiltered
     }
 
-    // console.log('Debug - filteredClasses:', filtered)
     return filtered
   }, [classes, selectedYear])
 
   // Auto-select first class when year is selected
   useEffect(() => {
-    // console.log('Auto-select effect triggered')
-    // console.log('selectedYear:', selectedYear)
-    // console.log('classes.length:', classes.length)
-    // console.log('filteredClasses.length:', filteredClasses.length)
-    // console.log('selectedClassCode:', selectedClassCode)
-
-    // Only auto-select when classes are loaded and we have a selected year
     if (
       selectedYear &&
       classes.length > 0 &&
@@ -195,7 +173,7 @@ const ClientManagement = () => {
     const years = [
       currentYear + '-' + (currentYear + 1),
       ...classes
-        .map(classItem => classItem.schoolYear)
+        .map(classItem => classItem.schoolYear.name)
         .filter((year, index, self) => self.indexOf(year) === index)
         .sort((a, b) => b - a),
     ]
@@ -205,13 +183,16 @@ const ClientManagement = () => {
 
   // Get students from the appropriate source
   const students = useMemo(() => {
+    if (!selectedYear) {
+      return []
+    }
     if (user?.role === 'teacher') {
       return classById?.students || []
     } else if (user?.role === 'manager') {
       return selectedClass?.students || []
     }
     return []
-  }, [user?.role, classById?.students, selectedClass?.students])
+  }, [user?.role, classById?.students, selectedClass?.students, selectedYear])
 
   // Filter students based on search text - memoized to prevent unnecessary recalculations
   const filteredStudents = useMemo(() => {
@@ -249,10 +230,10 @@ const ClientManagement = () => {
     setSearchText(value)
   }
 
-  const handleView = record => {
-    setSelectedUser(record)
-    setIsEdit(false)
-    setIsModalVisible(true)
+  const handleView = (id, type) => {
+    if (type === 'case') {
+      navigate(`case-management/details/${id}`)
+    }
   }
 
   const handleModalOk = async requestData => {
@@ -261,13 +242,15 @@ const ClientManagement = () => {
         .then(data => {
           console.log(data)
 
-          sendMessage({
+          const body = {
             relatedEntityId: data.id,
             notificationType: 'CASE',
             title: 'New Case',
             content: 'New case has been created by ' + user.fullName,
             username: 'danhkvtse172932@fpt.edu.vn',
-          })
+          }
+
+          sendMessage(body)
           messageApi.success(t('clientManagement.messages.createCaseSuccess'))
         })
         .catch(error => {
@@ -278,18 +261,12 @@ const ClientManagement = () => {
       // messageApi.success(t('clientManagement.messages.createCaseSuccess'))
       setIsCreateCase(false)
     } else {
-      messageApi.success(
-        isEdit
-          ? t('clientManagement.messages.editUserSuccess')
-          : t('clientManagement.messages.addUserSuccess')
-      )
+      messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
-    setIsModalVisible(false)
     loadData(pagination.current, pagination.pageSize)
   }
 
   const handleModalCancel = () => {
-    setIsModalVisible(false)
     setIsCreateCase(false)
   }
 
@@ -314,8 +291,6 @@ const ClientManagement = () => {
     }
     return null
   }, [user?.role, classById, selectedClass])
-
-  // console.log(currentClassInfo)
 
   return (
     <>
@@ -385,7 +360,7 @@ const ClientManagement = () => {
                     options={filteredClasses.map(classItem => ({
                       label: classItem.codeClass,
                       value: classItem.codeClass,
-                      schoolYear: classItem.schoolYear,
+                      schoolYear: classItem.schoolYear.name,
                     }))}
                     placeholder={
                       selectedYear
@@ -427,25 +402,8 @@ const ClientManagement = () => {
             onChange={handleTableChange}
             onView={handleView}
             onCreateCase={handleCreateCase}
-            // onEdit={handleEdit}
-            // onDelete={handleDelete}
           />
         </Card>
-
-        {/* Add/Edit User Modal */}
-        <Suspense fallback={null}>
-          {isModalVisible && (
-            <UserModal
-              visible={isModalVisible}
-              onOk={handleModalOk}
-              onCancel={handleModalCancel}
-              editingUser={selectedUser}
-              isEdit={isEdit}
-              onCreateCase={handleCreateCase}
-              confirmLoading={false}
-            />
-          )}
-        </Suspense>
 
         {isCreateCase && (
           <CaseModal
