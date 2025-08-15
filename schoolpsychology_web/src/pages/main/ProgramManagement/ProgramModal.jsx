@@ -257,7 +257,7 @@ const ProgramModal = ({
   }
 
   const disabledDate = current => {
-    const minDate = dayjs().add(5, 'day')
+    const minDate = dayjs().add(0, 'day')
     return current && current < minDate.startOf('day')
   }
 

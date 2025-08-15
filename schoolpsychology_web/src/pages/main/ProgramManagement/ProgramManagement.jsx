@@ -248,7 +248,6 @@ const ProgramManagement = () => {
       try {
         const data = await dispatch(createProgram(programData)).unwrap()
         sendMessage({
-          destination: '/app/send',
           relatedEntityId: data.id,
           title: 'New Program Created',
           username: email,

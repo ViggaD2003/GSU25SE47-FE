@@ -26,6 +26,7 @@ export const WebSocketProvider = ({ children }) => {
   const socketRef = useRef(null)
   const subscriptionRef = useRef(null)
   const reconnectTimeoutRef = useRef(null)
+  const heartbeatIntervalRef = useRef(null)
   const userRef = useRef(user)
 
   // Cập nhật userRef khi user thay đổi
@@ -45,6 +46,12 @@ export const WebSocketProvider = ({ children }) => {
 
   // Hàm cleanup an toàn - không cần dependencies
   const safeCleanup = useCallback(() => {
+    // Clear heartbeat interval
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current)
+      heartbeatIntervalRef.current = null
+    }
+
     // Clear timeout
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
@@ -88,6 +95,45 @@ export const WebSocketProvider = ({ children }) => {
   }, [])
 
   // Định nghĩa subscribeToTopic với kiểm tra trạng thái
+  // Hàm bắt đầu heartbeat để duy trì kết nối
+  const startHeartbeat = useCallback(() => {
+    // Clear heartbeat cũ nếu có
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current)
+    }
+
+    // Gửi heartbeat mỗi 30 giây
+    heartbeatIntervalRef.current = setInterval(() => {
+      if (isConnectionReady()) {
+        try {
+          // Gửi heartbeat message để duy trì kết nối
+          stompClientRef.current.send(
+            '/app/send',
+            {},
+            JSON.stringify({
+              title: 'Heartbeat',
+              content: 'Heartbeat',
+              username: '',
+              notificationType: 'HEARTBEAT',
+              relatedEntityId: '0',
+            })
+          )
+          console.log('[WebSocket] Heartbeat sent')
+        } catch (error) {
+          console.warn('[WebSocket] Heartbeat failed:', error)
+          // Nếu heartbeat thất bại, có thể kết nối đã bị đứt
+          safeCleanup()
+        }
+      } else {
+        console.warn('[WebSocket] Connection not ready for heartbeat')
+        clearInterval(heartbeatIntervalRef.current)
+        heartbeatIntervalRef.current = null
+      }
+    }, 30000) // 30 giây
+
+    console.log('[WebSocket] Heartbeat started')
+  }, [isConnectionReady, safeCleanup])
+
   const subscribeToTopic = useCallback(
     (topic, callback) => {
       if (!isConnectionReady()) {
@@ -166,6 +212,9 @@ export const WebSocketProvider = ({ children }) => {
           stompClientRef.current = stompClient
           setIsConnected(true)
           setIsConnecting(false)
+
+          // Bắt đầu heartbeat để duy trì kết nối
+          startHeartbeat()
         },
         error => {
           console.error('[WebSocket] STOMP connection error:', error)
@@ -183,28 +232,31 @@ export const WebSocketProvider = ({ children }) => {
   }, [jwtToken, isConnecting, isConnected, safeCleanup])
 
   const sendMessage = useCallback(
-    ({
+    (
       destination = '/app/send',
-      relatedEntityId = '',
-      title = 'Hello from client!',
-      username = 'teacher@school.com',
-      notificationType = 'SURVEY',
-      content = `${userRef.current?.fullName || 'User'} sent you a message`,
-    }) => {
+      body = {
+        title: 'Hello from client!',
+        content: `${userRef.current?.fullName || 'User'} sent you a message`,
+        username: 'teacher@school.com',
+        // username: 'trucmy952003@gmail.com',
+        notificationType: 'TEST_MESSAGE',
+        relatedEntityId: '0',
+      }
+    ) => {
       if (!isConnectionReady()) {
         console.error('[WebSocket] Cannot send message: not connected')
         throw new Error('[WebSocket] Not connected')
       }
 
       try {
-        const body = {
-          title,
-          content,
-          username,
-          notificationType,
-          relatedEntityId,
+        const bodyData = {
+          title: body.title,
+          content: body.content,
+          username: body.username,
+          notificationType: body.notificationType,
+          relatedEntityId: body.relatedEntityId,
         }
-        stompClientRef.current.send(destination, {}, JSON.stringify(body))
+        stompClientRef.current.send(destination, {}, JSON.stringify(bodyData))
         console.log('[WebSocket] Message sent to:', destination)
       } catch (error) {
         console.error('[WebSocket] Error sending message:', error)
@@ -219,10 +271,6 @@ export const WebSocketProvider = ({ children }) => {
     if (isAuthenticated && user && jwtToken) {
       connectWebSocket()
     } else {
-      safeCleanup()
-    }
-
-    return () => {
       safeCleanup()
     }
   }, [isAuthenticated, user?.id, jwtToken]) // Chỉ depend vào user.id thay vì toàn bộ user object
@@ -308,6 +356,7 @@ export const WebSocketProvider = ({ children }) => {
       getUnreadCount,
       getRecentNotifications,
       setNotifications,
+      safeCleanup,
     }),
     [
       isConnected,
@@ -319,6 +368,7 @@ export const WebSocketProvider = ({ children }) => {
       markNotificationAsRead,
       getUnreadCount,
       getRecentNotifications,
+      safeCleanup,
     ]
   )
 

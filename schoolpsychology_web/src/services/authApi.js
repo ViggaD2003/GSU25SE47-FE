@@ -1,6 +1,7 @@
 // Using centralized api instance from api.js
 import axios from 'axios'
 import api from './api'
+import { getToken } from '@/utils'
 
 // Auth API methods
 export const authAPI = {
@@ -166,6 +167,8 @@ export const authAPI = {
   logout: async () => {
     try {
       console.log('🚪 Making logout request...')
+      const token = getToken()
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
       const response = await api.post('/api/v1/auth/logout')
       console.log('✅ Logout successful')
       return response.data

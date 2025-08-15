@@ -1,14 +1,24 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Layout } from 'antd'
 
 import { Outlet } from 'react-router-dom'
 import { ThemeSwitcher, LanguageSwitcher } from '../common'
 import { useTheme } from '../../contexts/ThemeContext'
+import { useWebSocket } from '@/contexts/WebSocketContext'
+import { useAuth } from '@/hooks'
 
 const { Content } = Layout
 
 const AnonymousLayoutComponent = () => {
   const { isDarkMode } = useTheme()
+  const { user, isAuthenticated } = useAuth()
+  const { safeCleanup } = useWebSocket()
+
+  useEffect(() => {
+    if (!isAuthenticated && !user) {
+      safeCleanup()
+    }
+  }, [isAuthenticated, user, safeCleanup])
 
   return (
     <Layout className="h-screen w-screen">

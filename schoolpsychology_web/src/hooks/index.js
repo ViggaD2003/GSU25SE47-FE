@@ -1,6 +1,11 @@
-export { default as useAutoTranslation } from './useAutoTranslation'
-export { default as useNotification } from './useNotification'
-export { default as usePerformance } from './usePerformance'
-export { default as useRecentNotifications } from './useRecentNotifications'
-export { default as useToken } from './useToken'
-export { useAuth } from './useAuth'
+export { useAutoTranslation } from './useAutoTranslation'
+export { useNotification } from './useNotification'
+export {
+  usePerformance,
+  useDebounce,
+  useThrottle,
+  useSmoothTransition,
+} from './usePerformance'
+export { useRecentNotifications } from './useRecentNotifications'
+export { useToken } from './useToken'
+export { useAuth } from '@/contexts/AuthContext'
