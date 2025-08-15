@@ -17,7 +17,7 @@ export const useWebSocket = () => useContext(WebSocketContext)
 export const WebSocketProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth()
   // Get token from auth context instead of localStorage directly
-  const jwtToken = JSON.parse(localStorage.getItem('auth')).token
+  const jwtToken = JSON.parse(localStorage.getItem('auth'))?.token
   const [notifications, setNotifications] = useState([])
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
