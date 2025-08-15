@@ -120,45 +120,6 @@ const CategoryTable = ({
       sorter: (a, b) => a.severityWeight - b.severityWeight,
     },
     {
-      title: t('categoryManagement.table.levels'),
-      key: 'levels',
-      render: (_, record) => (
-        <Space direction="vertical" size={2}>
-          <Space>
-            <TrophyOutlined className="text-purple-500" />
-            <Text className="text-xs">
-              {t('categoryManagement.table.levels')}:{' '}
-              <Text strong>{record.levels?.length || 0}</Text>
-            </Text>
-          </Space>
-          {record.levels && record.levels.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {record.levels.slice(0, 3).map((level, index) => (
-                <Tag
-                  key={index}
-                  color={
-                    level.levelType === 'LOW'
-                      ? 'green'
-                      : level.levelType === 'MID'
-                        ? 'orange'
-                        : level.levelType === 'HIGH'
-                          ? 'red'
-                          : 'purple'
-                  }
-                  size="small"
-                >
-                  {level.code}
-                </Tag>
-              ))}
-              {record.levels.length > 3 && (
-                <Tag size="small">+{record.levels.length - 3}</Tag>
-              )}
-            </div>
-          )}
-        </Space>
-      ),
-    },
-    {
       key: 'actions',
       render: (_, record) => (
         <Space size="small">

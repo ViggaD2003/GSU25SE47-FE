@@ -19,20 +19,9 @@ export const slotAPI = {
 
   // Create multiple slots
   createSlots: async slots => {
-    try {
-      // console.log('slots', slots)
-      const response = await api.post('/api/v1/slots', slots)
-      return {
-        success: true,
-        data: response.data,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        error: error.response?.data?.message || error.message,
-        conflicts: error.response?.data?.conflicts,
-      }
-    }
+    // console.log('slots', slots)
+    const response = await api.post('/api/v1/slots', slots)
+    return response.data
   },
 
   // Publish slot

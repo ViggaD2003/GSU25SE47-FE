@@ -36,7 +36,7 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    console.log('🔍 isConnectionReady', stompClientRef.current?.connected)
+    // console.log('🔍 isConnectionReady', stompClientRef.current?.connected)
     return stompClientRef?.current?.connected
   }, [isConnected])
 

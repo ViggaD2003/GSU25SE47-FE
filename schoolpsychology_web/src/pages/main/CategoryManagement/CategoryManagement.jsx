@@ -147,9 +147,7 @@ const CategoryManagement = () => {
   // Handle refresh
   const handleRefresh = useCallback(() => {
     fetchCategories()
-    setSearchText('')
-    setStatusFilter(null)
-    setPagination(prev => ({ ...prev, current: 1 }))
+    handleClearFilters()
   }, [fetchCategories])
 
   // Handle view

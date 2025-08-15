@@ -44,7 +44,7 @@ import {
   clearError,
 } from '../../../store/slices/slotSlice'
 import { validateSlot, checkSlotConflict } from '../../../utils/slotUtils'
-import { createSlots } from '@/store/actions/slotActions'
+import { slotAPI } from '@/services/slotApi'
 
 const { Title, Text } = Typography
 
@@ -123,7 +123,6 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const isSlotInConflict = slot => {
     return conflictSlots.some(
       conflictSlot =>
-        conflictSlot.slotName === slot.slotName &&
         conflictSlot.startDateTime ===
           dayjs(slot.startDateTime).format('YYYY-MM-DDTHH:mm:ss') &&
         conflictSlot.endDateTime ===
@@ -135,7 +134,6 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
   const getConflictReason = slot => {
     const conflictSlot = conflictSlots.find(
       conflict =>
-        conflict.slotName === slot.slotName &&
         conflict.startDateTime ===
           dayjs(slot.startDateTime).format('YYYY-MM-DDTHH:mm:ss') &&
         conflict.endDateTime ===
@@ -415,9 +413,7 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
         endDateTime: dayjs(slot.endDateTime).tz(VN_TZ).format(VN_TZ_FORMAT),
       }))
 
-      console.log(slotsToCreate)
-
-      const result = await dispatch(createSlots(slotsToCreate)).unwrap()
+      const result = await slotAPI.createSlots(slotsToCreate)
       if (result) {
         setPreviewSlots([])
         form.resetFields()
@@ -425,8 +421,8 @@ const SlotModal = ({ visible, message, onCancel, onSuccess }) => {
         onSuccess(t('slotManagement.messages.createSuccess'))
       }
     } catch (error) {
-      console.log(error.conflicts)
-      setConflictSlots(error.conflicts || [])
+      console.log('error', error.response?.data)
+      setConflictSlots(error.response?.data?.errors || [])
       message.error(t('slotManagement.messages.slotConflict'))
     }
   }
