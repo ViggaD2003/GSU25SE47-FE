@@ -434,13 +434,12 @@
       "closeSurveySuccess": "Close survey successfully",
       "closeSurveyError": "Failed to close survey",
       "assessment": "Assessment",
-      "participants": "Participants",
       "noParticipants": "No participants",
       "noProgramFound": "No program found",
       "noStatisticsAvailable": "No statistics available",
-      "statusDistribution": "Phân bố trạng thái",
-      "completed": "Đã hoàn thành",
-      "enrolled": "Đã đăng ký",
+      "statusDistribution": "Status Distribution",
+      "completed": "Completed",
+      "enrolled": "Enrolled",
       "absent": "Absent",
       "active": "Active",
       "availableSpots": "Available Spots",
@@ -504,7 +503,7 @@
         "scoreDistribution": "Score Distribution"
       },
       "participantTable": {
-        "name": "Tên",
+        "name": "Name",
         "email": "Email",
         "phone": "Phone",
         "joinDate": "Join Date",
@@ -610,6 +609,8 @@
         "createdBy": "Created By",
         "system": "System",
         "settings": "Settings",
+        "questions": "Questions",
+        "view": "View Details",
         "noSurveyAssigned": "No survey assigned to this program."
       }
     }

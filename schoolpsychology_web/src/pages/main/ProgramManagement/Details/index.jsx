@@ -516,7 +516,7 @@ const ProgramDetails = () => {
               label: (
                 <span>
                   <TeamOutlined />
-                  {t('programManagement.participants.title')}
+                  {t('programManagement.details.participants.title')}
                 </span>
               ),
               children: (

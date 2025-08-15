@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Card,
@@ -11,6 +11,7 @@ import {
   Divider,
   Button,
   Empty,
+  message,
 } from 'antd'
 import {
   FileTextOutlined,
@@ -23,11 +24,17 @@ import {
   BarChartOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
+import SurveyDetailModal from '@/pages/main/SurveyManagement/SurveyDetailModal'
+import { useDispatch, useSelector } from 'react-redux'
 
 const { Title, Text, Paragraph } = Typography
 
 const SurveyInfo = ({ survey }) => {
   const { t } = useTranslation()
+  const [visible, setVisible] = useState(false)
+  const { messageApi, contextHolder } = message.useMessage()
+  const userRole = useSelector(state => state.auth.user?.role)
+  const dispatch = useDispatch()
 
   if (!survey) {
     return (
@@ -95,7 +102,17 @@ const SurveyInfo = ({ survey }) => {
 
   return (
     <div>
+      {contextHolder}
+      <Button
+        type="primary"
+        onClick={() => setVisible(true)}
+        style={{ marginBottom: '10px' }}
+      >
+        {t('programManagement.details.surveyInfo.view')}
+      </Button>
+      <Divider />
       <Row gutter={[24, 24]}>
+        {/* View survey detail */}
         {/* Survey Basic Information */}
         <Col xs={24} lg={12}>
           <Card>
@@ -287,55 +304,18 @@ const SurveyInfo = ({ survey }) => {
             </Card>
           </Col>
         )}
-
-        {/* Survey Settings */}
-        <Col span={24}>
-          <Card>
-            <Title level={4} style={{ marginBottom: '16px' }}>
-              <BarChartOutlined />{' '}
-              {t('programManagement.details.surveyInfo.settings')}
-            </Title>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12}>
-                <Descriptions column={1} size="small">
-                  <Descriptions.Item
-                    label={t(
-                      'programManagement.details.surveyInfo.targetGrades'
-                    )}
-                  >
-                    {survey.targetGrade && survey.targetGrade.length > 0 ? (
-                      <Space wrap>
-                        {survey.targetGrade.map((grade, index) => (
-                          <Tag key={index} color="green">
-                            Grade {grade}
-                          </Tag>
-                        ))}
-                      </Space>
-                    ) : (
-                      <Text type="secondary">
-                        {t('programManagement.details.surveyInfo.allGrades')}
-                      </Text>
-                    )}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-
-              <Col xs={24} sm={12}>
-                <Descriptions column={1} size="small">
-                  <Descriptions.Item
-                    label={t('programManagement.details.surveyInfo.createdBy')}
-                  >
-                    <Text>
-                      {survey.createdBy?.fullName ||
-                        t('programManagement.details.surveyInfo.system')}
-                    </Text>
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
       </Row>
+
+      <SurveyDetailModal
+        t={t}
+        visible={visible}
+        onClose={() => setVisible(false)}
+        surveyId={survey.surveyId}
+        onUpdated={() => {}}
+        messageApi={messageApi}
+        userRole={userRole}
+        dispatch={dispatch}
+      />
     </div>
   )
 }

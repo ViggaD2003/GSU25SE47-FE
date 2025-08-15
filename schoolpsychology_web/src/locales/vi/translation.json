@@ -601,6 +601,7 @@
         "categoryInfo": "Thông tin danh mục",
         "categoryName": "Tên danh mục",
         "categoryCode": "Mã danh mục",
+        "questions": "Câu hỏi",
         "questionLength": "Số câu hỏi",
         "severityWeight": "Trọng số mức độ nghiêm trọng",
         "scoreRange": "Thang điểm",
@@ -611,6 +612,7 @@
         "createdBy": "Người tạo",
         "system": "Hệ thống",
         "settings": "Cài đặt",
+        "view": "Xem chi tiết",
         "noSurveyAssigned": "Chưa được gán khảo sát nào cho chương trình này."
       }
     },

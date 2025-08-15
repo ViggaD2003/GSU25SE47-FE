@@ -36,24 +36,19 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    // console.log('🔍 isConnectionReady', stompClientRef.current?.connected)
     return stompClientRef?.current?.connected
   }, [isConnected])
 
   // Hàm cleanup an toàn - không cần dependencies
   const safeCleanup = useCallback(() => {
-    console.log('🔍 safeCleanup')
-
     // Clear heartbeat interval
     if (heartbeatIntervalRef.current) {
-      console.log('🔍 clear heartbeat interval')
       clearInterval(heartbeatIntervalRef.current)
       heartbeatIntervalRef.current = null
     }
 
     // Clear timeout
     if (reconnectTimeoutRef.current) {
-      console.log('🔍 clear reconnect timeout')
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
@@ -61,7 +56,6 @@ export const WebSocketProvider = ({ children }) => {
     // Unsubscribe
     if (subscriptionRef.current) {
       try {
-        console.log('🔍 unsubscribe')
         subscriptionRef.current.unsubscribe()
       } catch (error) {
         console.warn('[WebSocket] Error unsubscribing:', error)
@@ -72,7 +66,6 @@ export const WebSocketProvider = ({ children }) => {
     // Disconnect STOMP client
     if (stompClientRef.current) {
       try {
-        console.log('🔍 disconnect STOMP client')
         stompClientRef.current.disconnect(() => {
           console.log('[WebSocket] STOMP client disconnected')
         })
@@ -85,7 +78,6 @@ export const WebSocketProvider = ({ children }) => {
     // Close WebSocket
     if (socketRef.current) {
       try {
-        console.log('🔍 close WebSocket')
         socketRef.current.close()
       } catch (error) {
         console.warn('[WebSocket] Error closing WebSocket:', error)
@@ -112,7 +104,7 @@ export const WebSocketProvider = ({ children }) => {
             notificationType: 'PING',
             relatedEntityId: '0',
           })
-          console.log('[WebSocket] Heartbeat PING sent')
+          // console.log('[WebSocket] Heartbeat PING sent')
         } catch (error) {
           console.warn('[WebSocket] Heartbeat failed:', error)
           safeCleanup()
