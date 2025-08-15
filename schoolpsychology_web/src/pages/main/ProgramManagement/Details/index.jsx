@@ -156,31 +156,6 @@ const ProgramDetails = () => {
     }
   }, [program])
 
-  // Handle program deletion
-  //   const handleDelete = () => {
-  //     confirm({
-  //       title: t('programManagement.details.confirmDelete'),
-  //       content: t('programManagement.messages.confirmDelete'),
-  //       okText: t('common.yes'),
-  //       okType: 'danger',
-  //       cancelText: t('common.no'),
-  //       onOk: async () => {
-  //         try {
-  //           await dispatch(deleteProgram(id)).unwrap()
-  //           messageApi.success(t('programManagement.details.deleteSuccess'))
-  //           navigate('/program-management')
-  //         } catch {
-  //           messageApi.error(t('programManagement.details.deleteError'))
-  //         }
-  //       },
-  //     })
-  //   }
-
-  //   // Handle edit program
-  //   const handleEdit = () => {
-  //     navigate(`/program-management/edit/${id}`)
-  //   }
-
   // Handle back to list
   const handleBack = () => {
     navigate(-1)
@@ -541,7 +516,7 @@ const ProgramDetails = () => {
               label: (
                 <span>
                   <TeamOutlined />
-                  {t('programManagement.participants.title')}
+                  {t('programManagement.details.participants.title')}
                 </span>
               ),
               children: (

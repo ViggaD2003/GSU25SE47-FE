@@ -43,7 +43,7 @@ const ClassTable = ({
           <Tag color="purple">{record.grade}</Tag>
         </div>
       ),
-      width: 160,
+      // width: 160,
       fixed: 'left',
       sorter: (a, b) => (a.codeClass || '').localeCompare(b.codeClass || ''),
     },
@@ -51,7 +51,7 @@ const ClassTable = ({
       title: t('classManagement.table.numberOfstudents'),
       dataIndex: 'totalStudents',
       key: 'totalStudents',
-      width: 150,
+      // width: 150,
     },
     {
       title: t('classManagement.table.classYear'),
@@ -60,7 +60,7 @@ const ClassTable = ({
       render: classYear => {
         return <Tag color="blue">{classYear.name}</Tag>
       },
-      width: 180,
+      // width: 180,
       sorter: (a, b) =>
         dayjs(a.schoolYear.startDate).unix() -
         dayjs(b.schoolYear.startDate).unix(),
@@ -69,7 +69,7 @@ const ClassTable = ({
       title: t('classManagement.table.isActive'),
       dataIndex: 'isActive',
       key: 'isActive',
-      width: 130,
+      // width: 130,
       render: v => (
         <Tag color={v ? 'green' : 'red'}>
           {v

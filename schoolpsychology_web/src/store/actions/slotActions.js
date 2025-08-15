@@ -23,12 +23,7 @@ export const createSlots = createAsyncThunk(
   async (slots, { rejectWithValue }) => {
     try {
       const response = await slotAPI.createSlots(slots)
-      // console.log('response', response)
-      if (response.success) {
-        return response.data
-      } else {
-        return rejectWithValue(response)
-      }
+      return response.data
     } catch (error) {
       return rejectWithValue(error)
     }
@@ -40,9 +35,10 @@ export const publishSlot = createAsyncThunk(
   async (slotId, { rejectWithValue }) => {
     try {
       const response = await slotAPI.publishSlot(slotId)
+      console.log('response', response)
       return response.data
     } catch (error) {
-      return rejectWithValue(error.message)
+      return rejectWithValue(error)
     }
   }
 )

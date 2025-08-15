@@ -36,24 +36,19 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    console.log('🔍 isConnectionReady', stompClientRef.current?.connected)
     return stompClientRef?.current?.connected
   }, [isConnected])
 
   // Hàm cleanup an toàn - không cần dependencies
   const safeCleanup = useCallback(() => {
-    console.log('🔍 safeCleanup')
-
     // Clear heartbeat interval
     if (heartbeatIntervalRef.current) {
-      console.log('🔍 clear heartbeat interval')
       clearInterval(heartbeatIntervalRef.current)
       heartbeatIntervalRef.current = null
     }
 
     // Clear timeout
     if (reconnectTimeoutRef.current) {
-      console.log('🔍 clear reconnect timeout')
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
     }
@@ -61,7 +56,6 @@ export const WebSocketProvider = ({ children }) => {
     // Unsubscribe
     if (subscriptionRef.current) {
       try {
-        console.log('🔍 unsubscribe')
         subscriptionRef.current.unsubscribe()
       } catch (error) {
         console.warn('[WebSocket] Error unsubscribing:', error)
@@ -72,7 +66,6 @@ export const WebSocketProvider = ({ children }) => {
     // Disconnect STOMP client
     if (stompClientRef.current) {
       try {
-        console.log('🔍 disconnect STOMP client')
         stompClientRef.current.disconnect(() => {
           console.log('[WebSocket] STOMP client disconnected')
         })
@@ -85,7 +78,6 @@ export const WebSocketProvider = ({ children }) => {
     // Close WebSocket
     if (socketRef.current) {
       try {
-        console.log('🔍 close WebSocket')
         socketRef.current.close()
       } catch (error) {
         console.warn('[WebSocket] Error closing WebSocket:', error)
@@ -112,7 +104,7 @@ export const WebSocketProvider = ({ children }) => {
             notificationType: 'PING',
             relatedEntityId: '0',
           })
-          console.log('[WebSocket] Heartbeat PING sent')
+          // console.log('[WebSocket] Heartbeat PING sent')
         } catch (error) {
           console.warn('[WebSocket] Heartbeat failed:', error)
           safeCleanup()
@@ -174,14 +166,13 @@ export const WebSocketProvider = ({ children }) => {
         console.log('[WebSocket] Cleanup completed')
       })
 
-      const socket = new WebSocket(`ws://spmss-api.ocgi.space/ws?token=${jwtToken}`)
+      const socket = new WebSocket(
+        `ws://spmss-api.ocgi.space/ws?token=${jwtToken}`
+      )
       socketRef.current = socket
 
       const stompClient = Stomp.over(socket)
-      stompClient.debug = (msg) => {
-        console.log('[WebSocket] STOMP debug:', msg);
-
-      } // Tắt log debug của STOMP
+      stompClient.debug = null
 
       // Xử lý sự kiện WebSocket
       socket.onopen = () => {
@@ -203,23 +194,29 @@ export const WebSocketProvider = ({ children }) => {
 
       // Kết nối STOMP
       stompClient.connect(
-        {},
-        frame => {
-          // Đây là callback khi CONNECTED thành công
-          console.log('[WebSocket] ✅ STOMP connected successfully:', frame);
-          stompClientRef.current = stompClient;
-          setIsConnected(true);
-          setIsConnecting(false);
+        {
+          Authorization: `Bearer ${jwtToken}`,
+          heartbeat: {
+            outgoing: 30000,
+            incoming: 30000,
+          },
+        },
+        () => {
+          console.log('[WebSocket] STOMP connected successfully')
+          stompClientRef.current = stompClient
+          setIsConnected(true)
+          setIsConnecting(false)
+
+          // Bắt đầu heartbeat để duy trì kết nối
+          startHeartbeat()
         },
         error => {
-          // Đây mới là lỗi thật sự
-          console.error('[WebSocket] ❌ STOMP connection error:', error);
-          setIsConnected(false);
-          setIsConnecting(false);
-          safeCleanup();
+          console.error('[WebSocket] STOMP connection error:', error)
+          setIsConnected(false)
+          setIsConnecting(false)
+          safeCleanup()
         }
-      );
-
+      )
     } catch (error) {
       console.error('[WebSocket] Failed to create connection:', error)
       setIsConnected(false)

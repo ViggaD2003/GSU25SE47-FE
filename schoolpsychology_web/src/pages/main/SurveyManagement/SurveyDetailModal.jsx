@@ -294,6 +294,7 @@ const SurveyDetailModal = ({
   const [selectedAddedCases, setSelectedAddedCases] = useState([])
   const { cases, loading: casesLoading } = useSelector(state => state.case)
   const { user } = useSelector(state => state.auth)
+
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
