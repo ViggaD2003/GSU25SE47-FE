@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         // Tạo và lưu auth data với refresh token
-        const authData = saveAuthData(token, userData, token)
+        const authData = saveAuthData(token, userData)
         // console.log('Auth data saved:', authData)
 
         // Sử dụng loginSuccess từ Redux store để cập nhật state

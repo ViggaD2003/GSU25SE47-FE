@@ -45,11 +45,10 @@ export const isAuthorizedRole = role => {
  * @param {string} refreshToken - Refresh token (optional, defaults to token)
  * @returns {object} - Auth data object
  */
-export const saveAuthData = (token, userData, refreshToken = null) => {
+export const saveAuthData = (token, userData) => {
   const authData = {
     user: userData,
     token,
-    refreshToken: refreshToken || token, // Fallback to token if no refresh token
     timestamp: Date.now(),
   }
 
@@ -111,7 +110,7 @@ export const getToken = () => {
  */
 export const getRefreshToken = () => {
   const authData = getAuthData()
-  return authData?.refreshToken || null
+  return authData?.token || null
 }
 
 /**
@@ -273,7 +272,6 @@ export const migrateLegacyToken = () => {
     const authData = {
       token: legacyToken,
       user: { id: 1, fullName: 'Legacy User', email: '', role: 'unknown' },
-      refreshToken: legacyToken,
       timestamp: Date.now(),
     }
 
@@ -370,23 +368,12 @@ export const debugAuthState = () => {
   try {
     const authData = getAuthData()
     const token = getToken()
-    const refreshToken = getRefreshToken()
     const isAuth = isAuthenticated()
-
-    console.log('🔍 Debug Auth State:', {
-      hasAuthData: !!authData,
-      hasToken: !!token,
-      hasRefreshToken: !!refreshToken,
-      isAuthenticated: isAuth,
-      authDataKeys: authData ? Object.keys(authData) : null,
-      tokenLength: token ? token.length : 0,
-      refreshTokenLength: refreshToken ? refreshToken.length : 0,
-    })
 
     return {
       hasAuthData: !!authData,
       hasToken: !!token,
-      hasRefreshToken: !!refreshToken,
+      hasRefreshToken: !!token,
       isAuthenticated: isAuth,
       authDataKeys: authData ? Object.keys(authData) : null,
     }
@@ -426,7 +413,6 @@ export const testLoginScenarios = () => {
       success: true,
       data: {
         token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token',
-        refreshToken: 'refresh.token.here',
         user: {
           id: 1,
           fullName: 'Test Counselor',

@@ -173,18 +173,11 @@ const ProgramModal = ({
         request: { ...programData },
       }
 
-      // console.log('requestData', requestData)
+      const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
 
-      // const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
+      console.log('selectedCounselor', selectedCounselor)
 
-      await onOk(requestData)
-      // sendMessage({
-      //   title: 'New Program',
-      //   content: `You have a new program ${values.name}`,
-      //   notificationType: 'PROGRAM',
-      //   username: selectedCounselor.email,
-      //   relatedEntityId: requestData.id,
-      // })
+      await onOk(requestData, selectedCounselor.email)
 
       handleCancel()
     } catch (error) {
