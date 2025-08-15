@@ -1248,7 +1248,8 @@
       "label": "Status",
       "pending": "Pending",
       "confirmed": "Confirmed",
-      "inPSrogress": "In Progress",
+      "inProgress": "In Progress",
+      "in_progress": "In Progress",
       "completed": "Completed",
       "canceled": "Canceled",
       "absent": "Absent",
@@ -2003,7 +2004,7 @@
       "cooperationLevel": {
         "LOW": "Low",
         "MEDIUM": "Medium",
-        "HIGH": "High"
+        "GOOD": "Good"
       }
     },
     "warnings": {

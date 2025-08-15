@@ -1525,6 +1525,7 @@
       "pending": "Chờ xác nhận",
       "confirmed": "Đã xác nhận",
       "inProgress": "Đang tiến hành",
+      "in_progress": "Đang tiến hành",
       "completed": "Hoàn thành",
       "canceled": "Đã hủy",
       "absent": "Vắng mặt",
@@ -2083,12 +2084,12 @@
       "sessionFlow": {
         "LOW": "Thấp",
         "AVERAGE": "Trung bình",
-        "GOOD": "Cao"
+        "GOOD": "Tốt"
       },
       "cooperationLevel": {
         "LOW": "Thấp",
         "MEDIUM": "Trung bình",
-        "HIGH": "Cao"
+        "GOOD": "Tốt"
       }
     },
     "warnings": {

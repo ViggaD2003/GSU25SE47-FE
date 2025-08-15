@@ -28,33 +28,10 @@ import {
   SafetyOutlined,
   BellOutlined,
 } from '@ant-design/icons'
-import { reportScore } from '../../constants/appointmentReport'
+import { reportScore } from '@/constants/appointmentReport'
 
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
-const { Panel } = Collapse
-const { TabPane } = Tabs
-
-// Helper function to get score color
-const getScoreColor = (score, t) => {
-  if (score <= 1)
-    return {
-      color: '#52c41a',
-      label: t('assessmentForm.scoreLevel.low'),
-      bg: '#f6ffed',
-    }
-  if (score <= 3)
-    return {
-      color: '#faad14',
-      label: t('assessmentForm.scoreLevel.medium'),
-      bg: '#fffbe6',
-    }
-  return {
-    color: '#ff4d4f',
-    label: t('assessmentForm.scoreLevel.high'),
-    bg: '#fff2f0',
-  }
-}
 
 const AssessmentForm = memo(
   ({
@@ -86,9 +63,6 @@ const AssessmentForm = memo(
     // State for tracking progress
     const [progress, setProgress] = useState(0)
     const [expandedPanels, setExpandedPanels] = useState([])
-
-    // State for high-risk warnings
-    const [highRiskWarnings, setHighRiskWarnings] = useState([])
 
     // Initialize assessment scores
     useEffect(() => {
@@ -153,7 +127,6 @@ const AssessmentForm = memo(
           })
         }
       })
-      setHighRiskWarnings(warnings)
     }, [formData.assessmentScores])
 
     // Auto-save to localStorage
@@ -254,26 +227,6 @@ const AssessmentForm = memo(
         return
       }
 
-      // Check if at least one assessment item has been evaluated
-      // const hasAssessments = (formData.assessmentScores || []).some(
-      //   score =>
-      //     score &&
-      //     (score.frequencyScore > 0 ||
-      //       score.impairmentScore > 0 ||
-      //       score.chronicityScore > 0 ||
-      //       score.severityScore > 0)
-      // )
-
-      // if (!hasAssessments) {
-      //   message.error(t('assessmentForm.form.validation.assessmentRequired'))
-      //   return
-      // }
-
-      // Show high-risk warning if applicable
-      if (highRiskWarnings.some(w => w.type === 'error')) {
-        message.warning(t('assessmentForm.warnings.highRisk'))
-      }
-
       // Clear localStorage
       localStorage.removeItem('assessmentFormData')
       localStorage.removeItem('assessmentFormProgress')
@@ -281,7 +234,7 @@ const AssessmentForm = memo(
       // Submit data
       await onSubmit(formData)
       onClose()
-    }, [formData, highRiskWarnings, onSubmit, t, message, onClose])
+    }, [formData, onSubmit, t, message, onClose])
 
     // Reset form
     const handleReset = useCallback(() => {
@@ -307,7 +260,6 @@ const AssessmentForm = memo(
       })
       setProgress(0)
       setExpandedPanels([])
-      setHighRiskWarnings([])
 
       localStorage.removeItem('assessmentFormData')
       localStorage.removeItem('assessmentFormProgress')
@@ -336,10 +288,11 @@ const AssessmentForm = memo(
           ((score.frequencyScore ?? 0) >= 4 ||
             (score.impairmentScore ?? 0) >= 4 ||
             (score.chronicityScore ?? 0) >= 4)
-        const scoreColor = getScoreColor(
-          score ? (score.severityScore ?? 0) : 0,
-          t
-        )
+
+        // const scoreColor = getScoreColor(
+        //   score ? (score.severityScore ?? 0) : 0,
+        //   t
+        // )
 
         return (
           <div className="flex items-center justify-between w-full">
@@ -353,16 +306,6 @@ const AssessmentForm = memo(
                   style={{ backgroundColor: '#fff2f0' }}
                 />
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Text className="text-sm text-gray-500">
-                {t('assessmentForm.totalScore')}:{' '}
-                {score ? (score.severityScore ?? 0) : 0}
-              </Text>
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: scoreColor.color }}
-              />
             </div>
           </div>
         )
@@ -384,22 +327,13 @@ const AssessmentForm = memo(
           score &&
           ((score.frequencyScore ?? 0) >= 4 ||
             (score.impairmentScore ?? 0) >= 4 ||
-            (score.chronicityScore ?? 0) >= 4)
+            (score.chronicityScore ?? 0) >= 4 ||
+            (score.severityScore ?? 0) >= 4)
 
         return (
           <div className="space-y-4">
-            {/* <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-              <Text className="text-sm text-gray-600 dark:text-gray-400">
-                <strong>{t('common.description')}:</strong> {item.description}
-              </Text>
-              <br />
-              <Text className="text-xs text-gray-500 dark:text-gray-500">
-                <strong>{t('common.reference')}:</strong> {item.reference}
-              </Text>
-            </div> */}
-
             <Row gutter={[16, 16]}>
-              <Col span={8}>
+              <Col span={12}>
                 <div className="space-y-2">
                   <Text strong>{t('appointmentRecord.severity')}</Text>
                   <Select
@@ -423,7 +357,7 @@ const AssessmentForm = memo(
                 </div>
               </Col>
 
-              <Col span={8}>
+              <Col span={12}>
                 <div className="space-y-2">
                   <Text strong>{t('appointmentRecord.frequency')}</Text>
                   <Select
@@ -447,7 +381,7 @@ const AssessmentForm = memo(
                 </div>
               </Col>
 
-              <Col span={8}>
+              <Col span={12}>
                 <div className="space-y-2">
                   <Text strong>{t('appointmentRecord.impairment')}</Text>
                   <Select
@@ -471,7 +405,7 @@ const AssessmentForm = memo(
                 </div>
               </Col>
 
-              <Col span={8}>
+              <Col span={12}>
                 <div className="space-y-2">
                   <Text strong>{t('appointmentRecord.chronicity')}</Text>
                   <Select
@@ -531,55 +465,8 @@ const AssessmentForm = memo(
                 {t('assessmentForm.title')}
               </Text>
             </div>
-            {/* <div className="flex items-center gap-4">
-              <div className="text-right">
-                <Text className="text-sm text-gray-500">
-                  {t('assessmentForm.form.progress')}
-                </Text>
-                <div className="text-lg font-semibold">{progress}%</div>
-              </div>
-              <Progress
-                type="circle"
-                percent={progress}
-                size={60}
-                strokeColor={{
-                  '0%': '#108ee9',
-                  '100%': '#87d068',
-                }}
-              />
-            </div> */}
           </div>
-
-          {/* Progress Bar */}
-          {/* <Progress
-            percent={progress}
-            strokeColor={{
-              '0%': '#108ee9',
-              '100%': '#87d068',
-            }}
-            showInfo={false}
-          /> */}
         </Card>
-
-        {/* High Risk Warnings */}
-        {highRiskWarnings?.length > 0 && (
-          <div className="space-y-2">
-            {highRiskWarnings.map((warning, index) => (
-              <Alert
-                key={index}
-                message={warning.message}
-                type={warning.type}
-                showIcon
-                icon={<ExclamationCircleOutlined />}
-                action={
-                  <Button size="small" type="link">
-                    {t('common.viewDetails')}
-                  </Button>
-                }
-              />
-            ))}
-          </div>
-        )}
 
         {/* Main Form */}
         <Card
@@ -632,8 +519,8 @@ const AssessmentForm = memo(
                     <Select.Option value="MEDIUM">
                       {t('assessmentForm.options.cooperationLevel.MEDIUM')}
                     </Select.Option>
-                    <Select.Option value="HIGH">
-                      {t('assessmentForm.options.cooperationLevel.HIGH')}
+                    <Select.Option value="GOOD">
+                      {t('assessmentForm.options.cooperationLevel.GOOD')}
                     </Select.Option>
                   </Select>
                 </div>
@@ -719,7 +606,9 @@ const AssessmentForm = memo(
               </Title>
             </div>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div
+              className={`${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'} p-4 rounded-lg`}
+            >
               <Checkbox
                 checked={formData.notificationSettings?.sendNotification}
                 onChange={e =>
@@ -734,10 +623,16 @@ const AssessmentForm = memo(
               {formData.notificationSettings?.sendNotification && (
                 //notifyTeachers
                 <div className="mt-4 ml-6 space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div
+                    className={`flex items-center justify-between p-3 ${isDarkMode ? 'bg-gray-700 ' : 'bg-white'} rounded-lg`}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                        <UserOutlined className="text-green-600 dark:text-green-400" />
+                      <div
+                        className={`w-8 h-8 ${isDarkMode ? 'bg-green-900/30' : 'bg-green-100'} rounded-full flex items-center justify-center`}
+                      >
+                        <UserOutlined
+                          className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`}
+                        />
                       </div>
                       <div>
                         <Text
@@ -769,10 +664,16 @@ const AssessmentForm = memo(
                   </div>
 
                   {/* //notifyParents */}
-                  <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 opacity-50">
+                  <div
+                    className={`flex items-center justify-between p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg`}
+                  >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                        <UserOutlined className="text-blue-600 dark:text-blue-400" />
+                      <div
+                        className={`w-8 h-8 ${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-100'} rounded-full flex items-center justify-center`}
+                      >
+                        <UserOutlined
+                          className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+                        />
                       </div>
                       <div>
                         <Text
@@ -796,44 +697,11 @@ const AssessmentForm = memo(
                           e.target.checked
                         )
                       }
-                      disabled={true}
+                      disabled={
+                        !formData.notificationSettings?.sendNotification
+                      }
                     />
                   </div>
-
-                  {/* //notifyAdministrators */}
-                  {/* <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 opacity-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
-                        <UserOutlined className="text-purple-600 dark:text-purple-400" />
-                      </div>
-                      <div>
-                        <Text
-                          strong
-                          className="text-gray-900 dark:text-gray-100"
-                        >
-                          {t(
-                            'assessmentForm.notification.notifyAdministrators'
-                          ) || 'Notify Administrators'}
-                        </Text>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {t('assessmentForm.notification.adminDescription') ||
-                            'Coming soon - notify school administrators'}
-                        </div>
-                      </div>
-                    </div>
-                    <Checkbox
-                      checked={
-                        formData.notificationSettings?.notifyAdministrators
-                      }
-                      onChange={e =>
-                        handleNotificationChange(
-                          'notifyAdministrators',
-                          e.target.checked
-                        )
-                      }
-                      disabled={true}
-                    />
-                  </div> */}
                 </div>
               )}
             </div>

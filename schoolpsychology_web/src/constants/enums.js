@@ -72,13 +72,13 @@ export const HOST_TYPE = {
 export const SESSION_FLOW = {
   GOOD: 'GOOD',
   AVERAGE: 'AVERAGE',
-  POOR: 'POOR',
+  LOW: 'LOW',
   UNKNOWN: 'UNKNOWN',
 }
 
 // Student Cooperation Level Enums
 export const STUDENT_COOP_LEVEL = {
-  HIGH: 'HIGH',
+  GOOD: 'GOOD',
   MEDIUM: 'MEDIUM',
   LOW: 'LOW',
   UNKNOWN: 'UNKNOWN',
