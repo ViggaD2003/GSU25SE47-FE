@@ -278,6 +278,11 @@ export const updateAuthUser = userData => {
   }
 }
 
+export const getAuthUser = () => {
+  const authData = getAuthData()
+  return authData?.user || null
+}
+
 /**
  * Migrate legacy token format to new format
  * @returns {boolean} - True if migration was performed

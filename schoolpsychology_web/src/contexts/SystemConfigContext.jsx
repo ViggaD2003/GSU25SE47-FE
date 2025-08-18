@@ -28,9 +28,10 @@ export const SystemConfigProvider = ({ children }) => {
   const [error, setError] = useState(null)
 
   const fetchSystemConfigs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
     try {
+      if (!isAuthenticated) return
+      setLoading(true)
+      setError(null)
       const res = await systemConfigApi.getSystemConfig()
       const data = Array.isArray(res?.data)
         ? res.data

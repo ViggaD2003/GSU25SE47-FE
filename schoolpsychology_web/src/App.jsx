@@ -35,7 +35,9 @@ const AppContent = () => {
     <LanguageProvider>
       <ConfigProvider theme={antdTheme} notification={notiConfig}>
         <AntdApp>
-          <AppRouter />
+          <NotificationProvider>
+            <AppRouter />
+          </NotificationProvider>
         </AntdApp>
       </ConfigProvider>
     </LanguageProvider>
@@ -45,17 +47,15 @@ const AppContent = () => {
 function App() {
   return (
     <Provider store={store}>
-      <NotificationProvider>
-        <AuthProvider>
-          <WebSocketProvider>
-            <ThemeProvider>
-              <SystemConfigProvider>
-                <AppContent />
-              </SystemConfigProvider>
-            </ThemeProvider>
-          </WebSocketProvider>
-        </AuthProvider>
-      </NotificationProvider>
+      <AuthProvider>
+        <WebSocketProvider>
+          <ThemeProvider>
+            <SystemConfigProvider>
+              <AppContent />
+            </SystemConfigProvider>
+          </ThemeProvider>
+        </WebSocketProvider>
+      </AuthProvider>
     </Provider>
   )
 }

@@ -19,10 +19,15 @@ class NotificationService {
    * Show success notification
    */
   success(config) {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.success === 'function'
+    ) {
       this.notificationApi.success(config)
     } else {
-      console.warn('Notification API not initialized')
+      console.warn(
+        'Notification API not initialized or success method not available'
+      )
     }
   }
 
@@ -30,10 +35,17 @@ class NotificationService {
    * Show error notification
    */
   error(config) {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.error === 'function'
+    ) {
       this.notificationApi.error(config)
     } else {
-      console.warn('Notification API not initialized')
+      console.warn(
+        'Notification API not initialized or error method not available'
+      )
+      // Fallback to console.error for debugging
+      console.error('Notification error:', config)
     }
   }
 
@@ -41,10 +53,15 @@ class NotificationService {
    * Show info notification
    */
   info(config) {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.info === 'function'
+    ) {
       this.notificationApi.info(config)
     } else {
-      console.warn('Notification API not initialized')
+      console.warn(
+        'Notification API not initialized or info method not available'
+      )
     }
   }
 
@@ -52,10 +69,15 @@ class NotificationService {
    * Show warning notification
    */
   warning(config) {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.warning === 'function'
+    ) {
       this.notificationApi.warning(config)
     } else {
-      console.warn('Notification API not initialized')
+      console.warn(
+        'Notification API not initialized or warning method not available'
+      )
     }
   }
 
@@ -63,10 +85,15 @@ class NotificationService {
    * Show custom notification
    */
   open(config) {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.open === 'function'
+    ) {
       this.notificationApi.open(config)
     } else {
-      console.warn('Notification API not initialized')
+      console.warn(
+        'Notification API not initialized or open method not available'
+      )
     }
   }
 
@@ -74,7 +101,10 @@ class NotificationService {
    * Destroy all notifications
    */
   destroy() {
-    if (this.notificationApi) {
+    if (
+      this.notificationApi &&
+      typeof this.notificationApi.destroy === 'function'
+    ) {
       this.notificationApi.destroy()
     }
   }

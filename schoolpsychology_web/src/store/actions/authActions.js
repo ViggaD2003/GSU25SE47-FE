@@ -8,6 +8,7 @@ import {
   createStandardizedUser,
   isAuthorizedRole,
   updateAuthUser,
+  getAuthUser,
 } from '../../utils/authHelpers'
 import {
   loginStart,
@@ -23,6 +24,10 @@ let isRefreshing = false
 
 export const loadAccount = createAsyncThunk('auth/loadAccount', async () => {
   try {
+    const authUser = getAuthUser()
+    if (authUser?.role.toLowerCase() === 'manager') {
+      return authUser
+    }
     const response = await accountAPI.getAccount()
     const user = createStandardizedUser(response)
     updateAuthUser(user)
@@ -38,8 +43,8 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async (credentials, { dispatch, rejectWithValue }) => {
     try {
+      dispatch(forceLogout())
       dispatch(loginStart())
-      // console.log('🔄 Starting login process for:', credentials.email)
 
       const response = await authAPI.login(
         credentials.email,
@@ -103,45 +108,43 @@ export const loginUser = createAsyncThunk(
 // Async thunk for refresh token - IMPROVED with better error handling
 export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
-  async (_, { rejectWithValue }) => {
+  async (_, { dispatch }) => {
     // Prevent multiple refresh calls
     if (isRefreshing) {
-      // console.log('[refreshToken] Already refreshing, skipping...')
       return { data: { token: null } }
     }
 
     isRefreshing = true
 
-    try {
-      // Get refresh token using centralized helpers
-      const currentToken = getToken()
+    // Get refresh token using centralized helpers
+    const currentToken = getToken()
 
-      if (!currentToken) {
-        throw new Error('No auth data found in storage')
-      }
+    if (!currentToken) {
+      throw new Error('No auth data found in storage')
+    }
 
-      // Check if current token is still valid
-      if (!isTokenExpired(currentToken)) {
-        console.log(
-          '[refreshToken] Current token is still valid, no refresh needed'
-        )
-        return { data: { token: currentToken } }
-      }
+    // Check if current token is still valid
+    if (!isTokenExpired(currentToken)) {
+      // console.log(
+      //   '[refreshToken] Current token is still valid, no refresh needed'
+      // )
+      return { data: { token: currentToken } }
+    }
 
-      // Try to refresh the token using refresh token
-      const response = await authAPI.refreshToken(currentToken)
+    // Try to refresh the token using refresh token
+    const response = await authAPI.refreshToken(currentToken)
 
-      if (response.status === 200 && response.success && response.data?.token) {
-        return { data: { token: response.data.token } }
-      } else {
-        throw new Error('Token refresh failed - invalid response')
-      }
-    } catch (error) {
-      // If refresh fails, logout the user
-      clearAuthData()
-      return rejectWithValue(error.response?.data?.message || error.message)
-    } finally {
+    if (response.status === 200 && response.success && response.newToken) {
+      // console.log(
+      //   '[authActions] ✅ Token refreshed successfully',
+      //   response.newToken
+      // )
       isRefreshing = false
+      return { data: { token: response.newToken } }
+    } else {
+      dispatch(forceLogout())
+      isRefreshing = false
+      return { data: { token: null } }
     }
   }
 )
@@ -157,6 +160,10 @@ export const logoutUser = createAsyncThunk(
     if (isLoggingOut) {
       return
     }
+    const token = getToken()
+    if (isTokenExpired(token)) {
+      dispatch(forceLogout())
+    }
 
     isLoggingOut = true
 
@@ -168,7 +175,6 @@ export const logoutUser = createAsyncThunk(
     } finally {
       // Clear localStorage using centralized helpers
       clearAuthData()
-
       dispatch(logoutAction())
       isLoggingOut = false
     }

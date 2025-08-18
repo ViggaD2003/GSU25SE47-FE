@@ -5,7 +5,7 @@ import {
   refreshToken as refreshTokenAction,
 } from '../store/actions/authActions'
 import notificationService from './notificationService'
-import { isTokenExpired, shouldRefreshToken } from '../utils'
+import { isTokenExpired } from '../utils'
 import { getToken, updateToken } from '../utils/authHelpers'
 
 // Utility function to handle server errors
@@ -70,7 +70,7 @@ const handleTokenRefresh = async () => {
     const newToken = result?.data?.token
 
     if (newToken) {
-      console.log('✅ Token refreshed successfully')
+      console.log('[API_REQUEST] ✅ Token refreshed successfully', newToken)
 
       // Update both axios defaults and localStorage using authHelpers
       api.defaults.headers.common.Authorization = `Bearer ${newToken}`
@@ -84,9 +84,13 @@ const handleTokenRefresh = async () => {
     }
   } catch (error) {
     console.error('❌ Token refresh failed:', error)
-
     // If refresh fails, logout user
     store.dispatch(forceLogout())
+    notificationService.error({
+      message: 'Quyền truy cập bị từ chối',
+      description: 'Bạn không có quyền thực hiện hành động này.',
+      duration: 4,
+    })
     throw error
   }
 }
@@ -103,43 +107,34 @@ api.interceptors.request.use(
     ]
 
     const isExcludedPath = excludedPaths.some(path => config.url.includes(path))
-
-    if (isExcludedPath) {
-      config.headers.Authorization = ''
-      return config
-    }
-
-    // Get token using centralized authHelpers
     const token = getToken()
-    if (!token) {
+
+    if (isExcludedPath || !token) {
+      config.headers.Authorization = ''
       return config
     }
 
     // Check if token is expired
     if (isTokenExpired(token)) {
       try {
-        await handleTokenRefresh()
+        // console.log('[API_REQUEST] Token Expired, attempting to refresh...')
+
+        const newToken = await handleTokenRefresh()
+        config.headers.Authorization = `Bearer ${newToken}`
       } catch {
         console.error('❌ Request: Token refresh failed, request will fail')
+        store.dispatch(forceLogout())
       }
     } else {
-      // Check if token needs refresh (expires soon)
-      if (shouldRefreshToken(token)) {
-        try {
-          await handleTokenRefresh()
-        } catch {
-          config.headers.Authorization = `Bearer ${token}`
-        }
-      } else {
-        // Token is valid, add to request
-        config.headers.Authorization = `Bearer ${token}`
-      }
+      config.headers.Authorization = `Bearer ${token}`
     }
 
+    // console.log('config', config.headers.Authorization)
     return config
   },
   error => {
     console.log('❌ Request: Interceptor error:', error)
+    store.dispatch(forceLogout())
     return Promise.reject(error)
   }
 )
@@ -212,12 +207,8 @@ api.interceptors.response.use(
           duration: 6,
         })
       } else {
+        await handleTokenRefresh()
         // Normal 403 - just show error
-        notificationService.error({
-          message: 'Quyền truy cập bị từ chối',
-          description: 'Bạn không có quyền thực hiện hành động này.',
-          duration: 4,
-        })
       }
     }
 

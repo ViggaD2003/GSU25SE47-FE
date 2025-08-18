@@ -12,7 +12,11 @@ const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     // Initialize the global notification service with the Ant Design notification API
-    notificationService.init(notification)
+    if (notification && typeof notification.error === 'function') {
+      notificationService.init(notification)
+    } else {
+      console.warn('Notification API not available or invalid')
+    }
 
     return () => {
       // Cleanup on unmount

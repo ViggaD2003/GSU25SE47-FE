@@ -300,15 +300,6 @@ const ClientManagement = () => {
           </div>
         </div>
 
-        {user?.role === 'teacher' && !user?.classId && (
-          <Alert
-            banner
-            message={t('clientManagement.alertNoClass')}
-            type="warning"
-            style={{ marginBottom: '16px' }}
-          />
-        )}
-
         {/* Search and Class Selection */}
         <Card
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
@@ -331,7 +322,6 @@ const ClientManagement = () => {
                   value={selectedYear}
                   onChange={handleYearChange}
                   allowClear
-                  disabled={user?.role !== 'manager'}
                 >
                   {availableYears.map(year => (
                     <Option key={year} value={year}>
@@ -356,7 +346,6 @@ const ClientManagement = () => {
                   value={selectedClassCode}
                   onChange={handleClassCodeChange}
                   loading={loading}
-                  disabled={user?.role !== 'manager'}
                   optionRender={option => (
                     <div className={'flex flex-col gap-2'}>
                       <Text strong>{option.value}</Text>

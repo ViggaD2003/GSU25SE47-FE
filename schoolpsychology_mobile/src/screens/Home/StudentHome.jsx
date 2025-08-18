@@ -302,9 +302,8 @@ export default function StudentHome({ user, navigation }) {
             <TouchableOpacity
               style={styles.viewAllContainer}
               onPress={() => {
-                navigation.navigate("Event", {
-                  screen: "EventList",
-                  params: { type: "PROGRAM" },
+                navigation.navigate("Program", {
+                  screen: "ProgramList",
                 });
               }}
             >

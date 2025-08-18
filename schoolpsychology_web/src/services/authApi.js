@@ -6,7 +6,7 @@ import { getToken } from '@/utils'
 export const authAPI = {
   login: async (email, password) => {
     try {
-      localStorage.removeItem('auth') // Clear any existing auth data
+      api.defaults.headers.common.Authorization = null
 
       const response = await api.post('/api/v1/auth/login', {
         email,
@@ -194,18 +194,19 @@ export const authAPI = {
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }
-    console.log('[refreshToken] Attempting to refresh token...')
+    console.log('[authAPI] Attempting to refresh token...')
+    api.defaults.headers.common.Authorization = null
     try {
       // Send refresh token in request body
       const response = await api.post('/api/v1/auth/refresh', {
         token: refreshToken,
       })
 
-      console.log('✅ Token refresh successful', response.data)
+      console.log('✅ Token refresh successful')
       return {
         status: 200,
         success: true,
-        data: response.data.data,
+        newToken: response.data.data.token,
         message: 'Token refreshed successfully',
       }
     } catch (error) {

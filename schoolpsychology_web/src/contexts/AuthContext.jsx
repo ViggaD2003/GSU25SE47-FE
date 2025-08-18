@@ -129,9 +129,7 @@ export const AuthProvider = ({ children }) => {
           decodedToken = decodeJWT(token)
         } catch (decodeError) {
           console.error('Token decode failed:', decodeError)
-          // console.log('Token content (might be error message):', token)
 
-          // Check if token is actually an error message
           if (
             token.length < 50 ||
             token.includes('error') ||
@@ -166,11 +164,8 @@ export const AuthProvider = ({ children }) => {
           return { success: false, error: 'Invalid token' }
         }
 
-        // console.log('Decoded token:', decodedToken)
-
         // Tạo standardized user object
         const userData = createStandardizedUser(decodedToken)
-        // console.log('Standardized user data:', userData)
 
         // Kiểm tra quyền truy cập
         if (!isAuthorizedRole(userData.role)) {
@@ -189,11 +184,8 @@ export const AuthProvider = ({ children }) => {
           return { success: false, error: 'Unauthorized role' }
         }
 
-        // Tạo và lưu auth data với refresh token
         const authData = saveAuthData(token, userData)
-        // console.log('Auth data saved:', authData)
 
-        // Sử dụng loginSuccess từ Redux store để cập nhật state
         dispatch(loginSuccess(authData))
 
         // Show success notification
@@ -203,13 +195,8 @@ export const AuthProvider = ({ children }) => {
           duration: NOTIFICATION_DURATIONS.SUCCESS,
         })
 
-        // Navigate to dashboard
-        navigate(NAVIGATION_PATHS.DASHBOARD, { replace: true })
-
         return { success: true, data: authData }
       } catch (error) {
-        // console.error('Error processing Google callback:', error)
-
         // Check if it's a backend error
         if (
           error.message &&
@@ -246,7 +233,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     dispatch(logoutUser())
-    clearAuthData()
     hasProcessedGoogleCallback.current = false
     notificationShown.current = false
 
@@ -255,7 +241,7 @@ export const AuthProvider = ({ children }) => {
       description: 'You have been logged out successfully.',
       duration: NOTIFICATION_DURATIONS.INFO,
     })
-  }, [dispatch, clearAuthData])
+  }, [dispatch])
 
   const login = useCallback(
     async (email, password) => {
@@ -277,7 +263,6 @@ export const AuthProvider = ({ children }) => {
           // Validate role authorization
           if (!isAuthorizedRole(result.user.role)) {
             dispatch(logoutUser())
-            clearAuthData()
             notificationService.error({
               message: 'Login Failed',
               description: 'You are not authorized to access this application.',

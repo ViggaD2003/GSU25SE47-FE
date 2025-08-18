@@ -65,6 +65,7 @@ const GoogleCallBack = () => {
           if (result.success) {
             console.log('Google callback completed successfully')
             // Navigation will be handled by AuthContext
+            navigate('/dashboard', { replace: true })
           } else {
             console.error('Google callback failed:', result.error)
 
