@@ -15,6 +15,7 @@ import {
   Row,
   Col,
   Typography,
+  Alert,
 } from 'antd'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTheme } from '../../../contexts/ThemeContext'
@@ -31,7 +32,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
 import { createCase } from '@/store/actions'
-import { useWebSocket } from '@/contexts/WebSocketContext'
 import { useNavigate } from 'react-router-dom'
 const { Title, Text } = Typography
 const { Option } = Select
@@ -40,7 +40,6 @@ const UserModal = lazy(() => import('./UserModal'))
 
 const ClientManagement = () => {
   const { user } = useAuth()
-  const { sendMessage } = useWebSocket()
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [searchText, setSearchText] = useState('')
@@ -75,8 +74,10 @@ const ClientManagement = () => {
       Promise.all([
         dispatch(getClassById(user.classId)),
         fetchCategories(),
-      ]).then(() => {
-        console.log('Classes loaded')
+      ]).then(data => {
+        const classData = data[0].payload
+        setSelectedClassCode(classData.codeClass)
+        setSelectedYear(classData.schoolYear.name)
       })
     } else if (user?.role === 'manager') {
       // Load all classes for manager to populate the dropdown
@@ -239,27 +240,14 @@ const ClientManagement = () => {
   const handleModalOk = async requestData => {
     if (isCreateCase) {
       await dispatch(createCase(requestData))
-        .then(data => {
-          console.log(data)
-
-          const body = {
-            relatedEntityId: data.id,
-            notificationType: 'CASE',
-            title: 'New Case',
-            content: 'New case has been created by ' + user.fullName,
-            username: 'danhkvtse172932@fpt.edu.vn',
-          }
-
-          sendMessage(body)
+        .then(() => {
           messageApi.success(t('clientManagement.messages.createCaseSuccess'))
+          setIsCreateCase(false)
         })
         .catch(error => {
           console.log(error)
           messageApi.error(error.message)
         })
-
-      // messageApi.success(t('clientManagement.messages.createCaseSuccess'))
-      setIsCreateCase(false)
     } else {
       messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
@@ -282,16 +270,6 @@ const ClientManagement = () => {
     }
   }, [deletedUser])
 
-  // Get current class info for display
-  const currentClassInfo = useMemo(() => {
-    if (user?.role === 'teacher') {
-      return classById
-    } else if (user?.role === 'manager') {
-      return selectedClass
-    }
-    return null
-  }, [user?.role, classById, selectedClass])
-
   return (
     <>
       {contextHolder}
@@ -304,9 +282,7 @@ const ClientManagement = () => {
               className={isDarkMode ? 'text-white' : 'text-gray-900'}
             >
               {user?.role === 'teacher'
-                ? t('clientManagement.manageTitleTeacher') +
-                  ' - ' +
-                  (currentClassInfo?.codeClass || t('clientManagement.noClass'))
+                ? t('clientManagement.manageTitleTeacher')
                 : t('clientManagement.manageTitle')}
             </Title>
             <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
@@ -324,6 +300,15 @@ const ClientManagement = () => {
           </div>
         </div>
 
+        {user?.role === 'teacher' && !user?.classId && (
+          <Alert
+            banner
+            message={t('clientManagement.alertNoClass')}
+            type="warning"
+            style={{ marginBottom: '16px' }}
+          />
+        )}
+
         {/* Search and Class Selection */}
         <Card
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
@@ -338,55 +323,54 @@ const ClientManagement = () => {
                 style={{ width: '100%' }}
               />
             </Col>
-            {user?.role === 'manager' && (
-              <>
-                <Col xs={24} sm={12} lg={6}>
-                  <Select
-                    placeholder={t('clientManagement.selectYear')}
-                    style={{ width: '100%' }}
-                    value={selectedYear}
-                    onChange={handleYearChange}
-                    allowClear
-                  >
-                    {availableYears.map(year => (
-                      <Option key={year} value={year}>
-                        {year}
-                      </Option>
-                    ))}
-                  </Select>
-                </Col>
-                <Col xs={24} sm={12} lg={6}>
-                  <Select
-                    options={filteredClasses.map(classItem => ({
-                      label: classItem.codeClass,
-                      value: classItem.codeClass,
-                      schoolYear: classItem.schoolYear.name,
-                    }))}
-                    placeholder={
-                      selectedYear
-                        ? t('clientManagement.selectClass')
-                        : t('clientManagement.selectClass')
-                    }
-                    style={{ width: '100%' }}
-                    value={selectedClassCode}
-                    onChange={handleClassCodeChange}
-                    loading={loading}
-                    disabled={false}
-                    optionRender={option => (
-                      <div className={'flex flex-col gap-2'}>
-                        <Text strong>{option.value}</Text>
-                        <Text type="secondary">
-                          {t('clientManagement.schoolYear') +
-                            ': ' +
-                            ' ' +
-                            option.data.schoolYear}
-                        </Text>
-                      </div>
-                    )}
-                  />
-                </Col>
-              </>
-            )}
+            <>
+              <Col xs={24} sm={12} lg={6}>
+                <Select
+                  placeholder={t('clientManagement.selectYear')}
+                  style={{ width: '100%' }}
+                  value={selectedYear}
+                  onChange={handleYearChange}
+                  allowClear
+                  disabled={user?.role !== 'manager'}
+                >
+                  {availableYears.map(year => (
+                    <Option key={year} value={year}>
+                      {year}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Select
+                  options={filteredClasses.map(classItem => ({
+                    label: classItem.codeClass,
+                    value: classItem.codeClass,
+                    schoolYear: classItem.schoolYear.name,
+                  }))}
+                  placeholder={
+                    selectedYear
+                      ? t('clientManagement.selectClass')
+                      : t('clientManagement.selectClass')
+                  }
+                  style={{ width: '100%' }}
+                  value={selectedClassCode}
+                  onChange={handleClassCodeChange}
+                  loading={loading}
+                  disabled={user?.role !== 'manager'}
+                  optionRender={option => (
+                    <div className={'flex flex-col gap-2'}>
+                      <Text strong>{option.value}</Text>
+                      <Text type="secondary">
+                        {t('clientManagement.schoolYear') +
+                          ': ' +
+                          ' ' +
+                          option.data.schoolYear}
+                      </Text>
+                    </div>
+                  )}
+                />
+              </Col>
+            </>
           </Row>
         </Card>
 

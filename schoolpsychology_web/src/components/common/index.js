@@ -1,4 +1,3 @@
-export { default as AutoTranslatedText } from './AutoTranslatedText'
 export { default as LanguageSwitcher } from './LanguageSwitcher'
 export { default as NotificationBell } from './NotificationBell'
 export { default as ProgramCreationHelper } from './ProgramCreationHelper'

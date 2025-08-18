@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { ROLE_PERMISSIONS } from '@/constants/routeConfig'
+import { STORAGE_KEYS } from '@/utils'
 
 const initialState = {
   user: null,
@@ -51,6 +52,9 @@ const authSlice = createSlice({
         state.isRestoredFromStorage = false
       }
     },
+    setUser: (state, action) => {
+      state.user = action.payload
+    },
   },
 })
 
@@ -61,6 +65,7 @@ export const {
   logout,
   setLoading,
   initializeAuth,
+  setUser,
 } = authSlice.actions
 
 // Selectors

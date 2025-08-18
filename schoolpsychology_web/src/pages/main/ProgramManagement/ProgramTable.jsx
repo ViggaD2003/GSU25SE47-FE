@@ -166,7 +166,12 @@ const ProgramTable = ({
                 <Text
                   type="secondary"
                   className="text-xs"
-                  ellipsis={{ rows: 2 }}
+                  ellipsis={{
+                    expanded: true,
+                    tooltip: (
+                      <div className="max-w-[300px]">{record.description}</div>
+                    ),
+                  }}
                 >
                   {record.description.length > 50
                     ? `${record.description.substring(0, 50)}...`

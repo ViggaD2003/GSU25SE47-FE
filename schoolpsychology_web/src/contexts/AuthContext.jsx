@@ -21,12 +21,12 @@ import {
   selectIsAuthenticated,
   selectLoading,
   loginSuccess,
+  loginFailure,
 } from '../store/slices/authSlice'
 import {
   loginUser,
   logoutUser,
   initializeAuthFromStorage,
-  refreshToken as refreshTokenAction,
 } from '../store/actions/authActions'
 import { useNavigate } from 'react-router-dom'
 
@@ -76,11 +76,6 @@ export const AuthProvider = ({ children }) => {
 
         isProcessingAuth.current = true
         hasProcessedGoogleCallback.current = true
-
-        // console.log(
-        //   'Processing Google callback with token:',
-        //   token ? 'Present' : 'Missing'
-        // )
 
         if (!token) {
           showNotificationOnce('error', {
@@ -251,9 +246,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(() => {
     dispatch(logoutUser())
-    // Clear localStorage
     clearAuthData()
-    // Reset Google callback state
     hasProcessedGoogleCallback.current = false
     notificationShown.current = false
 
@@ -264,40 +257,10 @@ export const AuthProvider = ({ children }) => {
     })
   }, [dispatch, clearAuthData])
 
-  const refreshToken = useCallback(async () => {
-    try {
-      const result = await dispatch(refreshTokenAction()).unwrap()
-      const token = result?.data?.token
-      if (token) {
-        notificationService.success({
-          message: 'Session Refreshed',
-          description:
-            'Your session has been refreshed. You can now try accessing the page again.',
-          duration: NOTIFICATION_DURATIONS.SUCCESS,
-        })
-        return { success: true, data: { token } }
-      } else {
-        dispatch(logoutUser())
-        clearAuthData()
-        notificationService.error({
-          message: 'Session Expired',
-          description: 'Please login again.',
-          duration: NOTIFICATION_DURATIONS.ERROR,
-        })
-        return { success: false, error: 'Failed to refresh token' }
-      }
-    } catch (error) {
-      return { success: false, error: error.message || 'Unknown error' }
-    }
-  }, [dispatch, clearAuthData])
-
   const login = useCallback(
     async (email, password) => {
       try {
-        // console.log('🔐 AuthContext: Starting login for:', email)
-
         const result = await dispatch(loginUser({ email, password })).unwrap()
-        // console.log('📡 AuthContext: Login result:', result)
 
         // Check if this was an OAuth redirect (Manager role)
         if (result?.isOAuthRedirect) {
@@ -311,11 +274,8 @@ export const AuthProvider = ({ children }) => {
 
         // Normal login (Counselor/Teacher role)
         if (result?.user?.role) {
-          // console.log('👤 Normal login successful for role:', result.user.role)
-
           // Validate role authorization
           if (!isAuthorizedRole(result.user.role)) {
-            //  console.error('❌ Unauthorized role:', result.user.role)
             dispatch(logoutUser())
             clearAuthData()
             notificationService.error({
@@ -337,17 +297,11 @@ export const AuthProvider = ({ children }) => {
             duration: NOTIFICATION_DURATIONS.SUCCESS,
           })
 
-          // console.log(
-          //   '✅ Login completed successfully for:',
-          //   result.user.fullName
-          // )
           return { success: true, data: result }
         } else {
           throw new Error('Invalid login response: missing user data')
         }
       } catch (error) {
-        // console.error('❌ AuthContext: Login failed:', error)
-
         // Handle different types of errors
         let errorMessage = 'Login failed. Please try again.'
         let errorDescription = 'An unexpected error occurred during login.'
@@ -359,7 +313,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'The server is experiencing issues. Please try again later or contact support.'
           shouldNavigateToLogin = true
-          // console.error('🔥 Server error detected during login:', error)
         }
         // Check for service unavailable errors
         else if (error?.isServiceError) {
@@ -367,10 +320,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'The authentication service is temporarily unavailable. Please try again later.'
           shouldNavigateToLogin = true
-          // console.error(
-          //   '🔥 Service unavailable error detected during login:',
-          //   error
-          // )
         }
         // Check for network errors
         else if (error?.isNetworkError) {
@@ -378,7 +327,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'Unable to connect to the server. Please check your internet connection.'
           shouldNavigateToLogin = true
-          // console.error('🔥 Network error detected during login:', error)
         }
         // Check for client errors (400, 401, 403)
         else if (error?.isClientError || error?.isAuthError) {
@@ -386,7 +334,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'Invalid credentials or access denied.'
           shouldNavigateToLogin = false // Don't navigate for client errors, let user retry
-          // console.error('🔥 Client error detected during login:', error)
         }
         // Check for HTTP errors
         else if (error?.isHttpError) {
@@ -394,7 +341,7 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'An error occurred during authentication.'
           shouldNavigateToLogin = error?.status >= 500 // Navigate for server errors
-          // console.error('🔥 HTTP error detected during login:', error)
+          // console.error('🔥 HTTP eror detected during login:', error)
         }
         // Check for duplicate account errors
         else if (
@@ -407,10 +354,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             'Multiple accounts found with the same email. Please contact support to resolve this issue.'
           shouldNavigateToLogin = true
-          // console.error(
-          //   '🔥 Duplicate account error detected during login:',
-          //   error
-          // )
         }
         // Generic error handling
         else {
@@ -418,7 +361,6 @@ export const AuthProvider = ({ children }) => {
           errorDescription =
             error?.message || 'Invalid credentials. Please try again.'
           shouldNavigateToLogin = false
-          // console.error('🔥 Generic error detected during login:', error)
         }
 
         // Show error notification
@@ -427,6 +369,8 @@ export const AuthProvider = ({ children }) => {
           description: errorDescription,
           duration: NOTIFICATION_DURATIONS.ERROR,
         })
+
+        dispatch(loginFailure())
 
         // Navigate to login if needed
         if (shouldNavigateToLogin) {
@@ -446,7 +390,6 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    refreshToken,
     userRole: user?.role,
     handleGoogleCallback,
     hasProcessedGoogleCallback: hasProcessedGoogleCallback.current,

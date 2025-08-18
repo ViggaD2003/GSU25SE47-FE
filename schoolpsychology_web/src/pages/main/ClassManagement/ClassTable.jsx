@@ -3,6 +3,7 @@ import { Table, Button, Tag, Space, Typography, Tooltip } from 'antd'
 import { BookOutlined, UserAddOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 
 const { Text } = Typography
 
@@ -16,6 +17,7 @@ const ClassTable = ({
   // onDelete,
 }) => {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const canAddStudents = useCallback(
     record => {
       if (!record || !record.isActive || !record.teacher) return false
@@ -51,7 +53,7 @@ const ClassTable = ({
       title: t('classManagement.table.numberOfstudents'),
       dataIndex: 'totalStudents',
       key: 'totalStudents',
-      // width: 150,
+      width: 160,
     },
     {
       title: t('classManagement.table.classYear'),
@@ -88,6 +90,7 @@ const ClassTable = ({
         </Text>
       ),
       ellipsis: true,
+      hidden: user?.role !== 'manager',
     },
     {
       key: 'action',
@@ -108,6 +111,7 @@ const ClassTable = ({
           )}
         </Space>
       ),
+      hidden: user?.role !== 'manager',
     },
   ]
 
