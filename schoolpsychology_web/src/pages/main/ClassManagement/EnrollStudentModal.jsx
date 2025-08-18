@@ -61,25 +61,33 @@ export const EnrollStudentsModal = ({
   }, [filterValues])
 
   // Memoize fetch function để tránh tạo mới mỗi lần render
-  const fetchStudents = useCallback(async (params = {}) => {
-    try {
-      setLoading(true)
-      const data = await classAPI.getStudentWithInactiveClass(params)
-      const list = Array.isArray(data?.data)
-        ? data.data
-        : Array.isArray(data)
-          ? data
-          : []
+  const fetchStudents = useCallback(
+    async (params = {}) => {
+      try {
+        setLoading(true)
+        const requestParams = {
+          ...params,
+          ...(classItem?.id && { classId: classItem.id }),
+        }
 
-      console.log(list)
+        const data = await classAPI.getStudentWithInactiveClass(requestParams)
+        const list = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+            ? data
+            : []
 
-      setStudents(list)
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+        console.log(list)
+
+        setStudents(list)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [classItem?.id]
+  )
 
   // Fetch students khi modal mở
   useEffect(() => {
