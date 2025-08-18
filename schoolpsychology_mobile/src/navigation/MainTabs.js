@@ -29,7 +29,6 @@ import {
   NotificationSettingsScreen,
   LanguageSettingsScreen,
   ClosedCases,
-  ProgramListScreen,
   ProgramDetailScreen,
 } from "../screens";
 import { StatusBar } from "expo-status-bar";
@@ -215,7 +214,6 @@ export default function MainTabs() {
   const ProgramStack = () => {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Program" component={ProgramListScreen} />
         <Stack.Screen name="ProgramDetail" component={ProgramDetailScreen} />
         <Stack.Screen name="ProgramRecord" component={ProgramRecordScreen} />
       </Stack.Navigator>
