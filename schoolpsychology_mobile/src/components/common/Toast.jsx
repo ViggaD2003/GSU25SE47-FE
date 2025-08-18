@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Toast = ({
   visible,
@@ -16,6 +17,7 @@ const Toast = ({
   onHide,
 }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
+  const insets = useSafeAreaInsets(); // 👈 lấy safe area
 
   const hideToast = useCallback(() => {
     Animated.timing(fadeAnim, {
@@ -29,7 +31,6 @@ const Toast = ({
 
   useEffect(() => {
     if (visible) {
-      // Reset animation value first
       fadeAnim.setValue(0);
 
       Animated.timing(fadeAnim, {
@@ -44,7 +45,6 @@ const Toast = ({
 
       return () => clearTimeout(timer);
     } else {
-      // Hide immediately when not visible
       fadeAnim.setValue(0);
     }
   }, [visible, duration, fadeAnim, hideToast]);
@@ -52,35 +52,15 @@ const Toast = ({
   const getToastStyle = () => {
     switch (type) {
       case "success":
-        return {
-          backgroundColor: "#10B981",
-          icon: "checkmark-circle",
-          borderColor: "#059669",
-        };
+        return { backgroundColor: "#10B981", icon: "checkmark-circle", borderColor: "#059669" };
       case "error":
-        return {
-          backgroundColor: "#EF4444",
-          icon: "close-circle",
-          borderColor: "#DC2626",
-        };
+        return { backgroundColor: "#EF4444", icon: "close-circle", borderColor: "#DC2626" };
       case "warning":
-        return {
-          backgroundColor: "#F59E0B",
-          icon: "warning",
-          borderColor: "#D97706",
-        };
+        return { backgroundColor: "#F59E0B", icon: "warning", borderColor: "#D97706" };
       case "server-error":
-        return {
-          backgroundColor: "#F97316",
-          icon: "server",
-          borderColor: "#EA580C",
-        };
+        return { backgroundColor: "#F97316", icon: "server", borderColor: "#EA580C" };
       default:
-        return {
-          backgroundColor: "#3B82F6",
-          icon: "information-circle",
-          borderColor: "#2563EB",
-        };
+        return { backgroundColor: "#3B82F6", icon: "information-circle", borderColor: "#2563EB" };
     }
   };
 
@@ -92,9 +72,12 @@ const Toast = ({
     <Animated.View
       style={[
         styles.container,
-        { opacity: fadeAnim },
-        { backgroundColor: toastStyle.backgroundColor },
-        { borderColor: toastStyle.borderColor },
+        {
+          opacity: fadeAnim,
+          backgroundColor: toastStyle.backgroundColor,
+          borderColor: toastStyle.borderColor,
+          top: insets.top + 12, // 👈 đẩy xuống dưới notch
+        },
       ]}
     >
       <View style={styles.content}>
@@ -111,7 +94,6 @@ const Toast = ({
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: 0,
     left: 20,
     right: 20,
     borderRadius: 12,
@@ -127,7 +109,6 @@ const styles = StyleSheet.create({
   content: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
   },
   message: {
     flex: 1,
@@ -135,6 +116,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     lineHeight: 20,
+    marginLeft: 8,
   },
   closeButton: {
     padding: 4,

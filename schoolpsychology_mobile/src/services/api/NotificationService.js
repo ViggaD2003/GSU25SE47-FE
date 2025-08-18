@@ -13,6 +13,19 @@ const NotificationAPI = {
       throw error;
     }
   },
+
+
+
+  async readNotification(notificationId) {
+    try {
+      const response = await api.patch(`/api/v1/noti/read/${notificationId}`);
+      return response.data;
+    } catch (error) {
+      console.error("NotificationAPI: Error reading notifications:", error);
+      throw error;
+    }
+  }
 };
 
 export default NotificationAPI;
+
