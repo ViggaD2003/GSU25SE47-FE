@@ -33,7 +33,7 @@ export const classAPI = {
     const queryString = new URLSearchParams(params).toString()
 
     const response = await api.get(
-      `/api/v1/account/students-without-or-inactive-class?${queryString}`
+      `/api/v1/account/students/eligible?${queryString}`
     )
     return response.data
   },
