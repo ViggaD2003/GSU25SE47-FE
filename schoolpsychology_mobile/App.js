@@ -19,6 +19,7 @@ import { TextEncoder, TextDecoder } from "text-encoding";
 import { useTranslation } from "react-i18next";
 import "./src/i18n";
 import RootStack from "./src/navigation";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Extend global with TextEncoder and TextDecoder
 if (typeof global.TextEncoder === "undefined") {
@@ -88,6 +89,7 @@ function RootNavigation() {
 
 export default function App() {
   return (
+    <SafeAreaProvider>
     <LanguageProvider>
       <AuthProvider>
         <PermissionProvider>
@@ -102,5 +104,6 @@ export default function App() {
         </PermissionProvider>
       </AuthProvider>
     </LanguageProvider>
+    </SafeAreaProvider>
   );
 }
