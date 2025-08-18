@@ -383,7 +383,9 @@ export const useNotifications = () => {
   const markAsRead = useCallback(
     async (notificationId) => {
       try {
-        // Update local state immediately for better UX
+        const res = await NotificationAPI.readNotification(notificationId);
+        console.log(res);
+        
         setNotifications((prev) =>
           prev.map((n) =>
             n.id === notificationId ? { ...n, isRead: true } : n

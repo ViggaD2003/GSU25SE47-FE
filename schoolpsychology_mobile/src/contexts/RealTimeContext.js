@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { Client } from "@stomp/stompjs";
 import { useAuth } from "./AuthContext";
+import Toast from "../components/common/Toast"; // ✅ import default Toast
 
 // Polyfill cho RN
 import { TextEncoder, TextDecoder } from "text-encoding";
@@ -26,13 +27,18 @@ const RealTimeProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("info");
+
   const stompClientRef = useRef(null);
   const subscriptionRef = useRef(null);
   const tokenRef = useRef(token);
   const isConnectedRef = useRef(false);
   const isConnectingRef = useRef(false);
 
-  // Giữ token mới nhất
+  // Giữ token & trạng thái mới nhất
   useEffect(() => { tokenRef.current = token; }, [token]);
   useEffect(() => { isConnectedRef.current = isConnected; }, [isConnected]);
   useEffect(() => { isConnectingRef.current = isConnecting; }, [isConnecting]);
@@ -50,10 +56,8 @@ const RealTimeProvider = ({ children }) => {
     const client = new Client({
       webSocketFactory: () =>
         new WebSocket(`ws://spmss-api.ocgi.space/ws?token=${encodeURIComponent(currentToken)}`),
-      connectHeaders: {
-        token: currentToken, // gửi kèm trong CONNECT frame
-      },
-      forceBinaryWSFrames: true, // giúp RN gửi chuẩn STOMP
+      connectHeaders: { token: currentToken },
+      forceBinaryWSFrames: true,
       appendMissingNULLonIncoming: true,
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
@@ -65,13 +69,52 @@ const RealTimeProvider = ({ children }) => {
         setIsConnected(true);
         setIsConnecting(false);
 
-        // Sub vào topic thông báo
-          subscriptionRef.current = client.subscribe(
-            `/user/queue/notifications`,
-            (message) => {
-             console.log("UYEN GUI " + message.body)
+        subscriptionRef.current = client.subscribe(
+          `/user/queue/notifications`,
+          (message) => {
+            try {
+              const payload = (() => {
+                try { return JSON.parse(message.body); } catch { return null; }
+              })();
+
+              const content =
+                payload?.title ||
+                payload?.message ||
+                payload?.body ||
+                payload?.content ||
+                (typeof message.body === "string" ? message.body : "Bạn có thông báo mới");
+
+              const rawType = (payload?.type || payload?.level || "info").toString().toLowerCase();
+              const mappedType =
+                rawType.includes("success") ? "success" :
+                rawType.includes("error") || rawType.includes("fail") ? "error" :
+                rawType.includes("warn") ? "warning" :
+                rawType.includes("server") ? "server-error" :
+                "info";
+
+              if (payload) {
+                setNotifications((prev) => [{
+                  id: payload.id || Date.now(),
+                  title: payload.title || "Thông báo",
+                  body: payload.body || payload.message || payload.content || content,
+                  type: mappedType,
+                  createdAt: payload.createdAt || new Date().toISOString(),
+                  isRead: false,
+                }, ...prev]);
+              }
+
+              // Hiển thị toast
+              setToastMessage(content);
+              setToastType(mappedType);
+              setToastVisible(true);
+            } catch (err) {
+              console.log("[WebSocket] 🔔 Notification parse error", err);
+              setToastMessage("Bạn có thông báo mới");
+              setToastType("info");
+              setToastVisible(true);
             }
-          );
+          }
+        );
       },
       onDisconnect: () => {
         console.log("[WebSocket] 🔌 Disconnected");
@@ -79,13 +122,15 @@ const RealTimeProvider = ({ children }) => {
       },
       onStompError: (frame) => {
         console.error("[WebSocket] 🚨 STOMP error:", frame.headers["message"]);
+        setIsConnected(false);
+        setIsConnecting(false);
+        setTimeout(() => connectWebSocket(), 5000);
       },
       onWebSocketClose: () => {
-        console.log("[WebSocket] 🔌 Socket closed");
+        console.log("[WebSocket] 🔌 Socket closed, try reconnect...");
         setIsConnected(false);
-      },
-      onWebSocketError: (event) => {
-        console.error("[WebSocket] 🚨 Socket error", event?.message || event);
+        setIsConnecting(false);
+        setTimeout(() => connectWebSocket(), 3000);
       }
     });
 
@@ -137,6 +182,12 @@ const RealTimeProvider = ({ children }) => {
   return (
     <WebSocketContext.Provider value={value}>
       {children}
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+      />
     </WebSocketContext.Provider>
   );
 };
