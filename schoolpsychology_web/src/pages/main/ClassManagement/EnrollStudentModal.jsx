@@ -9,7 +9,6 @@ import {
   Card,
   Button,
   Input,
-  Select,
   Row,
   Col,
   Typography,
@@ -27,10 +26,20 @@ import {
   UserAddOutlined,
 } from '@ant-design/icons'
 import { classAPI } from '@/services/classApi'
+import {
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button as MuiButton,
+  Box,
+} from '@mui/material'
+import FilterAltIcon from '@mui/icons-material/FilterAlt'
 
 const { Title, Text } = Typography
 const { Search } = Input
-const { Option } = Select
+// const { Option } = Select
 
 export const EnrollStudentsModal = ({
   t,
@@ -44,11 +53,9 @@ export const EnrollStudentsModal = ({
   const [students, setStudents] = useState([])
   const [selectedIds, setSelectedIds] = useState([])
   const [query, setQuery] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
   const [filterValues, setFilterValues] = useState({
     grade: undefined,
-    schoolYear: undefined,
-    classCode: undefined,
+    gender: undefined,
   })
 
   console.log(classItem)
@@ -101,7 +108,6 @@ export const EnrollStudentsModal = ({
     if (!open) {
       setSelectedIds([])
       setQuery('')
-      setShowFilters(false)
       setFilterValues({
         grade: undefined,
         schoolYear: undefined,
@@ -128,10 +134,9 @@ export const EnrollStudentsModal = ({
 
   // Memoize get students handler
   const handleGetStudents = useCallback(() => {
-    setShowFilters(false)
     setFilterValues({
       grade: undefined,
-      schoolYear: undefined,
+      gender: undefined,
       classCode: undefined,
     })
     fetchStudents()
@@ -153,19 +158,9 @@ export const EnrollStudentsModal = ({
   const resetFilters = useCallback(() => {
     setFilterValues({
       grade: undefined,
-      schoolYear: undefined,
+      gender: undefined,
       classCode: undefined,
     })
-  }, [])
-
-  // Memoize toggle filters handler
-  const toggleFilters = useCallback(() => {
-    setShowFilters(prev => !prev)
-  }, [])
-
-  // Memoize hide filters handler
-  const hideFilters = useCallback(() => {
-    setShowFilters(false)
   }, [])
 
   // Memoize search handler
@@ -332,132 +327,16 @@ export const EnrollStudentsModal = ({
             </Space>
           </Card>
 
-          {/* Filter Section */}
-          <Card
-            title={
-              <Space>
-                <FilterOutlined style={{ color: '#1890ff' }} />
-                <Text strong>{t('common.filter')}</Text>
-              </Space>
-            }
-            size="small"
-          >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <div>
-                <Button
-                  type={!showFilters ? 'primary' : 'default'}
-                  onClick={handleGetStudents}
-                  block
-                  icon={<UserOutlined />}
-                >
-                  {t('classManagement.enrollModal.getStudents')}
-                </Button>
-              </div>
-              <div>
-                <Button
-                  type={showFilters ? 'primary' : 'default'}
-                  onClick={toggleFilters}
-                  block
-                  icon={<FilterOutlined />}
-                >
-                  {showFilters
-                    ? t('classManagement.enrollModal.hideFilters')
-                    : t('classManagement.enrollModal.showFilters')}
-                </Button>
-              </div>
-
-              {showFilters && (
-                <div className="mt-3">
-                  <Divider style={{ margin: '12px 0' }} />
-                  <Space
-                    direction="vertical"
-                    size="small"
-                    style={{ width: '100%' }}
-                  >
-                    <div>
-                      <Text className="text-sm">
-                        {t('classManagement.form.grade')}
-                      </Text>
-                      <Select
-                        placeholder={t('classManagement.form.selectGrade')}
-                        value={filterValues.grade}
-                        onChange={value => handleFilterChange('grade', value)}
-                        style={{ width: '100%' }}
-                        allowClear
-                        size="small"
-                      >
-                        <Select.Option value={10}>
-                          {t('classManagement.form.grade10')}
-                        </Select.Option>
-                        <Select.Option value={11}>
-                          {t('classManagement.form.grade11')}
-                        </Select.Option>
-                        <Select.Option value={12}>
-                          {t('classManagement.form.grade12')}
-                        </Select.Option>
-                      </Select>
-                    </div>
-                    <div>
-                      <Text className="text-sm">
-                        {t('classManagement.form.schoolYear')}
-                      </Text>
-                      <Input
-                        placeholder={t(
-                          'classManagement.enrollModal.schoolYearPlaceholder'
-                        )}
-                        value={filterValues.schoolYear}
-                        onChange={e =>
-                          handleFilterChange('schoolYear', e.target.value)
-                        }
-                        allowClear
-                        size="small"
-                      />
-                    </div>
-                    <div>
-                      <Text className="text-sm">
-                        {t('classManagement.form.codeClass')}
-                      </Text>
-                      <Input
-                        placeholder={t(
-                          'classManagement.enrollModal.classCodePlaceholder'
-                        )}
-                        value={filterValues.classCode}
-                        onChange={e =>
-                          handleFilterChange('classCode', e.target.value)
-                        }
-                        allowClear
-                        size="small"
-                      />
-                    </div>
-                    <div className="mt-2">
-                      <Space size="small" style={{ width: '100%' }}>
-                        <Button
-                          type="primary"
-                          size="small"
-                          onClick={handleApplyFilters}
-                          disabled={!activeFilters}
-                          block
-                        >
-                          {t('classManagement.enrollModal.applyFilters')}
-                        </Button>
-                        <Button size="small" onClick={resetFilters}>
-                          {t('common.clear')}
-                        </Button>
-                      </Space>
-                      <div className="mt-2">
-                        <Button
-                          size="small"
-                          onClick={hideFilters}
-                          style={{ width: '100%' }}
-                        >
-                          {t('classManagement.enrollModal.hideFilters')}
-                        </Button>
-                      </div>
-                    </div>
-                  </Space>
-                </div>
-              )}
-            </Space>
+          {/* Get Students Button */}
+          <Card size="small">
+            <Button
+              onClick={handleGetStudents}
+              block
+              icon={<UserOutlined />}
+              type="primary"
+            >
+              {t('classManagement.enrollModal.getStudents')}
+            </Button>
           </Card>
         </Col>
 
@@ -473,18 +352,72 @@ export const EnrollStudentsModal = ({
               </Space>
             }
             size="small"
-            extra={
-              <Input.Search
-                placeholder={t('classManagement.enrollModal.searchPlaceholder')}
-                allowClear
-                onSearch={handleSearch}
-                onChange={e => handleSearch(e.target.value)}
-                enterButton
-                style={{ width: 300 }}
-                size="small"
-              />
-            }
           >
+            {/* Search and Filters Row */}
+            <Box display="flex" gap={2} mb={2} flexWrap="wrap">
+              {/* Search Input */}
+              <TextField
+                size="small"
+                fullWidth
+                placeholder={t('classManagement.enrollModal.searchPlaceholder')}
+                value={query}
+                onChange={e => handleSearch(e.target.value)}
+              />
+
+              {/* Grade Select */}
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>{t('classManagement.form.selectGrade')}</InputLabel>
+                <Select
+                  value={filterValues.grade ?? ''}
+                  label={t('classManagement.form.selectGrade')}
+                  onChange={e => handleFilterChange('grade', e.target.value)}
+                >
+                  <MenuItem value={'GRADE_10'}>
+                    {t('classManagement.form.grade10')}
+                  </MenuItem>
+                  <MenuItem value={'GRADE_11'}>
+                    {t('classManagement.form.grade11')}
+                  </MenuItem>
+                  <MenuItem value={'GRADE_12'}>
+                    {t('classManagement.form.grade12')}
+                  </MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Gender Select */}
+              <FormControl size="small" sx={{ minWidth: 140 }}>
+                <InputLabel>{t('userTable.gender')}</InputLabel>
+                <Select
+                  value={filterValues.gender ?? ''}
+                  label={t('userTable.gender')}
+                  onChange={e => handleFilterChange('gender', e.target.value)}
+                >
+                  <MenuItem value={1}>{t('common.male')}</MenuItem>
+                  <MenuItem value={0}>{t('common.female')}</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/* Action Buttons */}
+              <Box display="flex" alignItems="center" gap={1}>
+                <MuiButton
+                  variant="contained"
+                  size="small"
+                  onClick={handleApplyFilters}
+                  disabled={!activeFilters}
+                  startIcon={<FilterAltIcon />}
+                >
+                  {t('classManagement.enrollModal.applyFilters')}
+                </MuiButton>
+                <MuiButton
+                  variant="outlined"
+                  size="small"
+                  onClick={resetFilters}
+                >
+                  {t('common.clear')}
+                </MuiButton>
+              </Box>
+            </Box>
+
             <div className="mb-4">
               <Text type="secondary" className="text-sm">
                 {t('classManagement.enrollModal.selectedCount', {
