@@ -230,8 +230,8 @@ export const WebSocketProvider = ({ children }) => {
       body = {
         title: 'Hello from client!',
         content: `${userRef.current?.fullName || 'User'} sent you a message`,
-        username: userRef.current?.sub,
-        // username: 'vinhnguyen12346767@gmail.com',
+        // username: userRef.current?.sub,
+        username: 'vinhnguyen12346767@gmail.com',
         notificationType: 'TEST_MESSAGE',
         relatedEntityId: '0',
       }
