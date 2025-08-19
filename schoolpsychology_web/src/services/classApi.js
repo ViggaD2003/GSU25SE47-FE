@@ -14,11 +14,11 @@ export const classAPI = {
     const response = await api.get(`/api/v1/classes/code/${code}`)
     return response.data
   },
-  getClassById: async id => {
-    if (!id) return
-    const response = await api.get(`/api/v1/classes/${id}`)
-    return response.data
-  },
+  // getClassById: async id => {
+  //   if (!id) return
+  //   const response = await api.get(`/api/v1/classes/${id}`)
+  //   return response.data
+  // },
   createClass: async data => {
     const response = await api.post('/api/v1/classes', data)
     return response.data

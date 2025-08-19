@@ -13,11 +13,11 @@ import { useFocusEffect } from "@react-navigation/native";
 import { Loading } from "../../components";
 import { Alert } from "../../components";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNotifications } from "../../utils/hooks";
 import EventService from "../../services/api/EventService";
 import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -34,9 +34,10 @@ export default function StudentHome({ user, navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
   const isEnableSurvey = user?.isEnableSurvey;
 
-  const { fetchNotifications } = useNotifications();
+  const { refreshUser } = useAuth();
 
   const actionItems = useMemo(
     () => [
@@ -126,8 +127,10 @@ export default function StudentHome({ user, navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
-    await fetchNotifications();
+    Promise.all([loadData(), refreshUser()]).then(() => {
+      console.log("[StudentHome] Refreshed");
+      setRefreshing(false);
+    });
   };
 
   // Centralized function to load tab data
@@ -140,7 +143,7 @@ export default function StudentHome({ user, navigation }) {
     try {
       await Promise.all([getTodayPlans(), fetchRecommandedPrograms()]);
     } catch (error) {
-      console.error(`Error loading data:`, error);
+      console.error(`Er or loading data:`, error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -150,7 +153,6 @@ export default function StudentHome({ user, navigation }) {
   useFocusEffect(
     useCallback(() => {
       loadData();
-      fetchNotifications();
     }, [])
   );
 

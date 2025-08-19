@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
       const authenticated = await authIsAuthenticated();
       if (authenticated) {
         const currentUser = await getCurrentUser();
-        console.log("currentUser", currentUser);
+        // console.log("currentUser", currentUser);
         setUser(currentUser);
 
         // Clear survey progress from other users when app loads
@@ -103,8 +103,8 @@ export const AuthProvider = ({ children }) => {
   const login = useCallback(async (email, password) => {
     try {
       const result = await authLogin(email, password);
-      setUser(result.user);
 
+      await loadUser();
       // Clear survey progress from other users after successful login
       try {
         await clearOtherUsersProgress();
@@ -175,6 +175,11 @@ export const AuthProvider = ({ children }) => {
     [user]
   );
 
+  const refreshUser = useCallback(async () => {
+    const currentUser = await getCurrentUser();
+    setUser(currentUser);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -182,7 +187,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         loading,
-        loadUser,
+        refreshUser,
         updateUser,
         isAuthenticated: isAuthenticated(),
         hasRole,

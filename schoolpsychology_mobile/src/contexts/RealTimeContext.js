@@ -20,7 +20,8 @@ const WebSocketContext = createContext(null);
 export const useRealTime = () => useContext(WebSocketContext);
 
 const RealTimeProvider = ({ children }) => {
-  const { user, isAuthenticated, loadUser } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
   const token = user?.accessToken || user?.token;
 
   const [notifications, setNotifications] = useState([]);
@@ -52,12 +53,14 @@ const RealTimeProvider = ({ children }) => {
   const connectWebSocket = useCallback(() => {
     const currentToken = tokenRef.current;
     if (!currentToken) {
-      console.error("[WebSocket] ❌ No JWT token");
+      console.log("[WebSocket] ❌ No JWT token");
       return;
     }
     if (isConnectedRef.current || isConnectingRef.current) return;
 
-    setIsConnecting(true);
+    if (isConnected) {
+      return;
+    }
 
     const client = new Client({
       webSocketFactory: () =>
@@ -129,7 +132,6 @@ const RealTimeProvider = ({ children }) => {
                   ...prev,
                 ]);
               }
-              loadUser();
               // Hiển thị toast
               setToastMessage(content);
               setToastType(mappedType);
@@ -181,6 +183,8 @@ const RealTimeProvider = ({ children }) => {
   );
 
   const disconnectWebSocket = useCallback(() => {
+    console.log("[WebSocket] 🔌 Disconnect");
+
     if (subscriptionRef.current) {
       try {
         subscriptionRef.current.unsubscribe();

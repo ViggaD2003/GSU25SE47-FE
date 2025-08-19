@@ -39,7 +39,7 @@ const ChildSelector = ({
               style={[
                 styles.statusDot,
                 {
-                  backgroundColor: selectedChild?.isActive
+                  backgroundColor: selectedChild?.isEnableSurvey
                     ? "#10B981"
                     : "#EF4444",
                 },
@@ -72,28 +72,6 @@ const ChildSelector = ({
 
         {showStatus && (
           <View style={styles.statusOneChildContainer}>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor: selectedChild?.isActive
-                    ? "#D1FAE5"
-                    : "#FEE2E2",
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: selectedChild?.isActive ? "#065F46" : "#DC2626" },
-                ]}
-              >
-                {selectedChild?.isActive
-                  ? t("children.status.active")
-                  : t("children.status.inactive")}
-              </Text>
-            </View>
-
             {selectedChild?.isEnableSurvey !== undefined && (
               <View
                 style={[
@@ -156,7 +134,7 @@ const ChildSelector = ({
               style={[
                 styles.statusDot,
                 {
-                  backgroundColor: selectedChild?.isActive
+                  backgroundColor: selectedChild?.isEnableSurvey
                     ? "#10B981"
                     : "#EF4444",
                 },
@@ -258,28 +236,6 @@ const ChildSelector = ({
         {/* Status Badges */}
         {showStatus && (
           <View style={styles.statusContainer}>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor: selectedChild?.isActive
-                    ? "#D1FAE5"
-                    : "#FEE2E2",
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.statusText,
-                  { color: selectedChild?.isActive ? "#065F46" : "#DC2626" },
-                ]}
-              >
-                {selectedChild?.isActive
-                  ? t("children.status.active")
-                  : t("children.status.inactive")}
-              </Text>
-            </View>
-
             {selectedChild?.isEnableSurvey !== undefined && (
               <View
                 style={[
@@ -397,7 +353,7 @@ const styles = StyleSheet.create({
   },
   singleChildContainer: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
@@ -589,7 +545,7 @@ const styles = StyleSheet.create({
   statusOneChildContainer: {
     flexDirection: "column",
     alignItems: "flex-end",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     marginTop: 8,
     marginBottom: 8,
     gap: 8,

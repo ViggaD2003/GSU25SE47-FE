@@ -164,7 +164,9 @@
       "allCasesClosedSubtitle": "Great job! All your cases have been successfully resolved.",
       "noCase": "No Case Found",
       "noCaseAssigned": "No Case Assigned",
-      "noCaseAssignedSubtitle": "You don't have any cases assigned at the moment."
+      "noCaseAssignedSubtitle": "You don't have any cases assigned at the moment.",
+      "waitingForConfirmation": "Waiting for Confirmation",
+      "waitingForConfirmationSubtitle": "You are waiting for confirmation from your parent."
     },
     "closedCases": {
       "title": "Closed Cases",
@@ -195,6 +197,20 @@
     },
     "details": {
       "title": "Case Details"
+    },
+    "confirmed": {
+      "title": "Confirm Case",
+      "button": "Confirm",
+      "message": "Are you sure you want to confirm this case? This action cannot be undone.",
+      "success": "Case confirmed successfully",
+      "error": "Failed to confirm case"
+    },
+    "closed": {
+      "title": "Reject Case",
+      "button": "Reject",
+      "message": "Are you sure you want to reject this case? This action cannot be undone.",
+      "success": "Case rejected successfully",
+      "error": "Failed to reject case"
     }
   },
   "common": {

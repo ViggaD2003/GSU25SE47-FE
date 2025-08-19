@@ -27,3 +27,13 @@ export const getClosedCases = async (accountId) => {
     throw error;
   }
 };
+
+export const confirmCase = async (caseId, body) => {
+  try {
+    const response = await api.put(`/api/v1/cases/${caseId}`, body);
+    return response.data;
+  } catch (error) {
+    console.error("Error confirming case:", error);
+    throw error;
+  }
+};

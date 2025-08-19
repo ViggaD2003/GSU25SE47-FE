@@ -68,24 +68,24 @@ export const createClass = createAsyncThunk(
 )
 
 // Async thunk for getting a class by id
-export const getClassById = createAsyncThunk(
-  'class/getClassById',
-  async (id, { rejectWithValue }) => {
-    try {
-      if (!id) {
-        return rejectWithValue('Class id is required')
-      }
-      const response = await classAPI.getClassById(id)
-      return response
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          'Failed to fetch class by id'
-      )
-    }
-  }
-)
+// export const getClassById = createAsyncThunk(
+//   'class/getClassById',
+//   async (id, { rejectWithValue }) => {
+//     try {
+//       if (!id) {
+//         return rejectWithValue('Class id is required')
+//       }
+//       const response = await classAPI.getClassById(id)
+//       return response
+//     } catch (error) {
+//       return rejectWithValue(
+//         error.response?.data?.message ||
+//           error.message ||
+//           'Failed to fetch class by id'
+//       )
+//     }
+//   }
+// )
 
 // Async thunk for enrolling a class
 export const enrollClass = createAsyncThunk(

@@ -6,6 +6,8 @@ import {
   Dimensions,
   RefreshControl,
   Animated,
+  Alert,
+  TouchableOpacity,
 } from "react-native";
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -19,23 +21,31 @@ import StatisticsCard from "@/components/dashboard/StatisticsCard";
 import BarChart from "@/components/charts/BarChart";
 import Loading from "@/components/common/Loading";
 import { useAuth, useChildren } from "@/contexts";
-import { getCaseByCaseId } from "@/services/api/caseApi";
+import { confirmCase, getCaseByCaseId } from "@/services/api/caseApi";
 import { GlobalStyles } from "@/constants";
 import { getLevelConfig } from "@/constants/levelConfig";
 import ChildSelector, {
   ChildSelectorWithTitle,
 } from "@/components/common/ChildSelector";
 import { useFocusEffect } from "@react-navigation/native";
+import { Toast } from "@/components/common";
 
 const CaseDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
   const { children, selectedChild } = useChildren();
+  const isNewCase = caseDetails?.caseInfo?.status === "NEW";
+  const [toast, setToast] = useState({
+    visible: false,
+    message: "",
+    type: "info",
+  });
+  const hasActiveCase = user?.caseId || selectedChild?.caseId;
 
   const fetchCaseDetails = async () => {
     try {
@@ -80,8 +90,13 @@ const CaseDetails = ({ route, navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await fetchCaseDetails();
-    setRefreshing(false);
+    await Promise.all([fetchCaseDetails(), refreshUser()])
+      .then(() => {
+        console.log("[CaseDetails] Refreshed");
+      })
+      .finally(() => {
+        setRefreshing(false);
+      });
   };
 
   useEffect(() => {
@@ -93,6 +108,62 @@ const CaseDetails = ({ route, navigation }) => {
       fetchCaseDetails();
     }, [selectedChild, user?.caseId, caseId])
   );
+
+  const handleConfirmCase = async (status) => {
+    try {
+      if (!isNewCase || user?.role === "STUDENT") {
+        return;
+      }
+      console.log("status props", status);
+
+      if (caseDetails && status) {
+        Alert.alert(
+          t(`case.${status.toLowerCase()}.title`),
+          t(`case.${status.toLowerCase()}.message`),
+          [
+            {
+              text: t("common.cancel"),
+              style: "destructive",
+            },
+            {
+              text: t("common.confirm"),
+              onPress: async () => {
+                try {
+                  const body = {
+                    priority: caseDetails?.caseInfo?.priority,
+                    status: status,
+                    progressTrend: caseDetails?.caseInfo?.progressTrend,
+                    currentLevelId: caseDetails?.caseInfo?.currentLevel?.id,
+                  };
+                  console.log("body", body);
+                  const data = await confirmCase(
+                    caseDetails?.caseInfo?.id,
+                    body
+                  );
+                  console.log("data", data);
+                  if (data) {
+                    setCaseDetails(data);
+                    setToast({
+                      visible: true,
+                      message: t("case.confirm.success"),
+                      type: "success",
+                    });
+                  }
+                } catch (error) {
+                  console.log(
+                    "[CaseDetails] Error confirming case:",
+                    error.response.data
+                  );
+                }
+              },
+            },
+          ]
+        );
+      }
+    } catch (error) {
+      console.error("Error confirming case:", error);
+    }
+  };
 
   // Helper functions
   const getStatusConfig = (status) => {
@@ -222,11 +293,15 @@ const CaseDetails = ({ route, navigation }) => {
         <Text style={styles.emptyTitle}>
           {status === "CLOSED"
             ? t("case.emptyState.noCase")
+            : status === "NEW"
+            ? t("case.emptyState.waitingForConfirmation")
             : t("case.emptyState.noCaseAssigned")}
         </Text>
         <Text style={styles.emptySubtitle}>
           {status === "CLOSED"
             ? t("case.emptyState.allCasesClosedSubtitle")
+            : status === "NEW"
+            ? t("case.emptyState.waitingForConfirmationSubtitle")
             : t("case.emptyState.noCaseAssignedSubtitle")}
         </Text>
       </View>
@@ -568,8 +643,43 @@ const CaseDetails = ({ route, navigation }) => {
     );
   };
 
+  const renderButton = () => {
+    if (user.role === "STUDENT" || !isNewCase) {
+      return null;
+    }
+
+    return (
+      <Animated.View style={[{ opacity: fadeAnim }]}>
+        <View style={styles.buttonContent}>
+          <TouchableOpacity
+            onPress={() => handleConfirmCase("CONFIRMED")}
+            style={styles.confirmButton}
+          >
+            <Text style={styles.confirmButtonText}>
+              {t("case.confirmed.button")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleConfirmCase("CLOSED")}
+            style={styles.rejectButton}
+          >
+            <Text style={styles.rejectButtonText}>
+              {t("case.closed.button")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  };
+
   return (
     <Container>
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={() => setToast({ visible: false, message: "", type: "info" })}
+      />
       {from === "tab" ? (
         <HeaderWithTab
           title={t("case.tab.title")}
@@ -595,24 +705,30 @@ const CaseDetails = ({ route, navigation }) => {
       {loading ? (
         <Loading />
       ) : (
-        <ScrollView
-          style={styles.container}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {!caseDetails ? (
-            renderEmptyState(user?.caseId ? "IN_PROGRESS" : "CLOSED")
-          ) : (
-            <View style={styles.content}>
-              {renderCaseInfo()}
-              {renderStatistics()}
-              {renderCharts()}
-            </View>
-          )}
-        </ScrollView>
+        <>
+          {renderButton()}
+
+          <ScrollView
+            style={styles.container}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {!caseDetails ? (
+              renderEmptyState(hasActiveCase ? "IN_PROGRESS" : "CLOSED")
+            ) : user.role === "STUDENT" && isNewCase ? (
+              renderEmptyState("NEW")
+            ) : (
+              <View style={styles.content}>
+                {renderCaseInfo()}
+                {!isNewCase && renderStatistics()}
+                {!isNewCase && renderCharts()}
+              </View>
+            )}
+          </ScrollView>
+        </>
       )}
     </Container>
   );
@@ -925,6 +1041,42 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     fontWeight: "600",
     flex: 1,
+  },
+  buttonContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 20,
+    gap: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#018103",
+    padding: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confirmButtonText: {
+    color: "#018103",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  rejectButton: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EF4444",
+    padding: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rejectButtonText: {
+    color: "#EF4444",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

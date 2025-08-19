@@ -130,20 +130,20 @@ const classSlice = createSlice({
         state.error = action.payload || 'Failed to enroll class'
       })
 
-      // getClassById
-      .addCase('class/getClassById/pending', state => {
-        state.loading = true
-        state.error = null
-      })
-      .addCase('class/getClassById/fulfilled', (state, action) => {
-        state.loading = false
-        state.classById = action.payload
-        state.error = null
-      })
-      .addCase('class/getClassById/rejected', (state, action) => {
-        state.loading = false
-        state.error = action.payload || 'Failed to fetch class by id'
-      })
+    // getClassById
+    // .addCase('class/getClassById/pending', state => {
+    //   state.loading = true
+    //   state.error = null
+    // })
+    // .addCase('class/getClassById/fulfilled', (state, action) => {
+    //   state.loading = false
+    //   state.classById = action.payload
+    //   state.error = null
+    // })
+    // .addCase('class/getClassById/rejected', (state, action) => {
+    //   state.loading = false
+    //   state.error = action.payload || 'Failed to fetch class by id'
+    // })
   },
 })
 

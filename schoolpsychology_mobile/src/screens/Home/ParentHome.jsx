@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -13,12 +13,10 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ChildSelector, Loading } from "../../components";
 import { Alert } from "../../components";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNotifications } from "../../utils/hooks";
 import EventService from "../../services/api/EventService";
-import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
-import { useChildren } from "@/contexts";
+import { useAuth, useChildren } from "@/contexts";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -29,13 +27,14 @@ const PAGE_SIZE = 2; // Page size for lazy loading
 
 export default function ParentHome({ user, navigation }) {
   const { t } = useTranslation();
+  const { refreshUser } = useAuth();
   const [todayPlans, setTodayPlans] = useState([]); // Store all data
   const [displayedData, setDisplayedData] = useState([]); // Store currently displayed data
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const { selectedChild, children } = useChildren();
-  const isEnableSurvey = false;
+  const isEnableSurvey = selectedChild?.isEnableSurvey;
 
   const actionItems = useMemo(
     () => [
@@ -93,6 +92,7 @@ export default function ParentHome({ user, navigation }) {
         endDate: today,
       };
       const response = await EventService.getEvents(selectedChild.id, params);
+
       setTodayPlans(response || []);
       // Update displayed data with pagination
       const initialData = (response || []).slice(0, PAGE_SIZE);
@@ -120,7 +120,10 @@ export default function ParentHome({ user, navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    Promise.all([loadData(), refreshUser()]).then(() => {
+      console.log("[ParentHome] Refreshed");
+      setRefreshing(false);
+    });
   };
 
   // Centralized function to load tab data
@@ -136,7 +139,6 @@ export default function ParentHome({ user, navigation }) {
       console.error(`Error loading data:`, error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 

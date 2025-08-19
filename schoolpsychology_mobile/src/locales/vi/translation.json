@@ -164,7 +164,9 @@
       "allCasesClosedSubtitle": "Tuyệt vời! Tất cả trường hợp của bạn đã được giải quyết thành công.",
       "noCase": "Không tìm thấy trường hợp",
       "noCaseAssigned": "Không có trường hợp được tạo",
-      "noCaseAssignedSubtitle": "Bạn không có trường hợp nào được tạo vào lúc này."
+      "noCaseAssignedSubtitle": "Bạn không có trường hợp nào được tạo vào lúc này.",
+      "waitingForConfirmation": "Đang chờ xác nhận",
+      "waitingForConfirmationSubtitle": "Bạn đang chờ xác nhận trường hợp từ phụ huynh của bạn."
     },
     "closedCases": {
       "title": "Trường hợp đã đóng",
@@ -195,6 +197,20 @@
     },
     "details": {
       "title": "Chi tiết trường hợp"
+    },
+    "confirmed": {
+      "title": "Xác nhận trường hợp theo dõi",
+      "button": "Xác nhận",
+      "message": "Bạn có chắc chắn muốn xác nhận trường hợp này? Hành động này không thể được hoàn tác.",
+      "success": "Trường hợp đã được xác nhận thành công",
+      "error": "Lỗi khi xác nhận trường hợp"
+    },
+    "closed": {
+      "title": "Từ chối trường hợp theo dõi",
+      "button": "Từ chối",
+      "message": "Bạn có chắc chắn muốn từ chối trường hợp này? Hành động này không thể được hoàn tác.",
+      "success": "Trường hợp đã được từ chối thành công",
+      "error": "Lỗi khi từ chối trường hợp"
     }
   },
   "common": {

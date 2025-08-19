@@ -110,7 +110,6 @@ export const getCurrentUser = async () => {
     if (!decoded) return null;
 
     return {
-      ...decoded,
       ...user,
       token,
       accessToken: token,

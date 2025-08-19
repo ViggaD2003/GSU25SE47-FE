@@ -30,8 +30,6 @@ export const ChildrenProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  console.log("user", user);
-
   // Sử dụng useMemo để tránh tạo mới object mỗi lần render
   const selectedChild = useMemo(() => {
     if (!selectedChildId) return null;
@@ -43,14 +41,11 @@ export const ChildrenProvider = ({ children }) => {
     if (user?.student?.length > 0 && user?.role === "PARENTS") {
       const children = Array.isArray(user?.student) ? user?.student : [];
 
-      console.log("children", children);
-
       const childrenData = children.map((child) => ({
         ...child,
         id: child.id || child.userId || child.studentId,
         fullName: child.fullName || child.name,
-        isEnableSurvey: child.isEnable || true,
-        isActive: child.isActive || true,
+        role: child.roleName || "STUDENT",
       }));
 
       setChildrenList(childrenData);

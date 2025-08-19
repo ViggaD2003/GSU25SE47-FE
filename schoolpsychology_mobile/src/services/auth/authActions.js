@@ -54,20 +54,14 @@ export const refreshAccessToken = async () => {
     }
 
     // Lấy accessToken hiện tại để refresh (không còn refreshToken riêng)
-    const refreshToken = await getAccessToken();
-    if (
-      !refreshToken ||
-      typeof refreshToken !== "string" ||
-      refreshToken.trim() === ""
-    ) {
+    const token = await getAccessToken();
+    if (!token || typeof token !== "string" || token.trim() === "") {
       await handleRefreshTokenFailure();
       throw new Error(AUTH_ERRORS.REFRESH_FAILED);
     }
 
-    console.log("refreshToken", refreshToken);
-
     // Validate the current token before attempting refresh
-    const tokenValidation = await validateToken(refreshToken);
+    const tokenValidation = await validateToken(token);
     if (!tokenValidation.isValid) {
       console.log("Current token is invalid:", tokenValidation.error);
       await handleRefreshTokenFailure();
@@ -75,10 +69,10 @@ export const refreshAccessToken = async () => {
     }
 
     const response = await refreshApi.post(AUTH_CONFIG.ENDPOINTS.REFRESH, {
-      token: refreshToken,
+      token: token,
     });
 
-    const { token: accessToken } = response.data.data;
+    const { token: accessToken } = response.data.data.token;
 
     // Validate that we received valid tokens
     if (
@@ -97,6 +91,8 @@ export const refreshAccessToken = async () => {
       await handleRefreshTokenFailure();
       throw new Error(newTokenValidation.error);
     }
+
+    console.log("[refreshAccessToken] new token", accessToken);
 
     await setTokens(accessToken);
     processQueue(null, accessToken);
