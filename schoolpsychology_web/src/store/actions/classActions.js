@@ -14,6 +14,8 @@ export const getAllClasses = createAsyncThunk(
       } else if (user?.role.toLowerCase() === 'teacher') {
         response = await classAPI.getClassesByTeacherId(user?.id)
       }
+      console.log('Fetched classes:', response)
+
       return response || []
     } catch (error) {
       return rejectWithValue(

@@ -24,7 +24,6 @@ import UserTable from './UserTable'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   getAllClasses,
-  getClassById,
   getClassesByCode,
 } from '../../../store/actions/classActions'
 import { clearError, updatePagination } from '../../../store/slices/classSlice'
@@ -56,7 +55,6 @@ const ClientManagement = () => {
   const navigate = useNavigate()
 
   // Redux selectors - using individual selectors to avoid new object references
-  const classById = useSelector(state => state.class.classById)
   const selectedClass = useSelector(state => state.class.selectedClass)
   const classes = useSelector(state => state.class.classes)
   const loading = useSelector(state => state.class.loading)
@@ -68,23 +66,18 @@ const ClientManagement = () => {
     setCategories(data)
   }
 
+  const loadData = useCallback(async () => {
+    if (selectedClassCode) {
+      await dispatch(getClassesByCode(selectedClassCode)).unwrap()
+    }
+  }, [dispatch, selectedClassCode])
+
   // Load classes on component mount
   useEffect(() => {
-    if (user?.role === 'teacher' && user?.classId) {
-      Promise.all([
-        dispatch(getClassById(user.classId)),
-        fetchCategories(),
-      ]).then(data => {
-        const classData = data[0].payload
-        setSelectedClassCode(classData.codeClass)
-        setSelectedYear(classData.schoolYear.name)
-      })
-    } else if (user?.role === 'manager') {
-      // Load all classes for manager to populate the dropdown
-      Promise.all([dispatch(getAllClasses()), fetchCategories()]).then(() => {
-        console.log('Classes loaded')
-      })
-    }
+    if (!user) return
+    Promise.all([dispatch(getAllClasses()), fetchCategories()]).then(data => {
+      console.log('Classes and categories loaded:', data)
+    })
   }, [dispatch, user])
 
   // Handle error messages
@@ -187,13 +180,8 @@ const ClientManagement = () => {
     if (!selectedYear) {
       return []
     }
-    if (user?.role === 'teacher') {
-      return classById?.students || []
-    } else if (user?.role === 'manager') {
-      return selectedClass?.students || []
-    }
-    return []
-  }, [user?.role, classById?.students, selectedClass?.students, selectedYear])
+    return selectedClass?.students || []
+  }, [selectedClass?.students, selectedYear])
 
   // Filter students based on search text - memoized to prevent unnecessary recalculations
   const filteredStudents = useMemo(() => {
@@ -205,17 +193,6 @@ const ClientManagement = () => {
         student.studentCode?.toLowerCase().includes(searchText.toLowerCase())
     )
   }, [students, searchText])
-
-  const loadData = useCallback(() => {
-    if (user?.role === 'teacher' && user?.classId) {
-      dispatch(getClassById(user.classId))
-    } else if (user?.role === 'manager' && selectedClassCode) {
-      dispatch(getClassesByCode(selectedClassCode))
-    } else if (user?.role === 'manager' && !selectedClassCode) {
-      // Load all classes for manager to populate the dropdown
-      dispatch(getAllClasses())
-    }
-  }, [dispatch, user?.classId, user?.role, selectedClassCode])
 
   const handleTableChange = useCallback(
     pag => {
@@ -255,7 +232,7 @@ const ClientManagement = () => {
     } else {
       messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
-    loadData(pagination.current, pagination.pageSize)
+    loadData()
   }
 
   const handleModalCancel = () => {
@@ -295,10 +272,7 @@ const ClientManagement = () => {
           </div>
           <div className="flex items-end space-x-3">
             {/* <Button icon={<ExportOutlined />}>Export</Button> */}
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={() => loadData(pagination.current, pagination.pageSize)}
-            >
+            <Button icon={<ReloadOutlined />} onClick={() => loadData()}>
               {t('clientManagement.refresh')}
             </Button>
           </div>
