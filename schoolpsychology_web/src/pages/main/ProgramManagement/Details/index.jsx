@@ -80,6 +80,15 @@ const ProgramDetails = () => {
   const [selectedCaseIds, setSelectedCaseIds] = useState([])
   const [searchText, setSearchText] = useState('')
 
+  const hasAvailableCases = useMemo(() => {
+    return (
+      user?.role?.toLowerCase() !== 'manager' &&
+      user?.categories &&
+      user?.categories?.length > 0 &&
+      user?.categories?.some(c => c.id === program?.category?.id)
+    )
+  }, [user, program])
+
   // Fetch program details on component mount
   useEffect(() => {
     if (id) {
@@ -527,6 +536,8 @@ const ProgramDetails = () => {
                   onAddedCases={() => dispatch(getProgramById(id))}
                   onOpenAddCasesModal={openAddModal}
                   onViewParticipant={showParticipantDetails}
+                  userRole={user?.role}
+                  hasAvailableCases={hasAvailableCases}
                 />
               ),
             },

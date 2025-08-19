@@ -30,6 +30,8 @@ export const ChildrenProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
+  console.log("user", user);
+
   // Sử dụng useMemo để tránh tạo mới object mỗi lần render
   const selectedChild = useMemo(() => {
     if (!selectedChildId) return null;
@@ -38,8 +40,10 @@ export const ChildrenProvider = ({ children }) => {
 
   // Khởi tạo dữ liệu mẫu khi component mount
   useEffect(() => {
-    if (childrenList.length === 0 && user?.role === "PARENTS") {
-      const children = Array.isArray(user?.children) ? user?.children : [];
+    if (user?.student?.length > 0 && user?.role === "PARENTS") {
+      const children = Array.isArray(user?.student) ? user?.student : [];
+
+      console.log("children", children);
 
       const childrenData = children.map((child) => ({
         ...child,

@@ -15,10 +15,7 @@ import {
   checkAndHandleRefreshTokenFailure,
 } from "../services/auth/AuthService";
 import { clearOtherUsersProgress } from "../services/api/SurveyService";
-import {
-  performLogout,
-  isLogoutInProgress,
-} from "../services/auth/tokenManager";
+import { isLogoutInProgress } from "../services/auth/tokenManager";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -72,6 +69,7 @@ export const AuthProvider = ({ children }) => {
       const authenticated = await authIsAuthenticated();
       if (authenticated) {
         const currentUser = await getCurrentUser();
+        console.log("currentUser", currentUser);
         setUser(currentUser);
 
         // Clear survey progress from other users when app loads
@@ -158,24 +156,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, [triggerLogout]);
 
-  const refreshUser = useCallback(async () => {
-    try {
-      // Check if logout is in progress
-      if (isLogoutInProgress() || logoutInProgressRef.current) {
-        console.log("Logout in progress, skipping user refresh");
-        return null;
-      }
-
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-      return currentUser;
-    } catch (error) {
-      console.error("Error refreshing user:", error);
-      setUser(null);
-      return null;
-    }
-  }, []);
-
   const updateUser = useCallback((userData) => {
     setUser((prevUser) => ({
       ...prevUser,
@@ -202,7 +182,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         loading,
-        refreshUser,
+        loadUser,
         updateUser,
         isAuthenticated: isAuthenticated(),
         hasRole,

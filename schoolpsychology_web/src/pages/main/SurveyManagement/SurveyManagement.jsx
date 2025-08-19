@@ -37,6 +37,7 @@ import useMessage from 'antd/es/message/useMessage'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { getSurveyTypePermissions } from '@/constants/enums'
+import { loadAccount } from '@/store/actions'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -145,13 +146,17 @@ const SurveyManagement = () => {
   }, [])
 
   const handleRefresh = useCallback(() => {
-    if (user?.role === 'counselor') {
-      dispatch(getSurveyInCase())
+    if (!user) return
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(getSurveyInCase()).unwrap(),
+      ])
     } else {
-      dispatch(getAllSurveys())
+      dispatch(getAllSurveys()).unwrap()
     }
     setCurrentPage(1)
-  }, [dispatch, user?.role])
+  }, [dispatch, user?.role, user])
 
   const handleAddSurvey = useCallback(() => {
     setIsModalVisible(true)
@@ -243,7 +248,10 @@ const SurveyManagement = () => {
           >
             {t('surveyManagement.refresh')}
           </Button>
-          {((user?.role === 'counselor' && user?.cateAvailable.length > 0) ||
+          {((user?.role === 'counselor' &&
+            user?.hasAvailable &&
+            Array.isArray(user?.categories) &&
+            user?.categories?.length > 0) ||
             user?.role === 'manager') && (
             <Button
               type="primary"

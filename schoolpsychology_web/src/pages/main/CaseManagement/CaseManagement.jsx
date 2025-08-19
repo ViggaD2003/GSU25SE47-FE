@@ -44,6 +44,7 @@ import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
 import { useNavigate } from 'react-router-dom'
+import { loadAccount } from '@/store/actions'
 
 const { Search } = Input
 const { Title, Text } = Typography
@@ -236,8 +237,16 @@ const CaseManagement = () => {
   }, [])
 
   const handleRefresh = useCallback(() => {
-    dispatch(getCases({ accountId: user.id }))
-  }, [dispatch, user.id])
+    if (!user) return
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(getCases({ accountId: user.id })).unwrap(),
+      ])
+    } else {
+      dispatch(getCases({ accountId: user.id })).unwrap()
+    }
+  }, [dispatch, user])
 
   // Modal handlers
   // const handleAdd = useCallback(() => {

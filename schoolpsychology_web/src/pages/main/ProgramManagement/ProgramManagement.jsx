@@ -43,6 +43,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { accountAPI } from '@/services/accountApi'
 import { useNavigate } from 'react-router-dom'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { loadAccount } from '@/store/actions'
 // import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text } = Typography
@@ -218,12 +219,17 @@ const ProgramManagement = () => {
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
-    dispatch(getAllPrograms())
-    if (user.role === 'manager') {
-      fetchCounselors()
+    if (!user) return
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(getAllPrograms()).unwrap(),
+      ])
+    } else {
+      Promise.all([fetchCounselors(), dispatch(getAllPrograms()).unwrap()])
     }
     messageApi.success(t('common.refreshSuccess'))
-  }, [dispatch, t, messageApi, user.role])
+  }, [dispatch, t, messageApi, user])
 
   // Handle reset filters
   const handleResetFilters = useCallback(() => {

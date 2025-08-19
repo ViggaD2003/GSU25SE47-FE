@@ -536,7 +536,7 @@ const AppointmentDetails = () => {
         }
 
         // Refresh appointment details
-        dispatch(getAppointmentById(appointment.id))
+        dispatch(getAppointmentById(appointment.id)).unwrap()
       } catch (error) {
         console.error('Error submitting assessment:', error)
         messageApi.error(
@@ -572,7 +572,7 @@ const AppointmentDetails = () => {
       ).unwrap()
 
       // Refresh appointment details
-      await dispatch(getAppointmentById(appointmentId))
+      await dispatch(getAppointmentById(appointmentId)).unwrap()
 
       messageApi.success(
         t(
@@ -625,30 +625,7 @@ const AppointmentDetails = () => {
 
   const handleCancel = useCallback(() => {
     setIsEditing(false)
-    // setEditedAppointment(null)
   }, [])
-
-  // const handleSave = useCallback(async () => {
-  //   try {
-  //     await handleAssessmentSubmit(editedAppointment)
-  //     setIsEditing(false)
-  //     setEditedAppointment(null)
-  //     messageApi.success(t('appointmentDetails.updateSuccess'))
-
-  //     // Refresh appointment details
-  //     dispatch(getAppointmentById(appointment.id))
-  //   } catch (error) {
-  //     console.error('Error updating appointment:', error)
-  //     messageApi.error(t('appointmentDetails.updateError'))
-  //   }
-  // }, [dispatch, editedAppointment, messageApi, t, appointment])
-
-  // const handleLocationChange = useCallback(e => {
-  // setEditedAppointment(prev => ({
-  //   ...prev,
-  //   location: e.target.value,
-  // }))
-  // }, [])
 
   // Loading state with better UI
   if (loading) {
