@@ -34,6 +34,7 @@ import { getStatusBadgeConfig } from '../../../utils/slotUtils'
 import SlotModal from './SlotModal'
 import { useTheme } from '@/contexts/ThemeContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { loadAccount } from '@/store/actions'
 
 const { Search } = Input
 const { Title, Text } = Typography
@@ -149,8 +150,14 @@ const SlotManagement = () => {
 
   // Handle refresh
   const handleRefresh = () => {
-    if (user) {
-      dispatch(fetchSlots(user?.id))
+    if (!user) return
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(fetchSlots(user?.id)).unwrap(),
+      ])
+    } else {
+      dispatch(fetchSlots(user?.id)).unwrap()
     }
   }
 

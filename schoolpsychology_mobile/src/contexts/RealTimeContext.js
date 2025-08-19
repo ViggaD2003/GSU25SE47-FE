@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
   useCallback,
-  useMemo
+  useMemo,
 } from "react";
 import { Client } from "@stomp/stompjs";
 import { useAuth } from "./AuthContext";
@@ -20,7 +20,7 @@ const WebSocketContext = createContext(null);
 export const useRealTime = () => useContext(WebSocketContext);
 
 const RealTimeProvider = ({ children }) => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loadUser } = useAuth();
   const token = user?.accessToken || user?.token;
 
   const [notifications, setNotifications] = useState([]);
@@ -39,9 +39,15 @@ const RealTimeProvider = ({ children }) => {
   const isConnectingRef = useRef(false);
 
   // Giữ token & trạng thái mới nhất
-  useEffect(() => { tokenRef.current = token; }, [token]);
-  useEffect(() => { isConnectedRef.current = isConnected; }, [isConnected]);
-  useEffect(() => { isConnectingRef.current = isConnecting; }, [isConnecting]);
+  useEffect(() => {
+    tokenRef.current = token;
+  }, [token]);
+  useEffect(() => {
+    isConnectedRef.current = isConnected;
+  }, [isConnected]);
+  useEffect(() => {
+    isConnectingRef.current = isConnecting;
+  }, [isConnecting]);
 
   const connectWebSocket = useCallback(() => {
     const currentToken = tokenRef.current;
@@ -55,14 +61,17 @@ const RealTimeProvider = ({ children }) => {
 
     const client = new Client({
       webSocketFactory: () =>
-        new WebSocket(`ws://spmss-api.ocgi.space/ws?token=${encodeURIComponent(currentToken)}`),
+        new WebSocket(
+          `ws://spmss-api.ocgi.space/ws?token=${encodeURIComponent(
+            currentToken
+          )}`
+        ),
       connectHeaders: { token: currentToken },
       forceBinaryWSFrames: true,
       appendMissingNULLonIncoming: true,
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
-      debug: (msg) => console.log("[STOMP DEBUG]", msg),
 
       onConnect: () => {
         console.log("[WebSocket] ✅ Connected");
@@ -74,7 +83,11 @@ const RealTimeProvider = ({ children }) => {
           (message) => {
             try {
               const payload = (() => {
-                try { return JSON.parse(message.body); } catch { return null; }
+                try {
+                  return JSON.parse(message.body);
+                } catch {
+                  return null;
+                }
               })();
 
               const content =
@@ -82,33 +95,47 @@ const RealTimeProvider = ({ children }) => {
                 payload?.message ||
                 payload?.body ||
                 payload?.content ||
-                (typeof message.body === "string" ? message.body : "Bạn có thông báo mới");
+                (typeof message.body === "string"
+                  ? message.body
+                  : "Bạn có thông báo mới");
 
-              const rawType = (payload?.type || payload?.level || "info").toString().toLowerCase();
-              const mappedType =
-                rawType.includes("success") ? "success" :
-                rawType.includes("error") || rawType.includes("fail") ? "error" :
-                rawType.includes("warn") ? "warning" :
-                rawType.includes("server") ? "server-error" :
-                "info";
+              const rawType = (payload?.type || payload?.level || "info")
+                .toString()
+                .toLowerCase();
+              const mappedType = rawType.includes("success")
+                ? "success"
+                : rawType.includes("error") || rawType.includes("fail")
+                ? "error"
+                : rawType.includes("warn")
+                ? "warning"
+                : rawType.includes("server")
+                ? "server-error"
+                : "info";
 
               if (payload) {
-                setNotifications((prev) => [{
-                  id: payload.id || Date.now(),
-                  title: payload.title || "Thông báo",
-                  body: payload.body || payload.message || payload.content || content,
-                  type: mappedType,
-                  createdAt: payload.createdAt || new Date().toISOString(),
-                  isRead: false,
-                }, ...prev]);
+                setNotifications((prev) => [
+                  {
+                    id: payload.id || Date.now(),
+                    title: payload.title || "Thông báo",
+                    body:
+                      payload.body ||
+                      payload.message ||
+                      payload.content ||
+                      content,
+                    type: mappedType,
+                    createdAt: payload.createdAt || new Date().toISOString(),
+                    isRead: false,
+                  },
+                  ...prev,
+                ]);
               }
-
+              loadUser();
               // Hiển thị toast
               setToastMessage(content);
               setToastType(mappedType);
               setToastVisible(true);
             } catch (err) {
-              console.log("[WebSocket] 🔔 Notification parse error", err);
+              // console.log("[WebSocket] 🔔 Notification parse error", err);
               setToastMessage("Bạn có thông báo mới");
               setToastType("info");
               setToastVisible(true);
@@ -127,36 +154,43 @@ const RealTimeProvider = ({ children }) => {
         setTimeout(() => connectWebSocket(), 5000);
       },
       onWebSocketClose: () => {
-        console.log("[WebSocket] 🔌 Socket closed, try reconnect...");
+        // console.log("[WebSocket] 🔌 Socket closed, try reconnect...");
         setIsConnected(false);
         setIsConnecting(false);
         setTimeout(() => connectWebSocket(), 3000);
-      }
+      },
     });
 
     stompClientRef.current = client;
     client.activate();
   }, []);
 
-  const sendMessage = useCallback((msg) => {
-    if (!stompClientRef.current || !isConnected) {
-      console.error("[WebSocket] Not connected");
-      return;
-    }
-    stompClientRef.current.publish({
-      destination: "/app/send",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(msg)
-    });
-  }, [isConnected]);
+  const sendMessage = useCallback(
+    (msg) => {
+      if (!stompClientRef.current || !isConnected) {
+        console.error("[WebSocket] Not connected");
+        return;
+      }
+      stompClientRef.current.publish({
+        destination: "/app/send",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(msg),
+      });
+    },
+    [isConnected]
+  );
 
   const disconnectWebSocket = useCallback(() => {
     if (subscriptionRef.current) {
-      try { subscriptionRef.current.unsubscribe(); } catch {}
+      try {
+        subscriptionRef.current.unsubscribe();
+      } catch {}
       subscriptionRef.current = null;
     }
     if (stompClientRef.current) {
-      try { stompClientRef.current.deactivate(); } catch {}
+      try {
+        stompClientRef.current.deactivate();
+      } catch {}
       stompClientRef.current = null;
     }
     setIsConnected(false);
@@ -172,12 +206,15 @@ const RealTimeProvider = ({ children }) => {
     return () => disconnectWebSocket();
   }, [isAuthenticated, token]);
 
-  const value = useMemo(() => ({
-    isConnected,
-    sendMessage,
-    notifications,
-    setNotifications
-  }), [isConnected, sendMessage, notifications]);
+  const value = useMemo(
+    () => ({
+      isConnected,
+      sendMessage,
+      notifications,
+      setNotifications,
+    }),
+    [isConnected, sendMessage, notifications]
+  );
 
   return (
     <WebSocketContext.Provider value={value}>

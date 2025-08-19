@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Card,
@@ -27,6 +27,7 @@ import {
   CalendarOutlined,
   TrophyOutlined,
   TeamOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 
 const { Text, Title } = Typography
@@ -38,6 +39,8 @@ const ParticipantList = ({
   _onAddedCases,
   onOpenAddCasesModal,
   onViewParticipant,
+  userRole = 'counselor',
+  hasAvailableCases = false,
 }) => {
   const { t } = useTranslation()
 
@@ -290,6 +293,8 @@ const ParticipantList = ({
     return { total, withCases, withoutCases, enrolled, completed }
   }, [participants])
 
+  const handleRefresh = useCallback(() => {}, [])
+
   return (
     <div>
       <Card
@@ -302,14 +307,26 @@ const ParticipantList = ({
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={onOpenAddCasesModal}
-            size="large"
-          >
-            {t('programManagement.participants.addCases')}
-          </Button>
+          <Space align="center" size="middle">
+            <Button
+              type="primary"
+              icon={<ReloadOutlined />}
+              onClick={handleRefresh}
+              size="large"
+            >
+              {t('programManagement.participants.refresh')}
+            </Button>
+            {userRole === 'counselor' && hasAvailableCases && (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={onOpenAddCasesModal}
+                size="large"
+              >
+                {t('programManagement.participants.addCases')}
+              </Button>
+            )}
+          </Space>
         }
         style={{ marginBottom: 16 }}
       >

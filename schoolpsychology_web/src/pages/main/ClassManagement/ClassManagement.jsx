@@ -23,6 +23,8 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { getAllClasses } from '@/store/actions/classActions'
 import { enrollClass } from '@/store/actions/classActions'
 import { EnrollStudentsModal } from './EnrollStudentModal'
+import { loadAccount } from '@/store/actions'
+import { useAuth } from '@/hooks'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -49,6 +51,7 @@ const ClassManagement = () => {
   const [enrollTarget, setEnrollTarget] = useState(null)
   const [isEnrollVisible, setIsEnrollVisible] = useState(false)
   const [messageApi, contextHolder] = message.useMessage()
+  const { user } = useAuth()
 
   // Fetch classes on component mount
   useEffect(() => {
@@ -136,14 +139,22 @@ const ClassManagement = () => {
 
   // Handle refresh
   const handleRefresh = useCallback(() => {
-    dispatch(getAllClasses())
+    if (!user) return
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(getAllClasses()).unwrap(),
+      ])
+    } else {
+      dispatch(getAllClasses()).unwrap()
+    }
     setSearchText('')
     setFilters({
       classYear: undefined,
       teacher: undefined,
     })
     setPagination(prev => ({ ...prev, current: 1 }))
-  }, [dispatch])
+  }, [dispatch, user])
 
   const handleEnroll = useCallback(record => {
     setEnrollTarget(record)

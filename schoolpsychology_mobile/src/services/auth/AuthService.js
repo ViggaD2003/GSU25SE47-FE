@@ -103,16 +103,22 @@ export const getCurrentUser = async () => {
       return null;
     }
 
+    const response = await api.get(AUTH_CONFIG.ENDPOINTS.ACCOUNT);
+    const user = response.data;
+
     const decoded = validateUserRole(token);
+    if (!decoded) return null;
+
     return {
       ...decoded,
+      ...user,
       token,
       accessToken: token,
-      role: decoded.role,
-      userId: decoded["user-id"],
-      id: decoded["user-id"],
-      email: decoded.sub,
-      fullName: decoded.fullname,
+      role: user.roleName || decoded.role,
+      userId: user.id || user.userId || decoded["user-id"],
+      id: user.id || user.userId || decoded["user-id"],
+      email: user.email || decoded.sub,
+      fullName: user.fullName || decoded.fullname,
     };
   } catch (error) {
     console.error("Error getting current user:", error);

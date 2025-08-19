@@ -89,7 +89,7 @@ export default function StudentHome({ user, navigation }) {
   const getTodayPlans = async () => {
     try {
       if (!user?.id) {
-        console.warn("User ID not available");
+        console.warn("[StudentHome] User ID not available");
         setTodayPlans([]);
         setDisplayedData([]);
         return;

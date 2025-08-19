@@ -57,6 +57,7 @@ import {
   STUDENT_COOP_LEVEL,
 } from '../../../constants/enums'
 import { selectUser } from '../../../store/slices/authSlice'
+import { loadAccount } from '@/store/actions'
 
 const { Search } = Input
 const { Title, Text } = Typography
@@ -179,7 +180,10 @@ const AppointmentManagement = () => {
   // Check if user is manager (read-only access)
   const isManager = user?.role === 'manager'
   const isCounselor =
-    user?.role === 'counselor' && user?.cateAvailable.length > 0
+    user?.role === 'counselor' &&
+    user?.hasAvailable &&
+    Array.isArray(user?.categories) &&
+    user?.categories?.length > 0
 
   // Memoized utility functions
   const formatDateTime = useCallback(dateTime => {
@@ -324,14 +328,22 @@ const AppointmentManagement = () => {
 
   // Memoized handlers
   const handleRefresh = useCallback(() => {
+    if (!user) return
     if (user?.id) {
-      if (activeTab === 'active') {
-        dispatch(getActiveAppointments(user.id))
-      } else if (activeTab === 'past') {
-        dispatch(getPastAppointments(user.id))
+      if (user.role.toLowerCase() !== 'manager') {
+        Promise.all([
+          dispatch(loadAccount()).unwrap(),
+          activeTab === 'active'
+            ? dispatch(getActiveAppointments(user.id)).unwrap()
+            : dispatch(getPastAppointments(user.id)).unwrap(),
+        ])
+      } else {
+        activeTab === 'active'
+          ? dispatch(getActiveAppointments(user.id)).unwrap()
+          : dispatch(getPastAppointments(user.id)).unwrap()
       }
     }
-  }, [activeTab, dispatch, user?.id])
+  }, [activeTab, dispatch, user?.id, user?.role])
 
   const handleSearch = useCallback(value => {
     setSearchText(value)

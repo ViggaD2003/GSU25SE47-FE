@@ -64,13 +64,18 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
       const response = await categoriesAPI.getCategories()
       if (response.length > 0) {
         if (userRole === 'COUNSELOR') {
-          if (user.cateAvailable.length === 0) {
+          if (!user.hasAvailable) {
             setCategories([])
             return
           }
-          const availableCategories = response.filter(category =>
-            user.cateAvailable.includes(category.id)
-          )
+          const availableCategories =
+            user?.categories &&
+            Array.isArray(user.categories) &&
+            user.categories.length > 0
+              ? response.filter(category =>
+                  user.categories.includes(category.id)
+                )
+              : response
 
           setCategories(availableCategories)
           resetFormFields({

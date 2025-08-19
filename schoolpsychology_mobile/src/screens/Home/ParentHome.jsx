@@ -78,8 +78,10 @@ export default function ParentHome({ user, navigation }) {
   const getTodayPlans = async () => {
     try {
       setLoading(true);
+      console.log(user);
+
       if (!selectedChild?.id) {
-        console.warn("User ID not available");
+        console.warn("[ParentHome] User ID not available");
         setTodayPlans([]);
         setDisplayedData([]);
         return;
