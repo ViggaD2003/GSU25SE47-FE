@@ -7,10 +7,11 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { isAuthorizedRole } from '@/utils'
 
 const AccessFail = ({ userRole: propUserRole }) => {
   const navigate = useNavigate()
-  const { logout, userRole, checkUserRole } = useAuth()
+  const { logout, userRole } = useAuth()
 
   const currentUserRole = propUserRole || userRole
 
@@ -23,7 +24,7 @@ const AccessFail = ({ userRole: propUserRole }) => {
   }
 
   const handleGoHome = () => {
-    if (checkUserRole(currentUserRole)) {
+    if (isAuthorizedRole(currentUserRole)) {
       navigate('/dashboard')
     } else {
       navigate('/login', { replace: true })

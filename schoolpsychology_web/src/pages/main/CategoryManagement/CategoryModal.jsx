@@ -12,7 +12,6 @@ import {
   Switch,
   InputNumber,
   Select,
-  Spin,
   Tag,
   Badge,
   Descriptions,
@@ -45,28 +44,27 @@ const LEVEL_TYPE_OPTIONS = [
 ]
 
 const LEVEL_TYPE_CONFIG = {
-  LOW: { color: 'green', icon: CheckCircleOutlined },
-  MODERATE: { color: 'yellow', icon: ClockCircleOutlined },
-  SEVERE: { color: 'orange', icon: AlertOutlined },
-  CRITICAL: { color: 'red', icon: ExclamationCircleOutlined },
+  LOW: { color: 'green' },
+  MODERATE: { color: 'yellow' },
+  SEVERE: { color: 'orange' },
+  CRITICAL: { color: 'red' },
 }
 
 const LevelCard = React.memo(
   ({ level, index, isView, isDarkMode, onEdit, onDelete, t }) => {
-    const { color, icon: IconComponent } =
-      LEVEL_TYPE_CONFIG[level.levelType] || {}
+    const { color } = LEVEL_TYPE_CONFIG[level?.levelType] || {}
 
     if (isView) {
       return (
         <Card
           size="small"
+          style={{ marginBottom: '10px' }}
           className={`mb-3 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50'}`}
           title={
             <Space>
-              <IconComponent />
-              <Text strong>{level.label}</Text>
+              <Text strong>{level?.label || 'Unknown'}</Text>
               <Tag color={color} size="small">
-                {level.code}
+                {level?.code || 'N/A'}
               </Tag>
             </Space>
           }
@@ -75,20 +73,20 @@ const LevelCard = React.memo(
             <Descriptions.Item
               label={t('categoryManagement.form.levelDescription')}
             >
-              {level.description || '-'}
+              {level?.description || '-'}
             </Descriptions.Item>
             <Descriptions.Item
               label={t('categoryManagement.form.symptomsDescription')}
             >
-              {level.symptomsDescription || '-'}
+              {level?.symptomsDescription || '-'}
             </Descriptions.Item>
             <Descriptions.Item
               label={t('categoryManagement.form.interventionRequired')}
             >
-              {level.interventionRequired || '-'}
+              {level?.interventionRequired || '-'}
             </Descriptions.Item>
             <Descriptions.Item label={t('categoryManagement.form.scoreRange')}>
-              {level.minScore} - {level.maxScore}
+              {level?.minScore || 0} - {level?.maxScore || 0}
             </Descriptions.Item>
           </Descriptions>
         </Card>
@@ -98,13 +96,13 @@ const LevelCard = React.memo(
     return (
       <Card
         size="small"
+        style={{ marginBottom: '10px' }}
         className={`mb-3 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50'} hover:shadow-md transition-shadow cursor-pointer`}
         title={
           <Space>
-            <IconComponent />
-            <Text strong>{level.label}</Text>
+            <Text strong>{level?.label || 'Unknown'}</Text>
             <Tag color={color} size="small">
-              {level.code}
+              {level?.code || 'N/A'}
             </Tag>
           </Space>
         }
@@ -138,13 +136,13 @@ const LevelCard = React.memo(
       >
         <Space direction="vertical" style={{ width: '100%' }}>
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            {level.description}
+            {level?.description || '-'}
           </Text>
           <Text type="secondary" style={{ fontSize: '12px' }}>
-            {t('categoryManagement.form.scoreRange')}: {level.minScore} -{' '}
-            {level.maxScore}
+            {t('categoryManagement.form.scoreRange')}: {level?.minScore || 0} -{' '}
+            {level?.maxScore || 0}
           </Text>
-          {level.symptomsDescription && (
+          {level?.symptomsDescription && (
             <Text type="secondary" style={{ fontSize: '11px' }}>
               <strong>
                 {t('categoryManagement.form.symptomsDescription')}:
@@ -152,7 +150,7 @@ const LevelCard = React.memo(
               {level.symptomsDescription}
             </Text>
           )}
-          {level.interventionRequired && (
+          {level?.interventionRequired && (
             <Text type="secondary" style={{ fontSize: '11px' }}>
               <strong>
                 {t('categoryManagement.form.interventionRequired')}:
@@ -637,12 +635,11 @@ const CategoryModal = ({
         description: categoryData.description || '',
         isSum: categoryData.isSum ?? true,
         isLimited: categoryData.isLimited ?? true,
-        questionLength: categoryData.questionLength || null,
-        questionCount: categoryData.questionCount || null,
-        severityWeight: categoryData.severityWeight || null,
+        questionLength: categoryData.questionLength ?? 0,
+        severityWeight: categoryData.severityWeight ?? 0,
         isActive: categoryData.isActive ?? true,
-        maxScore: categoryData.maxScore || null,
-        minScore: categoryData.minScore || null,
+        maxScore: categoryData.maxScore ?? 0,
+        minScore: categoryData.minScore ?? 0,
         levels: categoryData.levels || [],
       }
 
@@ -782,7 +779,7 @@ const CategoryModal = ({
       // Validate question count when limited
       if (
         values.isLimited &&
-        (!values.questionCount || values.questionCount <= 0)
+        (!values.questionLength || values.questionLength <= 0)
       ) {
         message?.error(t('categoryManagement.messages.questionCountRequired'))
         updateState({ loading: false })
@@ -796,11 +793,11 @@ const CategoryModal = ({
         description: values.description?.trim() || null,
         isSum: values.isSum,
         isLimited: values.isLimited,
-        questionLength: values.isLimited ? values.questionCount : null,
+        questionLength: values.isLimited ? values.questionLength : null,
         severityWeight: values.severityWeight,
         isActive: values.isActive,
-        maxScore: values.maxScore ?? null,
-        minScore: values.minScore ?? null,
+        maxScore: values.maxScore ?? 0,
+        minScore: values.minScore ?? 0,
         levels: levelsToValidate.map(level => ({
           ...level,
           label: level.label?.trim(),
@@ -1041,21 +1038,6 @@ const CategoryModal = ({
     })
     return summary
   }, [state.levels, levelTypeOptions])
-
-  // Loading modal for detail fetching
-  if (state.detailLoading) {
-    return (
-      <Modal open={visible} footer={null} closable={false} centered width={400}>
-        <div className="text-center py-8">
-          <Spin
-            spinning={true}
-            tip={t('categoryManagement.loadingDetails')}
-            size="large"
-          />
-        </div>
-      </Modal>
-    )
-  }
 
   return (
     <>
@@ -1326,7 +1308,7 @@ const CategoryModal = ({
                     <Col span={12}>
                       <Form.Item
                         label={t('categoryManagement.form.questionCount')}
-                        name="questionCount"
+                        name="questionLength"
                         rules={[
                           {
                             required: isLimited,
@@ -1410,7 +1392,7 @@ const CategoryModal = ({
                     >
                       <InputNumber
                         min={0}
-                        max={10}
+                        max={100}
                         placeholder={t(
                           'categoryManagement.form.minScorePlaceholder'
                         )}
@@ -1453,7 +1435,7 @@ const CategoryModal = ({
                     >
                       <InputNumber
                         min={0}
-                        max={10}
+                        max={100}
                         placeholder={t(
                           'categoryManagement.form.maxScorePlaceholder'
                         )}
@@ -1534,14 +1516,14 @@ const CategoryModal = ({
                         {t('categoryManagement.form.levels')}
                       </Text>
                       <div className="flex flex-wrap gap-2">
-                        {Object.values(levelSummary).map(
+                        {Object.values(levelSummary || {}).map(
                           ({ value, label, count }) => (
                             <Tag
-                              key={value}
+                              key={value || 'unknown'}
                               color={getLevelTypeColor(value)}
                               icon={getLevelTypeIcon(value)}
                             >
-                              {label}: {count}
+                              {label || 'Unknown'}: {count || 0}
                             </Tag>
                           )
                         )}
@@ -1561,8 +1543,8 @@ const CategoryModal = ({
                       )}
                       {state.levels?.map((level, index) => (
                         <LevelCard
-                          key={`${level.code}-${index}`}
-                          level={level}
+                          key={`${level?.code || 'unknown'}-${index}`}
+                          level={level || {}}
                           index={index}
                           isView={isView}
                           isDarkMode={isDarkMode}

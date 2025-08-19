@@ -159,7 +159,7 @@ const shouldSkipTokenValidation = (url) => {
 
 // Check if path is refresh endpoint
 const isRefreshEndpoint = (url) => {
-  return url.includes("/refresh") || url.includes("/token/refresh");
+  return url.includes("/refresh");
 };
 
 // Request interceptor to attach JWT token and handle token expiry

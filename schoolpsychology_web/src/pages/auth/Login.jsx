@@ -13,26 +13,7 @@ const Login = () => {
   const onFinish = async values => {
     setLoading(true)
     try {
-      console.log('🔄 Login form submitted for:', values.email)
-
-      const result = await login(values.email, values.password)
-      console.log('📡 Login result:', result)
-
-      if (result?.success) {
-        if (result?.isOAuthRedirect) {
-          // Manager role - OAuth redirect initiated
-          console.log('🔐 OAuth redirect initiated for manager role')
-          // The redirect will happen automatically from the action
-          // No need to do anything here
-        } else {
-          // Counselor/Teacher role - normal login successful
-          console.log('✅ Normal login successful')
-          // Navigation will be handled by the login action
-        }
-      } else {
-        console.error('❌ Login failed:', result?.error)
-        // Error notification is already shown by the login function
-      }
+      await login(values.email, values.password)
     } catch (error) {
       console.error('❌ Login error:', error)
       // Error notification is already shown by the login function

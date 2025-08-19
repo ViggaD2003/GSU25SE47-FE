@@ -3,11 +3,11 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import {
   selectIsAuthenticated,
-  selectUserRole,
   selectLoading,
   hasRouteAccess,
 } from '../../store/slices/authSlice'
 import AccessFail from '../../pages/AccessFail'
+import { useAuth } from '@/hooks'
 
 // Helper function to normalize dynamic routes for permission checking
 const normalizeRouteForPermission = pathname => {
@@ -36,7 +36,7 @@ const LoadingSpinner = () => (
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const isAuthenticated = useSelector(selectIsAuthenticated)
-  const userRole = useSelector(selectUserRole)
+  const { userRole } = useAuth()
   const loading = useSelector(selectLoading)
   const location = useLocation()
 
@@ -48,7 +48,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (!isAuthenticated) {
     return <Navigate to={'/login'} replace />
   }
-
   // If specific roles are required, check them
   if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
     return <AccessFail isCurrentPath={false} userRole={userRole} />

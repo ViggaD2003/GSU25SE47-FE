@@ -5,7 +5,7 @@ import {
   GuestRoute,
   ProtectedRoute,
 } from '../components'
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, Suspense, useMemo } from 'react'
 import { ROUTE_CONFIG } from '@/constants/routeConfig'
 import GoogleCallBack from '@/pages/auth/GoogleCallBack'
 
@@ -77,176 +77,216 @@ const createLazyComponent = (importFunc, componentName) => {
   )
 }
 
-// Sử dụng React.lazy cho các trang với error handling
-const NotFound = createLazyComponent(
-  () => import('../pages/NotFound'),
-  'NotFound'
-)
-const Login = createLazyComponent(() => import('../pages/auth/Login'), 'Login')
-const Dashboard = createLazyComponent(
-  () => import('../pages/main/DashboardHome'),
-  'Dashboard'
-)
-const ForgotPassword = createLazyComponent(
-  () => import('../pages/auth/ForgotPassword'),
-  'ForgotPassword'
-)
-const ClientManagement = createLazyComponent(
-  () => import('@/pages/main/AccountManagement/ClientManagement'),
-  'ClientManagement'
-)
-const StaffManagement = createLazyComponent(
-  () => import('@/pages/main/AccountManagement/StaffManagement'),
-  'StaffManagement'
-)
-const AppointmentManagement = createLazyComponent(
-  () => import('@/pages/main/AppointmentManagement/AppointmentManagement'),
-  'AppointmentManagement'
-)
-const SurveyManagement = createLazyComponent(
-  () => import('@/pages/main/SurveyManagement/SurveyManagement'),
-  'SurveyManagement'
-)
-const CaseManagement = createLazyComponent(
-  () => import('@/pages/main/CaseManagement/CaseManagement'),
-  'CaseManagement'
-)
-const CaseDetails = createLazyComponent(
-  () => import('@/pages/main/CaseManagement/Details'),
-  'CaseDetails'
-)
-const ProgramManagement = createLazyComponent(
-  () => import('@/pages/main/ProgramManagement/ProgramManagement'),
-  'ProgramManagement'
-)
-const ProgramDetails = createLazyComponent(
-  () => import('@/pages/main/ProgramManagement/Details'),
-  'ProgramDetails'
-)
-const SlotManagement = createLazyComponent(
-  () => import('@/pages/main/SlotManagement/SlotManagement'),
-  'SlotManagement'
-)
-const SystemConfigManagement = createLazyComponent(
-  () => import('@/pages/main/SystemConfigManagement'),
-  'SystemConfigManagement'
-)
-const AppointmentDetails = createLazyComponent(
-  () => import('@/pages/main/AppointmentManagement/AppointmentDetails'),
-  'AppointmentDetails'
-)
-const ClassManagement = createLazyComponent(
-  () => import('@/pages/main/ClassManagement/ClassManagement'),
-  'ClassManagement'
-)
-const CreateClass = createLazyComponent(
-  () => import('@/pages/main/ClassManagement/CreateClass'),
-  'CreateClass'
-)
-const CategoryManagement = createLazyComponent(
-  () => import('@/pages/main/CategoryManagement/CategoryManagement'),
-  'CategoryManagement'
-)
-const AccessFail = createLazyComponent(
-  () => import('@/pages/AccessFail'),
-  'AccessFail'
+// Component mapping - tối ưu hóa với object literal
+const COMPONENT_MAP = {
+  Dashboard: createLazyComponent(
+    () => import('../pages/main/DashboardHome'),
+    'Dashboard'
+  ),
+  Login: createLazyComponent(() => import('../pages/auth/Login'), 'Login'),
+  ForgotPassword: createLazyComponent(
+    () => import('../pages/auth/ForgotPassword'),
+    'ForgotPassword'
+  ),
+  ClientManagement: createLazyComponent(
+    () => import('@/pages/main/AccountManagement/ClientManagement'),
+    'ClientManagement'
+  ),
+  StaffManagement: createLazyComponent(
+    () => import('@/pages/main/AccountManagement/StaffManagement'),
+    'StaffManagement'
+  ),
+  AppointmentManagement: createLazyComponent(
+    () => import('@/pages/main/AppointmentManagement/AppointmentManagement'),
+    'AppointmentManagement'
+  ),
+  SurveyManagement: createLazyComponent(
+    () => import('@/pages/main/SurveyManagement/SurveyManagement'),
+    'SurveyManagement'
+  ),
+  CaseManagement: createLazyComponent(
+    () => import('@/pages/main/CaseManagement/CaseManagement'),
+    'CaseManagement'
+  ),
+  CaseDetails: createLazyComponent(
+    () => import('@/pages/main/CaseManagement/Details'),
+    'CaseDetails'
+  ),
+  ProgramManagement: createLazyComponent(
+    () => import('@/pages/main/ProgramManagement/ProgramManagement'),
+    'ProgramManagement'
+  ),
+  ProgramDetails: createLazyComponent(
+    () => import('@/pages/main/ProgramManagement/Details'),
+    'ProgramDetails'
+  ),
+  SlotManagement: createLazyComponent(
+    () => import('@/pages/main/SlotManagement/SlotManagement'),
+    'SlotManagement'
+  ),
+  SystemConfigManagement: createLazyComponent(
+    () => import('@/pages/main/SystemConfigManagement'),
+    'SystemConfigManagement'
+  ),
+  AppointmentDetails: createLazyComponent(
+    () => import('@/pages/main/AppointmentManagement/AppointmentDetails'),
+    'AppointmentDetails'
+  ),
+  ClassManagement: createLazyComponent(
+    () => import('@/pages/main/ClassManagement/ClassManagement'),
+    'ClassManagement'
+  ),
+  CreateClass: createLazyComponent(
+    () => import('@/pages/main/ClassManagement/CreateClass'),
+    'CreateClass'
+  ),
+  CategoryManagement: createLazyComponent(
+    () => import('@/pages/main/CategoryManagement/CategoryManagement'),
+    'CategoryManagement'
+  ),
+  AccessFail: createLazyComponent(
+    () => import('../pages/AccessFail'),
+    'AccessFail'
+  ),
+  NotFound: createLazyComponent(() => import('../pages/NotFound'), 'NotFound'),
+}
+
+// Fallback component khi component chính bị lỗi
+const FallbackComponent = ({ componentName }) => (
+  <div className="p-6 text-center">
+    <h2 className="text-red-600 mb-4">Component Error</h2>
+    <p className="mb-4">Failed to load: {componentName}</p>
+    <button
+      onClick={() => window.location.reload()}
+      className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+    >
+      Reload Page
+    </button>
+  </div>
 )
 
-const AppRouter = () => {
-  const elementMap = {
-    Dashboard,
-    ClientManagement,
-    StaffManagement,
-    AppointmentManagement,
-    SurveyManagement,
-    CaseManagement,
-    ProgramManagement,
-    ProgramDetails,
-    SlotManagement,
-    SystemConfigManagement,
-    AppointmentDetails,
-    ClassManagement,
-    CreateClass,
-    CategoryManagement,
-    CaseDetails,
+// Validation function để kiểm tra component có tồn tại không
+const validateComponent = (componentName, component) => {
+  if (!component) {
+    console.error(`Component ${componentName} is undefined or null`)
+    return false
   }
+  return true
+}
+
+// Safe component getter với fallback
+const getSafeComponent = componentName => {
+  const component = COMPONENT_MAP[componentName]
+  if (validateComponent(componentName, component)) {
+    return component
+  }
+  console.warn(`Using fallback component for: ${componentName}`)
+  return () => <FallbackComponent componentName={componentName} />
+}
+
+// Custom hook để xử lý routes - tối ưu hóa performance
+const useFlattenedRoutes = () => {
+  return useMemo(() => {
+    const flattened = []
+
+    const processRoute = route => {
+      if (route.children) {
+        // Xử lý nested children với recursion tối ưu
+        route.children.forEach(child => {
+          if (child.children) {
+            // Xử lý 3 cấp nested
+            child.children.forEach(grandChild => {
+              if (grandChild.element) {
+                flattened.push({
+                  ...grandChild,
+                  path: grandChild.key.replace(/^\//, ''),
+                  element: getSafeComponent(grandChild.element),
+                  allowedRoles: grandChild.allowedRoles,
+                })
+              }
+            })
+          } else if (child.element) {
+            // Xử lý 2 cấp nested
+            flattened.push({
+              ...child,
+              path: child.key.replace(/^\//, ''),
+              element: getSafeComponent(child.element),
+              allowedRoles: child.allowedRoles,
+            })
+          }
+        })
+      } else if (route.element) {
+        // Xử lý route đơn lẻ
+        flattened.push({
+          ...route,
+          path: route.key.replace(/^\//, ''),
+          element: getSafeComponent(route.element),
+          allowedRoles: route.allowedRoles,
+        })
+      }
+    }
+
+    ROUTE_CONFIG.forEach(processRoute)
+    return flattened
+  }, [])
+}
+
+const AppRouter = () => {
+  const flattenRoutes = useFlattenedRoutes()
 
   return (
     <ErrorBoundary>
-      {/* <Suspense fallback={<LoadingFallback />}> */}
-      <Routes>
-        {/* Public routes */}
-        <Route
-          path="/"
-          element={
-            <GuestRoute>
-              <AnonymousLayoutComponent />
-            </GuestRoute>
-          }
-        >
-          <Route index element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="login-success" element={<GoogleCallBack />} />
-          {/* Test route for debugging GoogleCallback */}
-          <Route path="test-google-callback" element={<GoogleCallBack />} />
-        </Route>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public routes */}
+          <Route
+            path="/"
+            element={
+              <GuestRoute>
+                <AnonymousLayoutComponent />
+              </GuestRoute>
+            }
+          >
+            <Route index element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<COMPONENT_MAP.Login />} />
+            <Route
+              path="/forgot-password"
+              element={<COMPONENT_MAP.ForgotPassword />}
+            />
+            <Route path="login-success" element={<GoogleCallBack />} />
+          </Route>
 
-        {/* Access Fail route - accessible without authentication */}
-        <Route path="/access-fail" element={<AccessFail />} />
+          {/* Access Fail route - accessible without authentication */}
+          <Route path="/access-fail" element={<COMPONENT_MAP.AccessFail />} />
 
-        {/* Protected routes */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          {ROUTE_CONFIG.map(route => {
-            if (route.children) {
-              return route.children.map(child => (
+          {/* Protected routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+          >
+            {flattenRoutes.map(route => {
+              return (
                 <Route
-                  key={child.key}
-                  path={child.key.replace(/^\//, '')}
+                  key={route.key}
+                  path={route.path}
                   element={
-                    <ProtectedRoute allowedRoles={route.allowedRoles}>
-                      {/* <Suspense fallback={<LoadingFallback />}> */}
-                      {elementMap[child.element]
-                        ? React.createElement(elementMap[child.element])
-                        : null}
-                      {/* </Suspense> */}
+                    <ProtectedRoute allowedRoles={route?.allowedRoles}>
+                      <route.element />
                     </ProtectedRoute>
                   }
                 />
-              ))
-            }
+              )
+            })}
+          </Route>
 
-            // Handle routes with or without parameters, including hidden routes
-            const path = route.key.replace(/^\//, '')
-            const Component = elementMap[route.element]
-
-            return (
-              <Route
-                key={route.key}
-                path={path}
-                element={
-                  <ProtectedRoute allowedRoles={route.allowedRoles}>
-                    {/* <Suspense fallback={<LoadingFallback />}> */}
-                    {Component ? React.createElement(Component) : null}
-                    {/* </Suspense> */}
-                  </ProtectedRoute>
-                }
-              />
-            )
-          })}
-        </Route>
-
-        {/* 404 route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      {/* </Suspense> */}
+          {/* 404 route */}
+          <Route path="*" element={<COMPONENT_MAP.NotFound />} />
+        </Routes>
+      </Suspense>
     </ErrorBoundary>
   )
 }

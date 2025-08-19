@@ -15,23 +15,8 @@ import {
   Row,
   Col,
   Typography,
-  Modal,
-  Table,
-  Space,
-  Divider,
-  Tag,
 } from 'antd'
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-  ExclamationCircleOutlined,
-  FilterOutlined,
-  UserOutlined,
-  BookOutlined,
-  TeamOutlined,
-  UserAddOutlined,
-} from '@ant-design/icons'
+import { ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { useTheme } from '@/contexts/ThemeContext'
@@ -199,9 +184,6 @@ const ClassManagement = () => {
             >
               {t('classManagement.title')}
             </Title>
-            <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
-              {t('classManagement.description')}
-            </Text>
           </div>
           <div className="flex items-center space-x-3">
             <Button

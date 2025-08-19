@@ -9,6 +9,7 @@ import React, {
 } from 'react'
 import { useAuth } from './AuthContext'
 import Stomp from 'stompjs'
+import { getToken, isTokenExpired } from '@/utils'
 
 const WebSocketContext = createContext(null)
 
@@ -17,7 +18,7 @@ export const useWebSocket = () => useContext(WebSocketContext)
 export const WebSocketProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth()
   // Get token from auth context instead of localStorage directly
-  const jwtToken = JSON.parse(localStorage.getItem('auth'))?.token
+  const jwtToken = getToken()
   const [notifications, setNotifications] = useState([])
   const [isConnected, setIsConnected] = useState(false)
   const [isConnecting, setIsConnecting] = useState(false)
@@ -36,7 +37,7 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    return stompClientRef?.current?.connected
+    return stompClientRef?.current && stompClientRef?.current?.connected
   }, [isConnected])
 
   // Hàm cleanup an toàn - không cần dependencies
@@ -153,6 +154,11 @@ export const WebSocketProvider = ({ children }) => {
       return
     }
 
+    if (isTokenExpired(jwtToken)) {
+      console.error('[WebSocket] Token expired')
+      return
+    }
+
     if (isConnecting || isConnected) {
       console.log('[WebSocket] Already connecting or connected')
       return
@@ -237,8 +243,8 @@ export const WebSocketProvider = ({ children }) => {
       }
     ) => {
       if (!isConnectionReady()) {
-        console.error('[WebSocket] Cannot send message: not connected')
-        throw new Error('[WebSocket] Not connected')
+        console.log('[WebSocket] Not connected, connecting...')
+        connectWebSocket()
       }
 
       try {
@@ -251,7 +257,7 @@ export const WebSocketProvider = ({ children }) => {
           notificationType: body.notificationType,
           relatedEntityId: body.relatedEntityId,
         }
-        stompClientRef.current.send(destination, {}, JSON.stringify(bodyData))
+        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
         // console.log('[WebSocket] Message sent to:', destination)
       } catch (error) {
         console.error('[WebSocket] Error sending message:', error)

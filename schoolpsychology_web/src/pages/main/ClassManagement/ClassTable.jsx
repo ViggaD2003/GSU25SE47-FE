@@ -3,6 +3,7 @@ import { Table, Button, Tag, Space, Typography, Tooltip } from 'antd'
 import { BookOutlined, UserAddOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { useAuth } from '@/hooks'
 
 const { Text } = Typography
 
@@ -16,9 +17,10 @@ const ClassTable = ({
   // onDelete,
 }) => {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const canAddStudents = useCallback(
     record => {
-      if (!record || !record.isActive || !record.teacher) return false
+      if (!record || !record.teacher) return false
       // Check school year is future or current
       const schoolYear = dayjs(record.schoolYear.startDate).year()
       const currentYear = dayjs().year()
@@ -51,7 +53,7 @@ const ClassTable = ({
       title: t('classManagement.table.numberOfstudents'),
       dataIndex: 'totalStudents',
       key: 'totalStudents',
-      // width: 150,
+      width: 160,
     },
     {
       title: t('classManagement.table.classYear'),
@@ -88,6 +90,7 @@ const ClassTable = ({
         </Text>
       ),
       ellipsis: true,
+      hidden: user?.role !== 'manager',
     },
     {
       key: 'action',
@@ -95,7 +98,7 @@ const ClassTable = ({
       width: 80,
       render: (_, record) => (
         <Space size="small">
-          {canAddStudents(record) && (
+          {canAddStudents(record) && user?.role === 'manager' && (
             <Tooltip title={t('classManagement.enroll')}>
               <Button
                 icon={<UserAddOutlined />}
@@ -108,6 +111,7 @@ const ClassTable = ({
           )}
         </Space>
       ),
+      // hidden: user?.role !== 'manager',
     },
   ]
 

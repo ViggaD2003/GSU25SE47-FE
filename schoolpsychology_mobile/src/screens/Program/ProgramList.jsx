@@ -71,12 +71,7 @@ export default function ProgramList() {
 
   const handleProgramPress = (program) => {
     if (program?.id) {
-      navigation.navigate("Program", {
-        screen: "ProgramDetail",
-        params: {
-          programId: program.id,
-        },
-      });
+      navigation.navigate("ProgramDetail", { programId: program.id });
     }
   };
 

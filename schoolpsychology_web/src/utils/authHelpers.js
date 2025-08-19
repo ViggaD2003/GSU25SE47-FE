@@ -42,7 +42,6 @@ export const isAuthorizedRole = role => {
  * Save authentication data to localStorage with refresh token support
  * @param {string} token - Authentication token
  * @param {object} userData - User data object
- * @param {string} refreshToken - Refresh token (optional, defaults to token)
  * @returns {object} - Auth data object
  */
 export const saveAuthData = (token, userData) => {
@@ -180,9 +179,16 @@ export const createStandardizedUser = sourceData => {
   return {
     ...sourceData,
     id: sourceData?.userId || sourceData['user-id'] || sourceData?.id || 1,
-    fullName: sourceData?.name || sourceData?.fullname || 'Unknown User',
-    email: sourceData?.email || '',
-    role: sourceData?.role ? String(sourceData.role).toLowerCase() : null,
+    fullName:
+      sourceData?.name ||
+      sourceData?.fullname ||
+      sourceData?.fullName ||
+      'Unknown User',
+    email: sourceData?.sub || sourceData?.email || '',
+    role:
+      sourceData?.role || sourceData?.roleName
+        ? String(sourceData.role || sourceData.roleName).toLowerCase()
+        : null,
   }
 }
 
@@ -259,6 +265,24 @@ export const updateToken = newToken => {
   }
 }
 
+export const updateAuthUser = userData => {
+  try {
+    const authData = getAuthData()
+    if (!authData) return false
+    authData.user = userData
+    localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify(authData))
+    return true
+  } catch (error) {
+    console.error('Error updating user:', error)
+    return false
+  }
+}
+
+export const getAuthUser = () => {
+  const authData = getAuthData()
+  return authData?.user || null
+}
+
 /**
  * Migrate legacy token format to new format
  * @returns {boolean} - True if migration was performed
@@ -312,51 +336,6 @@ export const initializeAuth = () => {
     console.error('Error initializing auth system:', error)
     clearAuthData()
     return null
-  }
-}
-
-/**
- * Test function for debugging GoogleCallback
- * @param {string} testToken - Test token to simulate Google OAuth
- * @returns {object} - Test result
- */
-export const testGoogleCallback = (testToken = 'test.jwt.token') => {
-  try {
-    console.log('🧪 Testing GoogleCallback with token:', testToken)
-
-    // Simulate the callback flow
-    const authData = getAuthData()
-    console.log('Current auth data:', authData)
-
-    // Test token decoding - import decodeJWT from utils/index
-    // const decodedToken = decodeJWT(testToken)
-    // console.log('Decoded test token:', decodedToken)
-
-    // Test user creation
-    const userData = createStandardizedUser({
-      role: 'manager',
-      name: 'Test User',
-      email: 'test@example.com',
-    })
-    console.log('Standardized user data:', userData)
-
-    // Test role validation
-    const isAuthorized = isAuthorizedRole(userData.role)
-    console.log('Role authorization:', { role: userData.role, isAuthorized })
-
-    return {
-      success: true,
-      decodedToken: null, // decodeJWT not available here
-      userData,
-      isAuthorized,
-      currentAuthData: authData,
-    }
-  } catch (error) {
-    console.error('❌ Test GoogleCallback failed:', error)
-    return {
-      success: false,
-      error: error.message,
-    }
   }
 }
 

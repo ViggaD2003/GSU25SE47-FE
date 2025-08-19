@@ -116,19 +116,6 @@ export const validateToken = async (token) => {
     }
 
     const decoded = jwtDecode(token);
-    // const currentTime = Date.now() / 1000;
-
-    // Check if token is expired
-    // console.log("decoded.exp < currentTime", decoded.exp < currentTime);
-    // if (decoded.exp < currentTime) {
-    //   return { isValid: false, error: AUTH_ERRORS.TOKEN_EXPIRED };
-    // }
-
-    // Check if token is too old to be refreshed
-    // const maxRefreshAge = 7 * 24 * 60 * 60; // 7 days in seconds
-    // if (decoded.iat && currentTime - decoded.iat > maxRefreshAge) {
-    //   return { isValid: false, error: AUTH_ERRORS.REFRESH_FAILED };
-    // }
 
     // Check if user role is valid
     if (!AUTH_CONFIG.ALLOWED_ROLES.includes(decoded.role)) {

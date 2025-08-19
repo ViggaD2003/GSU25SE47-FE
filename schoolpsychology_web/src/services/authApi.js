@@ -1,5 +1,4 @@
 // Using centralized api instance from api.js
-import axios from 'axios'
 import api from './api'
 import { getToken } from '@/utils'
 
@@ -7,17 +6,10 @@ import { getToken } from '@/utils'
 export const authAPI = {
   login: async (email, password) => {
     try {
-      localStorage.removeItem('auth') // Clear any existing auth data
-      api.defaults.headers.common['Authorization'] = ''
-      console.log('🔐 Making login request for:', email)
-
       const response = await api.post('/api/v1/auth/login', {
         email,
         password,
       })
-
-      console.log('📡 Raw login response:', response)
-      console.log('📋 Response data:', response.data)
 
       // Handle 308 PERMANENT_REDIRECT for Google OAuth (Manager role)
       if (response.status === 308) {
@@ -200,17 +192,10 @@ export const authAPI = {
     if (!refreshToken) {
       throw new Error('No refresh token available')
     }
-    console.log('[refreshToken] Attempting to refresh token...')
-    const refreshApi = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    console.log('[authAPI] Attempting to refresh token...')
     try {
       // Send refresh token in request body
-      const response = await refreshApi.post('/api/v1/auth/refresh', {
+      const response = await api.post('/api/v1/auth/refresh', {
         token: refreshToken,
       })
 
@@ -218,7 +203,7 @@ export const authAPI = {
       return {
         status: 200,
         success: true,
-        data: response.data.data || response.data,
+        newToken: response.data.data.token,
         message: 'Token refreshed successfully',
       }
     } catch (error) {

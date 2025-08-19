@@ -231,8 +231,6 @@ export default function StudentHome({ user, navigation }) {
     return <Loading />;
   }
 
-  console.log("user", user);
-
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -304,7 +302,9 @@ export default function StudentHome({ user, navigation }) {
             <TouchableOpacity
               style={styles.viewAllContainer}
               onPress={() => {
-                navigation.navigate("Program");
+                navigation.navigate("Program", {
+                  screen: "ProgramList",
+                });
               }}
             >
               <Text style={styles.viewAllText}>
@@ -473,49 +473,10 @@ export default function StudentHome({ user, navigation }) {
                             t("home.recommendedPrograms.flexible")}
                         </Text>
                       </View>
-                      {/* <TouchableOpacity
-                      style={styles.joinButton}
-                      onPress={() => {
-                        joinProgram(program.id);
-                      }}
-                    >
-                      <Text style={styles.joinButtonText}>Join</Text>
-                    </TouchableOpacity> */}
                     </View>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-
-              {/* Quick Stats */}
-              {/* <View style={styles.programStats}>
-              <View style={styles.statCard}>
-                <View style={styles.statIconContainer}>
-                  <MaterialIcons name="trending-up" size={20} color="#10B981" />
-                </View>
-                <View style={styles.statContent}>
-                  <Text style={styles.statNumber}>85%</Text>
-                  <Text style={styles.statLabel}>Success Rate</Text>
-                </View>
-              </View>
-              <View style={styles.statCard}>
-                <View style={styles.statIconContainer}>
-                  <MaterialIcons name="group" size={20} color="#3B82F6" />
-                </View>
-                <View style={styles.statContent}>
-                  <Text style={styles.statNumber}>150+</Text>
-                  <Text style={styles.statLabel}>Students</Text>
-                </View>
-              </View>
-              <View style={styles.statCard}>
-                <View style={styles.statIconContainer}>
-                  <MaterialIcons name="schedule" size={20} color="#F59E0B" />
-                </View>
-                <View style={styles.statContent}>
-                  <Text style={styles.statNumber}>24/7</Text>
-                  <Text style={styles.statLabel}>Support</Text>
-                </View>
-              </View>
-            </View> */}
             </>
           ) : (
             <View style={styles.programEmptyContainer}>
@@ -528,11 +489,6 @@ export default function StudentHome({ user, navigation }) {
               <Text style={styles.programEmptySubText}>
                 {t("home.recommendedPrograms.empty.description")}
               </Text>
-              {/* <TouchableOpacity style={styles.programEmptyButton}>
-              <Text style={styles.programEmptyButtonText}>
-                {t("home.recommendedPrograms.browseAll")}
-              </Text>
-            </TouchableOpacity> */}
             </View>
           )}
         </View>

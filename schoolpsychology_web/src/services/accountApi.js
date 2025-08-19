@@ -14,4 +14,8 @@ export const accountAPI = {
     })
     return response.data
   },
+  getAccount: async () => {
+    const response = await api.get('/api/v1/account')
+    return response.data
+  },
 }

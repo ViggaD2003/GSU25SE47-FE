@@ -12,12 +12,20 @@
   },
   "navigation": {
     "dashboard": "Dashboard",
+    "accountManagement": {
+      "title": "Account Management"
+    },
     "staffManagement": {
-      "title": "Staff Management",
+      "title": "Staff",
       "staffList": "Staff List",
       "counselorList": "Counselor List",
       "teacherList": "Teacher List",
       "workSchedule": "Work Schedule"
+    },
+    "clientManagement": {
+      "title": "Users",
+      "studentList": "Students",
+      "parentList": "Parents"
     },
     "psychologicalSupport": "Psychological Support",
     "appointmentsManagement": "Appointments",
@@ -205,6 +213,7 @@
     "counselor": "Counselor"
   },
   "clientManagement": {
+    "alertNoClass": "You are not assigned to any class",
     "manageTitle": "Student List",
     "manageTitleTeacher": "My Class",
     "description": "Manage students in class",

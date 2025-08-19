@@ -270,7 +270,8 @@ export default function ProgramDetail() {
 
   const canJoinOrLeave = () => {
     return (
-      (program && program.status === "ACTIVE") ||
+      program &&
+      program.status === "ACTIVE" &&
       program.student?.surveyRecord?.length === 0
     );
   };
@@ -299,7 +300,21 @@ export default function ProgramDetail() {
         </View>
 
         <View style={styles.surveyProgressContainer}>
-          <View style={styles.surveyCard}>
+          <TouchableOpacity
+            style={styles.surveyCard}
+            onPress={() => {
+              navigation.navigate("Survey", {
+                screen: "SurveyResult",
+                params: {
+                  result: entrySurvey,
+                  type: "view",
+                  showRecordsButton: false,
+                  programId,
+                },
+              });
+            }}
+            disabled={!entrySurvey}
+          >
             <View style={styles.surveyHeader}>
               <View
                 style={[
@@ -374,11 +389,25 @@ export default function ProgramDetail() {
                 )}
               </View>
             )}
-          </View>
+          </TouchableOpacity>
 
           {/* Exit Survey */}
           {entrySurvey && isActiveSurvey && (
-            <View style={styles.surveyCard}>
+            <TouchableOpacity
+              style={styles.surveyCard}
+              onPress={() => {
+                navigation.navigate("Survey", {
+                  screen: "SurveyResult",
+                  params: {
+                    result: exitSurvey,
+                    type: "view",
+                    showRecordsButton: false,
+                    programId,
+                  },
+                });
+              }}
+              disabled={!exitSurvey}
+            >
               <View style={styles.surveyHeader}>
                 <View
                   style={[
@@ -454,7 +483,7 @@ export default function ProgramDetail() {
                   )}
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
           )}
         </View>
 

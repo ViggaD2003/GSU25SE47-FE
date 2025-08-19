@@ -1,7 +1,7 @@
-import { AuthProvider } from '@/hooks/useAuth'
 import { LanguageProvider } from '@/hooks/useLanguage'
 import { ThemeProvider } from '@/hooks/useTheme'
 import React from 'react'
+import { AuthProvider } from './AuthContext'
 
 const AppProvider = ({ children }) => {
   return (

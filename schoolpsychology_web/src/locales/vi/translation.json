@@ -12,12 +12,20 @@
   },
   "navigation": {
     "dashboard": "Bảng điều khiển",
+    "accountManagement": {
+      "title": "Quản lý tài khoản"
+    },
     "staffManagement": {
       "title": "Nhân sự",
       "staffList": "Danh sách nhân sự",
-      "counselorList": "Danh sách tư vấn viên",
-      "teacherList": "Danh sách giáo viên",
+      "counselorList": "Tư vấn viên",
+      "teacherList": "Giáo viên",
       "workSchedule": "Lịch làm việc"
+    },
+    "clientManagement": {
+      "title": "Người dùng",
+      "studentList": "Học sinh",
+      "parentList": "Phụ huynh"
     },
     "psychologicalSupport": "Hỗ trợ tâm lý",
     "appointmentsManagement": "Cuộc hẹn",
@@ -206,6 +214,7 @@
     "counselor": "Tư vấn viên"
   },
   "clientManagement": {
+    "alertNoClass": "Bạn chưa được phân vào lớp học nào",
     "manageTitle": "Danh sách học sinh",
     "manageTitleTeacher": "Lớp của tôi",
     "description": "Quản lý học sinh của lớp",

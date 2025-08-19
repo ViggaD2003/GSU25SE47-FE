@@ -12,9 +12,6 @@ import { getLevelConfig, GlobalStyles } from "../../constants";
 import { Container, Toast } from "../../components";
 import {
   formatDate,
-  getScoreColor,
-  getScoreIcon,
-  getScoreLevel,
   getLevelDescription,
   getInterventionRequired,
   getSymptomsDescription,
@@ -23,7 +20,7 @@ import { getSurveyRecordById } from "@/services/api/SurveyService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 
 const SurveyResult = ({ route, navigation }) => {
-  const { result, showRecordsButton, type } = route.params || {};
+  const { result, showRecordsButton, type, programId } = route.params || {};
   const [surveyRecord, setSurveyRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({
@@ -68,6 +65,10 @@ const SurveyResult = ({ route, navigation }) => {
     if (type === "submit") {
       navigation.popTo("MainBottomTabs", {
         screen: "Home",
+      });
+    } else if (programId && surveyRecord?.survey?.surveyType === "PROGRAM") {
+      navigation.popTo("ProgramDetail", {
+        programId,
       });
     } else {
       navigation.goBack();
@@ -449,16 +450,17 @@ const SurveyResult = ({ route, navigation }) => {
 
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
-          {showRecordsButton && (
-            <TouchableOpacity
-              style={styles.backToRecordsButton}
-              onPress={() => navigation.navigate("SurveyRecord")}
-            >
-              <Text style={styles.backToRecordsButtonText}>
-                Xem tất cả kết quả
-              </Text>
-            </TouchableOpacity>
-          )}
+          {showRecordsButton &&
+            surveyRecord?.survey?.surveyType !== "PROGRAM" && (
+              <TouchableOpacity
+                style={styles.backToRecordsButton}
+                onPress={() => navigation.navigate("SurveyRecord")}
+              >
+                <Text style={styles.backToRecordsButtonText}>
+                  Xem tất cả kết quả
+                </Text>
+              </TouchableOpacity>
+            )}
         </View>
       </ScrollView>
 

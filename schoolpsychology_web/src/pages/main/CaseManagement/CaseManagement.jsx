@@ -35,6 +35,7 @@ import {
   BookOutlined,
   SaveOutlined,
   CloseOutlined,
+  UserAddOutlined,
 } from '@ant-design/icons'
 import { assignCase, getCases } from '../../../store/actions/caseActions'
 import { clearError } from '../../../store/slices/caseSlice'
@@ -308,7 +309,7 @@ const CaseManagement = () => {
             placeholder={t('caseManagement.table.hostBy')}
             value={tempHostBy}
             onChange={handleChangeHostBy}
-            style={{ width: 'auto', minWidth: 100 }} // Auto width + giới hạn nhỏ nhất
+            style={{ width: 200 }} // Auto width + giới hạn nhỏ nhất
             loading={hostsLoading}
             showSearch
             allowClear
@@ -527,6 +528,7 @@ const CaseManagement = () => {
         dataIndex: 'counselor',
         key: 'counselor',
         render: (counselor, record) => editHostByColumn(counselor, record),
+        width: editingHostBy ? 250 : 200,
         editable: record => user?.role === 'manager' && record.status === 'NEW',
         hidden: user?.role === 'counselor',
       },
@@ -586,7 +588,7 @@ const CaseManagement = () => {
         title: t('caseManagement.table.createdAt'),
         dataIndex: 'createdAt',
         key: 'createdAt',
-        render: date => dayjs(date).format('DD/MM/YYYY HH:mm'),
+        render: date => dayjs(date).format('DD/MM/YYYY HH:mm:ss'),
         sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
       },
       {
@@ -607,7 +609,7 @@ const CaseManagement = () => {
                 <Tooltip title={t('common.edit')}>
                   <Button
                     type="link"
-                    icon={<EditOutlined />}
+                    icon={<UserAddOutlined />}
                     size="small"
                     onClick={() => handleEditHostBy(record)}
                   />
@@ -665,9 +667,6 @@ const CaseManagement = () => {
         <Title level={2} className="mb-0">
           {t('caseManagement.title')}
         </Title>
-        {/* <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          {t('caseManagement.createNew')}
-        </Button> */}
       </div>
 
       {/* Statistics Cards */}
@@ -748,53 +747,55 @@ const CaseManagement = () => {
               </Button>
             </Space>
           </Col>
-          {user?.role === 'manager' && (
-            <Col xs={24} sm={24} lg={24}>
-              <Space wrap>
-                <Select
-                  placeholder={t('caseManagement.table.hostBy')}
-                  value={bulkCounselorId}
-                  onChange={setBulkCounselorId}
-                  style={{ minWidth: 220 }}
-                  loading={hostsLoading}
-                  showSearch
-                  allowClear
-                  optionLabelProp="label"
-                >
-                  {availableHosts.map(host => (
-                    <Option
-                      key={host.id}
-                      value={host.id}
-                      label={
-                        // This label will be used for the selected value
-                        `${host.fullName}${host.counselorCode ? ` (${host.counselorCode})` : ''}`
-                      }
-                    >
-                      {/* Dropdown content */}
-                      <div className="font-medium flex items-center">
-                        <UserOutlined className="mr-1" />
-                        {host.fullName} -{' '}
-                        {host?.gender ? t('common.male') : t('common.female')}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {host?.counselorCode &&
-                          `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
-                      </div>
-                    </Option>
-                  ))}
-                </Select>
-                <Button
-                  type="primary"
-                  icon={<CheckCircleOutlined />}
-                  disabled={!bulkCounselorId || !selectedRowKeys.length}
-                  loading={bulkAssignLoading}
-                  onClick={handleBulkAssign}
-                >
-                  {t('common.assign')}
-                </Button>
-              </Space>
-            </Col>
-          )}
+          {user?.role === 'manager' &&
+            cases?.length > 0 &&
+            cases.some(caseItem => caseItem.status === 'NEW') && (
+              <Col xs={24} sm={24} lg={24}>
+                <Space wrap>
+                  <Select
+                    placeholder={t('caseManagement.table.hostBy')}
+                    value={bulkCounselorId}
+                    onChange={setBulkCounselorId}
+                    style={{ minWidth: 220 }}
+                    loading={hostsLoading}
+                    showSearch
+                    allowClear
+                    optionLabelProp="label"
+                  >
+                    {availableHosts.map(host => (
+                      <Option
+                        key={host.id}
+                        value={host.id}
+                        label={
+                          // This label will be used for the selected value
+                          `${host.fullName}${host.counselorCode ? ` (${host.counselorCode})` : ''}`
+                        }
+                      >
+                        {/* Dropdown content */}
+                        <div className="font-medium flex items-center">
+                          <UserOutlined className="mr-1" />
+                          {host.fullName} -{' '}
+                          {host?.gender ? t('common.male') : t('common.female')}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {host?.counselorCode &&
+                            `${t('caseManagement.table.counselorCode')}: ${host.counselorCode}`}
+                        </div>
+                      </Option>
+                    ))}
+                  </Select>
+                  <Button
+                    type="primary"
+                    icon={<CheckCircleOutlined />}
+                    disabled={!bulkCounselorId || !selectedRowKeys.length}
+                    loading={bulkAssignLoading}
+                    onClick={handleBulkAssign}
+                  >
+                    {t('common.assign')}
+                  </Button>
+                </Space>
+              </Col>
+            )}
         </Row>
       </Card>
 

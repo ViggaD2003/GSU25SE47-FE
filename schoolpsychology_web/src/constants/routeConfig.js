@@ -68,12 +68,12 @@ export const ROUTE_CONFIG = [
     key: 'classes',
     icon: TeamOutlined,
     labelKey: 'navigation.classManagement',
-    allowedRoles: ['manager'],
+    allowedRoles: ['manager', 'teacher'],
     children: [
       {
         key: '/class-management',
         labelKey: 'navigation.classManagement',
-        allowedRoles: ['manager'],
+        allowedRoles: ['manager', 'teacher'],
         element: 'ClassManagement',
       },
       {
@@ -85,74 +85,56 @@ export const ROUTE_CONFIG = [
       {
         key: '/student-management',
         labelKey: 'navigation.studentManagement',
-        allowedRoles: ['manager'],
+        allowedRoles: ['manager', 'teacher'],
         element: 'ClientManagement',
       },
     ],
-  },
-
-  // My Class (My Student, Observed Cases) - Teacher
-  {
-    key: 'my-class',
-    icon: TeamOutlined,
-    labelKey: 'navigation.myClass',
-    allowedRoles: ['teacher'],
-    children: [
-      {
-        key: '/my-class',
-        labelKey: 'navigation.myClass',
-        allowedRoles: ['teacher'],
-        element: 'ClientManagement',
-      },
-      {
-        key: '/observed-cases',
-        labelKey: 'navigation.observedCases',
-        allowedRoles: ['teacher'],
-        element: 'CaseManagement',
-      },
-    ],
-  },
-
-  {
-    key: '/case-management/details/:id',
-    element: 'CaseDetails',
-    allowedRoles: ['teacher', 'counselor', 'manager'],
-    hidden: true,
-  },
-
-  // Assigned Cases (Assigned Cases) - Counselor
-  {
-    key: '/assigned-cases',
-    icon: AlertOutlined,
-    labelKey: 'navigation.assignedCases',
-    allowedRoles: ['counselor'],
-    element: 'CaseManagement',
   },
 
   // Staff Management (Staff List, Slot Management) - Manager
   {
-    key: 'staff-management',
+    key: 'account-staff',
     icon: UserOutlined,
     labelKey: 'navigation.staffManagement.title',
     allowedRoles: ['manager'],
     children: [
-      // {
-      //   key: '/counselor-management',
-      //   labelKey: 'navigation.staffManagement.counselorList',
-      //   element: 'StaffManagement',
-      //   allowedRoles: ['manager'],
-      // },
-      // {
-      //   key: '/teacher-management',
-      //   labelKey: 'navigation.staffManagement.teacherList',
-      //   element: 'StaffManagement',
-      //   allowedRoles: ['manager'],
-      // },
       {
-        key: '/slot-management',
-        labelKey: 'navigation.slotManagement',
+        key: '/account-staff/counselor',
+        labelKey: 'navigation.staffManagement.counselorList',
+        element: 'StaffManagement',
         allowedRoles: ['manager'],
+      },
+      {
+        key: '/account-staff/teacher',
+        labelKey: 'navigation.staffManagement.teacherList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/account-staff/slot',
+        labelKey: 'navigation.staffManagement.workSchedule',
         element: 'SlotManagement',
+        allowedRoles: ['manager'],
+      },
+    ],
+  },
+  {
+    key: 'account-client',
+    icon: UserOutlined,
+    labelKey: 'navigation.clientManagement.title',
+    allowedRoles: ['manager'],
+    children: [
+      {
+        key: '/account-client/student',
+        labelKey: 'navigation.clientManagement.studentList',
+        element: 'ClientManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/account-client/parent',
+        labelKey: 'navigation.clientManagement.parentList',
+        element: 'ClientManagement',
+        allowedRoles: ['manager'],
       },
     ],
   },
@@ -171,7 +153,7 @@ export const ROUTE_CONFIG = [
     key: '/case-management',
     icon: AlertOutlined,
     labelKey: 'navigation.caseManagement',
-    allowedRoles: ['manager'],
+    allowedRoles: ['manager', 'counselor', 'teacher'],
     element: 'CaseManagement',
   },
 
@@ -184,12 +166,12 @@ export const ROUTE_CONFIG = [
     element: 'SystemConfigManagement',
   },
 
-  // {
-  //   key: '/assessment-demo',
-  //   labelKey: 'navigation.assessmentDemo',
-  //   allowedRoles: ['manager', 'teacher', 'counselor'],
-  //   element: 'AssessmentDemo',
-  // },
+  {
+    key: '/case-management/details/:id',
+    element: 'CaseDetails',
+    allowedRoles: ['teacher', 'counselor', 'manager'],
+    hidden: true,
+  },
 ]
 
 // Helper: Tạo object role -> [route] cho permission
@@ -203,5 +185,6 @@ export const ROLE_PERMISSIONS = ROUTE_CONFIG.reduce((acc, route) => {
       }
     })
   }
+  // console.log('acc', acc)
   return acc
 }, {})
