@@ -44,7 +44,7 @@ const UserTable = ({
                 <Button
                   type="link"
                   icon={<FlagFilled style={{ color: 'red' }} />}
-                  onClick={() => onView(record, 'case')}
+                  onClick={() => onView(record.caseId, 'case')}
                 />
               )}
             </Tooltip>
@@ -134,7 +134,7 @@ const UserTable = ({
                 type="link"
                 icon={<EyeOutlined />}
                 size="small"
-                onClick={() => onView(record)}
+                onClick={() => onView(record.id, "user")}
               />
             </Tooltip>
             {user?.role === 'teacher' && !record.hasActiveCases && (
