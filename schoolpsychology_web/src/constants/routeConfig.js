@@ -93,47 +93,48 @@ export const ROUTE_CONFIG = [
 
   // Staff Management (Staff List, Slot Management) - Manager
   {
-    key: 'account-management',
+    key: 'account-staff',
     icon: UserOutlined,
-    labelKey: 'navigation.accountManagement.title',
+    labelKey: 'navigation.staffManagement.title',
     allowedRoles: ['manager'],
     children: [
       {
-        key: 'account-staff',
-        labelKey: 'navigation.staffManagement.title',
-        children: [
-          {
-            key: '/staff/counselor',
-            labelKey: 'navigation.staffManagement.counselorList',
-            element: 'StaffManagement',
-          },
-          {
-            key: '/staff/teacher',
-            labelKey: 'navigation.staffManagement.teacherList',
-            element: 'StaffManagement',
-          },
-          {
-            key: '/staff/slot',
-            labelKey: 'navigation.workSchedule',
-            element: 'SlotManagement',
-          },
-        ],
+        key: '/account-staff/counselor',
+        labelKey: 'navigation.staffManagement.counselorList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
       },
       {
-        key: 'account-client',
-        labelKey: 'navigation.clientManagement.title',
-        children: [
-          {
-            key: '/client/student',
-            labelKey: 'navigation.clientManagement.studentList',
-            element: 'ClientManagement',
-          },
-          {
-            key: '/client/parent',
-            labelKey: 'navigation.clientManagement.parentList',
-            element: 'ClientManagement',
-          },
-        ],
+        key: '/account-staff/teacher',
+        labelKey: 'navigation.staffManagement.teacherList',
+        element: 'StaffManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/account-staff/slot',
+        labelKey: 'navigation.staffManagement.workSchedule',
+        element: 'SlotManagement',
+        allowedRoles: ['manager'],
+      },
+    ],
+  },
+  {
+    key: 'account-client',
+    icon: UserOutlined,
+    labelKey: 'navigation.clientManagement.title',
+    allowedRoles: ['manager'],
+    children: [
+      {
+        key: '/account-client/student',
+        labelKey: 'navigation.clientManagement.studentList',
+        element: 'ClientManagement',
+        allowedRoles: ['manager'],
+      },
+      {
+        key: '/account-client/parent',
+        labelKey: 'navigation.clientManagement.parentList',
+        element: 'ClientManagement',
+        allowedRoles: ['manager'],
       },
     ],
   },

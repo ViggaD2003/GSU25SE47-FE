@@ -5,6 +5,10 @@ export const classAPI = {
     const response = await api.get('/api/v1/classes')
     return response.data
   },
+  getClassesByTeacherId: async teacherId => {
+    const response = await api.get(`/api/v1/classes/teacher/${teacherId}`)
+    return response.data
+  },
   getClassesByCode: async code => {
     if (!code) return
     const response = await api.get(`/api/v1/classes/code/${code}`)
@@ -33,7 +37,7 @@ export const classAPI = {
     const queryString = new URLSearchParams(params).toString()
 
     const response = await api.get(
-      `/api/v1/account/students-without-or-inactive-class?${queryString}`
+      `/api/v1/account/students/eligible?${queryString}`
     )
     return response.data
   },

@@ -6,8 +6,6 @@ import { getToken } from '@/utils'
 export const authAPI = {
   login: async (email, password) => {
     try {
-      api.defaults.headers.common.Authorization = null
-
       const response = await api.post('/api/v1/auth/login', {
         email,
         password,
@@ -195,7 +193,6 @@ export const authAPI = {
       throw new Error('No refresh token available')
     }
     console.log('[authAPI] Attempting to refresh token...')
-    api.defaults.headers.common.Authorization = null
     try {
       // Send refresh token in request body
       const response = await api.post('/api/v1/auth/refresh', {

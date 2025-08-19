@@ -375,7 +375,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    userRole: user?.role,
+    userRole: user?.role || null,
     handleGoogleCallback,
     hasProcessedGoogleCallback: hasProcessedGoogleCallback.current,
   }

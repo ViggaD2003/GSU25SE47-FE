@@ -1,13 +1,20 @@
 import { createAsyncThunk } from '@reduxjs/toolkit'
 import { classAPI } from '../../services/classApi'
+import { getAuthUser } from '@/utils'
 
 // Async thunk for getting all surveys
 export const getAllClasses = createAsyncThunk(
   'class/getAllClasses',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await classAPI.getClasses()
-      return response
+      const user = getAuthUser()
+      let response
+      if (user?.role.toLowerCase() === 'manager') {
+        response = await classAPI.getClasses()
+      } else if (user?.role.toLowerCase() === 'teacher') {
+        response = await classAPI.getClassesByTeacherId(user?.id)
+      }
+      return response || []
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||

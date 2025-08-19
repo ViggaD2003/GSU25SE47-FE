@@ -8,6 +8,10 @@ import notificationService from './notificationService'
 import { isTokenExpired } from '../utils'
 import { getToken, updateToken } from '../utils/authHelpers'
 
+// Flag to prevent multiple refresh calls
+let isRefreshing = false
+let refreshPromise = null
+
 // Utility function to handle server errors
 const handleServerError = (error, showNotification = true) => {
   const { status } = error.response || {}
@@ -61,36 +65,59 @@ const api = axios.create({
   },
 })
 
-// Centralized token refresh logic with improved error handling
+// Centralized token refresh logic with improved error handling and duplicate prevention
 const handleTokenRefresh = async () => {
   try {
-    console.log('🔄 Attempting to refresh token...')
-
-    const result = await store.dispatch(refreshTokenAction()).unwrap()
-    const newToken = result?.data?.token
-
-    if (newToken) {
-      console.log('[API_REQUEST] ✅ Token refreshed successfully', newToken)
-
-      // Update both axios defaults and localStorage using authHelpers
-      api.defaults.headers.common.Authorization = `Bearer ${newToken}`
-
-      // Update stored auth data with new token using centralized function
-      updateToken(newToken)
-
-      return newToken
-    } else {
-      throw new Error('Token refresh failed - no token returned')
+    // If already refreshing, return the existing promise
+    if (isRefreshing && refreshPromise) {
+      console.log('🔄 Token refresh already in progress, waiting...')
+      return await refreshPromise
     }
+
+    // Start new refresh process
+    isRefreshing = true
+    refreshPromise = (async () => {
+      try {
+        console.log('🔄 Attempting to refresh token...')
+
+        const result = await store.dispatch(refreshTokenAction()).unwrap()
+        const newToken = result?.data?.token
+
+        if (newToken) {
+          console.log('[API_REQUEST] ✅ Token refreshed successfully')
+
+          // Update both axios defaults and localStorage using authHelpers
+          api.defaults.headers.common.Authorization = `Bearer ${newToken}`
+
+          // Update stored auth data with new token using centralized function
+          updateToken(newToken)
+
+          return newToken
+        } else {
+          throw new Error('Token refresh failed - no token returned')
+        }
+      } catch (error) {
+        console.error('❌ Token refresh failed:', error)
+        // If refresh fails, logout user
+        store.dispatch(forceLogout())
+        notificationService.error({
+          message: 'Quyền truy cập bị từ chối',
+          description: 'Bạn không có quyền thực hiện hành động này.',
+          duration: 4,
+        })
+        throw error
+      } finally {
+        // Reset flags
+        isRefreshing = false
+        refreshPromise = null
+      }
+    })()
+
+    return await refreshPromise
   } catch (error) {
-    console.error('❌ Token refresh failed:', error)
-    // If refresh fails, logout user
-    store.dispatch(forceLogout())
-    notificationService.error({
-      message: 'Quyền truy cập bị từ chối',
-      description: 'Bạn không có quyền thực hiện hành động này.',
-      duration: 4,
-    })
+    // Reset flags on error
+    isRefreshing = false
+    refreshPromise = null
     throw error
   }
 }
@@ -134,7 +161,9 @@ api.interceptors.request.use(
   },
   error => {
     console.log('❌ Request: Interceptor error:', error)
-    store.dispatch(forceLogout())
+    setTimeout(() => {
+      store.dispatch(forceLogout())
+    }, 1000)
     return Promise.reject(error)
   }
 )
@@ -182,34 +211,23 @@ api.interceptors.response.use(
       store.dispatch(forceLogout())
     }
 
-    // Handle 403 (Forbidden) - access denied
+    // Handle 403 (Forbidden) - access denied with improved logic
     if (
       error.response?.status === 403 &&
       !excludedPaths?.some(path => originalRequest.url.includes(path))
     ) {
       console.log('⚠️ Response: 403 Forbidden - access denied')
 
-      // Check if token is still valid but getting 403 - might be invalidated on server
-      const currentToken = getToken()
-      if (currentToken && !isTokenExpired(currentToken)) {
-        console.log(
-          '⚠️ 403 with valid token - token might be invalidated on server'
-        )
+      // Always logout on 403 - it usually means insufficient permissions or session issues
+      store.dispatch(forceLogout())
 
-        // Clear storage and force logout user without API call
-        store.dispatch(forceLogout())
-
-        // Show notification about session termination
-        notificationService.error({
-          message: 'Phiên làm việc đã kết thúc',
-          description:
-            'Tài khoản của bạn đã bị vô hiệu hóa hoặc thay đổi quyền. Vui lòng đăng nhập lại.',
-          duration: 6,
-        })
-      } else {
-        await handleTokenRefresh()
-        // Normal 403 - just show error
-      }
+      // Show appropriate notification
+      notificationService.error({
+        message: 'Quyền truy cập bị từ chối',
+        description:
+          'Bạn không có quyền thực hiện hành động này hoặc phiên làm việc đã kết thúc.',
+        duration: 6,
+      })
     }
 
     // Handle other errors

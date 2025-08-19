@@ -20,7 +20,7 @@ const ClassTable = ({
   const { user } = useAuth()
   const canAddStudents = useCallback(
     record => {
-      if (!record || !record.isActive || !record.teacher) return false
+      if (!record || !record.teacher) return false
       // Check school year is future or current
       const schoolYear = dayjs(record.schoolYear.startDate).year()
       const currentYear = dayjs().year()
@@ -98,7 +98,7 @@ const ClassTable = ({
       width: 80,
       render: (_, record) => (
         <Space size="small">
-          {canAddStudents(record) && (
+          {canAddStudents(record) && user?.role === 'manager' && (
             <Tooltip title={t('classManagement.enroll')}>
               <Button
                 icon={<UserAddOutlined />}
@@ -111,7 +111,7 @@ const ClassTable = ({
           )}
         </Space>
       ),
-      hidden: user?.role !== 'manager',
+      // hidden: user?.role !== 'manager',
     },
   ]
 

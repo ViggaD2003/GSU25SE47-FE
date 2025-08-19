@@ -920,32 +920,32 @@ const CreateClass = () => {
   return (
     <>
       {contextHolder}
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <Title
-              level={2}
-              className={isDarkMode ? 'text-white' : 'text-gray-900'}
-            >
-              {t('classManagement.modal.createMultipleClasses')}
-            </Title>
-            <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
-              {t('classManagement.description')}
-            </Text>
+      <Form form={form} layout="vertical">
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <Title
+                level={2}
+                className={isDarkMode ? 'text-white' : 'text-gray-900'}
+              >
+                {t('classManagement.modal.createMultipleClasses')}
+              </Title>
+              <Text className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+                {t('classManagement.description')}
+              </Text>
+            </div>
           </div>
-        </div>
 
-        {/* Steps */}
-        <Steps
-          current={currentStep}
-          items={steps}
-          style={{ marginBottom: '20px' }}
-          className={`mb-6 ${isDarkMode ? 'text-white' : ''}`}
-        />
+          {/* Steps */}
+          <Steps
+            current={currentStep}
+            items={steps}
+            style={{ marginBottom: '20px' }}
+            className={`mb-6 ${isDarkMode ? 'text-white' : ''}`}
+          />
 
-        {/* Form */}
-        <Form form={form} layout="vertical">
+          {/* Form Content */}
           {renderStepContent()}
 
           {/* Navigation Buttons */}
@@ -981,8 +981,8 @@ const CreateClass = () => {
               )}
             </Space>
           </div>
-        </Form>
-      </div>
+        </div>
+      </Form>
     </>
   )
 }

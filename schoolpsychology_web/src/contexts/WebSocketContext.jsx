@@ -9,7 +9,7 @@ import React, {
 } from 'react'
 import { useAuth } from './AuthContext'
 import Stomp from 'stompjs'
-import { getToken } from '@/utils'
+import { getToken, isTokenExpired } from '@/utils'
 
 const WebSocketContext = createContext(null)
 
@@ -151,6 +151,11 @@ export const WebSocketProvider = ({ children }) => {
   const connectWebSocket = useCallback(() => {
     if (!jwtToken) {
       console.error('[WebSocket] No JWT token available')
+      return
+    }
+
+    if (isTokenExpired(jwtToken)) {
+      console.error('[WebSocket] Token expired')
       return
     }
 
