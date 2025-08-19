@@ -432,6 +432,7 @@ const SurveyTaking = ({ route, navigation }) => {
             result: response,
             showRecordsButton: true,
             type: "submit",
+            programId: programId,
           },
         });
       }

@@ -58,7 +58,6 @@ export default function MainTabs() {
 
   useEffect(() => {
     if (!user && !authLoading) {
-      console.log("No user, navigating to login");
       navigation.navigate("AuthStack", { screen: "Login" });
     }
   }, [user, authLoading, navigation]);

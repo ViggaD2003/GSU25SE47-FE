@@ -85,7 +85,7 @@ const SurveyInfo = ({ route, navigation }) => {
     if (hasSavedProgress) {
       showToast("Tiếp tục khảo sát với tiến độ đã lưu của bạn", "info");
       setTimeout(() => {
-        navigation.navigate("SurveyTaking", { survey });
+        navigation.navigate("SurveyTaking", { survey, programId });
       }, 1000);
     } else {
       navigation.navigate("SurveyTaking", { survey, programId });
@@ -210,29 +210,6 @@ const SurveyInfo = ({ route, navigation }) => {
             <View style={styles.surveyInfo}>
               <View style={styles.surveyTitleContainer}>
                 <Text style={styles.surveyTitle}>{survey.title}</Text>
-
-                {/* Status Badge */}
-                {/* <View
-                  style={[
-                    styles.statusBadge,
-                    { backgroundColor: getStatusColor(survey.status) + "20" },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.statusDot,
-                      { backgroundColor: getStatusColor(survey.status) },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.statusText,
-                      { color: getStatusColor(survey.status) },
-                    ]}
-                  >
-                    {getStatusText(survey.status)}
-                  </Text>
-                </View> */}
               </View>
               <Text style={styles.surveySubtitle}>
                 {survey.description || ""}
