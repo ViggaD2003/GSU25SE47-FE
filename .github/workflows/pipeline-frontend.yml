@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'schoolpsychology_web/.github/workflows/pipeline-frontend.yml'
+      - 'schoolpsychology_web/**'
 
 jobs:
   build-and-push:
