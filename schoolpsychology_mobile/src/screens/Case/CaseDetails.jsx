@@ -134,11 +134,6 @@ const CaseDetails = ({ route, navigation }) => {
                     progressTrend: caseDetails?.caseInfo?.progressTrend,
                     currentLevelId: caseDetails?.caseInfo?.currentLevel?.id,
                   };
-                  // console.log("[CaseDetails] body", body);
-                  // console.log(
-                  //   "[CaseDetails] caseId",
-                  //   user?.caseId || selectedChild?.caseId
-                  // );
 
                   const caseId =
                     user?.role === "PARENTS" && selectedChild

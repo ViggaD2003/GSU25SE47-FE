@@ -153,13 +153,13 @@ const RealTimeProvider = ({ children }) => {
         console.error("[WebSocket] 🚨 STOMP error:", frame.headers["message"]);
         setIsConnected(false);
         setIsConnecting(false);
-        setTimeout(() => connectWebSocket(), 5000);
+        // setTimeout(() => connectWebSocket(), 5000);
       },
       onWebSocketClose: () => {
         // console.log("[WebSocket] 🔌 Socket closed, try reconnect...");
         setIsConnected(false);
         setIsConnecting(false);
-        setTimeout(() => connectWebSocket(), 3000);
+        // setTimeout(() => connectWebSocket(), 3000);
       },
     });
 

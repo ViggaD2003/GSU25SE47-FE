@@ -1,26 +1,29 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
 import { MaterialCommunityIcons as Icon } from "@expo/vector-icons";
 import { Container } from "../../components";
-import { api } from "../../services";
 import { useAuth } from "../../contexts";
-import { useNavigation } from "@react-navigation/native";
 import { GlobalStyles } from "../../constants";
 import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 import { useTranslation } from "react-i18next";
-import { useChildren } from "../../contexts/ChildrenContext";
 
 export default function ProfileScreen({ navigation }) {
   const { t } = useTranslation();
-  const { logout, user, loading: authLoading } = useAuth();
-  const { selectedChild } = useChildren();
+  const { logout, user, loading: authLoading, refreshUser } = useAuth();
 
   // Show loading state while auth is loading
   if (authLoading || !user) {
     return null;
   }
 
-  const [profile, setProfile] = useState({});
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
 
   const handleLogout = async () => {
@@ -34,26 +37,10 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const onRefresh = useCallback(async () => {
-    try {
-      const response = await api.get("/api/v1/account");
-
-      // console.log("response", response);
-      setProfile(response.data);
-    } catch (error) {
-      const msg = error.response?.data?.message || error.message;
-      console.error("Profile fetch error:", msg);
-    }
-  }, []);
-
-  useEffect(() => {
-    onRefresh();
-  }, []);
-
   const navigateToEditProfile = () => {
     navigation.navigate("Profile", {
       screen: "UpdateProfile",
-      params: { profileData: profile },
+      params: { profileData: user },
     });
   };
 
@@ -61,8 +48,8 @@ export default function ProfileScreen({ navigation }) {
     navigation.navigate("Profile", {
       screen: "MyChildren",
       params: {
-        data: profile.relationships,
-        onRefresh,
+        data: user.relationships,
+        onRefresh: refreshUser,
       },
     });
   };
@@ -75,15 +62,24 @@ export default function ProfileScreen({ navigation }) {
         subtitle={t("profile.subtitle")}
       />
 
-      <View style={{ paddingHorizontal: 20 }}>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={authLoading}
+            onRefresh={refreshUser}
+            colors={["#10B981"]}
+          />
+        }
+        style={{ paddingHorizontal: 20 }}
+      >
         <View style={styles.card}>
           <View style={styles.avatarWrapper}>
             <Text style={styles.avatarText}>
-              {profile?.fullName?.charAt(0)?.toUpperCase() || "U"}
+              {user?.fullName?.charAt(0)?.toUpperCase() || "U"}
             </Text>
           </View>
-          <Text style={styles.name}>{profile.fullName}</Text>
-          <Text style={styles.email}>{profile.email}</Text>
+          <Text style={styles.name}>{user?.fullName}</Text>
+          <Text style={styles.email}>{user?.email}</Text>
 
           {/* Menu List */}
           <View style={styles.menuList}>
@@ -92,7 +88,7 @@ export default function ProfileScreen({ navigation }) {
               label={t("profile.edit")}
               onPress={navigateToEditProfile}
             />
-            {user.role === "PARENTS" && (
+            {user?.role === "PARENTS" && (
               <MenuItem
                 icon="baby-face-outline"
                 label={t("profile.myChildren")}
@@ -150,7 +146,7 @@ export default function ProfileScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
     </Container>
   );
 }
