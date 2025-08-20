@@ -96,6 +96,9 @@ const COMPONENT_MAP = {
     () => import('@/pages/main/AccountManagement/StaffManagement'),
     'StaffManagement'
   ),
+  UserDetail: createLazyComponent(
+    () => import('@/pages/main/AccountManagement/UserDetail'),
+    'UserDetail'),
   AppointmentManagement: createLazyComponent(
     () => import('@/pages/main/AppointmentManagement/AppointmentManagement'),
     'AppointmentManagement'

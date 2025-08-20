@@ -210,9 +210,13 @@ const ClientManagement = () => {
 
   const handleView = (id, type) => {
     if (type === 'case') {
-      navigate(`case-management/details/${id}`)
+      navigate(`/case-management/details/${id}`)
+    } else {
+      navigate(`/student-management/${id}`)
     }
   }
+
+
 
   const handleModalOk = async requestData => {
     if (isCreateCase) {
