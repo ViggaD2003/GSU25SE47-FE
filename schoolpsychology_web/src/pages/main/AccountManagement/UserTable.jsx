@@ -39,8 +39,8 @@ const UserTable = ({
         key: 'fullName',
         render: (text, record) => (
           <Space>
-            <Tooltip title={record.hasActiveCases && t('userTable.activeCase')}>
-              {record.hasActiveCases && (
+            <Tooltip title={record.caseId && t('userTable.activeCase')}>
+              {record.caseId && (
                 <Button
                   type="link"
                   icon={<FlagFilled style={{ color: 'red' }} />}
@@ -137,7 +137,7 @@ const UserTable = ({
                 onClick={() => onView(record.id, "user")}
               />
             </Tooltip>
-            {user?.role === 'teacher' && !record.hasActiveCases && (
+            {user?.role === 'teacher' && !record.caseId && (
               <Tooltip title={t('userTable.createCase')}>
                 <Button
                   type="link"
