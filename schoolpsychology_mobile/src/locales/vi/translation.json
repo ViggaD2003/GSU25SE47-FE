@@ -137,6 +137,8 @@
       "new": "Mới",
       "inProgress": "Đang xử lý",
       "closed": "Đã đóng",
+      "confirmed": "Đã xác nhận",
+      "rejected": "Đã từ chối",
       "unknown": "Không xác định"
     },
     "priority": {
@@ -166,7 +168,9 @@
       "noCaseAssigned": "Không có trường hợp được tạo",
       "noCaseAssignedSubtitle": "Bạn không có trường hợp nào được tạo vào lúc này.",
       "waitingForConfirmation": "Đang chờ xác nhận",
-      "waitingForConfirmationSubtitle": "Bạn đang chờ xác nhận trường hợp từ phụ huynh của bạn."
+      "waitingForConfirmationSubtitle": "Bạn đang chờ xác nhận trường hợp từ phụ huynh của bạn.",
+      "confirmedTitle": "Trường hợp đã được xác nhận",
+      "confirmedSubtitle": "Trường hợp đã được xác nhận thành công. Vui lòng chờ phân tư vấn viên phụ trách."
     },
     "closedCases": {
       "title": "Trường hợp đã đóng",
@@ -205,7 +209,7 @@
       "success": "Trường hợp đã được xác nhận thành công",
       "error": "Lỗi khi xác nhận trường hợp"
     },
-    "closed": {
+    "rejected": {
       "title": "Từ chối trường hợp theo dõi",
       "button": "Từ chối",
       "message": "Bạn có chắc chắn muốn từ chối trường hợp này? Hành động này không thể được hoàn tác.",

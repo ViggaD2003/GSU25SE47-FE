@@ -137,6 +137,8 @@
       "new": "New",
       "inProgress": "In Progress",
       "closed": "Closed",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected",
       "unknown": "Unknown"
     },
     "priority": {
@@ -166,7 +168,9 @@
       "noCaseAssigned": "No Case Assigned",
       "noCaseAssignedSubtitle": "You don't have any cases assigned at the moment.",
       "waitingForConfirmation": "Waiting for Confirmation",
-      "waitingForConfirmationSubtitle": "You are waiting for confirmation from your parent."
+      "waitingForConfirmationSubtitle": "You are waiting for confirmation from your parent.",
+      "confirmedTitle": "Case Confirmed",
+      "confirmedSubtitle": "The case has been confirmed successfully. Please wait for the counselor to be assigned."
     },
     "closedCases": {
       "title": "Closed Cases",
@@ -205,7 +209,7 @@
       "success": "Case confirmed successfully",
       "error": "Failed to confirm case"
     },
-    "closed": {
+    "rejected": {
       "title": "Reject Case",
       "button": "Reject",
       "message": "Are you sure you want to reject this case? This action cannot be undone.",

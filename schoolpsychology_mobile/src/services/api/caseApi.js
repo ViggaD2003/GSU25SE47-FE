@@ -30,6 +30,9 @@ export const getClosedCases = async (accountId) => {
 
 export const confirmCase = async (caseId, body) => {
   try {
+    console.log("[confirmCase] caseId", caseId);
+    console.log("[confirmCase] body", body);
+
     const response = await api.put(`/api/v1/cases/${caseId}`, body);
     return response.data;
   } catch (error) {

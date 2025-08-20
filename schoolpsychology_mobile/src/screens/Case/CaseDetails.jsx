@@ -22,7 +22,6 @@ import BarChart from "@/components/charts/BarChart";
 import Loading from "@/components/common/Loading";
 import { useAuth, useChildren } from "@/contexts";
 import { confirmCase, getCaseByCaseId } from "@/services/api/caseApi";
-import { GlobalStyles } from "@/constants";
 import { getLevelConfig } from "@/constants/levelConfig";
 import ChildSelector, {
   ChildSelectorWithTitle,
@@ -114,7 +113,6 @@ const CaseDetails = ({ route, navigation }) => {
       if (!isNewCase || user?.role === "STUDENT") {
         return;
       }
-      console.log("status props", status);
 
       if (caseDetails && status) {
         Alert.alert(
@@ -128,6 +126,7 @@ const CaseDetails = ({ route, navigation }) => {
             {
               text: t("common.confirm"),
               onPress: async () => {
+                setLoading(true);
                 try {
                   const body = {
                     priority: caseDetails?.caseInfo?.priority,
@@ -135,25 +134,37 @@ const CaseDetails = ({ route, navigation }) => {
                     progressTrend: caseDetails?.caseInfo?.progressTrend,
                     currentLevelId: caseDetails?.caseInfo?.currentLevel?.id,
                   };
-                  console.log("body", body);
-                  const data = await confirmCase(
-                    caseDetails?.caseInfo?.id,
-                    body
-                  );
-                  console.log("data", data);
-                  if (data) {
+                  // console.log("[CaseDetails] body", body);
+                  // console.log(
+                  //   "[CaseDetails] caseId",
+                  //   user?.caseId || selectedChild?.caseId
+                  // );
+
+                  const caseId =
+                    user?.role === "PARENTS" && selectedChild
+                      ? selectedChild.caseId
+                      : user?.caseId;
+
+                  const data = await confirmCase(caseId, body);
+
+                  if (status === "CONFIRMED" && data) {
                     setCaseDetails(data);
-                    setToast({
-                      visible: true,
-                      message: t("case.confirm.success"),
-                      type: "success",
-                    });
+                  } else if (status === "REJECTED" && data) {
+                    refreshUser();
+                    setCaseDetails(null);
                   }
+                  setToast({
+                    visible: true,
+                    message: t(`case.${status.toLowerCase()}.success`),
+                    type: "success",
+                  });
                 } catch (error) {
                   console.log(
                     "[CaseDetails] Error confirming case:",
                     error.response.data
                   );
+                } finally {
+                  setLoading(false);
                 }
               },
             },
@@ -175,6 +186,22 @@ const CaseDetails = ({ route, navigation }) => {
           label: t("case.status.new"),
           backgroundColor: "#DBEAFE",
           gradient: ["#3B82F6", "#1D4ED8"],
+        };
+      case "CONFIRMED":
+        return {
+          color: "#10B981",
+          icon: "checkmark-circle",
+          label: t("case.status.confirmed"),
+          backgroundColor: "#D1FAE5",
+          gradient: ["#10B981", "#059669"],
+        };
+      case "REJECTED":
+        return {
+          color: "#EF4444",
+          icon: "close-circle",
+          label: t("case.status.rejected"),
+          backgroundColor: "#FEE2E2",
+          gradient: ["#EF4444", "#DC2626"],
         };
       case "IN_PROGRESS":
         return {
@@ -295,6 +322,8 @@ const CaseDetails = ({ route, navigation }) => {
             ? t("case.emptyState.noCase")
             : status === "NEW"
             ? t("case.emptyState.waitingForConfirmation")
+            : status === "CONFIRMED"
+            ? t("case.emptyState.confirmedTitle")
             : t("case.emptyState.noCaseAssigned")}
         </Text>
         <Text style={styles.emptySubtitle}>
@@ -302,6 +331,8 @@ const CaseDetails = ({ route, navigation }) => {
             ? t("case.emptyState.allCasesClosedSubtitle")
             : status === "NEW"
             ? t("case.emptyState.waitingForConfirmationSubtitle")
+            : status === "CONFIRMED"
+            ? t("case.emptyState.confirmedSubtitle")
             : t("case.emptyState.noCaseAssignedSubtitle")}
         </Text>
       </View>
@@ -660,11 +691,11 @@ const CaseDetails = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => handleConfirmCase("CLOSED")}
+            onPress={() => handleConfirmCase("REJECTED")}
             style={styles.rejectButton}
           >
             <Text style={styles.rejectButtonText}>
-              {t("case.closed.button")}
+              {t("case.rejected.button")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -720,6 +751,8 @@ const CaseDetails = ({ route, navigation }) => {
               renderEmptyState(hasActiveCase ? "IN_PROGRESS" : "CLOSED")
             ) : user.role === "STUDENT" && isNewCase ? (
               renderEmptyState("NEW")
+            ) : caseDetails.caseInfo.status === "CONFIRMED" ? (
+              renderEmptyState("CONFIRMED")
             ) : (
               <View style={styles.content}>
                 {renderCaseInfo()}
