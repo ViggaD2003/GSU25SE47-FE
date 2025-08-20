@@ -90,7 +90,13 @@ export const ROUTE_CONFIG = [
       },
     ],
   },
-
+  {
+    key: '/student-management/:id',
+    labelKey: 'navigation.studentManagement',
+    hidden: true,
+    allowedRoles: ['manager', 'teacher'],
+    element: 'UserDetail',
+  },
   // Staff Management (Staff List, Slot Management) - Manager
   {
     key: 'account-staff',
