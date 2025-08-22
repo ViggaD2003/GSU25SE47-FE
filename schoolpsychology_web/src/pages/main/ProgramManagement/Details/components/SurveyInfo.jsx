@@ -106,7 +106,7 @@ const SurveyInfo = ({ survey }) => {
       <Button
         type="primary"
         onClick={() => setVisible(true)}
-        style={{ marginBottom: '10px' }}
+        style={{ marginTop: '10px', float: 'right', marginBottom: '10px' }}
       >
         {t('programManagement.details.surveyInfo.view')}
       </Button>

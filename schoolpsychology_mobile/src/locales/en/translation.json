@@ -452,7 +452,9 @@
       "recurring": "Recurring",
       "oneTime": "One-time",
       "joinProgram": "Join Program",
-      "joinedAt": "Joined at",
+      "joinedAt": "Joined",
+      "completedAt": "Completed",
+      "activeAt": "Active",
       "leaveProgram": "Leave Program",
       "loading": "Loading...",
       "programNotFound": "Program not found",
@@ -478,7 +480,9 @@
         "absent": "Absent",
         "active": "Active",
         "completed": "Completed",
-        "enrolled": "Enrolled"
+        "enrolled": "Enrolled",
+        "firstSurvey": "First Survey",
+        "secondSurvey": "Second Survey"
       },
       "surveyIdentity": {
         "entry": "Entry",
@@ -497,7 +501,12 @@
         "level": "Level",
         "symptomsDescription": "Symptoms Description",
         "interventionRequired": "Intervention Required",
-        "completedAt": "Completed At"
+        "completedAt": "Completed At",
+        "improvement": "Improvement",
+        "decline": "Decline",
+        "noChange": "No Change",
+        "entryScore": "Entry Score",
+        "exitScore": "Exit Score"
       }
     },
     "record": {

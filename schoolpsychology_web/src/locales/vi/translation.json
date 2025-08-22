@@ -444,7 +444,6 @@
       "closeSurveySuccess": "Đóng khảo sát thành công",
       "closeSurveyError": "Không thể đóng khảo sát",
       "assessment": "Điểm đánh giá",
-      "participants": "Học viên",
       "noParticipants": "Không có học viên",
       "noProgramFound": "Không tìm thấy chương trình",
       "noStatisticsAvailable": "Không có dữ liệu thống kê",
@@ -550,6 +549,7 @@
       "participantInfo": "Thông tin học viên",
       "viewParticipant": "Xem học viên",
       "participants": {
+        "refresh": "Làm mới",
         "title": "Danh sách học viên",
         "addCases": "Thêm trường hợp",
         "availableCases": "Trường hợp có sẵn",
@@ -736,6 +736,8 @@
     },
     "statusOptions": {
       "NEW": "Mới",
+      "CONFIRMED": "Đã xác nhận",
+      "REJECTED": "Đã từ chối",
       "IN_PROGRESS": "Đang tiến hành",
       "CLOSED": "Đã đóng"
     },
@@ -1351,7 +1353,8 @@
       "validationFailed": "Vui lòng kiểm tra thông tin nhập và thử lại",
       "networkError": "Lỗi mạng. Vui lòng thử lại",
       "serverError": "Lỗi máy chủ. Vui lòng thử lại sau"
-    }
+    },
+    "inProgress": "Đang tiến hành"
   },
   "classManagement": {
     "title": "Quản lý lớp học",
@@ -2418,5 +2421,32 @@
       "updatedAt": "Cập nhật lúc",
       "actions": "Thao tác"
     }
+  },
+  "userDetail": {
+    "studentDetails": "Chi tiết sinh viên",
+    "basicInformation": "Thông tin cơ bản",
+    "studentCode": "Mã sinh viên",
+    "surveyStatus": "Trạng thái khảo sát",
+    "surveyEnabled": "Đã bật khảo sát",
+    "surveyDisabled": "Chưa bật khảo sát",
+    "supportCases": "Các trường hợp hỗ trợ",
+    "totalCases": "Tổng số case",
+    "activeCases": "Case đang hoạt động",
+    "highPriorityCases": "Case ưu tiên cao",
+    "priority": "Ưu tiên",
+    "category": "Danh mục",
+    "createdBy": "Người tạo",
+    "counselor": "Tư vấn viên",
+    "notAssigned": "Chưa được phân công",
+    "progressTrend": "Xu hướng tiến triển",
+    "currentLevel": "Cấp độ hiện tại",
+    "initialLevel": "Cấp độ ban đầu",
+    "noSupportCases": "Không có trường hợp hỗ trợ nào",
+    "parentInformation": "Thông tin phụ huynh",
+    "noParentInformation": "Không có thông tin phụ huynh",
+    "quickActions": "Thao tác nhanh",
+    "viewFullProfile": "Xem hồ sơ đầy đủ",
+    "exportData": "Xuất dữ liệu",
+    "sendMessage": "Gửi tin nhắn"
   }
 }

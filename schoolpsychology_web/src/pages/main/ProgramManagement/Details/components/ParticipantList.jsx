@@ -28,6 +28,8 @@ import {
   TrophyOutlined,
   TeamOutlined,
   ReloadOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons'
 
 const { Text, Title } = Typography
@@ -41,6 +43,7 @@ const ParticipantList = ({
   onViewParticipant,
   userRole = 'counselor',
   hasAvailableCases = false,
+  refresh,
 }) => {
   const { t } = useTranslation()
 
@@ -109,7 +112,7 @@ const ParticipantList = ({
       title: t('programManagement.participants.studentInfo'),
       dataIndex: 'student',
       key: 'student',
-      width: 200,
+      width: 120,
       render: (student, _record) => (
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
           <Space>
@@ -119,11 +122,33 @@ const ParticipantList = ({
               style={{ backgroundColor: '#1890ff' }}
             />
             <div>
-              <Text strong style={{ fontSize: '14px' }}>
+              <Text
+                strong
+                style={{
+                  fontSize: '14px',
+                  minWidth: 100,
+                  maxWidth: 120,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={student?.fullName || t('common.unknown')}
+              >
                 {student?.fullName || t('common.unknown')}
               </Text>
               <br />
-              <Text type="secondary" style={{ fontSize: '12px' }}>
+              <Text
+                type="secondary"
+                style={{
+                  fontSize: '12px',
+                  minWidth: 100,
+                  maxWidth: 120,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={student?.studentCode || t('common.unknown')}
+              >
                 {student?.studentCode || t('common.unknown')}
               </Text>
             </div>
@@ -146,7 +171,7 @@ const ParticipantList = ({
       title: t('programManagement.participants.caseInfo'),
       dataIndex: 'cases',
       key: 'cases',
-      width: 250,
+      width: 200,
       render: (cases, _record) => (
         <div>
           {cases ? (
@@ -233,7 +258,25 @@ const ParticipantList = ({
               {t('programManagement.participants.finalScore')}:
             </Text>
             <br />
-            <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
+            <Text
+              strong
+              style={{
+                fontSize: '16px',
+                color:
+                  record.finalScore > 0
+                    ? 'green'
+                    : record.finalScore < 0
+                      ? 'red'
+                      : 'gray',
+              }}
+            >
+              {record.finalScore > 0 ? (
+                <ArrowUpOutlined />
+              ) : record.finalScore < 0 ? (
+                <ArrowDownOutlined />
+              ) : (
+                ''
+              )}
               {record.finalScore !== null && record.finalScore !== undefined
                 ? record.finalScore.toFixed(1)
                 : '-'}
@@ -257,7 +300,7 @@ const ParticipantList = ({
       ),
     },
     {
-      title: t('common.actions'),
+      // title: t('common.actions'),
       key: 'actions',
       width: 50,
       fixed: 'right',
@@ -293,7 +336,9 @@ const ParticipantList = ({
     return { total, withCases, withoutCases, enrolled, completed }
   }, [participants])
 
-  const handleRefresh = useCallback(() => {}, [])
+  const handleRefresh = useCallback(() => {
+    refresh()
+  }, [refresh])
 
   return (
     <div>
@@ -312,9 +357,8 @@ const ParticipantList = ({
               type="primary"
               icon={<ReloadOutlined />}
               onClick={handleRefresh}
-              size="large"
             >
-              {t('programManagement.participants.refresh')}
+              {t('common.refresh')}
             </Button>
             {userRole === 'counselor' && hasAvailableCases && (
               <Button
@@ -388,7 +432,6 @@ const ParticipantList = ({
               showTotal: (total, range) =>
                 `${range[0]}-${range[1]} ${t('common.pagination.of')} ${total} ${t('common.pagination.items')}`,
             }}
-            scroll={{ x: 1200 }}
             size="middle"
             bordered
           />

@@ -538,6 +538,7 @@ const ProgramDetails = () => {
                   onViewParticipant={showParticipantDetails}
                   userRole={user?.role}
                   hasAvailableCases={hasAvailableCases}
+                  refresh={() => dispatch(getProgramById(id))}
                 />
               ),
             },

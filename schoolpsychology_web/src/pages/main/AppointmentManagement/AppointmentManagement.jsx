@@ -298,7 +298,7 @@ const AppointmentManagement = () => {
           )
         })
       }
-      console.log('filtered', filtered)
+      // console.log('filtered', filtered)
       return filtered
     },
     [dateRange, searchText, t]

@@ -87,7 +87,10 @@ const ClassManagement = () => {
           ?.toLowerCase()
           ?.includes(filters.teacher.toLowerCase())
 
-      return matchesSearch && matchesTeacher
+      const matchesSchoolYear =
+        !filters.schoolYear || classItem?.schoolYear?.id === filters.schoolYear
+
+      return matchesSearch && matchesTeacher && matchesSchoolYear
     })
   }, [classes, searchText, filters])
 
@@ -103,6 +106,7 @@ const ClassManagement = () => {
   const paginatedClasses = useMemo(() => {
     const startIndex = (pagination.current - 1) * pagination.pageSize
     const endIndex = startIndex + pagination.pageSize
+
     return filteredClasses.slice(startIndex, endIndex)
   }, [filteredClasses, pagination.current, pagination.pageSize])
 
@@ -182,6 +186,24 @@ const ClassManagement = () => {
     setIsEnrollVisible(false)
   }, [])
 
+  const uniqueSchoolYears = useMemo(() => {
+    const schoolYearMap = new Map()
+
+    classes.forEach(classItem => {
+      if (
+        classItem.schoolYear?.id &&
+        !schoolYearMap.has(classItem.schoolYear.id)
+      ) {
+        schoolYearMap.set(classItem.schoolYear.id, classItem.schoolYear)
+      }
+    })
+
+    return Array.from(schoolYearMap.values()).map(schoolYear => ({
+      label: schoolYear.name,
+      value: schoolYear.id,
+    }))
+  }, [classes])
+
   return (
     <>
       {contextHolder}
@@ -227,16 +249,11 @@ const ClassManagement = () => {
                 allowClear
                 value={filters.schoolYear}
                 onChange={e => handleFiltersChange('schoolYear', e)}
-                options={Array.from(
-                  new Set(classes.map(classItem => classItem.schoolYear.name))
-                ).map(schoolYear => ({
-                  label: schoolYear,
-                  value: schoolYear,
-                }))}
+                options={uniqueSchoolYears}
               />
             </Col>
             {(searchText || filters.schoolYear) && (
-              <Col xs={24} sm={12} lg={8}>
+              <Col>
                 <Button onClick={handleClearFilters}>
                   {t('appointment.filter.clearFilters')}
                 </Button>

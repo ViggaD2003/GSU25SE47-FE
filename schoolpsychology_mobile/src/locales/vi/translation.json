@@ -447,7 +447,9 @@
       "recurring": "Định kỳ",
       "oneTime": "Một lần",
       "joinProgram": "Tham gia chương trình",
-      "joinedAt": "Tham gia lúc",
+      "joinedAt": "Đăng ký",
+      "completedAt": "Hoàn thành",
+      "activeAt": "Tham gia",
       "leaveProgram": "Rời chương trình",
       "loading": "Đang tải...",
       "programNotFound": "Không tìm thấy chương trình",
@@ -471,9 +473,11 @@
       },
       "studentStatus": {
         "absent": "Vắng mặt",
-        "active": "Đang tham gia",
-        "completed": "Đã hoàn thành",
-        "enrolled": "Đã đăng ký"
+        "active": "Tham gia",
+        "completed": "Hoàn thành",
+        "enrolled": "Đăng ký",
+        "firstSurvey": "Khảo sát đầu tiên",
+        "secondSurvey": "Khảo sát thứ hai"
       },
       "surveyIdentity": {
         "entry": "Đầu vào",
@@ -492,7 +496,12 @@
         "level": "Mức độ",
         "symptomsDescription": "Mô tả triệu chứng",
         "interventionRequired": "Can thiệp cần thiết",
-        "completedAt": "Hoàn thành lúc"
+        "completedAt": "Hoàn thành lúc",
+        "improvement": "Cải thiện",
+        "decline": "Giảm sút",
+        "noChange": "Không thay đổi",
+        "entryScore": "Điểm đầu vào",
+        "exitScore": "Điểm đầu ra"
       }
     },
     "record": {

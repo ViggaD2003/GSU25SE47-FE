@@ -548,6 +548,7 @@
       "participantInfo": "Participant Information",
       "viewParticipant": "View Participant",
       "participants": {
+        "refresh": "Refresh",
         "title": "Participant List",
         "addCases": "Add Cases",
         "selectCases": "Select cases to add",
@@ -697,6 +698,8 @@
     "statusOptions": {
       "NEW": "New",
       "IN_PROGRESS": "In Progress",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Rejected",
       "CLOSED": "Closed"
     },
     "statistics": {
@@ -1561,7 +1564,8 @@
       "validationFailed": "Please check your input and try again",
       "networkError": "Network error. Please try again",
       "serverError": "Server error. Please try again later"
-    }
+    },
+    "inProgress": "In Progress"
   },
   "classManagement": {
     "title": "Class Management",
@@ -2332,5 +2336,32 @@
       "updatedAt": "Updated At",
       "actions": "Actions"
     }
+  },
+  "userDetail": {
+    "studentDetails": "Student Details",
+    "basicInformation": "Basic Information",
+    "studentCode": "Student Code",
+    "surveyStatus": "Survey Status",
+    "surveyEnabled": "Survey Enabled",
+    "surveyDisabled": "Survey Disabled",
+    "supportCases": "Support Cases",
+    "totalCases": "Total Cases",
+    "activeCases": "Active Cases",
+    "highPriorityCases": "High Priority Cases",
+    "priority": "Priority",
+    "category": "Category",
+    "createdBy": "Created By",
+    "counselor": "Counselor",
+    "notAssigned": "Not Assigned",
+    "progressTrend": "Progress Trend",
+    "currentLevel": "Current Level",
+    "initialLevel": "Initial Level",
+    "noSupportCases": "No support cases found",
+    "parentInformation": "Parent Information",
+    "noParentInformation": "No parent information available",
+    "quickActions": "Quick Actions",
+    "viewFullProfile": "View Full Profile",
+    "exportData": "Export Data",
+    "sendMessage": "Send Message"
   }
 }

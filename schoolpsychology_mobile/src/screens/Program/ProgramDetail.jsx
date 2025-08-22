@@ -77,7 +77,7 @@ export default function ProgramDetail() {
       setLoading(true);
       const data = await fetchProgramDetails(programId, userId);
 
-      console.log("data", data);
+      // console.log("detail data", data);
 
       setProgram(data);
       setIsJoined(data.student ? true : false);
@@ -221,9 +221,9 @@ export default function ProgramDetail() {
       case "ACTIVE":
         return "#34C759";
       case "COMPLETED":
-        return "#FF9500";
-      case "ENROLLED":
         return "#007AFF";
+      case "ENROLLED":
+        return "#FF9500";
       case "ABSENT":
         return "#FF3B30";
       default:
@@ -233,6 +233,10 @@ export default function ProgramDetail() {
 
   const getStudentStatusText = (status) => {
     switch (status) {
+      case "FIRST_SURVEY":
+        return t("program.detail.studentStatus.firstSurvey");
+      case "SECOND_SURVEY":
+        return t("program.detail.studentStatus.secondSurvey");
       case "ACTIVE":
         return t("program.detail.studentStatus.active");
       case "COMPLETED":
@@ -246,23 +250,12 @@ export default function ProgramDetail() {
     }
   };
 
-  const getSurveyIdentityText = (identity) => {
-    switch (identity) {
-      case "ENTRY":
-        return t("program.detail.surveyIdentity.entry");
-      case "EXIT":
-        return t("program.detail.surveyIdentity.exit");
-      default:
-        return identity || "Unknown";
-    }
-  };
-
   const getSurveyIdentityColor = (identity) => {
     switch (identity) {
       case "ENTRY":
-        return "#34C759";
+        return "#007AFF";
       case "EXIT":
-        return "#FF9500";
+        return "#007AFF";
       default:
         return "#8E8E93";
     }
@@ -284,11 +277,18 @@ export default function ProgramDetail() {
     const entrySurvey = program.student?.surveyRecord?.find(
       (s) => s.identify === "ENTRY"
     );
+
+    // console.log("entrySurvey", entrySurvey);
+
     const exitSurvey = program.student?.surveyRecord?.find(
       (s) => s.identify === "EXIT"
     );
 
+    // console.log("exitSurvey", exitSurvey);
+
     const isActiveSurvey = program.isActiveSurvey;
+    const finalScore = exitSurvey?.totalScore - entrySurvey?.totalScore;
+    const finalScoreColor = finalScore > 0 ? "#34C759" : "#FF3B30";
 
     return (
       <View style={styles.section}>
@@ -345,7 +345,7 @@ export default function ProgramDetail() {
                   <TouchableOpacity
                     style={[styles.statusBadge, { backgroundColor: "#007AFF" }]}
                     onPress={() => {
-                      console.log(user.token);
+                      // console.log(user.token);
 
                       navigation.navigate("Survey", {
                         screen: "SurveyInfo",
@@ -488,19 +488,162 @@ export default function ProgramDetail() {
         </View>
 
         {/* Final Score */}
-        {program.student?.finalScore > 0 && (
+        {entrySurvey && exitSurvey && (
           <View style={styles.finalScoreCard}>
             <View style={styles.finalScoreHeader}>
-              <Ionicons name="trophy-outline" size={24} color="#FF9500" />
+              <Ionicons
+                name={
+                  finalScore > 0
+                    ? "trending-up"
+                    : finalScore < 0
+                    ? "trending-down"
+                    : "remove"
+                }
+                size={24}
+                color={finalScoreColor}
+              />
               <Text style={styles.finalScoreTitle}>
                 {t("program.detail.surveyProgress.finalScore")}
               </Text>
             </View>
-            <Text style={styles.finalScoreValue}>
-              {program.student.finalScore}
-            </Text>
+
+            {/* Score Display */}
+            <View style={styles.scoreDisplay}>
+              <Text
+                style={[styles.finalScoreValue, { color: finalScoreColor }]}
+              >
+                {finalScore > 0 ? `+${finalScore}` : finalScore}
+              </Text>
+
+              {/* Trend Indicator */}
+              <View
+                style={[
+                  styles.trendBadge,
+                  { backgroundColor: finalScoreColor },
+                ]}
+              >
+                <Ionicons
+                  name={
+                    finalScore > 0
+                      ? "arrow-up"
+                      : finalScore < 0
+                      ? "arrow-down"
+                      : "remove"
+                  }
+                  size={16}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.trendText}>
+                  {finalScore > 0
+                    ? t("program.detail.surveyProgress.improvement")
+                    : finalScore < 0
+                    ? t("program.detail.surveyProgress.decline")
+                    : t("program.detail.surveyProgress.noChange")}
+                </Text>
+              </View>
+            </View>
+
+            {/* Score Breakdown */}
+            <View style={styles.scoreBreakdown}>
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>
+                  {t("program.detail.surveyProgress.entryScore")}:
+                </Text>
+                <Text style={styles.scoreValue}>{entrySurvey.totalScore}</Text>
+              </View>
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreLabel}>
+                  {t("program.detail.surveyProgress.exitScore")}:
+                </Text>
+                <Text style={styles.scoreValue}>{exitSurvey.totalScore}</Text>
+              </View>
+            </View>
           </View>
         )}
+      </View>
+    );
+  };
+
+  const StudentStatusCard = ({ styleBadge, statusText, time, timeLabel }) => {
+    return (
+      <View style={styles.studentStatusCard}>
+        <View style={[styles.studentStatusBadge, styleBadge]}>
+          <Text style={styles.studentStatusText}>{statusText}</Text>
+        </View>
+        {time && (
+          <Text style={styles.joinDate}>
+            {timeLabel} {formatDateTime(time)}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderStudentStatus = () => {
+    if (!program.student) return null;
+
+    const entrySurvey =
+      program.student.surveyRecord &&
+      program.student.surveyRecord.find((s) => s.identify === "ENTRY");
+
+    const exitSurvey =
+      program.student.surveyRecord &&
+      program.student.surveyRecord.find((s) => s.identify === "EXIT");
+
+    return (
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="person-circle-outline" size={24} color="#007AFF" />
+          <Text style={styles.sectionTitle}>
+            {t("program.detail.yourStatus")}
+          </Text>
+        </View>
+        <View style={styles.studentStatusContainer}>
+          <StudentStatusCard
+            styleBadge={{
+              backgroundColor: getStudentStatusColor("ENROLLED"),
+            }}
+            statusText={getStudentStatusText("ENROLLED")}
+            time={program.student.joinAt}
+            timeLabel={t("program.detail.joinedAt")}
+          />
+
+          {/* First Survey */}
+          {entrySurvey && (
+            <StudentStatusCard
+              styleBadge={{
+                backgroundColor: getStudentStatusColor("ACTIVE"),
+              }}
+              statusText={getStudentStatusText("ACTIVE")}
+              time={entrySurvey.completedAt}
+              timeLabel={t("program.detail.activeAt")}
+            />
+          )}
+
+          {/* Exit Survey && Student Status is COMPLETED */}
+          {exitSurvey && (
+            <StudentStatusCard
+              styleBadge={{
+                backgroundColor: getStudentStatusColor("COMPLETED"),
+              }}
+              statusText={getStudentStatusText("COMPLETED")}
+              time={exitSurvey.completedAt}
+              timeLabel={t("program.detail.completedAt")}
+            />
+          )}
+
+          {/* Absent */}
+          {!entrySurvey && program.student.status === "ABSENT" && (
+            <StudentStatusCard
+              styleBadge={{
+                backgroundColor: getStudentStatusColor("ABSENT"),
+              }}
+              statusText={getStudentStatusText("ABSENT")}
+              // time={program.student.joinAt}
+              // timeLabel={t("program.detail.completedAt")}
+            />
+          )}
+        </View>
       </View>
     );
   };
@@ -636,6 +779,45 @@ export default function ProgramDetail() {
 
           {/* Main Content */}
           <View style={styles.mainContent}>
+            {/* Participants Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="people-outline" size={24} color="#007AFF" />
+                <Text style={styles.sectionTitle}>
+                  {t("program.detail.participants")}
+                </Text>
+              </View>
+              <View style={styles.participantsCard}>
+                <View style={styles.participantsHeader}>
+                  <View style={styles.participantCount}>
+                    <Text style={styles.participantNumber}>
+                      {program.participants || 0}
+                    </Text>
+                    <Text style={styles.participantText}>
+                      / {program.maxParticipants || 0}
+                    </Text>
+                  </View>
+                  <Text style={styles.participantLabel}>
+                    {t("program.detail.participants").toLowerCase()}
+                  </Text>
+                </View>
+                <View style={styles.progressBar}>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        width: `${
+                          ((program.participants || 0) /
+                            (program.maxParticipants || 1)) *
+                          100
+                        }%`,
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
+            </View>
+
             {/* Description Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -739,11 +921,6 @@ export default function ProgramDetail() {
               </View>
             </View>
 
-            {/* Survey Progress */}
-            <View style={styles.section}>
-              {program?.student && renderSurveyProgress()}
-            </View>
-
             {/* Program Survey */}
             {program.surveyId && (
               <View style={styles.section}>
@@ -772,84 +949,13 @@ export default function ProgramDetail() {
               </View>
             )}
 
-            {/* Participants Section */}
+            {/* Survey Progress */}
             <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Ionicons name="people-outline" size={24} color="#007AFF" />
-                <Text style={styles.sectionTitle}>
-                  {t("program.detail.participants")}
-                </Text>
-              </View>
-              <View style={styles.participantsCard}>
-                <View style={styles.participantsHeader}>
-                  <View style={styles.participantCount}>
-                    <Text style={styles.participantNumber}>
-                      {program.participants || 0}
-                    </Text>
-                    <Text style={styles.participantText}>
-                      / {program.maxParticipants || 0}
-                    </Text>
-                  </View>
-                  <Text style={styles.participantLabel}>
-                    {t("program.detail.participants").toLowerCase()}
-                  </Text>
-                </View>
-                <View style={styles.progressBar}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${
-                          ((program.participants || 0) /
-                            (program.maxParticipants || 1)) *
-                          100
-                        }%`,
-                      },
-                    ]}
-                  />
-                </View>
-              </View>
+              {program?.student && renderSurveyProgress()}
             </View>
 
             {/* Student Status */}
-            {program.student && (
-              <View style={styles.section}>
-                <View style={styles.sectionHeader}>
-                  <Ionicons
-                    name="person-circle-outline"
-                    size={24}
-                    color="#007AFF"
-                  />
-                  <Text style={styles.sectionTitle}>
-                    {t("program.detail.yourStatus")}
-                  </Text>
-                </View>
-                <View style={styles.studentStatusCard}>
-                  <View
-                    style={[
-                      styles.studentStatusBadge,
-                      {
-                        backgroundColor: getStudentStatusColor(
-                          program.student.status || "UNKNOWN"
-                        ),
-                      },
-                    ]}
-                  >
-                    <Text style={styles.studentStatusText}>
-                      {getStudentStatusText(
-                        program.student.status || "UNKNOWN"
-                      )}
-                    </Text>
-                  </View>
-                  {program.student.joinAt && (
-                    <Text style={styles.joinDate}>
-                      {t("program.detail.joinedAt")}:{" "}
-                      {formatDateTime(program.student.joinAt)}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            )}
+            {renderStudentStatus()}
           </View>
         </Animated.View>
       </ScrollView>
@@ -878,9 +984,10 @@ export default function ProgramDetail() {
                 {t("program.detail.loading")}
               </Text>
             ) : !canJoinOrLeave() ? (
-              <Text style={styles.actionButtonText}>
-                {t("program.detail.programIsActive")}
-              </Text>
+              // <Text style={styles.actionButtonText}>
+              // {/* {t("program.detail.programIsActive")} */}
+              // </Text>
+              <></>
             ) : (
               <>
                 <Ionicons
@@ -1241,6 +1348,46 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#34C759",
   },
+  scoreDisplay: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  trendBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 12,
+    gap: 8,
+  },
+  trendText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  scoreBreakdown: {
+    width: "100%",
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+  },
+  scoreRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  scoreLabel: {
+    fontSize: 16,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  scoreValue: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#181A3D",
+  },
   participantsCard: {
     backgroundColor: "#FFFFFF",
     padding: 20,
@@ -1289,9 +1436,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#34C759",
     borderRadius: 4,
   },
+  studentStatusContainer: {
+    gap: 5,
+  },
   studentStatusCard: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#FFFFFF",
     padding: 20,
     borderRadius: 16,
@@ -1305,11 +1456,13 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap",
   },
   studentStatusBadge: {
+    width: 100,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
   },
   studentStatusText: {
+    textAlign: "center",
     fontSize: 12,
     fontWeight: "500",
     color: "#FFFFFF",

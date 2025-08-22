@@ -316,9 +316,11 @@ const CaseDetails = () => {
 
   const getStatusColor = useCallback(status => {
     const colorMap = {
-      NEW: '#1890ff',
+      NEW: 'geekblue',
+      CONFIRMED: 'green',
+      REJECTED: '#ff4d4f',
       IN_PROGRESS: '#faad14',
-      CLOSED: '#52c41a',
+      CLOSED: 'default',
     }
     return colorMap[status] || '#d9d9d9'
   }, [])

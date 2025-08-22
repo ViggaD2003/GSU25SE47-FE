@@ -134,7 +134,7 @@ const UserTable = ({
                 type="link"
                 icon={<EyeOutlined />}
                 size="small"
-                onClick={() => onView(record.id, "user")}
+                onClick={() => onView(record.id, 'user')}
               />
             </Tooltip>
             {user?.role === 'teacher' && !record.caseId && (

@@ -44,7 +44,7 @@ export const caseAPI = {
     if (!data || !data.counselorId || !Array.isArray(data.caseId)) return
 
     const response = await api.patch(
-      `/api/v1/cases/assign?caseIds=${data.caseId}&counselorId=${data.counselorId}`
+      `/api/v1/cases/assign?caseId=${data.caseId}&counselorId=${data.counselorId}`
     )
     return response.data
   },
@@ -92,6 +92,7 @@ export const caseAPI = {
     )
     return response.data
   },
+
   assignCaseToProgram: async data => {
     if (!data) return
     const caseIds = Array.isArray(data.caseIds)
