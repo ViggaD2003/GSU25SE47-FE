@@ -83,13 +83,20 @@ const CreateClass = () => {
     try {
       setFetching(true)
       const response = await classAPI.getSchoolYears()
-      setSchoolYears(response || [])
+
+      const filteredSchoolYears = response.filter(item =>
+        dayjs(item.startDate).isAfter(dayjs())
+      )
+
+      setSchoolYears(filteredSchoolYears)
       if (response && response.length > 0) {
-        form.setFieldsValue({
-          schoolYear: response[0].id,
-          startTime: dayjs(response[0].startDate).local(),
-          endTime: dayjs(response[0].endDate).local(),
-        })
+        const initialValues = {
+          schoolYear: filteredSchoolYears[0].id,
+          startTime: dayjs(filteredSchoolYears[0].startDate).local(),
+          endTime: dayjs(filteredSchoolYears[0].endDate).local(),
+        }
+        form.setFieldsValue(initialValues)
+        setFormValues(prev => ({ ...prev, ...initialValues }))
       }
     } catch (error) {
       console.error('Error fetching school years:', error)
@@ -161,14 +168,14 @@ const CreateClass = () => {
         schoolYear => schoolYear.id === value
       )
       if (selectedSchoolYear) {
-        form.setFieldsValue({
+        form?.setFieldsValue({
           startTime: dayjs(selectedSchoolYear.startDate).local(),
           endTime: dayjs(selectedSchoolYear.endDate).local(),
         })
       }
 
       // Regenerate classes if grade and numberOfClasses are already set
-      const { grade, numberOfClasses } = form.getFieldsValue()
+      const { grade, numberOfClasses } = form?.getFieldsValue() || {}
       if (grade && numberOfClasses) {
         generateClasses(grade, numberOfClasses)
       }
@@ -180,7 +187,7 @@ const CreateClass = () => {
   const handleGradeChange = useCallback(
     value => {
       // Regenerate classes if numberOfClasses is already set
-      const { numberOfClasses } = form.getFieldsValue()
+      const { numberOfClasses } = form?.getFieldsValue() || {}
       if (numberOfClasses) {
         generateClasses(value, numberOfClasses)
       }
@@ -192,7 +199,7 @@ const CreateClass = () => {
   const handleNumberOfClassesChange = useCallback(
     value => {
       // Regenerate classes if grade is already set
-      const { grade } = form.getFieldsValue()
+      const { grade } = form?.getFieldsValue() || {}
       if (grade) {
         generateClasses(grade, value)
       }
@@ -203,7 +210,7 @@ const CreateClass = () => {
   // Validate current step
   const validateCurrentStep = useCallback(() => {
     // Lấy giá trị từ form trực tiếp thay vì từ state
-    const values = form.getFieldsValue()
+    const values = form?.getFieldsValue() || {}
     const { grade, numberOfClasses, schoolYear, startTime, endTime } = values
 
     // Cập nhật formValues state để theo dõi
@@ -230,7 +237,7 @@ const CreateClass = () => {
   const handleNext = useCallback(() => {
     if (validateCurrentStep()) {
       // Lưu giá trị hiện tại trước khi chuyển step
-      const currentValues = form.getFieldsValue()
+      const currentValues = form?.getFieldsValue() || {}
       setFormValues(prev => ({ ...prev, ...currentValues }))
 
       setCurrentStep(prev => prev + 1)
@@ -248,11 +255,11 @@ const CreateClass = () => {
   // Handle previous step
   const handlePrev = useCallback(() => {
     // Lưu giá trị hiện tại trước khi quay lại
-    const currentValues = form.getFieldsValue()
+    const currentValues = form?.getFieldsValue() || {}
     setFormValues(prev => ({ ...prev, ...currentValues }))
 
     setCurrentStep(prev => prev - 1)
-  }, [])
+  }, [form])
 
   // Handle form submission
   const handleCreateClass = useCallback(async () => {
@@ -260,7 +267,7 @@ const CreateClass = () => {
       setLoading(true)
 
       // Lấy giá trị từ form trực tiếp
-      const { grade, schoolYear, startTime, endTime } = formValues
+      const { grade, schoolYear, startTime, endTime } = formValues || {}
 
       // Prepare data for API - Format theo yêu cầu của backend
       const classData = classes.map(cls => ({
@@ -273,7 +280,7 @@ const CreateClass = () => {
         schoolYearId: schoolYear,
       }))
 
-      console.log(classData)
+      // console.log(classData)
 
       // Gửi từng lớp một hoặc gửi tất cả cùng lúc tùy theo API
       await dispatch(createClass(classData)).unwrap()
@@ -288,18 +295,13 @@ const CreateClass = () => {
 
       // Reset to initial values
       if (schoolYears.length > 0) {
-        form.setFieldsValue({
+        const resetValues = {
           schoolYear: schoolYears[0].id,
           startTime: dayjs(schoolYears[0].startDate).local(),
           endTime: dayjs(schoolYears[0].endDate).local(),
-        })
-        // Cập nhật formValues sau khi set
-        setFormValues(prev => ({
-          ...prev,
-          schoolYear: schoolYears[0].id,
-          startTime: dayjs(schoolYears[0].startDate).local(),
-          endTime: dayjs(schoolYears[0].endDate).local(),
-        }))
+        }
+        form.setFieldsValue(resetValues)
+        setFormValues(resetValues)
       }
     } catch (error) {
       console.error('Error creating classes:', error)
@@ -385,15 +387,14 @@ const CreateClass = () => {
                     {t('classManagement.form.schoolYear', 'School Year')}:{' '}
                     {
                       schoolYears.find(
-                        schoolYear =>
-                          schoolYear.id === form.getFieldValue('schoolYear')
+                        schoolYear => schoolYear.id === formValues.schoolYear
                       )?.name
                     }
                   </Text>
                   <Divider type="vertical" size="large" />
                   <Text type="secondary">
                     {t('classManagement.form.grade', 'Grade')}:{' '}
-                    {GRADE_LEVEL[form.getFieldValue('grade')]}
+                    {GRADE_LEVEL[formValues.grade || '']}
                   </Text>
                   <Divider type="vertical" size="large" />
                   <Text type="secondary">Classes: {classes.length}</Text>
@@ -733,15 +734,14 @@ const CreateClass = () => {
                     {t('classManagement.form.schoolYear', 'School Year')}:{' '}
                     {
                       schoolYears.find(
-                        schoolYear =>
-                          schoolYear.id === form.getFieldValue('schoolYear')
+                        schoolYear => schoolYear.id === formValues.schoolYear
                       )?.name
                     }
                   </Text>
                   <Divider type="vertical" size="large" />
                   <Text type="secondary">
                     {t('classManagement.form.grade', 'Grade')}:{' '}
-                    {GRADE_LEVEL[form.getFieldValue('grade')]}
+                    {GRADE_LEVEL[formValues.grade]}
                   </Text>
                 </Space>
               </Space>
@@ -920,7 +920,13 @@ const CreateClass = () => {
   return (
     <>
       {contextHolder}
-      <Form form={form} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={(_, allValues) => {
+          setFormValues(prev => ({ ...prev, ...allValues }))
+        }}
+      >
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
