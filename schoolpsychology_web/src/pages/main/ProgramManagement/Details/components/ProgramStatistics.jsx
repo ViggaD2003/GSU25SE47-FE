@@ -21,8 +21,28 @@ import {
   TeamOutlined,
   BarChartOutlined,
 } from '@ant-design/icons'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from 'chart.js'
+import { Bar, Doughnut, Pie } from 'react-chartjs-2'
 
-const { Title, Text } = Typography
+const { Text } = Typography
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+)
 
 const ProgramStatistics = ({ program, statistics }) => {
   const { t } = useTranslation()
@@ -41,23 +61,83 @@ const ProgramStatistics = ({ program, statistics }) => {
 
   const participants = program.participants || []
 
-  // Calculate status distribution
-  const statusDistribution = participants.reduce((acc, participant) => {
-    const status = participant.status || 'UNKNOWN'
-    acc[status] = (acc[status] || 0) + 1
-    return acc
-  }, {})
+  const statusDistribution = {
+    COMPLETED: participants.filter(p => p.status === 'COMPLETED').length,
+    ABSENT: participants.filter(p => p.status === 'ABSENT').length,
+  }
 
-  // Calculate score ranges
-  const scores = participants
-    .filter(p => p.finalScore !== null && p.finalScore !== undefined)
-    .map(p => p.finalScore)
+  const scoreDistribution = {
+    ENHANCED: participants.filter(p => p.finalScore > 0).length,
+    STABLE: participants.filter(p => p.finalScore === 0).length,
+    DECLINED: participants.filter(p => p.finalScore < 0).length,
+  }
 
-  const scoreRanges = {
-    '0-25': scores.filter(score => score >= 0 && score <= 25).length,
-    '26-50': scores.filter(score => score > 25 && score <= 50).length,
-    '51-75': scores.filter(score => score > 50 && score <= 75).length,
-    '76-100': scores.filter(score => score > 75 && score <= 100).length,
+  const participantTypeDistribution = {
+    NORMAL: participants.filter(p => p.cases === null).length,
+    CASE: participants.filter(p => p.cases !== null).length,
+  }
+
+  const pieProps = {
+    data: {
+      labels: [
+        t('programManagement.details.charts.case'),
+        t('programManagement.details.charts.normal'),
+      ],
+      datasets: [
+        {
+          label: t(
+            'programManagement.details.charts.participantTypeDistribution'
+          ),
+          data: [
+            participantTypeDistribution.CASE,
+            participantTypeDistribution.NORMAL,
+          ],
+          backgroundColor: ['#7A1BFFFF', '#2ec6d1'],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'left',
+        },
+      },
+    },
+  }
+
+  const barProps = {
+    data: {
+      labels: [''],
+      datasets: [
+        {
+          label: t('programManagement.details.charts.declined'),
+          data: [scoreDistribution.DECLINED],
+          backgroundColor: ['#ff4d4f'],
+        },
+        {
+          label: t('programManagement.details.charts.stable'),
+          data: [scoreDistribution.STABLE],
+          backgroundColor: ['#faad14'],
+        },
+
+        {
+          label: t('programManagement.details.charts.enhanced'),
+          data: [scoreDistribution.ENHANCED],
+          backgroundColor: ['#52c41a'],
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        },
+      },
+    },
   }
 
   const getStatusColor = status => {
@@ -66,10 +146,8 @@ const ProgramStatistics = ({ program, statistics }) => {
         return 'blue'
       case 'COMPLETED':
         return 'green'
-      case 'DROPPED':
+      case 'ABSENT':
         return 'red'
-      case 'PENDING':
-        return 'orange'
       default:
         return 'default'
     }
@@ -81,10 +159,8 @@ const ProgramStatistics = ({ program, statistics }) => {
         return <UserOutlined />
       case 'COMPLETED':
         return <CheckCircleOutlined />
-      case 'DROPPED':
+      case 'ABSENT':
         return <CloseCircleOutlined />
-      case 'PENDING':
-        return <ClockCircleOutlined />
       default:
         return <UserOutlined />
     }
@@ -162,7 +238,7 @@ const ProgramStatistics = ({ program, statistics }) => {
               size="small"
               dataSource={Object.entries(statusDistribution)}
               renderItem={([status, count]) => (
-                <List.Item>
+                <List.Item className="hover:bg-gray-100">
                   <Space
                     style={{ width: '100%', justifyContent: 'space-between' }}
                   >
@@ -187,30 +263,7 @@ const ProgramStatistics = ({ program, statistics }) => {
         {/* Score Distribution */}
         <Col xs={24} lg={12}>
           <Card title={t('programManagement.details.charts.scoreDistribution')}>
-            <List
-              size="small"
-              dataSource={Object.entries(scoreRanges)}
-              renderItem={([range, count]) => (
-                <List.Item>
-                  <Space
-                    style={{ width: '100%', justifyContent: 'space-between' }}
-                  >
-                    <Text>{range}</Text>
-                    <Text strong>{count}</Text>
-                  </Space>
-                </List.Item>
-              )}
-            />
-            {scores.length > 0 && (
-              <div style={{ marginTop: '16px' }}>
-                <Statistic
-                  title={t('programManagement.details.averageScore')}
-                  value={statistics.averageScore}
-                  precision={1}
-                  prefix={<TrophyOutlined />}
-                />
-              </div>
-            )}
+            <Pie {...pieProps} />
           </Card>
         </Col>
 
@@ -219,36 +272,7 @@ const ProgramStatistics = ({ program, statistics }) => {
           <Card
             title={t('programManagement.details.statistics.detailedStatistics')}
           >
-            <Row gutter={[16, 16]}>
-              <Col xs={12} sm={12}>
-                <Statistic
-                  title={t('programManagement.details.statistics.completed')}
-                  value={statistics.completedCount}
-                  prefix={<CheckCircleOutlined />}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Col>
-              <Col xs={12} sm={12}>
-                <Statistic
-                  title={t('programManagement.details.statistics.absent')}
-                  value={statistics.absentCount}
-                  prefix={<CloseCircleOutlined />}
-                  valueStyle={{ color: '#ff4d4f' }}
-                />
-              </Col>
-              <Col xs={12} sm={6}>
-                <Statistic
-                  title={t(
-                    'programManagement.details.statistics.availableSpots'
-                  )}
-                  value={
-                    statistics.maxParticipants - statistics.totalParticipants
-                  }
-                  prefix={<TeamOutlined />}
-                  valueStyle={{ color: '#722ed1' }}
-                />
-              </Col>
-            </Row>
+            <Bar {...barProps} />
           </Card>
         </Col>
       </Row>

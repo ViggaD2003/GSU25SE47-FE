@@ -194,9 +194,10 @@ const ProgramOverview = ({ program }) => {
                   {t('programManagement.details.surveyInfo.title')}
                 </Title>
 
-                <Descriptions column={{ xs: 1, sm: 2 }} size="small">
+                <Descriptions column={2} size="small">
                   <Descriptions.Item
                     label={t('programManagement.details.surveyInfo.title')}
+                    span={2}
                   >
                     <Space>
                       <FileTextOutlined />
@@ -225,20 +226,6 @@ const ProgramOverview = ({ program }) => {
                       color={program.programSurvey.isRequired ? 'red' : 'green'}
                     >
                       {program.programSurvey.isRequired
-                        ? t('common.yes')
-                        : t('common.no')}
-                    </Tag>
-                  </Descriptions.Item>
-
-                  <Descriptions.Item
-                    label={t('programManagement.details.surveyInfo.recurring')}
-                  >
-                    <Tag
-                      color={
-                        program.programSurvey.isRecurring ? 'blue' : 'default'
-                      }
-                    >
-                      {program.programSurvey.isRecurring
                         ? t('common.yes')
                         : t('common.no')}
                     </Tag>

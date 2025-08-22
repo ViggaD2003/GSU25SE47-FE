@@ -489,14 +489,20 @@
         "noScoreData": "No score data",
         "summaryStatistics": "Summary Statistics",
         "totalParticipants": "Total Participants",
-        "scoreDistribution": "Score Distribution"
+        "scoreDistribution": "Score Distribution",
+        "enhanced": "Enhanced",
+        "stable": "Stable",
+        "declined": "Declined",
+        "normal": "Normal",
+        "case": "Case",
+        "participantTypeDistribution": "Participant Type Distribution"
       },
       "statistics": {
         "title": "Statistics",
         "averageScore": "Average Score",
         "completionRate": "Completion Rate",
         "noChartData": "No chart data",
-        "insufficientData": "Insufficient data to create chart.",
+        "insufficientData": "Insufficient data to create chart. Please add participants to the program.",
         "noStatusData": "No status data",
         "noScoreData": "No score data",
         "summaryStatistics": "Summary Statistics",

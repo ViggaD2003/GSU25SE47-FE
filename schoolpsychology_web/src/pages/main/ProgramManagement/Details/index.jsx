@@ -133,19 +133,6 @@ const ProgramDetails = () => {
     ).length
     const absentCount = participants.filter(p => p.status === 'ABSENT').length
     const activeCount = participants.filter(p => p.status === 'ACTIVE').length
-
-    const scores =
-      participants
-        .filter(p => p.finalScore !== null && p.finalScore !== undefined)
-        .map(p => p.finalScore) || []
-
-    const averageScore =
-      scores.length > 0
-        ? (
-            scores.reduce((sum, score) => sum + score, 0) / scores.length
-          ).toFixed(1)
-        : 0
-
     return {
       totalParticipants,
       maxParticipants,
@@ -161,7 +148,6 @@ const ProgramDetails = () => {
         totalParticipants > 0
           ? ((completedCount / totalParticipants) * 100).toFixed(1)
           : 0,
-      averageScore,
     }
   }, [program])
 
@@ -444,7 +430,7 @@ const ProgramDetails = () => {
       {/* Statistics Cards */}
       {statistics && (
         <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8}>
             <Card>
               <Statistic
                 title={t('programManagement.details.totalParticipants')}
@@ -459,7 +445,7 @@ const ProgramDetails = () => {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8}>
             <Card>
               <Statistic
                 title={t('programManagement.details.enrollmentRate')}
@@ -469,23 +455,13 @@ const ProgramDetails = () => {
               />
             </Card>
           </Col>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12} md={8}>
             <Card>
               <Statistic
                 title={t('programManagement.details.completionRate')}
                 value={statistics.completionRate}
                 suffix="%"
                 prefix={<CheckCircleOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Card>
-              <Statistic
-                title={t('programManagement.details.averageScore')}
-                value={statistics.averageScore}
-                prefix={<TrophyOutlined />}
-                precision={1}
               />
             </Card>
           </Col>
@@ -552,18 +528,6 @@ const ProgramDetails = () => {
               ),
               children: <SurveyInfo survey={program.programSurvey} />,
             },
-            // {
-            //   key: 'charts',
-            //   label: (
-            //     <span>
-            //       <BarChartOutlined />
-            //       {t('programManagement.details.charts.enrollmentTrend')}
-            //     </span>
-            //   ),
-            //   children: (
-            //     <ProgramCharts program={program} statistics={statistics} />
-            //   ),
-            // },
           ]}
         />
       </Card>
