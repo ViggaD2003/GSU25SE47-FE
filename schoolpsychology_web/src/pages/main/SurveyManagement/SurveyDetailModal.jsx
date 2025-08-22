@@ -53,6 +53,7 @@ import {
 import dayjs from 'dayjs'
 import { addCaseToSurvey, getCases } from '@/store/actions'
 import { useSelector } from 'react-redux'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
@@ -75,13 +76,14 @@ const InfoCard = React.memo(
   )
 )
 
-const AnswerCard = React.memo(({ answer, index, t }) => {
+const AnswerCard = React.memo(({ answer, index, t, isDarkMode }) => {
   return (
     <Card
       size="small"
       style={{
         marginBottom: 8,
         borderRadius: 8,
+        border: isDarkMode ? '1px solid #374151' : '1px solid #e9ecef',
       }}
       styles={{ body: { padding: '12px 16px' } }}
     >
@@ -103,7 +105,7 @@ const AnswerCard = React.memo(({ answer, index, t }) => {
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                backgroundColor: '#f0f0f0',
+                backgroundColor: isDarkMode ? '#374151' : '#f0f0f0',
                 justifyContent: 'center',
                 marginRight: 12,
                 color: '#262626',
@@ -113,7 +115,13 @@ const AnswerCard = React.memo(({ answer, index, t }) => {
             >
               {index + 1}
             </div>
-            <Text strong style={{ fontSize: 14, color: '#262626' }}>
+            <Text
+              strong
+              style={{
+                fontSize: 14,
+                color: isDarkMode ? '#f9fafb' : '#262626',
+              }}
+            >
               {answer.text}
             </Text>
           </div>
@@ -123,8 +131,8 @@ const AnswerCard = React.memo(({ answer, index, t }) => {
             style={{
               padding: '4px 12px',
               borderRadius: 16,
-              color: '#262626',
-              backgroundColor: '#f0f0f0',
+              color: isDarkMode ? '#f9fafb' : '#262626',
+              backgroundColor: isDarkMode ? '#374151' : '#f0f0f0',
               fontSize: 12,
               fontWeight: 'bold',
               minWidth: 40,
@@ -140,14 +148,14 @@ const AnswerCard = React.memo(({ answer, index, t }) => {
 })
 
 const QuestionCard = React.memo(
-  ({ question, index, t, canEdit, editMode, onStatusChange }) => (
+  ({ question, index, t, canEdit, editMode, onStatusChange, isDarkMode }) => (
     <Card
       style={{
         marginBottom: 16,
         width: '100%',
         borderRadius: 12,
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        border: '1px solid #f0f0f0',
+        border: isDarkMode ? '1px solid #374151' : '1px solid #f0f0f0',
       }}
       title={
         <Space styles={{ item: { marginBottom: 10, marginTop: 6 } }}>
@@ -167,7 +175,13 @@ const QuestionCard = React.memo(
             {index + 1}
           </div>
           <div>
-            <Text strong style={{ fontSize: 16, color: '#262626' }}>
+            <Text
+              strong
+              style={{
+                fontSize: 16,
+                color: isDarkMode ? '#f9fafb' : '#262626',
+              }}
+            >
               {t('surveyManagement.detail.question')} {index + 1}
             </Text>
             <div style={{ marginTop: 4 }}>
@@ -214,7 +228,11 @@ const QuestionCard = React.memo(
       <div style={{ marginBottom: 16 }}>
         <Text
           strong
-          style={{ fontSize: 15, lineHeight: 1.6, color: '#262626' }}
+          style={{
+            fontSize: 15,
+            lineHeight: 1.6,
+            color: isDarkMode ? '#f9fafb' : '#262626',
+          }}
         >
           {question.text}
         </Text>
@@ -226,7 +244,7 @@ const QuestionCard = React.memo(
               marginBottom: 0,
               fontSize: 13,
               lineHeight: 1.5,
-              color: '#8c8c8c',
+              color: isDarkMode ? '#d1d5db' : '#8c8c8c',
             }}
           >
             {question.description}
@@ -242,13 +260,19 @@ const QuestionCard = React.memo(
               alignItems: 'center',
               marginBottom: 16,
               padding: '12px 16px',
-              backgroundColor: '#f8f9fa',
+              backgroundColor: isDarkMode ? '#374151' : '#f8f9fa',
               borderRadius: 8,
-              border: '1px solid #e9ecef',
+              border: isDarkMode ? '1px solid #374151' : '1px solid #e9ecef',
             }}
           >
             <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 8 }} />
-            <Text strong style={{ color: '#262626', fontSize: 14 }}>
+            <Text
+              strong
+              style={{
+                color: isDarkMode ? '#f9fafb' : '#262626',
+                fontSize: 14,
+              }}
+            >
               {t('surveyManagement.detail.answers')} ({question.answers.length})
             </Text>
           </div>
@@ -259,6 +283,7 @@ const QuestionCard = React.memo(
                 answer={answer}
                 index={answerIndex}
                 t={t}
+                isDarkMode={isDarkMode}
               />
             ))}
           </div>
@@ -294,7 +319,7 @@ const SurveyDetailModal = ({
   const [selectedAddedCases, setSelectedAddedCases] = useState([])
   const { cases, loading: casesLoading } = useSelector(state => state.case)
   const { user } = useSelector(state => state.auth)
-
+  const { isDarkMode } = useTheme()
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
@@ -895,6 +920,7 @@ const SurveyDetailModal = ({
                 canEdit={canEditQuestions()}
                 editMode={editMode}
                 onStatusChange={handleQuestionStatusChange}
+                isDarkMode={isDarkMode}
               />
             </List.Item>
           )}

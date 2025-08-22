@@ -37,7 +37,7 @@ const ClassManagement = () => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const dispatch = useDispatch()
-  const { classes, loading, error } = useSelector(state => state.class)
+  const { classes, loading } = useSelector(state => state.class)
   // State management
   const [searchText, setSearchText] = useState('')
   const [filters, setFilters] = useState({
@@ -55,15 +55,13 @@ const ClassManagement = () => {
 
   // Fetch classes on component mount
   useEffect(() => {
-    dispatch(getAllClasses())
-  }, [dispatch])
-
-  // Handle error messages
-  useEffect(() => {
-    if (error) {
-      console.error('Error fetching classes:', error)
+    if (classes.length === 0) {
+      Promise.all([
+        user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
+        dispatch(getAllClasses()).unwrap(),
+      ])
     }
-  }, [error])
+  }, [classes.length])
 
   // Filter and search classes
   const filteredClasses = useMemo(() => {
@@ -144,20 +142,17 @@ const ClassManagement = () => {
   // Handle refresh
   const handleRefresh = useCallback(() => {
     if (!user) return
-    if (user?.role.toLowerCase() !== 'manager') {
-      Promise.all([
-        dispatch(loadAccount()).unwrap(),
-        dispatch(getAllClasses()).unwrap(),
-      ])
-    } else {
-      dispatch(getAllClasses()).unwrap()
-    }
-    setSearchText('')
-    setFilters({
-      classYear: undefined,
-      teacher: undefined,
+    Promise.all([
+      user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
+      dispatch(getAllClasses()).unwrap(),
+    ]).then(() => {
+      setSearchText('')
+      setFilters({
+        classYear: undefined,
+        teacher: undefined,
+      })
+      setPagination(prev => ({ ...prev, current: 1 }))
     })
-    setPagination(prev => ({ ...prev, current: 1 }))
   }, [dispatch, user])
 
   const handleEnroll = useCallback(record => {

@@ -32,6 +32,7 @@ import {
   ArcElement,
 } from 'chart.js'
 import { Bar, Doughnut, Pie } from 'react-chartjs-2'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const { Text } = Typography
 ChartJS.register(
@@ -46,7 +47,7 @@ ChartJS.register(
 
 const ProgramStatistics = ({ program, statistics }) => {
   const { t } = useTranslation()
-
+  const { isDarkMode } = useTheme()
   if (!statistics) {
     return (
       <Card>
@@ -97,6 +98,7 @@ const ProgramStatistics = ({ program, statistics }) => {
       ],
     },
     options: {
+      color: isDarkMode ? '#f9fafb' : '#262626',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -130,6 +132,7 @@ const ProgramStatistics = ({ program, statistics }) => {
       ],
     },
     options: {
+      color: isDarkMode ? '#f9fafb' : '#262626',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {

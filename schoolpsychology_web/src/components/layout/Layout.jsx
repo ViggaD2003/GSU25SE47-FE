@@ -1,4 +1,13 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react'
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  Suspense,
+  lazy,
+  useRef,
+  useTransition,
+} from 'react'
 import {
   Layout,
   Avatar,
@@ -9,6 +18,7 @@ import {
   Button,
   Badge,
   message,
+  Spin,
 } from 'antd'
 import {
   LogoutOutlined,
@@ -18,42 +28,192 @@ import {
 } from '@ant-design/icons'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, Outlet } from 'react-router-dom'
-import ThemeSwitcher from '../../components/common/ThemeSwitcher'
-import LanguageSwitcher from '../../components/common/LanguageSwitcher'
-import Navigation from '../../components/layout/Navigation'
+import { Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import NotificationBell from '@/components/common/NotificationBell'
 import { useWebSocket } from '@/contexts/WebSocketContext'
 import { getNotifications } from '@/services/notiApi'
 
+// Error boundary component
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Error boundary caught an error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center p-2">
+          <span className="text-red-500 text-xs">Error loading component</span>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
+// Lazy load non-critical components for better performance with error handling
+const ThemeSwitcher = lazy(() =>
+  import('../../components/common/ThemeSwitcher').catch(error => {
+    console.error('Failed to load ThemeSwitcher:', error)
+    return { default: () => <div>Failed to load</div> }
+  })
+)
+
+const LanguageSwitcher = lazy(() =>
+  import('../../components/common/LanguageSwitcher').catch(error => {
+    console.error('Failed to load LanguageSwitcher:', error)
+    return { default: () => <div>Failed to load</div> }
+  })
+)
+
+// Import Navigation directly for better sider performance
+import Navigation from '../../components/layout/Navigation'
+
+const NotificationBell = lazy(() =>
+  import('@/components/common/NotificationBell').catch(error => {
+    console.error('Failed to load NotificationBell:', error)
+    return { default: () => <div>Failed to load</div> }
+  })
+)
+
 const { Header, Content, Sider } = Layout
 
-// Memoized components for better performance
-const MemoizedNavigation = React.memo(Navigation)
-const MemoizedThemeSwitcher = React.memo(ThemeSwitcher)
-const MemoizedLanguageSwitcher = React.memo(LanguageSwitcher)
+// Cache for notifications to avoid unnecessary API calls
+const notificationCache = new Map()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+// Promise-based debouncing utility
+const createDebouncer = delay => {
+  let timeoutId
+  let resolvePromise
+  let rejectPromise
+
+  return fn => {
+    return new Promise((resolve, reject) => {
+      clearTimeout(timeoutId)
+
+      if (resolvePromise) {
+        resolvePromise = resolve
+        rejectPromise = reject
+      } else {
+        resolvePromise = resolve
+        rejectPromise = reject
+      }
+
+      timeoutId = setTimeout(async () => {
+        try {
+          const result = await fn()
+          resolvePromise(result)
+          resolvePromise = null
+          rejectPromise = null
+        } catch (error) {
+          rejectPromise(error)
+          resolvePromise = null
+          rejectPromise = null
+        }
+      }, delay)
+    })
+  }
+}
 
 const LayoutComponent = () => {
   const { t } = useTranslation()
   const { user, logout } = useAuth()
   const { isDarkMode } = useTheme()
-  const navigate = useNavigate()
   const [messageApi, contextHolder] = message.useMessage()
   const [collapsed, setCollapsed] = useState(false)
   const [lastNotificationCount, setLastNotificationCount] = useState(0)
-  const { notifications, setNotifications, sendMessage } = useWebSocket()
+  const [isPending, startTransition] = useTransition()
+  const { notifications, setNotifications } = useWebSocket()
 
-  const fetchNotifications = useCallback(async () => {
-    const notifications = await getNotifications(user.id || user.userId)
-    setNotifications(notifications)
-  }, [])
+  // Refs for managing async operations
+  const notificationFetchRef = useRef(null)
+  const debouncerRef = useRef(createDebouncer(300))
+
+  // Promise-based notification fetching with caching
+  const fetchNotifications = useCallback(
+    async (forceRefresh = false) => {
+      if (!user?.id && !user?.userId) return Promise.resolve([])
+
+      const userId = user.id || user.userId
+      const cacheKey = `notifications_${userId}`
+      const now = Date.now()
+
+      // Check cache first
+      if (!forceRefresh && notificationCache.has(cacheKey)) {
+        const { data, timestamp } = notificationCache.get(cacheKey)
+        if (now - timestamp < CACHE_DURATION) {
+          setNotifications(data)
+          return Promise.resolve(data)
+        }
+      }
+
+      // Cancel previous request if still pending
+      if (notificationFetchRef.current) {
+        notificationFetchRef.current.cancel?.()
+      }
+
+      // Create cancellable promise
+      const fetchPromise = new Promise((resolve, reject) => {
+        const executeAsync = async () => {
+          try {
+            const response = await getNotifications(userId)
+
+            // Cache the result
+            notificationCache.set(cacheKey, {
+              data: response,
+              timestamp: now,
+            })
+
+            setNotifications(response)
+            resolve(response)
+          } catch (error) {
+            reject(error)
+          }
+        }
+
+        executeAsync()
+      })
+
+      notificationFetchRef.current = fetchPromise
+      return fetchPromise
+    },
+    [user, setNotifications]
+  )
+
+  // Debounced notification fetching
+  const debouncedFetchNotifications = useCallback(
+    (forceRefresh = false) => {
+      return debouncerRef.current(() => fetchNotifications(forceRefresh))
+    },
+    [fetchNotifications]
+  )
 
   useEffect(() => {
     if (user) {
-      fetchNotifications()
+      debouncedFetchNotifications().catch(error => {
+        console.error('Failed to fetch notifications:', error)
+        messageApi.error(t('notification.fetchError'))
+      })
     }
-  }, [user])
+
+    // Cleanup on unmount
+    return () => {
+      if (notificationFetchRef.current?.cancel) {
+        notificationFetchRef.current.cancel()
+      }
+    }
+  }, [user, debouncedFetchNotifications, messageApi, t])
 
   useEffect(() => {
     // Chỉ hiển thị thông báo khi có thông báo mới và không phải lần đầu load
@@ -72,12 +232,28 @@ const LayoutComponent = () => {
   }, [notifications, lastNotificationCount, t, messageApi])
 
   const handleLogout = useCallback(() => {
-    try {
-      logout()
-    } catch (error) {
-      console.log('error', error)
-    }
-  }, [logout, navigate])
+    return new Promise((resolve, reject) => {
+      const executeAsync = async () => {
+        try {
+          // Cancel any pending operations
+          if (notificationFetchRef.current?.cancel) {
+            notificationFetchRef.current.cancel()
+          }
+
+          // Clear cache
+          notificationCache.clear()
+
+          await logout()
+          resolve()
+        } catch (error) {
+          console.error('Logout error:', error)
+          reject(error)
+        }
+      }
+
+      executeAsync()
+    })
+  }, [logout])
 
   const userMenuItems = useMemo(
     () => [
@@ -92,11 +268,14 @@ const LayoutComponent = () => {
     [t, handleLogout]
   )
 
+  // Optimized toggle with useTransition for smooth animations
   const toggleSidebar = useCallback(() => {
-    setCollapsed(prev => !prev)
+    startTransition(() => {
+      setCollapsed(prev => !prev)
+    })
   }, [])
 
-  // Memoize style objects to prevent unnecessary re-renders
+  // Optimized sider styles with CSS transforms for better performance
   const siderStyle = useMemo(
     () => ({
       borderRight: 0,
@@ -105,14 +284,18 @@ const LayoutComponent = () => {
       top: 0,
       bottom: 0,
       zIndex: 100,
+      width: 256,
+      transform: `translateX(${collapsed ? '-176px' : '0'})`,
+      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      willChange: 'transform',
     }),
-    []
+    [collapsed]
   )
 
   const layoutStyle = useMemo(
     () => ({
       marginLeft: collapsed ? 80 : 256,
-      transition: 'margin-left 0.2s',
+      transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
     [collapsed]
   )
@@ -135,16 +318,18 @@ const LayoutComponent = () => {
     []
   )
 
-  // Memoize class names to prevent string concatenation on every render
+  // Enhanced sider className with better performance optimizations
   const siderClassName = useMemo(
     () =>
-      `${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-r transition-all duration-200 shadow-lg`,
+      `${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-r shadow-lg will-change-transform transition-colors duration-200`,
     [isDarkMode]
   )
 
   const logoSectionClassName = useMemo(
     () =>
-      `flex items-center justify-center py-4 px-6 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`,
+      `flex items-center justify-center py-4 px-6 border-b transition-colors duration-200 ${
+        isDarkMode ? 'border-gray-700' : 'border-gray-200'
+      }`,
     [isDarkMode]
   )
 
@@ -188,10 +373,13 @@ const LayoutComponent = () => {
                 width={32}
                 height={32}
                 preview={false}
+                loading="eager"
               />
               <Typography.Title
                 level={5}
-                className={`m-0 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}
+                className={`m-0 transition-opacity duration-300 ${
+                  isDarkMode ? 'text-white' : 'text-gray-800'
+                } ${isPending ? 'opacity-50' : 'opacity-100'}`}
               >
                 {t('app.title')}
               </Typography.Title>
@@ -203,32 +391,39 @@ const LayoutComponent = () => {
               width={32}
               height={32}
               preview={false}
+              loading="eager"
             />
           )}
         </div>
 
-        {/* Navigation */}
-        <div className="flex-1 py-4">
-          <MemoizedNavigation collapsed={collapsed} />
+        {/* Navigation - Direct import for better performance */}
+        <div className="flex-1 py-4 overflow-hidden">
+          <Navigation collapsed={collapsed} />
         </div>
 
-        {/* User info in sidebar (when not collapsed) */}
-        {!collapsed && (
+        {/* User info with smooth height transition */}
+        <div
+          className={`transition-all duration-300 ease-out overflow-hidden ${
+            collapsed ? 'max-h-0 opacity-0' : 'max-h-20 opacity-100'
+          }`}
+        >
           <div
-            className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}
+            className={`p-4 border-t transition-colors duration-200 ${
+              isDarkMode ? 'border-gray-700' : 'border-gray-200'
+            }`}
           >
             <div className="flex items-center gap-3">
               <Avatar size="small" icon={<UserOutlined />} />
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-sm font-medium truncate ${
+                  className={`text-sm font-medium truncate transition-colors duration-200 ${
                     isDarkMode ? 'text-white' : 'text-gray-900'
                   }`}
                 >
                   {user?.fullName || user?.username}
                 </p>
                 <p
-                  className={`text-xs truncate ${
+                  className={`text-xs truncate transition-colors duration-200 ${
                     isDarkMode ? 'text-gray-400' : 'text-gray-500'
                   }`}
                 >
@@ -237,7 +432,7 @@ const LayoutComponent = () => {
               </div>
             </div>
           </div>
-        )}
+        </div>
       </Sider>
 
       {/* Main Content */}
@@ -251,7 +446,8 @@ const LayoutComponent = () => {
                 type="text"
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                 onClick={toggleSidebar}
-                className={`${
+                loading={isPending}
+                className={`transition-all duration-200 ${
                   isDarkMode
                     ? 'text-gray-300 hover:text-white hover:bg-gray-700'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -262,23 +458,27 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
-              <Button
-                onClick={() => {
-                  sendMessage()
-                }}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-              >
-                Test notification
-              </Button>
 
               {/* Notifications */}
-              <NotificationBell />
+              <ErrorBoundary>
+                <Suspense fallback={<Spin size="small" />}>
+                  <NotificationBell />
+                </Suspense>
+              </ErrorBoundary>
 
               {/* Theme switcher */}
-              <MemoizedThemeSwitcher />
+              <ErrorBoundary>
+                <Suspense fallback={<Spin size="small" />}>
+                  <ThemeSwitcher />
+                </Suspense>
+              </ErrorBoundary>
 
               {/* Language switcher */}
-              <MemoizedLanguageSwitcher />
+              <ErrorBoundary>
+                <Suspense fallback={<Spin size="small" />}>
+                  <LanguageSwitcher />
+                </Suspense>
+              </ErrorBoundary>
 
               {/* User menu */}
               <Dropdown

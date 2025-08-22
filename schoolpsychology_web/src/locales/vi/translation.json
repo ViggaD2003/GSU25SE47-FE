@@ -404,12 +404,12 @@
       "typeOffline": "Trực tiếp",
       "date": "Ngày",
       "dateRequired": "Ngày là bắt buộc",
-      "dateMinDays": "Ngày phải ít nhất 5 ngày từ hôm nay",
+      "dateMinDays": "Ngày phải ít nhất 1 ngày từ hôm nay",
       "datePlaceholder": "Chọn ngày chương trình",
       "startTime": "Thời gian bắt đầu",
       "startTimeRequired": "Thời gian bắt đầu là bắt buộc",
       "startTimePlaceholder": "Chọn thời gian bắt đầu",
-      "startTimeAfter17": "Thời gian bắt đầu phải sau 17:00",
+      "startTimeAfter17": "Thời gian bắt đầu phải sau 15:00",
       "endTime": "Thời gian kết thúc",
       "endTimeRequired": "Thời gian kết thúc là bắt buộc",
       "endTimePlaceholder": "Chọn thời gian kết thúc",
@@ -422,7 +422,9 @@
       "onlineInfo": "Đây là chương trình trực tuyến. Link học sẽ được cung cấp cho học viên.",
       "formError": "Vui lòng kiểm tra lại form",
       "surveyInformation": "Thông tin khảo sát",
-      "uploadThumbnail": "Tải lên ảnh đại diện"
+      "uploadThumbnail": "Tải lên ảnh đại diện",
+      "thumbnailSizeLimit": "Ảnh đại diện phải có định dạng JPG, JPEG hoặc PNG và không được vượt quá 10MB",
+      "thumbnailType": "Ảnh đại diện phải có định dạng JPG, JPEG hoặc PNG"
     },
     "details": {
       "loading": "Đang tải chi tiết chương trình...",

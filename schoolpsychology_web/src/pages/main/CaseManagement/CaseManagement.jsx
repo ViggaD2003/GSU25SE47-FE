@@ -53,9 +53,33 @@ const CaseManagement = () => {
   const [editingHostBy, setEditingHostBy] = useState(null)
   const [tempHostBy, setTempHostBy] = useState(null)
 
+  const loadAvailableHosts = async () => {
+    try {
+      const response = await accountAPI.getAccounts({
+        role: 'COUNSELOR',
+      })
+      setAvailableHosts(response)
+    } catch (error) {
+      console.error('Failed to load available hosts:', error)
+    }
+  }
+
+  const fetchData = useCallback(async () => {
+    setHostsLoading(true)
+    Promise.all([
+      user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
+      dispatch(getCases({ accountId: user.id })).unwrap(),
+      user.role === 'manager' && loadAvailableHosts(),
+    ]).finally(() => {
+      setHostsLoading(false)
+    })
+  }, [dispatch, user.id, user.role])
+
   useEffect(() => {
-    dispatch(getCases({ accountId: user.id }))
-  }, [dispatch, user.id])
+    if (cases.length === 0) {
+      fetchData()
+    }
+  }, [cases.length])
 
   useEffect(() => {
     if (error) {
@@ -63,27 +87,6 @@ const CaseManagement = () => {
       dispatch(clearError())
     }
   }, [error, t, messageApi, dispatch])
-
-  // Load available hosts for managers
-  useEffect(() => {
-    const loadAvailableHosts = async () => {
-      if (user?.role === 'manager') {
-        setHostsLoading(true)
-        try {
-          const response = await accountAPI.getAccounts({
-            role: 'COUNSELOR',
-          })
-          setAvailableHosts(response)
-        } catch (error) {
-          console.error('Failed to load available hosts:', error)
-        } finally {
-          setHostsLoading(false)
-        }
-      }
-    }
-
-    loadAvailableHosts()
-  }, [user?.role])
 
   // Calculate statistics
   const statistics = useMemo(() => {
@@ -159,15 +162,13 @@ const CaseManagement = () => {
 
   const handleRefresh = useCallback(() => {
     if (!user) return
-    if (user?.role.toLowerCase() !== 'manager') {
-      Promise.all([
-        dispatch(loadAccount()).unwrap(),
-        dispatch(getCases({ accountId: user.id })).unwrap(),
-      ])
-    } else {
-      dispatch(getCases({ accountId: user.id })).unwrap()
-    }
-  }, [dispatch, user])
+    Promise.all([
+      user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
+      dispatch(getCases({ accountId: user.id })).unwrap(),
+    ]).then(() => {
+      messageApi.success(t('common.refreshSuccess'))
+    })
+  }, [dispatch, user, messageApi, t])
 
   // Bulk assign selected cases to a counselor (for managers)
   const handleBulkAssign = useCallback(async () => {
@@ -194,25 +195,27 @@ const CaseManagement = () => {
 
   const handleSaveHostBy = useCallback(
     async record => {
-      try {
-        if (!tempHostBy) {
-          setEditingHostBy(null)
-          return
-        }
+      if (!tempHostBy) {
+        setEditingHostBy(null)
+        return
+      }
+      Promise.all([
         await dispatch(
           assignCase({
             caseId: [record.id],
             counselorId: tempHostBy,
           })
-        ).unwrap()
-        messageApi.success(t('caseManagement.messages.assignSuccess'))
-        // Refresh data to reflect latest state
-        await dispatch(getCases({ accountId: user.id })).unwrap()
-        setEditingHostBy(null)
-        setTempHostBy(null)
-      } catch {
-        messageApi.error(t('caseManagement.messages.assignError'))
-      }
+        ).unwrap(),
+      ])
+        .then(() => {
+          messageApi.success(t('caseManagement.messages.assignSuccess'))
+          fetchData()
+          setEditingHostBy(null)
+          setTempHostBy(null)
+        })
+        .catch(() => {
+          messageApi.error(t('caseManagement.messages.assignError'))
+        })
     },
     [dispatch, messageApi, t, tempHostBy]
   )

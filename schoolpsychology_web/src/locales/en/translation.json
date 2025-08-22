@@ -403,12 +403,12 @@
       "typeOffline": "Offline Program",
       "date": "Date",
       "dateRequired": "Program date is required",
-      "dateMinDays": "Date must be at least 5 days from today",
+      "dateMinDays": "Date must be at least 1 days from today",
       "datePlaceholder": "Select program date",
       "startTime": "Start Time",
       "startTimeRequired": "Start time is required",
       "startTimePlaceholder": "Select start time",
-      "startTimeAfter17": "Start time must be after 17:00",
+      "startTimeAfter17": "Start time must be after 15:00",
       "endTime": "End Time",
       "endTimeRequired": "End time is required",
       "endTimePlaceholder": "Select end time",
@@ -421,7 +421,9 @@
       "onlineInfo": "This is an online program. Meeting links will be provided to participants.",
       "formError": "Please check the form for errors",
       "surveyInformation": "Survey Information",
-      "uploadThumbnail": "Upload Thumbnail"
+      "uploadThumbnail": "Upload Thumbnail",
+      "thumbnailSizeLimit": "Thumbnail must be a JPG, JPEG, or PNG file and cannot exceed 10MB",
+      "thumbnailType": "Thumbnail must be a JPG, JPEG, or PNG file"
     },
     "details": {
       "loading": "Loading program details...",

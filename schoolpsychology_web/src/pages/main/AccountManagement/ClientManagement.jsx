@@ -26,7 +26,10 @@ import {
   getAllClasses,
   getClassesByCode,
 } from '../../../store/actions/classActions'
-import { clearError, updatePagination } from '../../../store/slices/classSlice'
+import {
+  clearSelectedClass,
+  updatePagination,
+} from '../../../store/slices/classSlice'
 import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
@@ -58,7 +61,6 @@ const ClientManagement = () => {
   const selectedClass = useSelector(state => state.class.selectedClass)
   const classes = useSelector(state => state.class.classes)
   const loading = useSelector(state => state.class.loading)
-  const error = useSelector(state => state.class.error)
   const pagination = useSelector(state => state.class.pagination)
 
   const fetchCategories = async () => {
@@ -75,28 +77,23 @@ const ClientManagement = () => {
   // Load classes on component mount
   useEffect(() => {
     if (!user) return
-    Promise.all([dispatch(getAllClasses()), fetchCategories()]).then(data => {
-      console.log('Classes and categories loaded:', data)
-    })
-  }, [dispatch, user])
-
-  // Handle error messages
-  useEffect(() => {
-    if (error) {
-      messageApi.error(error)
-      dispatch(clearError())
+    if (classes.length === 0) {
+      Promise.all([
+        dispatch(getAllClasses()).unwrap(),
+        user.role !== 'manager' && fetchCategories(),
+      ])
     }
-  }, [error, messageApi, dispatch])
+  }, [classes.length, user])
 
   // Handle class code selection for manager
   const handleClassCodeChange = useCallback(
-    classCode => {
+    async classCode => {
       setSelectedClassCode(classCode)
       if (classCode) {
-        dispatch(getClassesByCode(classCode))
+        await loadData()
       }
     },
-    [dispatch]
+    [loadData]
   )
 
   // Handle year selection for manager
@@ -141,25 +138,26 @@ const ClientManagement = () => {
 
   // Auto-select first class when year is selected
   useEffect(() => {
-    if (
-      selectedYear &&
-      classes.length > 0 &&
-      filteredClasses.length > 0 &&
-      !selectedClassCode
-    ) {
-      const firstClassCode = filteredClasses[0].codeClass
-      console.log('Auto-selecting class:', firstClassCode)
-      setSelectedClassCode(firstClassCode)
-      dispatch(getClassesByCode(firstClassCode))
-    } else if (
-      selectedYear &&
-      classes.length > 0 &&
-      filteredClasses.length === 0
-    ) {
-      console.log('No classes found for selected year, clearing selection')
-      setSelectedClassCode(null)
+    const autoSelectFirstClass = async () => {
+      if (
+        selectedYear &&
+        classes.length > 0 &&
+        filteredClasses.length > 0 &&
+        !selectedClassCode
+      ) {
+        const firstClassCode = filteredClasses[0].codeClass
+        setSelectedClassCode(firstClassCode)
+        await loadData()
+      } else if (
+        selectedYear &&
+        classes.length > 0 &&
+        filteredClasses.length === 0
+      ) {
+        setSelectedClassCode(null)
+      }
     }
-  }, [selectedYear, filteredClasses, dispatch, classes, selectedClassCode])
+    autoSelectFirstClass()
+  }, [selectedYear, filteredClasses, classes, selectedClassCode, loadData])
 
   // Get unique years from classes for the year filter dropdown
   const availableYears = useMemo(() => {
@@ -209,14 +207,14 @@ const ClientManagement = () => {
   }
 
   const handleView = (id, type) => {
+    dispatch(clearSelectedClass())
+    setSelectedClassCode(null)
     if (type === 'case') {
       navigate(`/case-management/details/${id}`)
     } else {
       navigate(`/student-management/${id}`)
     }
   }
-
-
 
   const handleModalOk = async requestData => {
     if (isCreateCase) {
@@ -232,7 +230,7 @@ const ClientManagement = () => {
     } else {
       messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
-    loadData()
+    await loadData()
   }
 
   const handleModalCancel = () => {

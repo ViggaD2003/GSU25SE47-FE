@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Modal,
   Form,
@@ -31,6 +31,8 @@ const { Text } = Typography
 const { TextArea } = Input
 const { Option } = Select
 
+const MIN_DATE = dayjs().add(1, 'day')
+
 const ProgramModal = ({
   visible,
   onCancel,
@@ -42,7 +44,6 @@ const ProgramModal = ({
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [form] = Form.useForm()
-  const [surveyForm] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [showHelper, setShowHelper] = useState(false)
   const [startTimeValue, setStartTimeValue] = useState(null)
@@ -65,44 +66,66 @@ const ProgramModal = ({
     },
     customRequest(info) {
       const { file } = info
-      const isLt2M = file.size / 1024 / 1024 < 10 // Giới hạn 10MB
-      if (!isLt2M) {
+      const isLt10M = file.size / 1024 / 1024 < 10 // Giới hạn 10MB
+      const isValidType = ['image/jpeg', 'image/png', 'image/jpg'].includes(
+        file.type
+      )
+
+      // Check file size
+      if (!isLt10M) {
         messageApi.error(t('programManagement.form.thumbnailSizeLimit'))
         info.onError(new Error(t('programManagement.form.thumbnailSizeLimit')))
-      } else {
-        form.setFieldValue('thumbnail', file)
-        info.onSuccess(file)
-        messageApi.success(t('programManagement.messages.fileUploadSuccess'))
-        setThumbnail(file)
+        return
       }
+
+      // Check file type
+      if (!isValidType) {
+        messageApi.error(t('programManagement.form.thumbnailType'))
+        info.onError(new Error(t('programManagement.form.thumbnailType')))
+        return
+      }
+
+      // File is valid
+      form.setFieldValue('thumbnail', file)
+      info.onSuccess(file)
+      messageApi.success(t('programManagement.messages.fileUploadSuccess'))
+      setThumbnail(file)
     },
   }
 
+  const setDefaultValues = useCallback(() => {
+    const defaultCategoryId = categories.length > 0 ? categories[0].id : null
+    const defaultCounselorId = counselors.length > 0 ? counselors[0].id : null
+
+    Promise.all([
+      form.setFieldsValue({
+        name: '',
+        description: '',
+        maxParticipants: 10,
+        date: MIN_DATE, // Changed to 7 days to match validation
+        categoryId: defaultCategoryId,
+        hostedBy: defaultCounselorId,
+        thumbnail: null,
+        location: '',
+      }),
+      setSelectedCategory(categories.length > 0 ? categories[0] : null),
+    ])
+  }, [form, categories, counselors])
+
   useEffect(() => {
     if (visible) {
-      // Reset and set default values for new program
-      form.resetFields()
-      surveyForm.resetFields()
-      setThumbnail(null)
-      setStartTimeValue(null)
-
-      form.setFieldsValue({
-        maxParticipants: 10,
-        date: dayjs().add(5, 'day'),
-        categoryId: categories[0]?.id,
-        hostedBy: counselors[0]?.id,
-        thumbnail: null,
-      })
-      setSelectedCategory(categories[0]?.id)
+      setDefaultValues()
     }
-  }, [visible, form, surveyForm, categories, counselors])
+  }, [visible, setDefaultValues])
 
   const handleFormValuesChange = (changedValues, _allValues) => {
     if (changedValues.startTime !== undefined) {
       setStartTimeValue(changedValues.startTime)
     }
     if (changedValues.categoryId !== undefined) {
-      setSelectedCategory(changedValues.categoryId)
+      setSelectedCategory(
+        categories.find(category => category.id === changedValues.categoryId)
+      )
     }
   }
 
@@ -111,14 +134,10 @@ const ProgramModal = ({
     try {
       setLoading(true)
       let values
-      let surveyValues
 
       try {
         // Validate both forms simultaneously
-        ;[values, surveyValues] = await Promise.all([
-          form.validateFields(),
-          surveyForm.validateFields(),
-        ])
+        ;[values] = await Promise.all([form.validateFields()])
       } catch {
         messageApi.error(t('programManagement.messages.fillAllFields'))
         setLoading(false)
@@ -141,8 +160,8 @@ const ProgramModal = ({
         categoryId: values.categoryId,
         // Add survey data
         addNewSurveyDto: {
-          title: surveyValues.title,
-          description: surveyValues.description,
+          title: 'Khảo sát chương trình',
+          description: 'Khảo sát chương trình được tạo khi tạo chương trình',
           isRequired: true,
           isRecurring: false,
           recurringCycle: 'NONE',
@@ -153,7 +172,7 @@ const ProgramModal = ({
           targetScope: 'NONE',
           targetGrade: [],
           questions:
-            surveyValues.questions?.map(q => ({
+            values.questions?.map(q => ({
               text: q.text,
               description: q.description || '',
               questionType: q.questionType,
@@ -188,12 +207,10 @@ const ProgramModal = ({
     }
   }
 
-  const handleCancel = () => {
-    form.resetFields()
-    surveyForm.resetFields()
+  const handleCancel = async () => {
+    await Promise.all([form.resetFields(), setSelectedCategory(null)])
     setThumbnail(null)
     setStartTimeValue(null)
-    setSelectedCategory(null)
     onCancel()
   }
 
@@ -221,7 +238,7 @@ const ProgramModal = ({
       return Promise.reject(new Error(t('programManagement.form.dateRequired')))
     }
 
-    const minDate = dayjs().add(5, 'day')
+    const minDate = MIN_DATE // Minimum 7 days from now
     if (value.isBefore(minDate, 'day')) {
       return Promise.reject(new Error(t('programManagement.form.dateMinDays')))
     }
@@ -237,7 +254,7 @@ const ProgramModal = ({
       return Promise.resolve()
     }
 
-    // Check if start time is after 15:00
+    // Check if start time is after 15:00 (3 PM)
     const minStartTime = dayjs().hour(15).minute(0).second(0)
     if (startTime.isBefore(minStartTime, 'minute')) {
       return Promise.reject(
@@ -257,7 +274,7 @@ const ProgramModal = ({
   }
 
   const disabledDate = current => {
-    const minDate = dayjs().add(0, 'day')
+    const minDate = MIN_DATE // Must be at least 7 days from now
     return current && current < minDate.startOf('day')
   }
 
@@ -267,9 +284,11 @@ const ProgramModal = ({
 
     let disabledHours = []
 
+    // Disable hours before 15:00 (3 PM)
     disabledHours = disabledHours.concat(
-      Array.from({ length: 17 }, (_, i) => i)
+      Array.from({ length: 15 }, (_, i) => i)
     )
+    // Disable hours after 20:00 (8 PM)
     disabledHours = disabledHours.concat(
       Array.from({ length: 4 }, (_, i) => i + 20)
     )
@@ -282,17 +301,21 @@ const ProgramModal = ({
 
   const disabledEndTime = () => {
     const date = form.getFieldValue('date')
-    if (!date) return {}
-
     const startTime = form.getFieldValue('startTime')
+
+    if (!date || !startTime) return {}
 
     let disabledHours = []
 
-    const startHour = dayjs(startTime).add(1, 'hour').hour()
+    // Calculate minimum end hour (start time + 1 hour)
+    const minEndHour = dayjs(startTime).add(1, 'hour').hour()
 
+    // Disable hours before minimum end time
     disabledHours = disabledHours.concat(
-      Array.from({ length: startHour }, (_, i) => i)
+      Array.from({ length: minEndHour }, (_, i) => i)
     )
+
+    // Disable hours after 21:00 (9 PM) to ensure programs end by reasonable time
     disabledHours = disabledHours.concat(
       Array.from({ length: 3 }, (_, i) => i + 21)
     )
@@ -300,13 +323,17 @@ const ProgramModal = ({
     // Remove duplicates and sort
     disabledHours = Array.from(new Set(disabledHours)).sort((a, b) => a - b)
 
-    // End time must be at least 1 hour after start time
-
     return { disabledHours: () => disabledHours }
   }
 
   const handleCategoryChange = value => {
-    setSelectedCategory(value)
+    const category = categories.find(category => category.id === value)
+    Promise.all([
+      setSelectedCategory(category),
+      form.setFieldsValue({
+        questions: [],
+      }),
+    ])
   }
 
   return (
@@ -336,15 +363,15 @@ const ProgramModal = ({
         body: { maxHeight: '70vh' },
       }}
     >
-      <Row style={{ height: 'calc(100vh - 250px)' }}>
-        <Col
-          span={12}
-          style={{ height: '100%', overflowY: 'auto', paddingRight: '12px' }}
-        >
-          <Form
-            form={form}
-            layout="vertical"
-            onValuesChange={handleFormValuesChange}
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={handleFormValuesChange}
+      >
+        <Row style={{ height: 'calc(100vh - 250px)' }}>
+          <Col
+            span={12}
+            style={{ height: '100%', overflowY: 'auto', paddingRight: '12px' }}
           >
             {/* Program Creation Helper */}
             <ProgramCreationHelper
@@ -388,7 +415,9 @@ const ProgramModal = ({
                   <Form.Item
                     label={t('programManagement.form.category')}
                     name="categoryId"
-                    initialValue={categories[0]?.id}
+                    initialValue={
+                      categories.length > 0 ? categories[0].id : undefined
+                    }
                     rules={[
                       {
                         required: true,
@@ -401,16 +430,20 @@ const ProgramModal = ({
                         'programManagement.form.categoryPlaceholder'
                       )}
                       size="large"
+                      style={{ minWidth: 200 }} // Auto width + giới hạn nhỏ nhất
+                      loading={loading}
                       showSearch
-                      filterOption={(input, option) =>
-                        option.children
-                          .toLowerCase()
-                          .indexOf(input.toLowerCase()) >= 0
-                      }
+                      allowClear
+                      popupMatchSelectWidth={false}
                       onChange={handleCategoryChange}
+                      optionLabelProp="label"
                     >
                       {categories.map(category => (
-                        <Option key={category.id} value={category.id}>
+                        <Option
+                          key={category.id}
+                          value={category.id}
+                          label={`${category.name}`}
+                        >
                           {category.name} ({category.code})
                         </Option>
                       ))}
@@ -424,7 +457,9 @@ const ProgramModal = ({
                   <Form.Item
                     label={t('programManagement.form.hostedBy')}
                     name="hostedBy"
-                    initialValue={counselors[0]?.id}
+                    initialValue={
+                      counselors.length > 0 ? counselors[0].id : undefined
+                    }
                     rules={[
                       {
                         required: true,
@@ -677,63 +712,21 @@ const ProgramModal = ({
                 </Col>
               </Row>
             </Card>
-          </Form>
-        </Col>
+          </Col>
 
-        {/* Survey Information */}
-        <Col
-          span={12}
-          style={{ height: '100%', overflowY: 'auto', paddingLeft: '12px' }}
-        >
-          <Form
-            form={surveyForm}
-            layout="vertical"
-            name="surveyForm"
-            style={{ height: '100%' }}
+          {/* Survey Information */}
+          <Col
+            span={12}
+            style={{ height: '100%', overflowY: 'auto', paddingLeft: '12px' }}
           >
             <Card
-              title={t('programManagement.form.basicInfo')}
+              title={t('surveyManagement.form.questions')}
               size="small"
               className={`mb-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
             >
-              <Form.Item
-                name="title"
-                label={t('surveyManagement.form.title')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('surveyManagement.form.titleRequired'),
-                  },
-                ]}
-              >
-                <Input
-                  placeholder={t('surveyManagement.form.titlePlaceholder')}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="description"
-                label={t('surveyManagement.form.description')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('surveyManagement.form.descriptionRequired'),
-                  },
-                ]}
-              >
-                <TextArea
-                  rows={3}
-                  showCount
-                  maxLength={500}
-                  placeholder={t(
-                    'surveyManagement.form.descriptionPlaceholder'
-                  )}
-                />
-              </Form.Item>
-
-              <Title level={5} style={{ marginBottom: '16px' }}>
+              {/* <Title level={5} style={{ marginBottom: '16px' }}>
                 {t('surveyManagement.form.questions')}
-              </Title>
+              </Title> */}
               <div
                 className="survey-modal-scroll"
                 style={{
@@ -762,9 +755,9 @@ const ProgramModal = ({
                 </Form.List>
               </div>
             </Card>
-          </Form>
-        </Col>
-      </Row>
+          </Col>
+        </Row>
+      </Form>
     </Modal>
   )
 }

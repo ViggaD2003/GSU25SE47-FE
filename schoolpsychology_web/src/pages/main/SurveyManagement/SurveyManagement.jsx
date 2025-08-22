@@ -66,14 +66,26 @@ const SurveyManagement = () => {
   // Filter states with clear descriptions
   const [dateRange, setDateRange] = useState(null) // Filter by creation date range
 
+  const handleRefresh = useCallback(() => {
+    if (!user) return
+
+    if (user?.role.toLowerCase() !== 'manager') {
+      Promise.all([
+        dispatch(loadAccount()).unwrap(),
+        dispatch(getSurveyInCase()).unwrap(),
+      ])
+    } else {
+      dispatch(getAllSurveys()).unwrap()
+    }
+    setCurrentPage(1)
+  }, [dispatch, user])
+
   // Load all surveys once
   useEffect(() => {
-    if (user?.role === 'counselor') {
-      dispatch(getSurveyInCase())
-    } else {
-      dispatch(getAllSurveys())
+    if (surveys.length === 0) {
+      handleRefresh()
     }
-  }, [dispatch, user?.role])
+  }, [])
 
   // Enhanced filtering logic with comprehensive search and filter capabilities
   const filteredSurveys = useMemo(() => {
@@ -144,19 +156,6 @@ const SurveyManagement = () => {
     setSearchText(value)
     setCurrentPage(1) // Reset to first page when searching
   }, [])
-
-  const handleRefresh = useCallback(() => {
-    if (!user) return
-    if (user?.role.toLowerCase() !== 'manager') {
-      Promise.all([
-        dispatch(loadAccount()).unwrap(),
-        dispatch(getSurveyInCase()).unwrap(),
-      ])
-    } else {
-      dispatch(getAllSurveys()).unwrap()
-    }
-    setCurrentPage(1)
-  }, [dispatch, user?.role, user])
 
   const handleAddSurvey = useCallback(() => {
     setIsModalVisible(true)

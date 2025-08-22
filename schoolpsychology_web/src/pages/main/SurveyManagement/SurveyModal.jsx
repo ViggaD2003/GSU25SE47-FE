@@ -78,16 +78,22 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
               : response
 
           setCategories(availableCategories)
-          resetFormFields({
-            categoryId: availableCategories[0]?.id,
-          })
-          setSelectedCategory(availableCategories[0])
+          Promise.all([
+            resetFormFields({
+              categoryId: availableCategories[0]?.id,
+              questions: [],
+            }),
+            setSelectedCategory(availableCategories[0]),
+          ])
         } else {
           setCategories(response || [])
-          resetFormFields({
-            categoryId: response[0]?.id,
-          })
-          setSelectedCategory(response[0])
+          Promise.all([
+            resetFormFields({
+              categoryId: response[0]?.id,
+              questions: [],
+            }),
+            setSelectedCategory(response[0]),
+          ])
         }
       }
     } catch (error) {
@@ -207,8 +213,14 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
       })
   }
 
-  const handleCancel = () => {
-    form.resetFields()
+  const handleCancel = async () => {
+    await Promise.all([
+      form.resetFields(),
+      setSelectedCategory(null),
+      form.setFieldsValue({
+        questions: [],
+      }),
+    ])
     onCancel()
   }
 

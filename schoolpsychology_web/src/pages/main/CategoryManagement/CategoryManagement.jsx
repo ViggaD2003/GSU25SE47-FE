@@ -59,11 +59,6 @@ const CategoryManagement = () => {
     total: 0,
   })
 
-  // Fetch categories on component mount
-  useEffect(() => {
-    fetchCategories()
-  }, [])
-
   // Fetch categories function
   const fetchCategories = useCallback(async () => {
     try {
@@ -77,6 +72,13 @@ const CategoryManagement = () => {
       setLoading(false)
     }
   }, [])
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    if (categories.length === 0) {
+      fetchCategories()
+    }
+  }, [categories.length])
 
   // Filter and search categories
   const filteredCategories = useMemo(() => {
@@ -145,10 +147,10 @@ const CategoryManagement = () => {
   )
 
   // Handle refresh
-  const handleRefresh = useCallback(() => {
-    fetchCategories()
+  const handleRefresh = async () => {
+    await fetchCategories()
     handleClearFilters()
-  }, [fetchCategories])
+  }
 
   // Handle view
   const handleView = useCallback(record => {
@@ -246,7 +248,7 @@ const CategoryManagement = () => {
         <div className="flex items-center space-x-3">
           <Button
             icon={<ReloadOutlined />}
-            onClick={handleRefresh}
+            onClick={() => handleRefresh()}
             loading={loading}
           >
             {t('categoryManagement.refresh')}

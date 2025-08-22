@@ -79,12 +79,14 @@ const ProgramManagement = () => {
 
   // Fetch programs on component mount
   useEffect(() => {
-    dispatch(getAllPrograms())
-    fetchCategories()
-    if (user.role === 'manager') {
-      fetchCounselors()
+    if (programs.length === 0) {
+      Promise.all([
+        dispatch(getAllPrograms()),
+        fetchCategories(),
+        user.role === 'manager' && fetchCounselors(),
+      ])
     }
-  }, [dispatch, user.role])
+  }, [])
 
   // Handle error messages
   useEffect(() => {
@@ -220,15 +222,14 @@ const ProgramManagement = () => {
   // Handle refresh
   const handleRefresh = useCallback(() => {
     if (!user) return
-    if (user?.role.toLowerCase() !== 'manager') {
-      Promise.all([
-        dispatch(loadAccount()).unwrap(),
-        dispatch(getAllPrograms()).unwrap(),
-      ])
-    } else {
-      Promise.all([fetchCounselors(), dispatch(getAllPrograms()).unwrap()])
-    }
-    messageApi.success(t('common.refreshSuccess'))
+    Promise.all([
+      user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
+      user.role === 'manager' && fetchCounselors(),
+      dispatch(getAllPrograms()).unwrap(),
+    ]).then(() => {
+      messageApi.success(t('common.refreshSuccess'))
+    })
+    // messageApi.success(t('common.refreshSuccess'))
   }, [dispatch, t, messageApi, user])
 
   // Handle reset filters
