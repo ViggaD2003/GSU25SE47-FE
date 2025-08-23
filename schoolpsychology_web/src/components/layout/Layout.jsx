@@ -3,7 +3,6 @@ import React, {
   useMemo,
   useCallback,
   useEffect,
-  Suspense,
   lazy,
   useRef,
   useTransition,
@@ -16,9 +15,7 @@ import {
   Typography,
   Flex,
   Button,
-  Badge,
   message,
-  Spin,
 } from 'antd'
 import {
   LogoutOutlined,
@@ -32,34 +29,6 @@ import { Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useWebSocket } from '@/contexts/WebSocketContext'
 import { getNotifications } from '@/services/notiApi'
-
-// Error boundary component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error }
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error boundary caught an error:', error, errorInfo)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex items-center justify-center p-2">
-          <span className="text-red-500 text-xs">Error loading component</span>
-        </div>
-      )
-    }
-
-    return this.props.children
-  }
-}
 
 // Lazy load non-critical components for better performance with error handling
 const ThemeSwitcher = lazy(() =>
@@ -134,7 +103,11 @@ const LayoutComponent = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [lastNotificationCount, setLastNotificationCount] = useState(0)
   const [isPending, startTransition] = useTransition()
-  const { notifications, setNotifications } = useWebSocket()
+  const {
+    notifications,
+    setNotifications,
+    // sendMessage
+  } = useWebSocket()
 
   // Refs for managing async operations
   const notificationFetchRef = useRef(null)
@@ -278,23 +251,26 @@ const LayoutComponent = () => {
   // Optimized sider styles with CSS transforms for better performance
   const siderStyle = useMemo(
     () => ({
-      borderRight: 0,
+      zIndex: 100,
       position: 'fixed',
       left: 0,
       top: 0,
-      bottom: 0,
-      zIndex: 100,
-      width: 256,
-      transform: `translateX(${collapsed ? '-176px' : '0'})`,
+      height: '100vh',
+      width: '256px',
+      transform: `translateX(${collapsed ? '-256px' : '0'})`,
       transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       willChange: 'transform',
+      borderRight: 0,
+      backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+      boxShadow: collapsed ? 'none' : '2px 0 8px rgba(0, 0, 0, 0.1)',
     }),
-    [collapsed]
+    [collapsed, isDarkMode]
   )
 
   const layoutStyle = useMemo(
     () => ({
-      marginLeft: collapsed ? 80 : 256,
+      width: collapsed ? '100%' : 'calc(100% - 256px)',
+      marginLeft: collapsed ? '0' : '256px',
       transition: 'margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     }),
     [collapsed]
@@ -306,6 +282,9 @@ const LayoutComponent = () => {
       padding: '0 24px',
       height: '64px',
       lineHeight: '64px',
+      borderBottom: isDarkMode ? '1px solid #27303f' : '1px solid #e0e0e0',
+      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+      zIndex: 100,
     }),
     [isDarkMode]
   )
@@ -314,14 +293,10 @@ const LayoutComponent = () => {
     () => ({
       minHeight: 'calc(100vh - 64px)',
       padding: '24px',
+      overflow: 'auto',
+      backgroundColor: isDarkMode ? '#1f2937' : '#f5f5f5',
+      transition: 'background-color 0.3s ease',
     }),
-    []
-  )
-
-  // Enhanced sider className with better performance optimizations
-  const siderClassName = useMemo(
-    () =>
-      `${isDarkMode ? 'bg-gray-900' : 'bg-white'} border-r shadow-lg will-change-transform transition-colors duration-200`,
     [isDarkMode]
   )
 
@@ -333,17 +308,6 @@ const LayoutComponent = () => {
     [isDarkMode]
   )
 
-  const headerClassName = useMemo(
-    () =>
-      `${isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'} border-b shadow-sm sticky top-0 z-50`,
-    [isDarkMode]
-  )
-
-  const contentClassName = useMemo(
-    () => `${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} transition-colors`,
-    [isDarkMode]
-  )
-
   const contentInnerClassName = useMemo(
     () =>
       `${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-sm p-6 min-h-full`,
@@ -351,16 +315,14 @@ const LayoutComponent = () => {
   )
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-screen" style={{ overflow: 'hidden' }}>
       {contextHolder}
       {/* Sidebar */}
       <Sider
         trigger={null}
         collapsible
-        collapsed={collapsed}
+        collapsed={false}
         width={256}
-        collapsedWidth={80}
-        className={siderClassName}
         style={siderStyle}
       >
         {/* Logo section */}
@@ -438,7 +400,7 @@ const LayoutComponent = () => {
       {/* Main Content */}
       <Layout style={layoutStyle}>
         {/* Header */}
-        <Header className={headerClassName} style={headerStyle}>
+        <Header style={headerStyle}>
           <div className="flex justify-between items-center h-full">
             {/* Left side - Collapse button */}
             <div className="flex items-center">
@@ -446,7 +408,6 @@ const LayoutComponent = () => {
                 type="text"
                 icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                 onClick={toggleSidebar}
-                loading={isPending}
                 className={`transition-all duration-200 ${
                   isDarkMode
                     ? 'text-gray-300 hover:text-white hover:bg-gray-700'
@@ -458,27 +419,16 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
+              {/* <Button onClick={() => sendMessage()}>Test</Button> */}
 
               {/* Notifications */}
-              <ErrorBoundary>
-                <Suspense fallback={<Spin size="small" />}>
-                  <NotificationBell />
-                </Suspense>
-              </ErrorBoundary>
+              <NotificationBell />
 
               {/* Theme switcher */}
-              <ErrorBoundary>
-                <Suspense fallback={<Spin size="small" />}>
-                  <ThemeSwitcher />
-                </Suspense>
-              </ErrorBoundary>
+              <ThemeSwitcher />
 
               {/* Language switcher */}
-              <ErrorBoundary>
-                <Suspense fallback={<Spin size="small" />}>
-                  <LanguageSwitcher />
-                </Suspense>
-              </ErrorBoundary>
+              <LanguageSwitcher />
 
               {/* User menu */}
               <Dropdown
@@ -505,7 +455,7 @@ const LayoutComponent = () => {
         </Header>
 
         {/* Content */}
-        <Content className={contentClassName} style={contentStyle}>
+        <Content style={contentStyle}>
           <div className={contentInnerClassName}>
             <Outlet />
           </div>

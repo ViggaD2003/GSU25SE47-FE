@@ -173,7 +173,7 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        `ws://spmss-api.ocgi.space/ws?token=${jwtToken}`
+        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
       )
       socketRef.current = socket
 
@@ -236,8 +236,8 @@ export const WebSocketProvider = ({ children }) => {
       body = {
         title: 'Hello from client!',
         content: `${userRef.current?.fullName || 'User'} sent you a message`,
-        // username: userRef.current?.sub,
-        username: 'vinhnguyen12346767@gmail.com',
+        username: userRef.current?.email,
+        // username: 'vinhnguyen12346767@gmail.com',
         notificationType: 'TEST_MESSAGE',
         relatedEntityId: '0',
       }

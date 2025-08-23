@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useCallback,
-  Suspense,
-  lazy,
-  useEffect,
-  useMemo,
-} from 'react'
+import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import {
   Card,
   Button,
@@ -17,7 +10,7 @@ import {
   Typography,
   Alert,
 } from 'antd'
-import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
+import { ReloadOutlined } from '@ant-design/icons'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
 import UserTable from './UserTable'
@@ -38,7 +31,7 @@ import { useNavigate } from 'react-router-dom'
 const { Title, Text } = Typography
 const { Option } = Select
 const { Search } = Input
-const UserModal = lazy(() => import('./UserModal'))
+// const UserModal = lazy(() => import('./UserModal'))
 
 const ClientManagement = () => {
   const { user } = useAuth()
@@ -68,11 +61,15 @@ const ClientManagement = () => {
     setCategories(data)
   }
 
-  const loadData = useCallback(async () => {
-    if (selectedClassCode) {
-      await dispatch(getClassesByCode(selectedClassCode)).unwrap()
-    }
-  }, [dispatch, selectedClassCode])
+  const loadData = useCallback(
+    code => {
+      const classCode = code || selectedClassCode
+      if (classCode) {
+        dispatch(getClassesByCode(classCode))
+      }
+    },
+    [dispatch, selectedClassCode]
+  )
 
   // Load classes on component mount
   useEffect(() => {
@@ -87,24 +84,21 @@ const ClientManagement = () => {
 
   // Handle class code selection for manager
   const handleClassCodeChange = useCallback(
-    async classCode => {
+    classCode => {
       setSelectedClassCode(classCode)
       if (classCode) {
-        await loadData()
+        loadData(classCode)
       }
     },
     [loadData]
   )
 
   // Handle year selection for manager
-  const handleYearChange = useCallback(
-    year => {
-      setSelectedYear(year)
-      // Reset class selection when year changes
-      setSelectedClassCode(null)
-    },
-    [selectedYear, classes]
-  )
+  const handleYearChange = useCallback(year => {
+    setSelectedYear(year)
+
+    setSelectedClassCode(null)
+  }, [])
 
   // Filter classes by selected year
   const filteredClasses = useMemo(() => {
@@ -147,7 +141,8 @@ const ClientManagement = () => {
       ) {
         const firstClassCode = filteredClasses[0].codeClass
         setSelectedClassCode(firstClassCode)
-        await loadData()
+        // console.log('firstClassCode', firstClassCode)
+        loadData(firstClassCode)
       } else if (
         selectedYear &&
         classes.length > 0 &&

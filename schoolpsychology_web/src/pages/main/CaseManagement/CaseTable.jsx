@@ -227,7 +227,8 @@ const CaseTable = ({
               {t('caseManagement.table.studentCode')}: {student?.studentCode}
             </div>
             <div className="text-xs text-gray-500">
-              {student?.classDto?.codeClass} - {student?.classDto?.schoolYear}
+              {student?.classDto?.codeClass} -{' '}
+              {student?.classDto?.schoolYear?.name}
             </div>
           </div>
         ),

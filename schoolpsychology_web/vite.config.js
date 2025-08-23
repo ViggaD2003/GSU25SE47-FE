@@ -47,6 +47,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      base: '/',
+      outDir: 'dist',
       rollupOptions: {
         output: {
           manualChunks: {
@@ -64,8 +66,8 @@ export default defineConfig(({ mode }) => {
     define: {
       global: {},
     },
-    // esbuild: {
-    //   drop: ['console', 'debugger'],
-    // },
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
   }
 })

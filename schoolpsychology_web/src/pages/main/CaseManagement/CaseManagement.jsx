@@ -58,13 +58,14 @@ const CaseManagement = () => {
       const response = await accountAPI.getAccounts({
         role: 'COUNSELOR',
       })
-      setAvailableHosts(response)
+      setAvailableHosts(response || [])
     } catch (error) {
       console.error('Failed to load available hosts:', error)
     }
   }
 
   const fetchData = useCallback(async () => {
+    if (!user) return
     setHostsLoading(true)
     Promise.all([
       user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
@@ -73,7 +74,7 @@ const CaseManagement = () => {
     ]).finally(() => {
       setHostsLoading(false)
     })
-  }, [dispatch, user.id, user.role])
+  }, [dispatch, user])
 
   useEffect(() => {
     if (cases.length === 0) {

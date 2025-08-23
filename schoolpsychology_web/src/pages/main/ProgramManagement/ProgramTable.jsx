@@ -226,7 +226,7 @@ const ProgramTable = ({
             : ''
           return (
             <div>
-              <Text>{dayjs(startTime).format('DD/MM/YYYY')}</Text>
+              <Text>{dayjs(record.startTime).format('DD/MM/YYYY')}</Text>
               {startTime && endTime && (
                 <div>
                   <Text type="secondary" className="text-xs">
@@ -253,12 +253,12 @@ const ProgramTable = ({
       },
       {
         title: t('programManagement.table.createdAt'),
-        dataIndex: 'createdAt',
-        key: 'createdAt',
+        dataIndex: 'createdDate',
+        key: 'createdDate',
         width: 120,
         render: (_, record) => (
           <div>
-            <Text>{dayjs(record.createdAt).format('DD/MM/YYYY')}</Text>
+            <Text>{dayjs(record.createdDate).format('DD/MM/YYYY HH:mm')}</Text>
           </div>
         ),
       },

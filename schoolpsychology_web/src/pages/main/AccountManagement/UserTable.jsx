@@ -54,7 +54,7 @@ const UserTable = ({
                 <div
                   style={{
                     fontWeight: 500,
-                    maxWidth: 100,
+                    // maxWidth: 100,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -69,6 +69,7 @@ const UserTable = ({
             </div>
           </Space>
         ),
+        width: 250,
         fixed: 'left',
       },
       {
