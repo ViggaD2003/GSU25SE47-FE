@@ -279,8 +279,8 @@ const ProgramManagement = () => {
 
     return {
       total: programs.length,
-      upcoming: programs.filter(p => p.status === 'PLANNING').length,
-      ongoing: programs.filter(p => p.status === 'ON_GOING').length,
+      // upcoming: programs.filter(p => p.status === 'ACTIVE').length,
+      ongoing: programs.filter(p => p.status === 'ACTIVE').length,
       completed: programs.filter(p => p.status === 'COMPLETED').length,
     }
   }, [programs])
@@ -331,7 +331,7 @@ const ProgramManagement = () => {
 
       {/* Statistics Cards */}
       <Row gutter={[16, 16]} className="mb-6">
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Card size="small" className="text-center">
             <div className="text-2xl font-bold text-blue-600">
               {statistics.total}
@@ -339,7 +339,7 @@ const ProgramManagement = () => {
             <div className="text-gray-500">{t('common.total')}</div>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        {/* <Col xs={24} sm={12} md={6}>
           <Card size="small" className="text-center">
             <div className="text-2xl font-bold text-cyan-600">
               {statistics.upcoming}
@@ -348,8 +348,8 @@ const ProgramManagement = () => {
               {t('programManagement.status.PLANNING')}
             </div>
           </Card>
-        </Col>
-        <Col xs={24} sm={12} md={6}>
+        </Col> */}
+        <Col xs={24} sm={12} md={8}>
           <Card size="small" className="text-center">
             <div className="text-2xl font-bold text-green-600">
               {statistics.ongoing}
@@ -359,7 +359,7 @@ const ProgramManagement = () => {
             </div>
           </Card>
         </Col>
-        <Col xs={24} sm={12} md={6}>
+        <Col xs={24} sm={12} md={8}>
           <Card size="small" className="text-center">
             <div className="text-2xl font-bold text-gray-600">
               {statistics.completed}
