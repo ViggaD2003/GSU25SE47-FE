@@ -18,21 +18,21 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
   }
 
   const getScoreColor = (score) => {
-    if (score >= 0.8) return "#059669"; // Green for high scores
-    if (score >= 0.6) return "#F59E0B"; // Yellow for medium scores
-    if (score >= 0.4) return "#EF4444"; // Red for low scores
-    return "#DC2626"; // Dark red for very low scores
+    if (score >= 4) return "#EF4444";
+    if (score >= 2) return "#F59E0B";
+    if (score >= 0) return "#059669";
+    return "#DC2626";
   };
 
   const getScoreLabel = (score) => {
-    if (score >= 0.8) return "Tốt";
-    if (score >= 0.6) return "Khá";
-    if (score >= 0.4) return "Trung bình";
-    return "Cần cải thiện";
+    if (score >= 4) return "Cần theo dõi";
+    if (score >= 2) return "Có dấu hiệu";
+    if (score >= 0) return "Không có dấu hiệu";
+    return "Cần theo dõi";
   };
 
   const formatScore = (score) => {
-    return Math.round(score * 100);
+    return score;
   };
 
   return (
@@ -53,7 +53,7 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
                 </View>
                 <View style={styles.scoreBadge}>
                   <Text style={[styles.scoreValue, { color: scoreColor }]}>
-                    {scoreValue}%
+                    {scoreValue}
                   </Text>
                   <Text style={[styles.scoreLabel, { color: scoreColor }]}>
                     {scoreLabel}
@@ -67,40 +67,26 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
                     Mức độ nghiêm trọng:
                   </Text>
                   <Text style={styles.scoreDetailValue}>
-                    {formatScore(score.severityScore)}%
+                    {formatScore(score.severityScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreDetailLabel}>Tần suất:</Text>
                   <Text style={styles.scoreDetailValue}>
-                    {formatScore(score.frequencyScore)}%
+                    {formatScore(score.frequencyScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreDetailLabel}>Mức độ suy giảm:</Text>
                   <Text style={styles.scoreDetailValue}>
-                    {formatScore(score.impairmentScore)}%
+                    {formatScore(score.impairmentScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreDetailLabel}>Tính mãn tính:</Text>
                   <Text style={styles.scoreDetailValue}>
-                    {formatScore(score.chronicityScore)}%
+                    {formatScore(score.chronicityScore)}
                   </Text>
-                </View>
-              </View>
-
-              <View style={styles.progressContainer}>
-                <View style={styles.progressTrack}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${scoreValue}%`,
-                        backgroundColor: scoreColor,
-                      },
-                    ]}
-                  />
                 </View>
               </View>
             </View>

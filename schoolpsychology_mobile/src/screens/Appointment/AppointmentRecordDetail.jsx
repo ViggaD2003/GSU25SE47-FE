@@ -121,6 +121,14 @@ const AppointmentRecordDetail = () => {
           text: "Trung bình",
           description: "Buổi tư vấn có một số khó khăn",
         };
+      case "AVERAGE":
+        return {
+          color: "#F59E0B",
+          backgroundColor: "#FEF3C7",
+          icon: "remove",
+          text: "Trung bình",
+          description: "Buổi tư vấn có một số khó khăn",
+        };
       case "LOW":
         return {
           color: "#DC2626",
@@ -150,6 +158,13 @@ const AppointmentRecordDetail = () => {
           text: "Tốt",
           description: "Học sinh tích cực hợp tác",
         };
+      case "MEDIUM":
+        return {
+          color: "#F59E0B",
+          backgroundColor: "#FEF3C7",
+          text: "Trung bình",
+          description: "Học sinh hợp tác ở mức độ vừa phải",
+        };
       case "AVERAGE":
         return {
           color: "#F59E0B",
@@ -171,46 +186,6 @@ const AppointmentRecordDetail = () => {
           text: "Chưa đánh giá",
           description: "Chưa có đánh giá mức độ hợp tác",
         };
-    }
-  };
-
-  // Share record
-  const handleShare = async () => {
-    try {
-      const statusConfig = getStatusConfig(record.status);
-      const sessionFlowConfig = getSessionFlowConfig(record.sessionFlow);
-      const coopLevelConfig = getCoopLevelConfig(record.studentCoopLevel);
-
-      const shareContent = `📋 Hồ sơ tư vấn #${record.id}
-
-📅 Ngày tạo: ${dayjs(record.startDateTime).format("DD/MM/YYYY HH:mm")}
-🏥 Trạng thái: ${statusConfig.text}
-👤 Loại tư vấn: ${record.hostType === "COUNSELOR" ? "Tư vấn viên" : "Giáo viên"}
-📍 Hình thức: ${record.isOnline ? "Trực tuyến" : "Tại chỗ"}
-📍 Địa điểm: ${record.location || "Không có"}
-
-${
-  record.status === "COMPLETED"
-    ? `
-📈 Tiến trình: ${sessionFlowConfig.text}
-🤝 Mức độ hợp tác: ${coopLevelConfig.text}
-`
-    : ""
-}
-
-💡 Lý do đặt lịch: ${record.reasonBooking || "Không có"}
-
-📝 Ghi chú buổi tư vấn: ${record.sessionNotes || "Chưa có"}
-📋 Tóm tắt: ${record.noteSummary || "Chưa có tóm tắt"}
-💭 Gợi ý: ${record.noteSuggestion || "Chưa có gợi ý"}`;
-
-      await Share.share({
-        message: shareContent,
-        title: `Hồ sơ tư vấn #${record.id}`,
-      });
-    } catch (error) {
-      console.error("Error sharing record:", error);
-      Alert.alert("Lỗi", "Không thể chia sẻ hồ sơ");
     }
   };
 
@@ -480,16 +455,6 @@ ${
           </View>
         )}
 
-        {/* Assessment Scores */}
-        {record.assessmentScores && record.assessmentScores.length > 0 && (
-          <View style={styles.section}>
-            <AssessmentScoreChart
-              scores={record.assessmentScores}
-              title="Kết quả đánh giá chi tiết"
-            />
-          </View>
-        )}
-
         {/* Notes Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Ghi chú & Đề xuất</Text>
@@ -560,6 +525,16 @@ ${
               )}
           </View>
         </View>
+
+        {/* Assessment Scores */}
+        {record.assessmentScores && record.assessmentScores.length > 0 && (
+          <View style={styles.section}>
+            <AssessmentScoreChart
+              scores={record.assessmentScores}
+              title="Kết quả đánh giá chi tiết"
+            />
+          </View>
+        )}
       </ScrollView>
     </Container>
   );

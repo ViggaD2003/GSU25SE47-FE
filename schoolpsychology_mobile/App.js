@@ -90,20 +90,20 @@ function RootNavigation() {
 export default function App() {
   return (
     <SafeAreaProvider>
-    <LanguageProvider>
-      <AuthProvider>
-        <PermissionProvider>
-          <RealTimeProvider>
-            <ChildrenProvider>
-              <PaperProvider>
-                <RootNavigation />
-                <Toast />
-              </PaperProvider>
-            </ChildrenProvider>
-          </RealTimeProvider>
-        </PermissionProvider>
-      </AuthProvider>
-    </LanguageProvider>
+      <LanguageProvider>
+        <PaperProvider>
+          <AuthProvider>
+            <PermissionProvider>
+              <RealTimeProvider>
+                <ChildrenProvider>
+                  <RootNavigation />
+                  <Toast />
+                </ChildrenProvider>
+              </RealTimeProvider>
+            </PermissionProvider>
+          </AuthProvider>
+        </PaperProvider>
+      </LanguageProvider>
     </SafeAreaProvider>
   );
 }

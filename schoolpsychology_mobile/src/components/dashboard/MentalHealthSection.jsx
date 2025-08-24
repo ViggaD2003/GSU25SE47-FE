@@ -5,6 +5,7 @@ import StatisticsCard from "./StatisticsCard";
 import MentalHealthChart from "../charts/MentalHealthChart";
 import CombinedChart from "../charts/CombinedChart";
 import { Ionicons } from "@expo/vector-icons";
+import { LineChart } from "react-native-chart-kit";
 
 const MentalHealthSection = ({ mentalStatistic = {} }) => {
   const { t } = useTranslation();
@@ -202,6 +203,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           programData={mentalStatistic.program?.dataSet || []}
           surveyData={mentalStatistic.survey?.dataSet || []}
           title={t("dashboard.mentalHealth.combined.chartTitle")}
+          type="combined"
         />
       </View>
 
@@ -240,11 +242,11 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           ))}
         </ScrollView>
 
-        <MentalHealthChart
-          data={mentalStatistic.survey?.dataSet || []}
+        <CombinedChart
+          t={t}
+          surveyData={mentalStatistic.survey?.dataSet || []}
           title={t("dashboard.mentalHealth.survey.chartTitle")}
           type="survey"
-          emptyMessage={t("dashboard.mentalHealth.survey.noData")}
         />
       </View>
 
@@ -283,11 +285,11 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           ))}
         </ScrollView>
 
-        <MentalHealthChart
-          data={mentalStatistic.appointment?.dataSet || []}
+        <CombinedChart
+          t={t}
+          appointmentData={mentalStatistic.appointment?.dataSet || []}
           title={t("dashboard.mentalHealth.appointment.chartTitle")}
           type="appointment"
-          emptyMessage={t("dashboard.mentalHealth.appointment.noData")}
         />
       </View>
 
@@ -326,11 +328,11 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           ))}
         </ScrollView>
 
-        <MentalHealthChart
-          data={mentalStatistic.program?.dataSet || []}
+        <CombinedChart
+          t={t}
+          programData={mentalStatistic.program?.dataSet || []}
           title={t("dashboard.mentalHealth.program.chartTitle")}
           type="program"
-          emptyMessage={t("dashboard.mentalHealth.program.noData")}
         />
       </View>
     </View>

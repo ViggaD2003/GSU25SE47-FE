@@ -16,10 +16,12 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { api } from "../../services";
 import { useAuth } from "../../contexts";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
 
 export default function UpdateProfile({ route }) {
+  const { t } = useTranslation();
   const navigation = useNavigation();
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const profileData = route?.params?.profileData;
 
@@ -31,8 +33,6 @@ export default function UpdateProfile({ route }) {
     dob: "",
     isEnableSurvey: false,
   });
-
-  console.log(route);
 
   // Class information (read-only)
   const [classInfo, setClassInfo] = useState({
@@ -118,15 +118,13 @@ export default function UpdateProfile({ route }) {
         }
       }
 
-      console.log("About to show success message");
-
       // Show success message using Alert
       Alert.alert("Thành công", "Thông tin đã được cập nhật thành công! 🎉", [
         {
           text: "OK",
           onPress: () => {
-            console.log("OK pressed, navigating back");
             updateUser(response.data);
+            refreshUser();
             navigation.goBack();
           },
         },
@@ -310,115 +308,128 @@ export default function UpdateProfile({ route }) {
           </View>
 
           {/* Class Information (Student only) */}
-          {user?.role === "STUDENT" && (
-            <>
-              {/* Student Code */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Mã học sinh</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={classInfo.studentCode}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>
-                  Mã học sinh không thể thay đổi
-                </Text>
-              </View>
+          {user?.role === "STUDENT" &&
+            (user?.classDto ? (
+              <>
+                {/* Student Code */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Mã học sinh</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={classInfo.studentCode}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>
+                    Mã học sinh không thể thay đổi
+                  </Text>
+                </View>
 
-              {/* Class Code */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Lớp</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={classInfo.codeClass}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>
-                  Thông tin lớp không thể thay đổi
-                </Text>
-              </View>
+                {/* Class Code */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Lớp</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={classInfo.codeClass}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>
+                    Thông tin lớp không thể thay đổi
+                  </Text>
+                </View>
 
-              {/* School Year */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Năm học</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={classInfo.schoolYear}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>
-                  Năm học không thể thay đổi
-                </Text>
-              </View>
+                {/* School Year */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Năm học</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={classInfo.schoolYear.name}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>
+                    Năm học không thể thay đổi
+                  </Text>
+                </View>
 
-              {/* Teacher Information Section */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>
-                  Thông tin giáo viên chủ nhiệm
-                </Text>
-              </View>
+                {/* Teacher Information Section */}
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>
+                    Thông tin giáo viên chủ nhiệm
+                  </Text>
+                </View>
 
-              {/* Teacher Name */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Tên giáo viên</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={teacherInfo.teacherName}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>Tên giáo viên chủ nhiệm</Text>
-              </View>
+                {/* Teacher Name */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Tên giáo viên</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={teacherInfo.teacherName}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>Tên giáo viên chủ nhiệm</Text>
+                </View>
 
-              {/* Teacher Email */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Email giáo viên</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={teacherInfo.teacherEmail}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>
-                  Email liên hệ với giáo viên
-                </Text>
-              </View>
+                {/* Teacher Email */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Email giáo viên</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={teacherInfo.teacherEmail}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>
+                    Email liên hệ với giáo viên
+                  </Text>
+                </View>
 
-              {/* Teacher Phone */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Số điện thoại giáo viên</Text>
-                <TextInput
-                  style={[styles.input, styles.disabledInput]}
-                  value={teacherInfo.teacherPhone}
-                  editable={false}
-                  placeholderTextColor="#9CA3AF"
-                />
-                <Text style={styles.helperText}>
-                  Số điện thoại liên hệ với giáo viên
-                </Text>
-              </View>
-            </>
-          )}
-
-          {/* Save Button */}
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.saveButtonText}>Đang cập nhật...</Text>
-              </View>
+                {/* Teacher Phone */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Số điện thoại giáo viên</Text>
+                  <TextInput
+                    style={[styles.input, styles.disabledInput]}
+                    value={teacherInfo.teacherPhone}
+                    editable={false}
+                    placeholderTextColor="#9CA3AF"
+                  />
+                  <Text style={styles.helperText}>
+                    Số điện thoại liên hệ với giáo viên
+                  </Text>
+                </View>
+              </>
             ) : (
-              <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
-            )}
-          </TouchableOpacity>
+              <View style={styles.warningCard}>
+                <View style={styles.warningHeader}>
+                  <Ionicons name="warning" size={24} color="#F59E0B" />
+                  <Text style={styles.warningTitle}>
+                    {t("appointment.booking.warning.title")}
+                  </Text>
+                </View>
+                <Text style={styles.warningText}>
+                  {t("appointment.booking.warning.noTeacher")}
+                </Text>
+              </View>
+            ))}
         </View>
       </ScrollView>
+
+      {/* Save Button */}
+      <TouchableOpacity
+        style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+        onPress={handleSave}
+        disabled={loading}
+      >
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.saveButtonText}>Đang cập nhật...</Text>
+          </View>
+        ) : (
+          <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
+        )}
+      </TouchableOpacity>
 
       {/* Date Picker Modal */}
       <DateTimePickerModal
@@ -436,6 +447,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F9FAFB",
+    position: "relative",
+  },
+  warningCard: {
+    backgroundColor: "#FFFBEB",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+    marginBottom: 24,
+  },
+  warningHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#92400E",
+    marginLeft: 8,
+  },
+  warningText: {
+    fontSize: 14,
+    color: "#92400E",
+    marginBottom: 16,
   },
   header: {
     flexDirection: "row",
@@ -591,6 +627,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+    marginHorizontal: 16,
   },
   saveButtonDisabled: {
     backgroundColor: "#9CA3AF",

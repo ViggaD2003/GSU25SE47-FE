@@ -45,7 +45,9 @@
         "averageTitle": "Điểm trung bình theo danh mục",
         "detailsTitle": "Chi tiết dữ liệu",
         "overallProgress": "Tiến độ tổng thể",
-        "performanceMetrics": "Chỉ số hiệu suất"
+        "performanceMetrics": "Chỉ số hiệu suất",
+        "noData": "Không có dữ liệu",
+        "noDataSubtitle": "Không có dữ liệu cho khoảng thời gian đã chọn"
       },
       "type": {
         "survey": "Khảo sát",
@@ -743,7 +745,7 @@
       "bookAppointment": "Đặt lịch hẹn",
       "warning": {
         "title": "Lưu ý",
-        "noTeacher": "Bạn cần chọn giáo viên trước để đặt lịch hẹn"
+        "noTeacher": "Hiện tại bạn chưa được phân vào lớp nào hoặc lớp của bạn chưa bắt đầu"
       },
       "slots": {
         "title": "Khung giờ khả dụng",

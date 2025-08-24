@@ -256,6 +256,17 @@ const DashboardScreen = () => {
       <View style={styles.childSelectorContainer}>
         {/* <ChildSelector /> */}
         {user.role === "PARENTS" && <ChildSelector />}
+
+        {/* Date Range Selector */}
+        <View style={styles.dateRangeContainer}>
+          <DateRangeSelector
+            selectedRange={selectedRange}
+            onRangeChange={handleRangeChange}
+            customStartDate={customStartDate}
+            customEndDate={customEndDate}
+            onCustomDateChange={handleCustomDateChange}
+          />
+        </View>
       </View>
 
       {loading ? (
@@ -264,17 +275,6 @@ const DashboardScreen = () => {
         </View>
       ) : (
         <>
-          {/* Date Range Selector */}
-          <View style={styles.dateRangeContainer}>
-            <DateRangeSelector
-              selectedRange={selectedRange}
-              onRangeChange={handleRangeChange}
-              customStartDate={customStartDate}
-              customEndDate={customEndDate}
-              onCustomDateChange={handleCustomDateChange}
-            />
-          </View>
-
           {/* Content */}
           <ScrollView
             style={styles.content}

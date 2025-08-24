@@ -177,6 +177,7 @@ export const AuthProvider = ({ children }) => {
 
   const refreshUser = useCallback(async () => {
     const currentUser = await getCurrentUser();
+    console.log("currentUser", currentUser);
     setUser(currentUser);
   }, []);
 

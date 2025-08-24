@@ -402,82 +402,93 @@ export default function StudentHome({ user, navigation }) {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.programScrollContainer}
               >
-                {recommandedPrograms.slice(1, 4).map((program, index) => (
-                  <TouchableOpacity
-                    key={program.id || index}
-                    style={styles.programCard}
-                    onPress={() => {
-                      navigation.navigate("Program", {
-                        screen: "ProgramDetail",
-                        params: {
-                          programId: program.id,
-                        },
-                      });
-                    }}
-                  >
-                    <View style={styles.programHeader}>
-                      <View style={styles.programIconContainer}>
-                        <MaterialIcons
-                          name="school"
-                          size={20}
-                          color="#F59E0B"
-                        />
+                {recommandedPrograms.slice(1, 4).map((program, index) => {
+                  // console.log("program", program);
+                  return (
+                    <TouchableOpacity
+                      key={program.id || index}
+                      style={styles.programCard}
+                      onPress={() => {
+                        navigation.navigate("Program", {
+                          screen: "ProgramDetail",
+                          params: {
+                            programId: program.id,
+                          },
+                        });
+                      }}
+                    >
+                      <View style={styles.programHeader}>
+                        <View style={styles.programIconContainer}>
+                          <MaterialIcons
+                            name="school"
+                            size={20}
+                            color="#F59E0B"
+                          />
+                        </View>
+                        <View style={styles.programStatus}>
+                          <Text style={styles.programStatusText}>
+                            {t("home.recommendedPrograms.active")}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={styles.programStatus}>
-                        <Text style={styles.programStatusText}>
-                          {t("home.recommendedPrograms.active")}
+
+                      {/* Category Badge */}
+                      <View style={styles.categoryBadge}>
+                        <Text style={styles.categoryText}>
+                          {program.category?.name ||
+                            t("home.recommendedPrograms.professional")}
                         </Text>
                       </View>
-                    </View>
 
-                    {/* Category Badge */}
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryText}>
-                        {program.category?.name ||
-                          t("home.recommendedPrograms.professional")}
+                      <Text style={styles.programTitle} numberOfLines={2}>
+                        {program.title ||
+                          program.name ||
+                          t("home.recommendedPrograms.untitled")}
                       </Text>
-                    </View>
-
-                    <Text style={styles.programTitle} numberOfLines={2}>
-                      {program.title ||
-                        program.name ||
-                        t("home.recommendedPrograms.untitled")}
-                    </Text>
-                    <Text style={styles.programDescription} numberOfLines={2}>
-                      {program.description ||
-                        t("home.recommendedPrograms.noDescription")}
-                    </Text>
-
-                    {/* Progress Bar */}
-                    <View style={styles.progressContainer}>
-                      <View style={styles.progressBar}>
-                        <View
-                          style={[
-                            styles.progressFill,
-                            { width: `${(program.participants ?? 0) * 100}%` },
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.progressText}>
-                        {t("home.recommendedPrograms.participants")}
+                      <Text style={styles.programDescription} numberOfLines={2}>
+                        {program.description ||
+                          t("home.recommendedPrograms.noDescription")}
                       </Text>
-                    </View>
 
-                    <View style={styles.programFooter}>
-                      <View style={styles.programDuration}>
-                        <Ionicons
-                          name="time-outline"
-                          size={14}
-                          color="#6B7280"
-                        />
-                        <Text style={styles.programDurationText}>
-                          {program.duration ||
-                            t("home.recommendedPrograms.flexible")}
+                      {/* Progress Bar */}
+                      <View style={styles.progressContainer}>
+                        <View style={styles.progressBar}>
+                          <View
+                            style={[
+                              styles.progressFill,
+                              {
+                                width: `${
+                                  ((program.participants ?? 1) /
+                                    (program.maxParticipants ?? 1)) *
+                                  100
+                                }%`,
+                              },
+                            ]}
+                          />
+                        </View>
+                        <Text style={styles.progressText}>
+                          {program.participants} / {program.maxParticipants}{" "}
+                          {t("home.recommendedPrograms.participants")}
                         </Text>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+
+                      <View style={styles.programFooter}>
+                        <View style={styles.programDuration}>
+                          <Ionicons
+                            name="time-outline"
+                            size={14}
+                            color="#6B7280"
+                          />
+                          <Text style={styles.programDurationText}>
+                            {dayjs(program.startTime).format(
+                              "DD/MM/YYYY HH:mm"
+                            ) || t("home.recommendedPrograms.flexible")}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </ScrollView>
             </>
           ) : (

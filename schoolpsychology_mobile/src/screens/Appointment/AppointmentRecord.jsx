@@ -164,6 +164,13 @@ const AppointmentRecord = () => {
           icon: "remove",
           text: "Trung bình",
         };
+      case "AVERAGE":
+        return {
+          color: "#F59E0B",
+          backgroundColor: "#FEF3C7",
+          icon: "remove",
+          text: "Trung bình",
+        };
       case "LOW":
         return {
           color: "#DC2626",
@@ -189,6 +196,12 @@ const AppointmentRecord = () => {
           color: "#059669",
           backgroundColor: "#D1FAE5",
           text: "Tốt",
+        };
+      case "MEDIUM":
+        return {
+          color: "#F59E0B",
+          backgroundColor: "#FEF3C7",
+          text: "Trung bình",
         };
       case "AVERAGE":
         return {
@@ -396,7 +409,7 @@ const AppointmentRecord = () => {
         onBackPress={() => navigation.goBack()}
       />
 
-      {user?.role === "PARENTS" && children && children.length > 0 && (
+      {user?.role === "PARENTS" && children && children?.length > 0 && (
         <View style={styles.childSelectorContainer}>
           <ChildSelector />
         </View>
@@ -414,58 +427,6 @@ const AppointmentRecord = () => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* Statistics Cards */}
-          <LazyLoader delay={200}>
-            <View style={styles.statsContainer}>
-              <StatisticsCard
-                title="Tổng hồ sơ"
-                value={stats.total}
-                icon="document-text"
-                iconColor="#3B82F6"
-                valueColor="#3B82F6"
-                size="small"
-              />
-              <StatisticsCard
-                title="Hoàn thành"
-                value={stats.completed}
-                icon="checkmark-circle"
-                iconColor="#059669"
-                valueColor="#059669"
-                size="small"
-              />
-              <StatisticsCard
-                title="Đã hủy"
-                value={stats.canceled}
-                icon="close-circle"
-                iconColor="#DC2626"
-                valueColor="#DC2626"
-                size="small"
-              />
-              <StatisticsCard
-                title="Vắng"
-                value={stats.absent}
-                icon="time"
-                iconColor="#F59E0B"
-                valueColor="#F59E0B"
-                size="small"
-              />
-            </View>
-          </LazyLoader>
-
-          {/* Chart */}
-          {chartData.length > 0 && (
-            <LazyLoader delay={400}>
-              <View style={styles.chartContainer}>
-                <ReusableBarChart
-                  data={chartData}
-                  title="Thống kê trạng thái hồ sơ"
-                  type="bar"
-                  color="#3B82F6"
-                />
-              </View>
-            </LazyLoader>
-          )}
-
           {/* Records List */}
           {records.length === 0 ? (
             <View style={styles.emptyContainer}>
@@ -479,10 +440,18 @@ const AppointmentRecord = () => {
             </View>
           ) : (
             <LazyLoader delay={600}>
-              <View style={styles.recordsList}>
+              <View style={styles.recordsHeader}>
                 <Text style={styles.sectionTitle}>
                   {t("appointment.record.listTitle", { count: records.length })}
                 </Text>
+                <View style={styles.recordsCount}>
+                  <Text style={styles.recordsCountText}>
+                    vắng {records.filter((r) => r.status === "ABSENT").length} /{" "}
+                    {records.length} buổi
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.recordsList}>
                 {records.map(renderRecordCard)}
               </View>
             </LazyLoader>
@@ -513,6 +482,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#F1F5F9",
   },
+  recordsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  recordsCount: {
+    backgroundColor: "#FFE5E5",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  recordsCountText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FF3030",
+  },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
@@ -542,7 +528,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#1A1A1A",
-    marginBottom: 16,
   },
   recordsList: {
     gap: 12,

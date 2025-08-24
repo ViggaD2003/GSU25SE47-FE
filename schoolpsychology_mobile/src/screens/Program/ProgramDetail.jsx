@@ -262,10 +262,11 @@ export default function ProgramDetail() {
   };
 
   const canJoinOrLeave = () => {
+    // console.log("program", program);
     return (
       program &&
       program.status === "ACTIVE" &&
-      program.student?.surveyRecord?.length === 0
+      (!program?.student || program?.student?.surveyRecord?.length === 0)
     );
   };
 
@@ -392,7 +393,7 @@ export default function ProgramDetail() {
           </TouchableOpacity>
 
           {/* Exit Survey */}
-          {entrySurvey && isActiveSurvey && (
+          {entrySurvey && (
             <TouchableOpacity
               style={styles.surveyCard}
               onPress={() => {
@@ -984,9 +985,6 @@ export default function ProgramDetail() {
                 {t("program.detail.loading")}
               </Text>
             ) : !canJoinOrLeave() ? (
-              // <Text style={styles.actionButtonText}>
-              // {/* {t("program.detail.programIsActive")} */}
-              // </Text>
               <></>
             ) : (
               <>
@@ -1507,10 +1505,7 @@ const styles = StyleSheet.create({
     borderColor: "#FF3B30",
   },
   disabledButton: {
-    opacity: 0.6,
-    backgroundColor: "white",
-    borderWidth: 0,
-    borderColor: "transparent",
+    display: "none",
   },
   joinButtonText: {
     fontSize: 16,

@@ -10,8 +10,6 @@ import { Text } from "react-native-paper";
 import { getBlogs } from "../../services/api/BlogService";
 import { useNavigation } from "@react-navigation/native";
 import { Container } from "../../components";
-import { Ionicons } from "@expo/vector-icons";
-import { log } from "console";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
 

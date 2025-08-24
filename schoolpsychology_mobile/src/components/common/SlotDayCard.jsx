@@ -5,20 +5,14 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import Loading from "./Loading";
 import { ActivityIndicator } from "react-native-paper";
 import {
   formatDate,
   formatTime,
   generateTimeSlots,
 } from "../../utils/slotUtils";
-import { log } from "console";
-
-const { width } = Dimensions.get("window");
-const isSmallDevice = width < 375;
 
 const SlotDayCard = ({
   daySlots,

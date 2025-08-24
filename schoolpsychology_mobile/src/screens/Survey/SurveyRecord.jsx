@@ -264,13 +264,7 @@ const SurveyRecord = ({ navigation }) => {
             : user?.id || user?.userId;
 
         const response = await getSurveyRecordsByAccount(userId, params);
-
-        // console.log("API Response:", {
-        //   page: response.page,
-        //   totalElements: response.totalElements,
-        //   hasNext: response.hasNext,
-        //   contentLength: response.content?.length,
-        // });
+        console.log("Response:", response);
 
         if (response) {
           const newRecords = Array.isArray(response?.content)
@@ -285,6 +279,8 @@ const SurveyRecord = ({ navigation }) => {
           if (isRefresh || page === 1) {
             setSurveyRecords(newRecords);
           } else {
+            // console.log("New Records:", newRecords);
+
             setSurveyRecords((prev) => {
               // Create a map to avoid duplicates based on record ID
               const existingIds = new Set(prev.map((record) => record.id));
@@ -295,7 +291,6 @@ const SurveyRecord = ({ navigation }) => {
             });
           }
 
-          // Update pagination info
           // Convert 0-based page to 1-based for frontend consistency
           setCurrentPage((response.page || 0) + 1);
           setTotalElements(response.totalElements || 0);
@@ -408,225 +403,6 @@ const SurveyRecord = ({ navigation }) => {
     [handleViewResult]
   );
 
-  const renderStatisticsSection = useCallback(
-    () => (
-      <View style={styles.statisticsSection}>
-        {/* Header */}
-        <View style={styles.statsHeader}>
-          <Text style={styles.statsTitle}>Thống kê tổng quan</Text>
-          <View style={styles.statsBadge}>
-            <Ionicons name="analytics" size={16} color="#3B82F6" />
-          </View>
-        </View>
-
-        {/* Main Statistics Cards */}
-        <View style={styles.mainStatsContainer}>
-          <StatisticsCard
-            title="Tổng khảo sát"
-            value={statistics.currentSurveys}
-            subtitle={`${totalElements} bài tổng cộng`}
-            icon="document-text"
-            iconColor="#3B82F6"
-            valueColor="#1A1A1A"
-            size="small"
-          />
-          <StatisticsCard
-            title="Tỷ lệ hoàn thành"
-            value={`${statistics.completionRate}%`}
-            subtitle="Đã hoàn thành"
-            icon="checkmark-circle"
-            iconColor="#10B981"
-            valueColor="#10B981"
-            size="small"
-          />
-          {statistics.averageScore > 0 && (
-            <StatisticsCard
-              title="Điểm trung bình"
-              value={statistics.averageScore}
-              subtitle="Điểm số trung bình"
-              icon="analytics"
-              iconColor="#F59E0B"
-              valueColor="#F59E0B"
-              size="small"
-            />
-          )}
-        </View>
-
-        {/* Charts Section with Horizontal Scroll */}
-        {(statistics.levelDistribution.length > 0 ||
-          statistics.surveyTypeDistribution.length > 0 ||
-          statistics.scoreLevelDistribution.length > 0) && (
-          <View style={styles.chartsSection}>
-            <Text style={styles.chartsSectionTitle}>Phân tích chi tiết</Text>
-            <HorizontalChartCarousel>
-              {/* Level Distribution Chart - Priority 1 */}
-              {statistics.levelDistribution.length > 0 && (
-                <ReusableBarChart
-                  key="level-distribution"
-                  data={statistics.levelDistribution.map((item) => ({
-                    x: item.label,
-                    y: item.value,
-                  }))}
-                  title="Phân bố mức độ rủi ro (%)"
-                  yAxisMax={100}
-                  barColor="#EF4444"
-                  height={200}
-                  valueFormatter={(value) => `${value}%`}
-                />
-              )}
-
-              {/* Survey Type Distribution Chart */}
-              {statistics.surveyTypeDistribution.length > 0 && (
-                <ReusableBarChart
-                  key="survey-type-distribution"
-                  data={statistics.surveyTypeDistribution.map((item) => ({
-                    x: item.label,
-                    y: item.value,
-                  }))}
-                  title="Phân bố loại khảo sát (%)"
-                  yAxisMax={100}
-                  barColor="#3B82F6"
-                  height={200}
-                  valueFormatter={(value) => `${value}%`}
-                />
-              )}
-
-              {/* Score Level Distribution Chart - Fallback */}
-              {statistics.levelDistribution.length === 0 &&
-                statistics.scoreLevelDistribution.length > 0 && (
-                  <ReusableBarChart
-                    key="score-distribution"
-                    data={statistics.scoreLevelDistribution.map((item) => ({
-                      x: item.label,
-                      y: item.value,
-                    }))}
-                    title="Phân bố mức độ điểm số (%)"
-                    yAxisMax={100}
-                    barColor="#3B82F6"
-                    height={200}
-                    valueFormatter={(value) => `${value}%`}
-                  />
-                )}
-
-              {/* Completion Rate Chart */}
-              {statistics.completionRate > 0 && (
-                <ReusableBarChart
-                  key="completion-rate"
-                  data={[
-                    {
-                      x: "Hoàn thành",
-                      y: statistics.completionRate,
-                    },
-                    {
-                      x: "Bỏ qua",
-                      y: 100 - statistics.completionRate,
-                    },
-                  ]}
-                  title="Tỷ lệ hoàn thành (%)"
-                  yAxisMax={100}
-                  barColor="#10B981"
-                  height={200}
-                  valueFormatter={(value) => `${value}%`}
-                />
-              )}
-            </HorizontalChartCarousel>
-          </View>
-        )}
-      </View>
-    ),
-    [statistics, totalElements]
-  );
-
-  const renderDetailedStatisticsSection = useCallback(
-    () => (
-      <View style={styles.detailedStatsSection}>
-        {/* Header */}
-        <View style={styles.detailedStatsHeader}>
-          <Text style={styles.detailedStatsTitle}>Thống kê chi tiết</Text>
-          <View style={styles.detailedStatsBadge}>
-            <Ionicons name="stats-chart" size={16} color="#8B5CF6" />
-          </View>
-        </View>
-
-        {/* Level Distribution Summary */}
-        {statistics.levelDistribution.length > 0 && (
-          <View style={styles.detailedStatsCard}>
-            <Text style={styles.detailedStatsCardTitle}>
-              Phân bố mức độ rủi ro
-            </Text>
-            <View style={styles.levelDistributionList}>
-              {statistics.levelDistribution.map((item, index) => (
-                <View key={index} style={styles.levelDistributionItem}>
-                  <View
-                    style={[
-                      styles.levelColorIndicator,
-                      { backgroundColor: item.color },
-                    ]}
-                  />
-                  <Text style={styles.levelDistributionLabel}>
-                    {item.label}
-                  </Text>
-                  <Text style={styles.levelDistributionValue}>
-                    {item.count} bài ({item.value}%)
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Survey Type Summary */}
-        {statistics.surveyTypeDistribution.length > 0 && (
-          <View style={styles.detailedStatsCard}>
-            <Text style={styles.detailedStatsCardTitle}>
-              Phân bố loại khảo sát
-            </Text>
-            <View style={styles.surveyTypeList}>
-              {statistics.surveyTypeDistribution.map((item, index) => (
-                <View key={index} style={styles.surveyTypeItem}>
-                  <View
-                    style={[
-                      styles.surveyTypeColorIndicator,
-                      { backgroundColor: item.color },
-                    ]}
-                  />
-                  <Text style={styles.surveyTypeLabel}>{item.label}</Text>
-                  <Text style={styles.surveyTypeValue}>
-                    {item.count} bài ({item.value}%)
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Score Summary */}
-        {statistics.averageScore > 0 && (
-          <View style={styles.detailedStatsCard}>
-            <Text style={styles.detailedStatsCardTitle}>Thống kê điểm số</Text>
-            <View style={styles.scoreSummaryList}>
-              <View style={styles.scoreSummaryItem}>
-                <Ionicons name="analytics" size={20} color="#F59E0B" />
-                <Text style={styles.scoreSummaryLabel}>Điểm trung bình:</Text>
-                <Text style={styles.scoreSummaryValue}>
-                  {statistics.averageScore} điểm
-                </Text>
-              </View>
-              <View style={styles.scoreSummaryItem}>
-                <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                <Text style={styles.scoreSummaryLabel}>Tỷ lệ hoàn thành:</Text>
-                <Text style={styles.scoreSummaryValue}>
-                  {statistics.completionRate}%
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-      </View>
-    ),
-    [statistics]
-  );
-
   return (
     <Container>
       {/* Header */}
@@ -640,7 +416,7 @@ const SurveyRecord = ({ navigation }) => {
         }
       />
 
-      {user?.role === "PARENTS" && (
+      {user?.role === "PARENTS" && children?.length > 0 && (
         <View style={styles.childSelectorContainer}>
           <ChildSelector />
         </View>
@@ -656,15 +432,6 @@ const SurveyRecord = ({ navigation }) => {
           }
           showsVerticalScrollIndicator={false}
         >
-          {/* Statistics Section */}
-          {renderStatisticsSection()}
-
-          {/* Detailed Statistics Section */}
-          {(statistics.levelDistribution.length > 0 ||
-            statistics.surveyTypeDistribution.length > 0 ||
-            statistics.averageScore > 0) &&
-            renderDetailedStatisticsSection()}
-
           {/* Survey Records */}
           <View style={styles.recordsSection}>
             <View style={styles.recordsHeader}>

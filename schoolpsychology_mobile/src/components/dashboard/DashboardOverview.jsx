@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     marginLeft: 52,
   },
   statsScrollView: {
-    maxHeight: 500,
+    // maxHeight: 100,
   },
   statsContainer: {
     paddingHorizontal: 20,
@@ -178,8 +178,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   statWrapper: {
-    minWidth: 200,
-    minHeight: 230,
+    // minWidth: 200,
+    // minHeight: 230,
   },
 });
 

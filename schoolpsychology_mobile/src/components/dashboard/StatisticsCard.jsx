@@ -6,36 +6,9 @@ const StatisticsCard = ({
   title,
   value,
   subtitle,
-  icon,
-  iconColor = GlobalStyles.colors.primary,
   valueColor = GlobalStyles.colors.primary,
-  backgroundColor = "#fff",
-  percentage,
-  trend, // 'up', 'down', or 'neutral'
   size = "medium", // 'small', 'medium', 'large'
 }) => {
-  const getTrendIcon = () => {
-    switch (trend) {
-      case "up":
-        return "trending-up";
-      case "down":
-        return "trending-down";
-      default:
-        return null;
-    }
-  };
-
-  const getTrendColor = () => {
-    switch (trend) {
-      case "up":
-        return "#10B981";
-      case "down":
-        return "#EF4444";
-      default:
-        return "#6B7280";
-    }
-  };
-
   const getSizeStyles = () => {
     switch (size) {
       case "small":
@@ -78,32 +51,9 @@ const StatisticsCard = ({
         <View style={styles.headerSection}>
           <View style={styles.titleContainer}>
             <Text style={[styles.title, sizeStyles.title]}>{title}</Text>
-            {trend && (
-              <View style={styles.trendContainer}>
-                <View
-                  style={[
-                    styles.trendBadge,
-                    { backgroundColor: `${getTrendColor()}15` },
-                  ]}
-                >
-                  <Ionicons
-                    name={getTrendIcon()}
-                    size={14}
-                    color={getTrendColor()}
-                  />
-                  {percentage !== undefined && (
-                    <Text
-                      style={[styles.trendText, { color: getTrendColor() }]}
-                    >
-                      {Math.abs(percentage)}%
-                    </Text>
-                  )}
-                </View>
-              </View>
-            )}
           </View>
 
-          {icon && (
+          {/* {icon && (
             <View
               style={[
                 styles.iconContainer,
@@ -120,7 +70,7 @@ const StatisticsCard = ({
                 color={iconColor}
               />
             </View>
-          )}
+          )} */}
         </View>
 
         {/* Value section */}
@@ -128,26 +78,6 @@ const StatisticsCard = ({
           <Text style={[styles.value, sizeStyles.value, { color: valueColor }]}>
             {value}
           </Text>
-        </View>
-
-        {/* Progress bar */}
-        <View style={styles.progressContainer}>
-          <View
-            style={[
-              styles.progressTrack,
-              { backgroundColor: `${valueColor}15` },
-            ]}
-          >
-            <View
-              style={[
-                styles.progressFill,
-                {
-                  width: `${Math.min(Math.max(parseInt(value) || 0, 0), 100)}%`,
-                  backgroundColor: valueColor,
-                },
-              ]}
-            />
-          </View>
         </View>
 
         {/* Subtitle */}
@@ -165,7 +95,7 @@ const StatisticsCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    minWidth: 160,
+    minWidth: 100,
     borderRadius: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 12 },

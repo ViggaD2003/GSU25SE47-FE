@@ -1,7 +1,5 @@
 import * as Calendar from "expo-calendar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
-import { log } from "console";
 import dayjs from "dayjs";
 
 // State variables

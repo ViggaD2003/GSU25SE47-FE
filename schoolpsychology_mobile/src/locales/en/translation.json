@@ -45,7 +45,9 @@
         "averageTitle": "Average Score by Category",
         "detailsTitle": "Data Details",
         "overallProgress": "Overall Progress",
-        "performanceMetrics": "Performance Metrics"
+        "performanceMetrics": "Performance Metrics",
+        "noData": "No data available",
+        "noDataSubtitle": "No data available for the selected period"
       },
       "type": {
         "survey": "Survey",
@@ -745,7 +747,7 @@
       "bookAppointment": "Book Appointment",
       "warning": {
         "title": "Note",
-        "noTeacher": "You need to select a teacher first to book an appointment"
+        "noTeacher": "Currently you are not assigned to any class or your class has not started yet"
       },
       "slots": {
         "title": "Available Slots",
