@@ -430,7 +430,12 @@ export const EnrollStudentsModal = ({
               rowKey="id"
               loading={loading}
               dataSource={filtered}
-              pagination={paginationConfig}
+              pagination={{
+                ...paginationConfig,
+                showSizeChanger: true,
+                showTotal: (total, range) =>
+                  `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+              }}
               rowSelection={rowSelectionConfig}
               size="small"
               scroll={{ x: 600 }}

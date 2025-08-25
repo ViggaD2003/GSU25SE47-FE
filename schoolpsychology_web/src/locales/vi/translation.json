@@ -215,6 +215,9 @@
   },
   "clientManagement": {
     "alertNoClass": "Bạn chưa được phân vào lớp học nào",
+    "alertNoActiveClass": "Lớp học hiện tại không hoạt động. Vui lòng liên hệ quản lý để được hỗ trợ",
+    "alertActiveClass": "Lớp học hiện tại đang hoạt động",
+    "alertOutSchoolYear": "Thời gian của lớp học này nằm ngoài khoảng thời gian của niên khóa hiện tại",
     "manageTitle": "Danh sách học sinh",
     "manageTitleTeacher": "Lớp của tôi",
     "description": "Quản lý học sinh của lớp",

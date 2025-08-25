@@ -65,9 +65,11 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: {},
+      __DEV__: mode === 'development',
+      __PROD__: mode === 'production',
     },
     esbuild: {
-      drop: ['console', 'debugger'],
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
   }
 })

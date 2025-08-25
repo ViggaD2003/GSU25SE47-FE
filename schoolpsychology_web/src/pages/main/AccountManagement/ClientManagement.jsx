@@ -19,15 +19,13 @@ import {
   getAllClasses,
   getClassesByCode,
 } from '../../../store/actions/classActions'
-import {
-  clearSelectedClass,
-  updatePagination,
-} from '../../../store/slices/classSlice'
+import { updatePagination } from '../../../store/slices/classSlice'
 import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
 import { createCase } from '@/store/actions'
 import { useNavigate } from 'react-router-dom'
+import dayjs from 'dayjs'
 const { Title, Text } = Typography
 const { Option } = Select
 const { Search } = Input
@@ -58,6 +56,7 @@ const ClientManagement = () => {
 
   const fetchCategories = async () => {
     const data = await categoriesAPI.getCategories()
+
     setCategories(data)
   }
 
@@ -74,13 +73,16 @@ const ClientManagement = () => {
   // Load classes on component mount
   useEffect(() => {
     if (!user) return
-    if (classes.length === 0) {
+    if (
+      classes.length === 0 ||
+      (user.role === 'teacher' && categories.length === 0)
+    ) {
       Promise.all([
         dispatch(getAllClasses()).unwrap(),
         user.role !== 'manager' && fetchCategories(),
       ])
     }
-  }, [classes.length, user])
+  }, [classes.length, user, categories.length])
 
   // Handle class code selection for manager
   const handleClassCodeChange = useCallback(
@@ -202,8 +204,6 @@ const ClientManagement = () => {
   }
 
   const handleView = (id, type) => {
-    dispatch(clearSelectedClass())
-    setSelectedClassCode(null)
     if (type === 'case') {
       navigate(`/case-management/details/${id}`)
     } else {
@@ -211,12 +211,21 @@ const ClientManagement = () => {
     }
   }
 
-  const handleModalOk = async requestData => {
+  const handleModalOk = async (
+    requestData,
+    setFormData,
+    setShowConfirmModal,
+    form
+  ) => {
     if (isCreateCase) {
-      await dispatch(createCase(requestData))
+      await Promise.all([dispatch(createCase(requestData)).unwrap()])
         .then(() => {
+          setFormData(null)
+          form.resetFields()
+          setShowConfirmModal(false)
           messageApi.success(t('clientManagement.messages.createCaseSuccess'))
           setIsCreateCase(false)
+          loadData()
         })
         .catch(error => {
           console.log(error)
@@ -225,7 +234,6 @@ const ClientManagement = () => {
     } else {
       messageApi.success(t('clientManagement.messages.addUserSuccess'))
     }
-    await loadData()
   }
 
   const handleModalCancel = () => {
@@ -233,6 +241,8 @@ const ClientManagement = () => {
   }
 
   const handleCreateCase = record => {
+    console.log('record', record)
+
     setSelectedUser(record)
     setIsCreateCase(true)
   }
@@ -243,6 +253,17 @@ const ClientManagement = () => {
       setDeletedUser(null)
     }
   }, [deletedUser])
+
+  const isBetweenSchoolYears = () => {
+    if (!selectedClass) return false
+    const date = dayjs()
+    const start = dayjs(selectedClass?.schoolYear?.startDate)
+    const end = dayjs(selectedClass?.schoolYear?.endDate)
+    return (
+      (dayjs(date).isAfter(start) || dayjs(date).isSame(start)) &&
+      (dayjs(date).isBefore(end) || dayjs(date).isSame(end))
+    )
+  }
 
   return (
     <>
@@ -271,9 +292,33 @@ const ClientManagement = () => {
           </div>
         </div>
 
+        {selectedClass &&
+          (isBetweenSchoolYears() ? (
+            selectedClass && selectedClass?.isActive ? (
+              <Alert
+                showIcon
+                type="success"
+                message={t('clientManagement.alertActiveClass')}
+              />
+            ) : (
+              <Alert
+                showIcon
+                type="warning"
+                message={t('clientManagement.alertNoActiveClass')}
+              />
+            )
+          ) : (
+            <Alert
+              showIcon
+              type="error"
+              message={t('clientManagement.alertOutSchoolYear')}
+            />
+          ))}
+
         {/* Search and Class Selection */}
         <Card
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
+          style={{ marginTop: 16 }}
         >
           <Row gutter={[16, 16]} align="middle">
             <Col xs={24} sm={12} lg={8}>
@@ -346,6 +391,7 @@ const ClientManagement = () => {
             onChange={handleTableChange}
             onView={handleView}
             onCreateCase={handleCreateCase}
+            isActiveClass={selectedClass?.isActive}
           />
         </Card>
 
@@ -356,7 +402,7 @@ const ClientManagement = () => {
             visible={isCreateCase}
             onCancel={handleModalCancel}
             onSubmit={handleModalOk}
-            editingCase={selectedUser}
+            student={selectedUser}
             confirmLoading={false}
           />
         )}

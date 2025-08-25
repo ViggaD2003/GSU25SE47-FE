@@ -916,9 +916,8 @@ const AppointmentManagement = () => {
               pageSize: pagination.pageSize,
               total: currentTabData.length,
               showSizeChanger: true,
-              showQuickJumper: true,
               showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} items`,
+                `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
               onChange: handlePaginationChange,
             }}
             size="middle"

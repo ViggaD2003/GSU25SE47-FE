@@ -214,6 +214,9 @@
   },
   "clientManagement": {
     "alertNoClass": "You are not assigned to any class",
+    "alertNoActiveClass": "The current class is not active. Please contact manager for support",
+    "alertActiveClass": "The current class is active",
+    "alertOutSchoolYear": "The time of this class is outside the time range of the current school year",
     "manageTitle": "Student List",
     "manageTitleTeacher": "My Class",
     "description": "Manage students in class",
