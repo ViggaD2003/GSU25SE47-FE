@@ -154,6 +154,15 @@ export const ROUTE_CONFIG = [
     element: 'SlotManagement',
   },
 
+  // Chat Management - Counselor
+  {
+    key: '/chat-management',
+    icon: TeamOutlined,
+    labelKey: 'navigation.chatManagement',
+    allowedRoles: ['counselor'],
+    element: 'ChatManagement',
+  },
+
   // Case Management (Case Management, Case Assign) - Manager
   {
     key: '/case-management',

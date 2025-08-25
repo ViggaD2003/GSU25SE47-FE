@@ -131,6 +131,10 @@ const COMPONENT_MAP = {
     () => import('@/pages/main/SystemConfigManagement'),
     'SystemConfigManagement'
   ),
+  ChatManagement: createLazyComponent(
+    () => import('@/pages/main/ChatManagement'),
+    'ChatManagement'
+  ),
   AppointmentDetails: createLazyComponent(
     () => import('@/pages/main/AppointmentManagement/AppointmentDetails'),
     'AppointmentDetails'
