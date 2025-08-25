@@ -47,6 +47,7 @@ import { getCaseById } from '@/store/actions'
 import { useTheme } from '@/contexts/ThemeContext'
 import { caseAPI } from '@/services/caseApi'
 import { categoriesAPI } from '@/services/categoryApi'
+import ChatInterface from '@/components/chat/ChatInterface'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -177,7 +178,7 @@ const CaseDetails = () => {
       const avgScore =
         allScores.length > 0
           ? allScores.reduce((sum, item) => sum + (item.score || 0), 0) /
-            allScores.length
+          allScores.length
           : 0
 
       // Extract counts with safe fallbacks
@@ -374,8 +375,22 @@ const CaseDetails = () => {
         ),
         children: <CaseCharts caseData={caseData} statistics={statistics} />,
       },
+      {
+        key: 'chat',
+        label: (
+          <Space>
+            <FileTextOutlined />
+            {t('caseManagement.details.tabs.chat')}
+          </Space>
+        ),
+        children: (
+          <div style={{ height: 600 }}>
+            <ChatInterface embedded={true} caseId={id} />
+          </div>
+        ),
+      },
     ],
-    [caseData, statistics, t]
+    [caseData, statistics, t, id]
   )
 
   // Loading state

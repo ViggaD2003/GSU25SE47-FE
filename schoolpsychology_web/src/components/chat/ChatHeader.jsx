@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ChatHeader = ({ student }) => {
+const ChatHeader = ({ student, caseId: _caseId = null }) => {
     const formatTime = (date) => {
         return new Intl.DateTimeFormat('vi-VN', {
             hour: '2-digit',

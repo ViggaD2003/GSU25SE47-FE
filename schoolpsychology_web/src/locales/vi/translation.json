@@ -43,7 +43,6 @@
     "observedCases": "Trường hợp cần theo dõi",
     "categoryManagement": "Danh mục",
     "systemConfig": "Cấu hình hệ thống",
-    "chatManagement": "Quản lý Chat",
     "assessmentDemo": "Phòng thí nghiệm đánh giá",
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
@@ -849,6 +848,7 @@
         "overview": "Tổng quan",
         "statistics": "Thống kê",
         "charts": "Biểu đồ & Phân tích",
+        "chat": "Trò chuyện",
         "timeline": "Dòng thời gian"
       },
       "overview": {
