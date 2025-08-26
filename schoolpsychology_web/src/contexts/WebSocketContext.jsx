@@ -173,9 +173,8 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        // import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
-        "ws://localhost:8080/ws" + `?token=${jwtToken}`
-
+        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        // "ws://localhost:8080/ws" + `?token=${jwtToken}`
       )
       socketRef.current = socket
 
@@ -269,26 +268,23 @@ export const WebSocketProvider = ({ children }) => {
     [isConnectionReady]
   )
 
-
   const sendMessage2 = useCallback(
-    (
-      route, body
-    ) => {
+    (roomId, body) => {
       if (!isConnectionReady()) {
         console.log('[WebSocket] Not connected, connecting...')
         connectWebSocket()
       }
 
       try {
-        // console.log('🔍 sendMessage', body)
-        const destination = route
+        const destination = `/app/chat/${roomId}`
         const bodyData = {
           sender: body.sender,
           content: body.content,
-          timestamp: body.timestamp
+          timestamp: body.timestamp,
         }
+        console.log('🔍 sendMessage2', bodyData)
         stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
-        // console.log('[WebSocket] Message sent to:', destination)
+        console.log('[WebSocket] Message sent to:', destination)
       } catch (error) {
         console.error('[WebSocket] Error sending message:', error)
         throw new Error('Failed to send message')
@@ -296,7 +292,6 @@ export const WebSocketProvider = ({ children }) => {
     },
     [isConnectionReady]
   )
-
 
   // Kết nối WebSocket khi user đã đăng nhập - tối ưu dependencies
   useEffect(() => {
