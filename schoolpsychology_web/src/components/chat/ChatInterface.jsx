@@ -4,9 +4,11 @@ import ChatMessage from './ChatMessage'
 import ChatInput from './ChatInput'
 import api from '@/services/api'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { useAuth } from '@/hooks'
 
 const ChatInterface = ({ caseId }) => {
-  const { subscribeToTopic, sendMessage2 } = useWebSocket()
+  const { subscribeToTopic, sendMessage2 } = useWebSocket();
+  const { user } = useAuth();
   const [messages, setMessages] = useState([])
   const [roomChatIds, setRoomChatIds] = useState([])
   const [selectedRoom, setSelectedRoom] = useState(null)
@@ -59,8 +61,8 @@ const ChatInterface = ({ caseId }) => {
     if (!text.trim() || !selectedRoom) return
 
     const newMessage = {
-      sender: 'counselor',
-      content: text,
+      sender:  user.email,
+      message: text,
       timestamp: new Date().toISOString(),
     }
 

@@ -173,8 +173,8 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
-        // "ws://localhost:8080/ws" + `?token=${jwtToken}`
+        // import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        "ws://localhost:8080/ws" + `?token=${jwtToken}`
       )
       socketRef.current = socket
 
@@ -279,7 +279,7 @@ export const WebSocketProvider = ({ children }) => {
         const destination = `/app/chat/${roomId}`
         const bodyData = {
           sender: body.sender,
-          content: body.content,
+          message: body.message,
           timestamp: body.timestamp,
         }
         console.log('🔍 sendMessage2', bodyData)
