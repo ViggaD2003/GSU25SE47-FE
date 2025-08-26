@@ -502,15 +502,18 @@ const CombinedChart = ({
             {
               position: "absolute",
               left: (() => {
-                const screenHalfWidth = width / 2 - 75;
-                const isOnLeftHalf = tooltipPosition.x < screenHalfWidth;
+                const isOnLeftHalf = tooltipPosition.x < width / 2;
 
                 if (!isOnLeftHalf) {
                   // Nếu ở nửa trái màn hình, hiển thị tooltip bên phải điểm chạm
-                  return tooltipPosition.x - screenHalfWidth;
+                  return isCustomDate
+                    ? tooltipPosition.x - 170
+                    : tooltipPosition.x - 140;
                 } else {
                   // Nếu ở nửa phải màn hình, hiển thị tooltip bên trái điểm chạm
-                  return tooltipPosition.x;
+                  return isCustomDate
+                    ? tooltipPosition.x - 30
+                    : tooltipPosition.x;
                 }
               })(),
               top: tooltipPosition.y,
@@ -668,8 +671,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
     padding: 12,
-    minWidth: 150,
-    maxWidth: 220,
+    width: "auto",
+    maxWidth: 300,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
