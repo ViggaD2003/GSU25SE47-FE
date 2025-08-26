@@ -68,7 +68,7 @@ const SurveyResult = ({ route, navigation }) => {
       navigation.popTo("MainBottomTabs", {
         screen: "Home",
       });
-    } else if (programId && surveyRecord?.survey?.surveyType === "PROGRAM") {
+    } else if (programId) {
       navigation.popTo("ProgramDetail", {
         programId,
       });

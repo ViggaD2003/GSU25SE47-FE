@@ -432,7 +432,7 @@ const CombinedChart = ({
             <LineChart
               data={lineChartData}
               width={
-                dataLength >= 5 ? dynamicWidth + 10 * dataLength : dynamicWidth
+                dataLength >= 5 ? dynamicWidth + 20 * dataLength : dynamicWidth
               }
               // width={500}
               height={isCustomDate ? 350 : 300}
@@ -507,7 +507,7 @@ const CombinedChart = ({
                 if (!isOnLeftHalf) {
                   // Nếu ở nửa trái màn hình, hiển thị tooltip bên phải điểm chạm
                   return isCustomDate
-                    ? tooltipPosition.x - 170
+                    ? tooltipPosition.x - 200
                     : tooltipPosition.x - 140;
                 } else {
                   // Nếu ở nửa phải màn hình, hiển thị tooltip bên trái điểm chạm
