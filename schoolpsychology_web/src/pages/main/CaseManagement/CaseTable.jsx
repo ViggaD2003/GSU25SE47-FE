@@ -477,7 +477,6 @@ const CaseTable = ({
       dataSource={filteredCases}
       rowKey="id"
       loading={loading}
-      sticky
       rowSelection={
         user?.role === 'manager'
           ? {

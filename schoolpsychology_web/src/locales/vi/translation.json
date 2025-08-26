@@ -2460,5 +2460,20 @@
     "viewFullProfile": "Xem hồ sơ đầy đủ",
     "exportData": "Xuất dữ liệu",
     "sendMessage": "Gửi tin nhắn"
+  },
+  "chat": {
+    "room": "Phòng",
+    "roomDescription": "Trao đổi trong phòng này",
+    "selectRoom": "Chọn một phòng để bắt đầu chat",
+    "enterMessage": "Nhập tin nhắn...",
+    "online": "Đang hoạt động",
+    "offline": "Không hoạt động",
+    "sendMessage": "Gửi tin nhắn",
+    "sendMessageSuccess": "Gửi tin nhắn thành công!",
+    "sendMessageError": "Lỗi khi gửi tin nhắn. Vui lòng thử lại!",
+    "sendMessagePlaceholder": "Nhập tin nhắn...",
+    "sendMessageButton": "Gửi",
+    "hint": "Nhấn Enter để gửi, Shift + Enter để xuống dòng",
+    "noMessage": "Không có tin nhắn nào"
   }
 }

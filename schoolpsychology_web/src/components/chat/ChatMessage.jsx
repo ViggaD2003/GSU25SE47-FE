@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ChatMessage = ({ message, isOwn }) => {
+const ChatMessage = ({ message, isOwn, t }) => {
   const formatTime = timeString => {
     if (!timeString) return ''
     try {
@@ -34,7 +34,7 @@ const ChatMessage = ({ message, isOwn }) => {
             : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-bl-none'
         }`}
       >
-        <p className="text-sm">{message?.message}</p>
+        <p className="text-sm">{message?.message || t('chat.noMessage')}</p>
         <div
           className={`text-xs mt-1 ${
             isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'

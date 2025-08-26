@@ -132,16 +132,13 @@ const CaseManagement = () => {
       const matchesSearch =
         !searchText.trim() ||
         caseItem.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-        caseItem.description
-          ?.toLowerCase()
-          .includes(searchText.toLowerCase()) ||
         caseItem.student?.fullName
           ?.toLowerCase()
           .includes(searchText.toLowerCase()) ||
         caseItem.student?.studentCode
           ?.toLowerCase()
           .includes(searchText.toLowerCase()) ||
-        caseItem.createBy?.fullName
+        caseItem.student?.email
           ?.toLowerCase()
           .includes(searchText.toLowerCase())
 

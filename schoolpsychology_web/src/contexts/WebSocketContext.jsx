@@ -173,8 +173,8 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        // import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
-        "ws://localhost:8080/ws" + `?token=${jwtToken}`
+        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        // "ws://localhost:8080/ws" + `?token=${jwtToken}`
       )
       socketRef.current = socket
 

@@ -2375,5 +2375,20 @@
     "viewFullProfile": "View Full Profile",
     "exportData": "Export Data",
     "sendMessage": "Send Message"
+  },
+  "chat": {
+    "room": "Room",
+    "roomDescription": "Chat in this room",
+    "selectRoom": "Select a room to start chatting",
+    "enterMessage": "Enter message...",
+    "online": "Online",
+    "offline": "Offline",
+    "sendMessage": "Send Message",
+    "sendMessageSuccess": "Message sent successfully!",
+    "sendMessageError": "Error sending message. Please try again!",
+    "sendMessagePlaceholder": "Enter message...",
+    "sendMessageButton": "Send",
+    "hint": "Press Enter to send, Shift + Enter to send a new line",
+    "noMessage": "No message available"
   }
 }
