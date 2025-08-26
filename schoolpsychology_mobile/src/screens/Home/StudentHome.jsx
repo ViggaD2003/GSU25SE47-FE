@@ -433,7 +433,7 @@ export default function StudentHome({ user, navigation }) {
                       </View>
 
                       {/* Category Badge */}
-                      <View style={styles.categoryBadge}>
+                      <View style={styles.categoryBadge} numberOfLines={1}>
                         <Text style={styles.categoryText}>
                           {program.category?.name ||
                             t("home.recommendedPrograms.professional")}

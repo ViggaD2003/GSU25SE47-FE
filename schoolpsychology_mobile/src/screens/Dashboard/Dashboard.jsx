@@ -42,6 +42,7 @@ const DashboardScreen = () => {
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [error, setError] = useState(null);
+  const [isCustomDate, setIsCustomDate] = useState(false);
 
   // Initialize date range
   useEffect(() => {
@@ -53,27 +54,11 @@ const DashboardScreen = () => {
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
 
-    // console.log("Dashboard: Date initialization complete:", {
-    //   startDateStr,
-    //   endDateStr,
-    //   startDateISO: startDate.toISOString(),
-    //   endDateISO: endDate.toISOString(),
-    // });
-
     setCustomStartDate(startDateStr);
     setCustomEndDate(endDateStr);
+    setIsCustomDate(false);
+    setSelectedRange("30d");
   }, []);
-
-  // Monitor date state changes
-  useEffect(() => {
-    // console.log("Dashboard: Date state updated:", {
-    //   customStartDate,
-    //   customEndDate,
-    //   hasUser: !!user,
-    //   hasSelectedChild: !!selectedChild,
-    //   studentId: getStudentId(),
-    // });
-  }, [customStartDate, customEndDate, user, selectedChild]);
 
   // Get the student ID based on user role
   const getStudentId = () => {
@@ -86,27 +71,12 @@ const DashboardScreen = () => {
   // Check if component is ready to fetch data
   const isReadyToFetch = useCallback(() => {
     const ready = user && customStartDate && customEndDate && getStudentId();
-    if (ready) {
-      // console.log("Dashboard component ready to fetch data:", {
-      //   hasUser: !!user,
-      //   hasStartDate: !!customStartDate,
-      //   hasEndDate: !!customEndDate,
-      //   studentId: getStudentId(),
-      //   userRole: user?.role,
-      // });
-    }
     return ready;
   }, [user, customStartDate, customEndDate, selectedChild]);
 
   // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
     if (!isReadyToFetch()) {
-      // console.log("Component not ready to fetch data:", {
-      //   hasUser: !!user,
-      //   hasStartDate: !!customStartDate,
-      //   hasEndDate: !!customEndDate,
-      //   studentId: getStudentId(),
-      // });
       return;
     }
 
@@ -142,7 +112,9 @@ const DashboardScreen = () => {
         studentId: studentId,
       });
 
-      console.log("Dashboard data received:", data);
+      // console.log("Dashboard data received:", data);
+      console.log("survey data", data?.mentalStatistic?.survey);
+
       setDashboardData(data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -192,6 +164,7 @@ const DashboardScreen = () => {
     // console.log("Dashboard: Date range changed:", { startDate, endDate });
     setCustomStartDate(startDate);
     setCustomEndDate(endDate);
+    setIsCustomDate(true);
   };
 
   // Auto-fetch data when dates change
@@ -265,6 +238,7 @@ const DashboardScreen = () => {
             customStartDate={customStartDate}
             customEndDate={customEndDate}
             onCustomDateChange={handleCustomDateChange}
+            setIsCustomDate={setIsCustomDate}
           />
         </View>
       </View>
@@ -295,6 +269,7 @@ const DashboardScreen = () => {
               getStudentId() && (
                 <MentalHealthSection
                   t={t}
+                  isCustomDate={isCustomDate}
                   mentalStatistic={dashboardData.mentalStatistic}
                   key={`mental-health-${getStudentId()}`}
                 />
@@ -342,12 +317,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   dateRangeContainer: {
-    marginHorizontal: 20,
+    marginHorizontal: 5,
     marginTop: 16,
   },
   content: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    // backgroundColor: "#F8FAFC",
   },
   contentContainer: {
     paddingBottom: 24,

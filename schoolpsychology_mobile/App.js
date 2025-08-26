@@ -1,5 +1,4 @@
-import * as encoding from "text-encoding";
-import { StatusBar, StyleSheet } from "react-native";
+import { StatusBar } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import {
   AuthProvider,
@@ -15,21 +14,15 @@ import { PermissionProvider } from "./src/contexts";
 import { LanguageProvider } from "./src/contexts";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { TextEncoder, TextDecoder } from "text-encoding";
 import { useTranslation } from "react-i18next";
 import "./src/i18n";
 import RootStack from "./src/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Extend global with TextEncoder and TextDecoder
-if (typeof global.TextEncoder === "undefined") {
-  global.TextEncoder = TextEncoder;
-}
-if (typeof global.TextDecoder === "undefined") {
-  global.TextDecoder = TextDecoder;
-}
+import "dayjs/locale/vi";
+import "dayjs/locale/en";
 
-// Extend dayjs with utc plugin only
+// Extend dayjs with plugins
 dayjs.extend(utc);
 
 function RootNavigation() {

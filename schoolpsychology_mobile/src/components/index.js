@@ -48,7 +48,6 @@ export { default as MentalHealthSection } from "./dashboard/MentalHealthSection"
 export { default as ReusableBarChart } from "./charts/BarChart";
 export { default as HorizontalChartCarousel } from "./charts/HorizontalChartCarousel";
 export { default as AssessmentScoreChart } from "./charts/AssessmentScoreChart";
-export { default as MentalHealthChart } from "./charts/MentalHealthChart";
 
 // Forms components (future)
 // export { default as LoginForm } from './forms/LoginForm';

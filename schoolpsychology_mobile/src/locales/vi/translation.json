@@ -47,7 +47,8 @@
         "overallProgress": "Tiến độ tổng thể",
         "performanceMetrics": "Chỉ số hiệu suất",
         "noData": "Không có dữ liệu",
-        "noDataSubtitle": "Không có dữ liệu cho khoảng thời gian đã chọn"
+        "noDataSubtitle": "Không có dữ liệu cho khoảng thời gian đã chọn",
+        "dataPoints": "điểm dữ liệu"
       },
       "type": {
         "survey": "Khảo sát",
@@ -117,7 +118,9 @@
       "last30Days": "30 ngày qua",
       "last90Days": "90 ngày qua",
       "custom": "Tùy chỉnh",
-      "selectRange": "Chọn Khoảng thời gian"
+      "selectRange": "Chọn Khoảng thời gian",
+      "selectStartDate": "Chọn Ngày Bắt Đầu",
+      "selectEndDate": "Chọn Ngày Kết Thúc"
     },
     "noChild": {
       "title": "Chưa chọn con",
