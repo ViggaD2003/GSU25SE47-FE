@@ -33,6 +33,7 @@ const ChatInterface = ({ caseId = null }) => {
     const fetchRoomChat = async () => {
         try {
             const res = await api.get(`/api/v1/chat/chat-room?caseId=${caseId}`);
+            console.log("Fetched chat rooms:", res.data);
             const rooms = res.data || [];
             setRoomChatIds(rooms);
             if (rooms.length > 0) {
