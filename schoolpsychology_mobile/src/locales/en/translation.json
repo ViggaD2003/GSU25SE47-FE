@@ -88,6 +88,8 @@
         "lowestSubtitle": "Needs improvement",
         "absent": "Absent Appointments",
         "absentSubtitle": "Number of absences",
+        "canceled": "Canceled Appointments",
+        "canceledSubtitle": "Number of canceled appointments",
         "chartTitle": "Appointment Progress Over Time",
         "noData": "No appointment data available",
         "attendanceRate": "Attendance Rate",

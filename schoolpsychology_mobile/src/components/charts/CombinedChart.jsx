@@ -11,8 +11,10 @@ import { LineChart, BarChart } from "react-native-chart-kit";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 const { width } = Dimensions.get("window");
 
@@ -88,24 +90,27 @@ const CombinedChart = ({
     );
   }
 
-  // Hàm format ngày với kiểm tra an toàn
+  // Hàm format ngày với kiểm tra an toàn - giữ nguyên thời gian từ backend
   const formatDate = (dateString) => {
     if (!dateString) return "";
-    const date = dayjs(dateString);
+    // Parse theo UTC để tránh timezone conversion
+    const date = dayjs.utc(dateString);
     return date.isValid() ? date.format("DD/MM/YYYY") : "";
   };
 
-  // Hàm format ngày và giờ với kiểm tra an toàn
+  // Hàm format ngày và giờ với kiểm tra an toàn - giữ nguyên thời gian từ backend
   const formatDateHour = (dateString) => {
     if (!dateString) return "";
-    const date = dayjs(dateString);
+    // Parse theo UTC để tránh timezone conversion
+    const date = dayjs.utc(dateString);
     return date.isValid() ? date.format("DD/MM/YYYY HH:mm") : "";
   };
 
-  // Hàm format giờ với kiểm tra an toàn
+  // Hàm format giờ với kiểm tra an toàn - giữ nguyên thời gian từ backend
   const formatHour = (dateString) => {
     if (!dateString) return "";
-    const date = dayjs(dateString);
+    // Parse theo UTC để tránh timezone conversion
+    const date = dayjs.utc(dateString);
     return date.isValid() ? date.format("HH:mm") : "";
   };
 
@@ -198,8 +203,6 @@ const CombinedChart = ({
   const createLineChartData = () => {
     if (combinedData.length === 0) return null;
     // Nhóm dữ liệu theo ngày và loại
-
-    console.log("combinedData", combinedData);
 
     const groupedByDate = {};
     combinedData.length > 0 &&
@@ -324,19 +327,14 @@ const CombinedChart = ({
     const label = lineChartData?.labels?.[index];
     const dataPointMap = createDataPointMap(label);
 
-    console.log("dataset", dataset);
-
     if (label && Object.keys(dataPointMap).length > 0) {
       // Lấy tất cả dữ liệu cho ngày được click
       const allDataForDate = Object.values(dataPointMap).flat();
-      console.log("[handleDataPointClick] allDataForDate", allDataForDate);
 
       const clickedData = {
         date: label,
         allDataForDate,
       };
-
-      console.log("[handleDataPointClick] clickedData", clickedData);
 
       // Hiển thị tooltip
       setSelectedDataPoint(clickedData);
@@ -353,9 +351,9 @@ const CombinedChart = ({
 
   // Hàm format score theo type
   const getScoreDisplay = (item) => {
-    if (!item || typeof item.score !== "number") return "0.00/4";
+    if (!item || typeof item.score !== "number") return "0.00/4.00";
     const score = item.score.toFixed(2);
-    return `${score}/4`;
+    return `${score}/4.00`;
   };
 
   // Cấu hình biểu đồ với responsive dot size
@@ -423,23 +421,20 @@ const CombinedChart = ({
       )}
       <ScrollView
         horizontal
-        showsHorizontalScrollIndicator={dynamicWidth > width - 80}
+        // showsHorizontalScrollIndicator={dynamicWidth > width - 80}
         scrollEventThrottle={16}
         decelerationRate="fast"
-        contentContainerStyle={[
-          styles.scrollContainer,
-          {
-            minWidth:
-              dynamicWidth > width - 80 ? dynamicWidth + 40 : width - 80,
-          },
-        ]}
+        contentContainerStyle={[styles.scrollContainer]}
       >
         {/* Line Chart - Xu hướng theo thời gian */}
         {lineChartData && (
-          <View style={[styles.chartWrapper, { width: dynamicWidth }]}>
+          <View style={[styles.chartWrapper]}>
             <LineChart
               data={lineChartData}
-              width={dynamicWidth}
+              width={
+                dataLength >= 5 ? dynamicWidth + 10 * dataLength : dynamicWidth
+              }
+              // width={500}
               height={isCustomDate ? 350 : 300}
               chartConfig={chartConfig}
               bezier
@@ -456,8 +451,8 @@ const CombinedChart = ({
                   return value.length > 8 ? value.slice(0, 8) + "..." : value;
                 }
                 return isCustomDate
-                  ? dayjs(value, "DD/MM HH:mm").format("DD/MM HH:mm")
-                  : dayjs(value, "DD/MM").format("DD/MM");
+                  ? dayjs.utc(value, "DD/MM/YYYY HH:mm").format("DD/MM HH:mm")
+                  : dayjs.utc(value, "DD/MM/YYYY").format("DD/MM");
               }}
             />
           </View>
@@ -536,15 +531,6 @@ const CombinedChart = ({
           </View>
 
           <View style={styles.tooltipBody}>
-            {/* <View style={styles.tooltipSummary}>
-              <Text style={styles.tooltipLabel}>
-                {selectedDataPoint.datasetLabel}
-              </Text>
-              <Text style={styles.tooltipValue}>
-                {selectedDataPoint.value?.toFixed(2) || "0.00"}
-              </Text>
-            </View> */}
-
             <View style={styles.tooltipDetails}>
               {selectedDataPoint.allDataForDate.map((item, index) => (
                 <View key={index} style={styles.tooltipDetailItem}>
@@ -611,6 +597,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chartWrapper: {
+    width: "auto",
     marginRight: 20,
     alignItems: "center",
     justifyContent: "center",

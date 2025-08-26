@@ -10,8 +10,6 @@ const MentalHealthSection = ({
 }) => {
   const { t } = useTranslation();
 
-  console.log("isCustomDate", isCustomDate);
-
   // Safety check for translation function
   if (!t || typeof t !== "function") {
     console.error("Translation function not available");
@@ -143,6 +141,14 @@ const MentalHealthSection = ({
         mentalStatistic.appointment?.completedAppointments || 0,
         mentalStatistic.appointment?.numOfAbsent || 0
       ),
+    },
+    {
+      key: "canceled",
+      title: t("dashboard.mentalHealth.appointment.canceled"),
+      value: formatNumber(mentalStatistic.appointment?.numOfCancel || 0),
+      subtitle: t("dashboard.mentalHealth.appointment.canceledSubtitle"),
+      icon: "close-circle-outline",
+      color: "#F59E0B",
     },
   ];
 
@@ -341,7 +347,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     marginHorizontal: 20,
-    marginVertical: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -351,7 +356,6 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     // backgroundColor: "#F8FAFC",
-    paddingHorizontal: 24,
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",

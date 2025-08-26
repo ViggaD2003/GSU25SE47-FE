@@ -88,6 +88,8 @@
         "lowestSubtitle": "Cần cải thiện",
         "absent": "Lịch hẹn Vắng mặt",
         "absentSubtitle": "Số lần vắng mặt",
+        "canceled": "Lịch hẹn Đã hủy",
+        "canceledSubtitle": "Đã hủy",
         "chartTitle": "Tiến độ Lịch hẹn Theo thời gian",
         "noData": "Không có dữ liệu lịch hẹn",
         "attendanceRate": "Tỷ lệ tham dự",

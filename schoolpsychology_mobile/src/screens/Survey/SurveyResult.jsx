@@ -31,6 +31,8 @@ const SurveyResult = ({ route, navigation }) => {
   const [showAllAnswers, setShowAllAnswers] = useState(false);
   const [animation] = useState(new Animated.Value(0));
 
+  // console.log("result", surveyRecord);
+
   const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });
   }, []);

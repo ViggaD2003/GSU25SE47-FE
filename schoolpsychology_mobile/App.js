@@ -18,9 +18,7 @@ import { useTranslation } from "react-i18next";
 import "./src/i18n";
 import RootStack from "./src/navigation";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-
 import "dayjs/locale/vi";
-import "dayjs/locale/en";
 
 // Extend dayjs with plugins
 dayjs.extend(utc);
