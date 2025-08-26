@@ -217,7 +217,12 @@ const CaseByCategory = ({ data, isDarkMode, t }) => {
         dataSource={(data || []).map((d, idx) => ({ ...d, key: idx }))}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 5, showSizeChanger: false }}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: false,
+          showTotal: (total, range) =>
+            `${range[0]}-${range[1]} of ${total} items`,
+        }}
         locale={{
           emptyText: <Empty description={t('teacherDashboard.empty')} />,
         }}

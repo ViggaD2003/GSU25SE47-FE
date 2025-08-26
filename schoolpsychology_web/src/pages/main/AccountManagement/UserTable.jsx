@@ -17,6 +17,7 @@ const UserTable = ({
   onChange,
   onView,
   onCreateCase,
+  isActiveClass,
   // onEdit,
   // onDelete,
 }) => {
@@ -110,7 +111,6 @@ const UserTable = ({
         ),
         hidden: hideColumnsWithoutStudentData,
       },
-
       {
         title: t('userTable.latestSurvey'),
         dataIndex: 'latestSurveyRecord',
@@ -138,7 +138,7 @@ const UserTable = ({
                 onClick={() => onView(record.id, 'user')}
               />
             </Tooltip>
-            {user?.role === 'teacher' && !record.caseId && (
+            {user?.role === 'teacher' && !record.caseId && isActiveClass && (
               <Tooltip title={t('userTable.createCase')}>
                 <Button
                   type="link"
@@ -162,7 +162,12 @@ const UserTable = ({
       columns={columns}
       dataSource={data}
       loading={loading}
-      pagination={pagination}
+      pagination={{
+        ...pagination,
+        showSizeChanger: true,
+        showTotal: (total, range) =>
+          `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+      }}
       onChange={onChange}
       scroll={{ x: 'auto' }} // Increased width for new columns
       size="middle"

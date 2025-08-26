@@ -251,7 +251,12 @@ const CasesTable = React.memo(({ cases, isDarkMode, t }) => {
         dataSource={(cases || []).filter(Boolean)}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 5, showSizeChanger: false }}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: false,
+          showTotal: (total, range) =>
+            `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+        }}
         locale={{
           emptyText: <Empty description={t('teacherDashboard.empty')} />,
         }}

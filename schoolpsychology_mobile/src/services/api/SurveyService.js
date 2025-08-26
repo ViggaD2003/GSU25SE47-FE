@@ -78,17 +78,18 @@ export const getSurveyRecordById = async (surveyRecordId) => {
 // Post survey result
 export const postSurveyResult = async (result) => {
   try {
+    console.log("result", result);
     if (result.surveyRecordType === "PROGRAM") {
-      const { programId, ...rest } = result;
+      const { programId, userId: studentId, ...rest } = result;
       if (!programId) {
         throw new Error("Program ID is required");
       }
-      if (!result.userId) {
-        throw new Error("User ID is required");
+      if (!studentId) {
+        throw new Error("Student ID is required");
       }
 
       const response = await api.post(
-        `/api/v1/support-programs/save-survey-record?programId=${programId}&studentId=${result.userId}`,
+        `/api/v1/support-programs/save-survey-record?programId=${programId}&studentId=${studentId}`,
         rest
       );
       return response.data;
@@ -99,7 +100,7 @@ export const postSurveyResult = async (result) => {
       return response.data;
     }
   } catch (error) {
-    console.error("Lỗi khi gửi kết quả khảo sát:", error);
+    console.error("Lỗi khi gửi kết quả khảo sát:", error.response.data);
     throw error;
   }
 };

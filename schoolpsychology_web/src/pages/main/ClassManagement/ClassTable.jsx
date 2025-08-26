@@ -123,7 +123,12 @@ const ClassTable = ({
       columns={columns}
       dataSource={data}
       loading={loading}
-      pagination={pagination}
+      pagination={{
+        ...pagination,
+        showSizeChanger: true,
+        showTotal: (total, range) =>
+          `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+      }}
       onChange={onChange}
       scroll={{ x: 'auto', ...(isSmallScreen ? {} : { y: 400 }) }}
       size="middle"

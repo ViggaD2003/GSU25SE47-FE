@@ -1,13 +1,12 @@
 import React, { useState } from "react";
-import { Container, CompactChildSelector } from "../../components";
+import { Container } from "../../components";
 import { Toast } from "../../components";
-import { useAuth, useChildren } from "../../contexts";
+import { useAuth } from "../../contexts";
 import StudentHome from "./StudentHome";
 import ParentHome from "./ParentHome";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { GlobalStyles } from "../../constants";
 import { Text } from "react-native-paper";
-import { Ionicons } from "@expo/vector-icons";
 import { NotificationBadge } from "../../components/common";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +18,7 @@ export default function HomeScreen({ navigation }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
+  // console.log("user", user);
 
   // Show loading state while auth is loading
   if (authLoading || !user) {

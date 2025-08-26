@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import dayjs from "dayjs";
 
 const DateRangeSelector = ({
   selectedRange,
@@ -9,51 +11,67 @@ const DateRangeSelector = ({
   customStartDate,
   customEndDate,
   onCustomDateChange,
+  setIsCustomDate,
 }) => {
   const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const predefinedRanges = [
     { key: "7d", label: "dashboard.dateRanges.last7Days", days: 7 },
     { key: "30d", label: "dashboard.dateRanges.last30Days", days: 30 },
     { key: "90d", label: "dashboard.dateRanges.last90Days", days: 90 },
-    // { key: "custom", label: "dashboard.dateRanges.custom", days: null },
+    { key: "custom", label: "dashboard.dateRanges.custom", days: null },
   ];
 
   const getCurrentRangeLabel = () => {
     const range = predefinedRanges.find((r) => r.key === selectedRange);
     if (range?.key === "custom" && customStartDate && customEndDate) {
-      const start = new Date(customStartDate).toLocaleDateString();
-      const end = new Date(customEndDate).toLocaleDateString();
-      return `${start} - ${end}`;
+      const startDate = dayjs(customStartDate).format("DD/MM/YYYY HH:mm");
+      const endDate = dayjs(customEndDate).format("DD/MM/YYYY HH:mm");
+      return `${startDate} - ${endDate}`;
     }
     return t(range?.label || "dashboard.dateRanges.last30Days");
   };
 
   const handleRangeSelect = (rangeKey) => {
+    onRangeChange(rangeKey);
+
     if (rangeKey === "custom") {
-      setShowModal(true);
+      const endDate = dayjs().add(1, "day").format("YYYY-MM-DD");
+      setIsCustomDate(true);
+      setShowModal(false); // Đóng modal trước khi mở date picker
+      setShowDatePicker(true);
+      onCustomDateChange(dayjs().format("YYYY-MM-DD"), endDate);
     } else {
       const range = predefinedRanges.find((r) => r.key === rangeKey);
       if (range) {
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - range.days);
-
-        onRangeChange(rangeKey);
-        onCustomDateChange(
-          startDate.toISOString().split("T")[0],
-          endDate.toISOString().split("T")[0]
-        );
+        const endDate = dayjs().add(1, "day").format("YYYY-MM-DD");
+        const startDate = dayjs()
+          .subtract(range.days, "day")
+          .format("YYYY-MM-DD");
+        onCustomDateChange(startDate, endDate);
       }
+      setIsCustomDate(false);
+      setShowDatePicker(false);
+      // setShowModal(false); // Đóng modal sau khi chọn
     }
+  };
+
+  const handleDateConfirm = (selectedDate) => {
+    const startDate = dayjs(selectedDate).format("YYYY-MM-DD");
+    const endDate = dayjs(selectedDate).add(1, "day").format("YYYY-MM-DD");
+    onCustomDateChange(startDate, endDate);
+    setShowDatePicker(false);
   };
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.selector}
-        onPress={() => setShowModal(true)}
+        onPress={() => {
+          setShowModal(true);
+        }}
         activeOpacity={0.7}
       >
         <View style={styles.selectorContent}>
@@ -67,7 +85,9 @@ const DateRangeSelector = ({
         visible={showModal}
         transparent={true}
         animationType="fade"
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={() => {
+          setShowModal(false);
+        }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -75,7 +95,11 @@ const DateRangeSelector = ({
               <Text style={styles.modalTitle}>
                 {t("dashboard.dateRanges.selectRange")}
               </Text>
-              <TouchableOpacity onPress={() => setShowModal(false)}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowModal(false);
+                }}
+              >
                 <Ionicons name="close" size={24} color="#6B7280" />
               </TouchableOpacity>
             </View>
@@ -90,7 +114,6 @@ const DateRangeSelector = ({
                   ]}
                   onPress={() => {
                     handleRangeSelect(range.key);
-                    setShowModal(false);
                   }}
                   activeOpacity={0.7}
                 >
@@ -112,6 +135,17 @@ const DateRangeSelector = ({
           </View>
         </View>
       </Modal>
+
+      <DateTimePickerModal
+        mode="date"
+        date={customStartDate ? new Date(customStartDate) : new Date()}
+        isVisible={showDatePicker}
+        onConfirm={handleDateConfirm}
+        onCancel={() => {
+          setShowDatePicker(false);
+          // Không tự động chọn 30d, giữ nguyên selection hiện tại
+        }}
+      />
     </View>
   );
 };

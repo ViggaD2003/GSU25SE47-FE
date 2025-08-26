@@ -47,7 +47,8 @@
         "overallProgress": "Overall Progress",
         "performanceMetrics": "Performance Metrics",
         "noData": "No data available",
-        "noDataSubtitle": "No data available for the selected period"
+        "noDataSubtitle": "No data available for the selected period",
+        "dataPoints": "data points"
       },
       "type": {
         "survey": "Survey",
@@ -87,6 +88,8 @@
         "lowestSubtitle": "Needs improvement",
         "absent": "Absent Appointments",
         "absentSubtitle": "Number of absences",
+        "canceled": "Canceled Appointments",
+        "canceledSubtitle": "Number of canceled appointments",
         "chartTitle": "Appointment Progress Over Time",
         "noData": "No appointment data available",
         "attendanceRate": "Attendance Rate",
@@ -117,7 +120,9 @@
       "last30Days": "Last 30 days",
       "last90Days": "Last 90 days",
       "custom": "Custom range",
-      "selectRange": "Select Date Range"
+      "selectRange": "Select Date Range",
+      "selectStartDate": "Select Start Date",
+      "selectEndDate": "Select End Date"
     },
     "noChild": {
       "title": "No Child Selected",

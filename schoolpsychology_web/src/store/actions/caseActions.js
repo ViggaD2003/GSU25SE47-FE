@@ -55,12 +55,12 @@ export const getCasesByCategoryId = createAsyncThunk(
 // Async thunk for creating a case
 export const createCase = createAsyncThunk(
   'case/createCase',
-  async (caseData, { rejectWithValue }) => {
+  async caseData => {
     try {
       const response = await caseAPI.createCase(caseData)
       return response
     } catch (error) {
-      return rejectWithValue(
+      throw new Error(
         error.response?.data?.message ||
           error.message ||
           'Failed to create case'

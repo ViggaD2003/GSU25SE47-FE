@@ -60,139 +60,7 @@ const CaseOverview = ({ caseInfo, _statistics }) => {
 
   return (
     <>
-      <Row gutter={[24, 24]}>
-        {/* Basic Case Information */}
-        <Col xs={24} lg={14}>
-          <Card
-            title={
-              <Space>
-                <BookOutlined />
-                {t('caseManagement.details.overview.basicInfo')}
-              </Space>
-            }
-          >
-            <Descriptions column={1} styles={{ label: { fontWeight: 'bold' } }}>
-              <Descriptions.Item label={t('caseManagement.table.title')}>
-                {caseInfo.title}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('caseManagement.table.description')}>
-                <Paragraph style={{ margin: 0, maxWidth: 500 }}>
-                  {caseInfo.description ||
-                    t('caseManagement.table.noDescription')}
-                </Paragraph>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('caseManagement.table.priority')}>
-                <Tag
-                  color={
-                    caseInfo.priority === 'HIGH'
-                      ? 'red'
-                      : caseInfo.priority === 'MEDIUM'
-                        ? 'orange'
-                        : 'green'
-                  }
-                >
-                  {t(`caseManagement.priorityOptions.${caseInfo.priority}`)}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('caseManagement.table.status')}>
-                <Tag
-                  color={
-                    caseInfo.status === 'NEW'
-                      ? 'blue'
-                      : caseInfo.status === 'IN_PROGRESS'
-                        ? 'orange'
-                        : 'green'
-                  }
-                >
-                  {t(`caseManagement.statusOptions.${caseInfo.status}`)}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item
-                label={t('caseManagement.table.progressTrend')}
-              >
-                <Tag
-                  color={
-                    caseInfo.progressTrend === 'IMPROVED'
-                      ? 'green'
-                      : caseInfo.progressTrend === 'DECLINED'
-                        ? 'red'
-                        : 'orange'
-                  }
-                >
-                  {t(
-                    `caseManagement.progressTrendOptions.${caseInfo.progressTrend}`
-                  )}
-                </Tag>
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </Col>
-
-        {/* Level Information */}
-        <Col xs={24} lg={10}>
-          <Card
-            title={
-              <Space>
-                <TrophyOutlined />
-                {t('caseManagement.details.overview.levelInfo')}
-              </Space>
-            }
-          >
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <div>
-                <Text strong>{t('caseManagement.table.initialLevel')}</Text>
-                <div style={{ marginTop: 8 }}>
-                  <Tag
-                    color={getLevelColor(caseInfo.initialLevel)}
-                    size="large"
-                  >
-                    {caseInfo.initialLevel?.label} (
-                    {caseInfo.initialLevel?.code})
-                  </Tag>
-                  <div style={{ marginTop: 8 }}>
-                    <Text type="secondary">
-                      {caseInfo.initialLevel?.description}
-                    </Text>
-                  </div>
-                </div>
-              </div>
-
-              <Divider style={{ margin: '12px 0' }} />
-
-              <div>
-                <Text strong>{t('caseManagement.table.currentLevel')}</Text>
-                <div style={{ marginTop: 8 }}>
-                  <Tag
-                    color={getLevelColor(caseInfo.currentLevel)}
-                    size="large"
-                  >
-                    {caseInfo.currentLevel?.label} (
-                    {caseInfo.currentLevel?.code})
-                  </Tag>
-                  <div style={{ marginTop: 8 }}>
-                    <Text type="secondary">
-                      {caseInfo.currentLevel?.description}
-                    </Text>
-                  </div>
-                </div>
-              </div>
-
-              {caseInfo.currentLevel?.interventionRequired !== 'None' && (
-                <Alert
-                  message={t(
-                    'caseManagement.details.overview.interventionRequired'
-                  )}
-                  description={caseInfo.currentLevel?.interventionRequired}
-                  type="warning"
-                  icon={<ExclamationCircleOutlined />}
-                  showIcon
-                />
-              )}
-            </Space>
-          </Card>
-        </Col>
-      </Row>
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+      <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
         {/* Student Information */}
         <Col xs={24} lg={12}>
           <Card
@@ -332,6 +200,139 @@ const CaseOverview = ({ caseInfo, _statistics }) => {
               </Card>
             )}
           </Space>
+        </Col>
+      </Row>
+
+      <Row gutter={[24, 24]}>
+        {/* Basic Case Information */}
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Space>
+                <BookOutlined />
+                {t('caseManagement.details.overview.basicInfo')}
+              </Space>
+            }
+          >
+            <Descriptions column={1} styles={{ label: { fontWeight: 'bold' } }}>
+              <Descriptions.Item label={t('caseManagement.table.title')}>
+                {caseInfo.title}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('caseManagement.table.description')}>
+                <Paragraph style={{ margin: 0, maxWidth: 500 }}>
+                  {caseInfo.description ||
+                    t('caseManagement.table.noDescription')}
+                </Paragraph>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('caseManagement.table.priority')}>
+                <Tag
+                  color={
+                    caseInfo.priority === 'HIGH'
+                      ? 'red'
+                      : caseInfo.priority === 'MEDIUM'
+                        ? 'orange'
+                        : 'green'
+                  }
+                >
+                  {t(`caseManagement.priorityOptions.${caseInfo.priority}`)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('caseManagement.table.status')}>
+                <Tag
+                  color={
+                    caseInfo.status === 'NEW'
+                      ? 'blue'
+                      : caseInfo.status === 'IN_PROGRESS'
+                        ? 'orange'
+                        : 'green'
+                  }
+                >
+                  {t(`caseManagement.statusOptions.${caseInfo.status}`)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item
+                label={t('caseManagement.table.progressTrend')}
+              >
+                <Tag
+                  color={
+                    caseInfo.progressTrend === 'IMPROVED'
+                      ? 'green'
+                      : caseInfo.progressTrend === 'DECLINED'
+                        ? 'red'
+                        : 'orange'
+                  }
+                >
+                  {t(
+                    `caseManagement.progressTrendOptions.${caseInfo.progressTrend}`
+                  )}
+                </Tag>
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+
+        {/* Level Information */}
+        <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Space>
+                <TrophyOutlined />
+                {t('caseManagement.details.overview.levelInfo')}
+              </Space>
+            }
+          >
+            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+              <div>
+                <Text strong>{t('caseManagement.table.initialLevel')}</Text>
+                <div style={{ marginTop: 8 }}>
+                  <Tag
+                    color={getLevelColor(caseInfo.initialLevel)}
+                    size="large"
+                  >
+                    {caseInfo.initialLevel?.label} (
+                    {caseInfo.initialLevel?.code})
+                  </Tag>
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">
+                      {caseInfo.initialLevel?.description}
+                    </Text>
+                  </div>
+                </div>
+              </div>
+
+              <Divider style={{ margin: '12px 0' }} />
+
+              <div>
+                <Text strong>{t('caseManagement.table.currentLevel')}</Text>
+                <div style={{ marginTop: 8 }}>
+                  <Tag
+                    color={getLevelColor(caseInfo.currentLevel)}
+                    size="large"
+                  >
+                    {caseInfo.currentLevel?.label} (
+                    {caseInfo.currentLevel?.code})
+                  </Tag>
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">
+                      {caseInfo.currentLevel?.description}
+                    </Text>
+                  </div>
+                </div>
+              </div>
+
+              {caseInfo.currentLevel?.interventionRequired !== 'None' && (
+                <Alert
+                  message={t(
+                    'caseManagement.details.overview.interventionRequired'
+                  )}
+                  description={caseInfo.currentLevel?.interventionRequired}
+                  type="warning"
+                  icon={<ExclamationCircleOutlined />}
+                  showIcon
+                />
+              )}
+            </Space>
+          </Card>
         </Col>
       </Row>
     </>

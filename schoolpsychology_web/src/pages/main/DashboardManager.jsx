@@ -138,7 +138,12 @@ const ActivityByCategories = ({ data, isDarkMode, t }) => {
         dataSource={(data || []).map((d, idx) => ({ ...d, key: idx }))}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 5, showSizeChanger: false }}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: false,
+          showTotal: (total, range) =>
+            `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+        }}
         locale={{
           emptyText: <Empty description={t('teacherDashboard.empty')} />,
         }}
@@ -192,7 +197,12 @@ const SurveyLevelByCategories = ({ data, isDarkMode, t }) => {
         dataSource={rows}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 7, showSizeChanger: false }}
+        pagination={{
+          pageSize: 7,
+          showSizeChanger: false,
+          showTotal: (total, range) =>
+            `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+        }}
         locale={{
           emptyText: <Empty description={t('teacherDashboard.empty')} />,
         }}
@@ -252,7 +262,12 @@ const ActiveCasesList = ({ data, isDarkMode, t }) => {
         dataSource={(data || []).map(item => ({ ...item, key: item.id }))}
         columns={columns}
         size="middle"
-        pagination={{ pageSize: 6, showSizeChanger: false }}
+        pagination={{
+          pageSize: 6,
+          showSizeChanger: false,
+          showTotal: (total, range) =>
+            `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+        }}
         locale={{
           emptyText: <Empty description={t('teacherDashboard.empty')} />,
         }}

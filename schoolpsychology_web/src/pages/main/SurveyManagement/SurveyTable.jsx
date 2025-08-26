@@ -147,7 +147,12 @@ const SurveyTable = ({ t, data, loading, pagination, onView, userRole }) => {
       columns={columns}
       dataSource={data}
       loading={loading}
-      pagination={pagination}
+      pagination={{
+        ...pagination,
+        showSizeChanger: true,
+        showTotal: (total, range) =>
+          `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+      }}
       bordered
       size="middle"
       scroll={{ x: 'max-content' }}

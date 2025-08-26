@@ -162,24 +162,15 @@ const CategoryTable = ({
       columns={columns}
       dataSource={data}
       loading={loading}
-      pagination={pagination}
+      pagination={{
+        ...pagination,
+        showSizeChanger: true,
+        showTotal: (total, range) =>
+          `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
+      }}
       onChange={onChange}
       scroll={{ x: 'auto' }}
       size="middle"
-      // summary={() => (
-      //   <Table.Summary.Row>
-      //     <Table.Summary.Cell index={0}>
-      //       <Text strong>
-      //         {t('categoryManagement.table.total')}: {data?.length || 0}
-      //       </Text>
-      //     </Table.Summary.Cell>
-      //     <Table.Summary.Cell index={1} />
-      //     <Table.Summary.Cell index={2} />
-      //     <Table.Summary.Cell index={3} />
-      //     <Table.Summary.Cell index={4} />
-      //     <Table.Summary.Cell index={5} />
-      //   </Table.Summary.Row>
-      // )}
     />
   )
 }

@@ -496,7 +496,6 @@ const CaseTable = ({
       }
       pagination={{
         showSizeChanger: true,
-        showQuickJumper: true,
         showTotal: (total, range) =>
           `${t('common.showing')} ${range[0]}-${range[1]} ${t('common.of')} ${total} ${t('common.items')}`,
       }}

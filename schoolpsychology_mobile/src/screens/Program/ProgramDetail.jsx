@@ -23,6 +23,7 @@ import {
 } from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
 import { useAuth, useChildren } from "@/contexts";
+import dayjs from "dayjs";
 
 const { width } = Dimensions.get("window");
 
@@ -262,11 +263,13 @@ export default function ProgramDetail() {
   };
 
   const canJoinOrLeave = () => {
+    const isBeforeStartTime = dayjs().isBefore(dayjs(program.startTime));
     // console.log("program", program);
     return (
       program &&
       program.status === "ACTIVE" &&
-      (!program?.student || program?.student?.surveyRecord?.length === 0)
+      (!program?.student || program?.student?.surveyRecord?.length === 0) &&
+      isBeforeStartTime
     );
   };
 
@@ -290,6 +293,19 @@ export default function ProgramDetail() {
     const isActiveSurvey = program.isActiveSurvey;
     const finalScore = exitSurvey?.totalScore - entrySurvey?.totalScore;
     const finalScoreColor = finalScore > 0 ? "#34C759" : "#FF3B30";
+
+    const isOnStartTime =
+      dayjs().isAfter(dayjs(program.startTime)) ||
+      dayjs().isSame(dayjs(program.startTime), "day");
+    const isOnEndTime =
+      dayjs().isBefore(dayjs(program.endTime)) ||
+      dayjs().isSame(dayjs(program.endTime), "day");
+
+    const isOnTime = isOnStartTime && isOnEndTime;
+
+    console.log("isOnStartTime", isOnStartTime);
+    console.log("isOnEndTime", isOnEndTime);
+    console.log("isOnTime", isOnTime);
 
     return (
       <View style={styles.section}>
@@ -353,7 +369,7 @@ export default function ProgramDetail() {
                         params: { surveyId: program.surveyId, programId },
                       });
                     }}
-                    disabled={!isActiveSurvey || entrySurvey}
+                    disabled={!isOnTime}
                   >
                     <Text style={styles.statusBadgeText}>
                       {t("program.detail.surveyProgress.takeSurvey")}
@@ -447,7 +463,7 @@ export default function ProgramDetail() {
                           params: { surveyId: program.surveyId, programId },
                         });
                       }}
-                      disabled={!isActiveSurvey || exitSurvey}
+                      disabled={!isActiveSurvey && !isOnTime}
                     >
                       <Text style={styles.statusBadgeText}>
                         {t("program.detail.surveyProgress.takeSurvey")}

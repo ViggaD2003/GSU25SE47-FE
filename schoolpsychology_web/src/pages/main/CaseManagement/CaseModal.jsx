@@ -21,7 +21,7 @@ const CaseModal = ({
   visible,
   onCancel,
   onSubmit,
-  editingCase,
+  student,
   confirmLoading,
 }) => {
   const { t } = useTranslation()
@@ -30,6 +30,8 @@ const CaseModal = ({
   const [levelOptions, setLevelOptions] = useState([])
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [formData, setFormData] = useState(null)
+  const initialLevelId = student?.latestSurveyRecord?.level?.id
+  const initCategoryId = student?.latestSurveyRecord?.survey?.category?.id
 
   const fetchLevelOptions = async () => {
     const data = await categoriesAPI.getCategoryLevels(selectedCategoryId)
@@ -51,35 +53,31 @@ const CaseModal = ({
 
   useEffect(() => {
     if (visible) {
-      if (editingCase) {
-        form.setFieldsValue({
-          title: editingCase.title || '',
-          description: editingCase.description || '',
-          priority: editingCase.priority || 'MEDIUM',
-          progressTrend: editingCase.progressTrend || 'STABLE',
-          currentLevelId: editingCase.currentLevelId || undefined,
-          initialLevelId: editingCase.initialLevelId || undefined,
-        })
+      if (student) {
+        if (initialLevelId) {
+          form.setFieldsValue({
+            progressTrend: 'DECLINED',
+            currentLevelId: initialLevelId || undefined,
+            initialLevelId: initialLevelId || undefined,
+          })
+        }
       } else {
         form.resetFields()
         form.setFieldsValue({
-          priority: 'MEDIUM',
-          progressTrend: 'STABLE',
+          progressTrend: 'DECLINED',
         })
       }
     }
-  }, [visible, editingCase, form])
-  //   console.log(editingCase)
-  //   console.log(user)
+  }, [visible, student, form])
 
-  const surveyRecord = editingCase?.latestSurveyRecord
+  const surveyRecord = student?.latestSurveyRecord
 
   const handleOk = () => {
     form
       .validateFields()
       .then(values => {
         // Lưu form data để hiển thị trong modal xác nhận
-        setFormData(values)
+        setFormData({ ...values, progressTrend: 'DECLINED' })
         setShowConfirmModal(true)
       })
       .catch(info => {
@@ -92,22 +90,19 @@ const CaseModal = ({
       title: formData.title,
       description: formData.description,
       priority: formData.priority,
-      progressTrend: formData.progressTrend,
-      studentId: editingCase.id,
+      progressTrend: 'DECLINED',
+      studentId: student.id,
       createBy: user.id || user.teacherId,
-      currentLevelId: formData.levelId || surveyRecord?.level?.id,
-      initialLevelId: formData.levelId || surveyRecord?.level?.id,
+      currentLevelId: formData.levelId || initialLevelId,
+      initialLevelId: formData.levelId || initialLevelId,
     }
-    console.log(editingCase)
-    // console.log(requestData)
-    setShowConfirmModal(false)
-    setFormData(null)
-    onSubmit(requestData)
+    // console.log(student)
+    onSubmit(requestData, setFormData, setShowConfirmModal, form)
   }
 
   const handleCancelConfirm = () => {
-    setShowConfirmModal(false)
     setFormData(null)
+    setShowConfirmModal(false)
   }
 
   const handleCancel = () => {
@@ -136,11 +131,7 @@ const CaseModal = ({
   return (
     <>
       <Modal
-        title={
-          editingCase
-            ? t('caseManagement.editCase')
-            : t('caseManagement.createCase')
-        }
+        title={t('caseManagement.createCase')}
         open={visible}
         onOk={handleOk}
         onCancel={handleCancel}
@@ -148,8 +139,7 @@ const CaseModal = ({
         okText={t('caseManagement.form.save')}
         cancelText={t('caseManagement.form.cancel')}
         width={900}
-        style={{ top: '5%' }}
-        styles={{ body: { maxHeight: '80vh' } }}
+        centered
       >
         <Form form={form} layout="vertical" name="caseForm">
           <Form.Item
@@ -205,34 +195,9 @@ const CaseModal = ({
           </Form.Item>
 
           <Form.Item
-            name="progressTrend"
-            label={t('caseManagement.form.progressTrend')}
-            rules={[
-              {
-                required: true,
-                message: t('caseManagement.form.progressTrendRequired'),
-              },
-            ]}
-          >
-            <Select
-              placeholder={t('caseManagement.form.progressTrendPlaceholder')}
-            >
-              <Option value="IMPROVED">
-                {t('caseManagement.progressTrendOptions.IMPROVED')}
-              </Option>
-              <Option value="STABLE">
-                {t('caseManagement.progressTrendOptions.STABLE')}
-              </Option>
-              <Option value="DECLINED">
-                {t('caseManagement.progressTrendOptions.DECLINED')}
-              </Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
             name="categoryId"
             label={t('caseManagement.form.category')}
-            initialValue={categories[0]?.id}
+            initialValue={initCategoryId || categories[0]?.id}
             rules={[
               {
                 required: !surveyRecord,
@@ -240,26 +205,23 @@ const CaseModal = ({
               },
             ]}
           >
-            {!surveyRecord ? (
-              <Select
-                placeholder={t('caseManagement.form.categoryPlaceholder')}
-                onChange={handleCategoryChange}
-              >
-                {categories?.map(category => (
-                  <Option key={category?.id} value={category?.id}>
-                    {category?.name}
-                  </Option>
-                ))}
-              </Select>
-            ) : (
-              <Input value={surveyRecord?.survey?.category?.name} disabled />
-            )}
+            <Select
+              placeholder={t('caseManagement.form.categoryPlaceholder')}
+              onChange={handleCategoryChange}
+            >
+              {categories?.map(category => (
+                <Option key={category?.id} value={category?.id}>
+                  {category?.name}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
 
           <Form.Item
             name="levelId"
             label={t('caseManagement.form.level')}
             disabled={!selectedCategoryId}
+            initialValue={initialLevelId || levelOptions[0]?.id}
             rules={[
               {
                 required: !surveyRecord,
@@ -267,17 +229,13 @@ const CaseModal = ({
               },
             ]}
           >
-            {!surveyRecord ? (
-              <Select placeholder={t('caseManagement.form.levelPlaceholder')}>
-                {levelOptions?.map(level => (
-                  <Option key={level?.id} value={level?.id}>
-                    {level?.code} - {level?.description}
-                  </Option>
-                ))}
-              </Select>
-            ) : (
-              <Input value={surveyRecord?.level?.code} disabled />
-            )}
+            <Select placeholder={t('caseManagement.form.levelPlaceholder')}>
+              {levelOptions?.map(level => (
+                <Option key={level?.id} value={level?.id}>
+                  {level?.code} - {level?.description}
+                </Option>
+              ))}
+            </Select>
           </Form.Item>
         </Form>
       </Modal>
@@ -301,6 +259,7 @@ const CaseModal = ({
           </Button>,
         ]}
         width={700}
+        centered
       >
         <div style={{ marginBottom: 16, color: '#666' }}>
           {t('caseManagement.confirmModal.confirmMessage')}
@@ -316,11 +275,6 @@ const CaseModal = ({
             <Descriptions.Item label={t('caseManagement.form.priority')}>
               {t(`caseManagement.priorityOptions.${formData.priority}`)}
             </Descriptions.Item>
-            <Descriptions.Item label={t('caseManagement.form.progressTrend')}>
-              {t(
-                `caseManagement.progressTrendOptions.${formData.progressTrend}`
-              )}
-            </Descriptions.Item>
             {formData.categoryId && (
               <Descriptions.Item label={t('caseManagement.form.category')}>
                 {getCategoryName(formData.categoryId)}
@@ -334,7 +288,7 @@ const CaseModal = ({
               </Descriptions.Item>
             )}
             <Descriptions.Item label={t('caseManagement.confirmModal.student')}>
-              {editingCase?.fullName || editingCase?.name || 'N/A'}
+              {student?.fullName || student?.name || 'N/A'}
             </Descriptions.Item>
             <Descriptions.Item label={t('caseManagement.confirmModal.creator')}>
               {user?.fullName || user?.name || 'N/A'}

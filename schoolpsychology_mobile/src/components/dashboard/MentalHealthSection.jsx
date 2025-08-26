@@ -1,13 +1,13 @@
-import React from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
 import StatisticsCard from "./StatisticsCard";
-import MentalHealthChart from "../charts/MentalHealthChart";
 import CombinedChart from "../charts/CombinedChart";
 import { Ionicons } from "@expo/vector-icons";
-import { LineChart } from "react-native-chart-kit";
 
-const MentalHealthSection = ({ mentalStatistic = {} }) => {
+const MentalHealthSection = ({
+  mentalStatistic = {},
+  isCustomDate = false,
+}) => {
   const { t } = useTranslation();
 
   // Safety check for translation function
@@ -49,7 +49,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
   }
 
   const formatNumber = (num) => {
-    console.log(num);
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
@@ -143,6 +142,14 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
         mentalStatistic.appointment?.numOfAbsent || 0
       ),
     },
+    {
+      key: "canceled",
+      title: t("dashboard.mentalHealth.appointment.canceled"),
+      value: formatNumber(mentalStatistic.appointment?.numOfCancel || 0),
+      subtitle: t("dashboard.mentalHealth.appointment.canceledSubtitle"),
+      icon: "close-circle-outline",
+      color: "#F59E0B",
+    },
   ];
 
   const programStats = [
@@ -186,17 +193,6 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
     <View style={styles.container}>
       {/* Combined Chart Section */}
       <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleContainer}>
-            <View style={[styles.sectionIcon, { backgroundColor: "#F3F4F6" }]}>
-              <Ionicons name="analytics-outline" size={20} color="#6B7280" />
-            </View>
-            <Text style={styles.sectionTitle}>
-              {t("dashboard.mentalHealth.combined.title")}
-            </Text>
-          </View>
-        </View>
-
         <CombinedChart
           t={t}
           appointmentData={mentalStatistic.appointment?.dataSet || []}
@@ -204,6 +200,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           surveyData={mentalStatistic.survey?.dataSet || []}
           title={t("dashboard.mentalHealth.combined.chartTitle")}
           type="combined"
+          isCustomDate={isCustomDate}
         />
       </View>
 
@@ -247,6 +244,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           surveyData={mentalStatistic.survey?.dataSet || []}
           title={t("dashboard.mentalHealth.survey.chartTitle")}
           type="survey"
+          isCustomDate={isCustomDate}
         />
       </View>
 
@@ -290,6 +288,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           appointmentData={mentalStatistic.appointment?.dataSet || []}
           title={t("dashboard.mentalHealth.appointment.chartTitle")}
           type="appointment"
+          isCustomDate={isCustomDate}
         />
       </View>
 
@@ -333,6 +332,7 @@ const MentalHealthSection = ({ mentalStatistic = {} }) => {
           programData={mentalStatistic.program?.dataSet || []}
           title={t("dashboard.mentalHealth.program.chartTitle")}
           type="program"
+          isCustomDate={isCustomDate}
         />
       </View>
     </View>
@@ -347,7 +347,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 20,
     marginHorizontal: 20,
-    marginVertical: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -356,8 +355,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   sectionHeader: {
-    backgroundColor: "#F8FAFC",
-    paddingHorizontal: 24,
+    // backgroundColor: "#F8FAFC",
     paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
