@@ -29,6 +29,7 @@ try {
 
 import StudentDashboardService from "@/services/api/StudentDashboardService";
 import { useAuth } from "@/contexts";
+import dayjs from "dayjs";
 
 const DashboardScreen = () => {
   const { t } = useTranslation();
@@ -47,15 +48,11 @@ const DashboardScreen = () => {
   // Initialize date range
   useEffect(() => {
     // console.log("Dashboard: Initializing date range...");
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 30);
+    const endDate = dayjs().add(1, "day").format("YYYY-MM-DD");
+    const startDate = dayjs().subtract(30, "day").format("YYYY-MM-DD");
 
-    const startDateStr = startDate.toISOString().split("T")[0];
-    const endDateStr = endDate.toISOString().split("T")[0];
-
-    setCustomStartDate(startDateStr);
-    setCustomEndDate(endDateStr);
+    setCustomStartDate(startDate);
+    setCustomEndDate(endDate);
     setIsCustomDate(false);
     setSelectedRange("30d");
   }, []);

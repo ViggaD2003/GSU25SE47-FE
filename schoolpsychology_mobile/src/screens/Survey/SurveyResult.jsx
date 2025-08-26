@@ -64,13 +64,16 @@ const SurveyResult = ({ route, navigation }) => {
   }, [type, result]);
 
   const handleBackPress = useCallback(() => {
-    if (type === "submit") {
+    if (type === "submit" && !programId) {
       navigation.popTo("MainBottomTabs", {
         screen: "Home",
       });
     } else if (programId) {
-      navigation.popTo("ProgramDetail", {
-        programId,
+      navigation.popTo("Program", {
+        screen: "ProgramDetail",
+        params: {
+          programId,
+        },
       });
     } else {
       navigation.goBack();

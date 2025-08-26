@@ -481,7 +481,12 @@
       "status": {
         "active": "Active",
         "onGoing": "Ongoing",
-        "completed": "Completed"
+        "completed": "Completed",
+        "pCompleted": "Completed",
+        "enrolled": "Enrolled",
+        "inProgress": "In Progress",
+        "absent": "Absent",
+        "unknown": "Unknown"
       },
       "studentStatus": {
         "absent": "Absent",

@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 const ProgramCard = ({ program, onPress }) => {
+  const { t } = useTranslation();
   const formatDateTime = (dateTimeString) => {
     const date = new Date(dateTimeString);
     return date.toLocaleString("vi-VN", {
@@ -16,17 +18,17 @@ const ProgramCard = ({ program, onPress }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case "ACTIVE":
-        return "#FF9500";
-      case "COMPLETED":
         return "#34C759";
+      case "P_COMPLETED":
+        return "#34C759";
+      case "COMPLETED":
+        return "#8E8E93";
       case "ON_GOING":
         return "#007AFF";
       case "ENROLLED":
         return "#FF9500";
       case "ABSENT":
         return "#FF3B30";
-      case "IN_PROGRESS":
-        return "#007AFF";
       default:
         return "#8E8E93";
     }
@@ -35,19 +37,21 @@ const ProgramCard = ({ program, onPress }) => {
   const getStatusText = (status) => {
     switch (status) {
       case "ACTIVE":
-        return "Đang mở";
-      case "COMPLETED":
-        return "Đã kết thúc";
+        return t("program.detail.status.active");
       case "ON_GOING":
-        return "Đang diễn ra";
+        return t("program.detail.status.onGoing");
+      case "COMPLETED":
+        return t("program.detail.status.completed");
+      case "P_COMPLETED":
+        return t("program.detail.status.pCompleted");
       case "ENROLLED":
-        return "Đã đăng ký";
+        return t("program.detail.status.enrolled");
       case "ABSENT":
-        return "Vắng mặt";
+        return t("program.detail.status.absent");
       case "IN_PROGRESS":
-        return "Đang tham dự";
+        return t("program.detail.status.inProgress");
       default:
-        return "Không xác định";
+        return t("program.detail.status.unknown");
     }
   };
 
@@ -82,14 +86,20 @@ const ProgramCard = ({ program, onPress }) => {
                 styles.statusBadge,
                 {
                   backgroundColor: getStatusColor(
-                    program.registrationStatus || "INACTIVE"
+                    program.registrationStatus === "COMPLETED"
+                      ? "P_COMPLETED"
+                      : program.registrationStatus || "INACTIVE"
                   ),
                 },
               ]}
             >
               <Ionicons name="person" size={14} color={"#FFFFFF"} />
               <Text style={styles.statusText}>
-                {getStatusText(program.registrationStatus || "INACTIVE")}
+                {getStatusText(
+                  program.registrationStatus === "COMPLETED"
+                    ? "P_COMPLETED"
+                    : program.registrationStatus || "INACTIVE"
+                )}
               </Text>
             </View>
           )}

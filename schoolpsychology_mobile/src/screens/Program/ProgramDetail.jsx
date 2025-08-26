@@ -12,7 +12,11 @@ import {
   Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { Container } from "../../components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
@@ -51,9 +55,11 @@ export default function ProgramDetail() {
     );
   }
 
-  useEffect(() => {
-    fetchProgramData();
-  }, [programId]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchProgramData();
+    }, [programId])
+  );
 
   useEffect(() => {
     if (program) {
@@ -198,7 +204,7 @@ export default function ProgramDetail() {
       case "ON_GOING":
         return "#007AFF";
       case "COMPLETED":
-        return "#FF9500";
+        return "#8E8E93";
       default:
         return "#8E8E93";
     }
@@ -234,10 +240,6 @@ export default function ProgramDetail() {
 
   const getStudentStatusText = (status) => {
     switch (status) {
-      case "FIRST_SURVEY":
-        return t("program.detail.studentStatus.firstSurvey");
-      case "SECOND_SURVEY":
-        return t("program.detail.studentStatus.secondSurvey");
       case "ACTIVE":
         return t("program.detail.studentStatus.active");
       case "COMPLETED":
@@ -291,7 +293,7 @@ export default function ProgramDetail() {
     // console.log("exitSurvey", exitSurvey);
 
     const isActiveSurvey = program.isActiveSurvey;
-    const finalScore = exitSurvey?.totalScore - entrySurvey?.totalScore;
+    const finalScore = entrySurvey?.totalScore - exitSurvey?.totalScore;
     const finalScoreColor = finalScore > 0 ? "#34C759" : "#FF3B30";
 
     const isOnStartTime =

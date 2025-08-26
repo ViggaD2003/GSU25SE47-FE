@@ -79,7 +79,12 @@ const EventList = ({ route, navigation }) => {
           break;
         case "PROGRAM":
           data = await getAllProgramsRecord(userId);
-          setEvents(data || []);
+          const filteredData = data.filter(
+            (program) =>
+              program.status !== "COMPLETED" &&
+              !["ABSENT", "COMPLETED"].includes(program.registrationStatus)
+          );
+          setEvents(filteredData || []);
           break;
         default:
           setEvents([]);

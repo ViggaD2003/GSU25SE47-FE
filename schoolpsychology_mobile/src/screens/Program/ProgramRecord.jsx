@@ -34,6 +34,7 @@ export default function ProgramRecord() {
       fetchPrograms();
     }, [selectedChild, user?.id])
   );
+
   const fetchPrograms = async () => {
     try {
       if (user?.role === "PARENTS") {
@@ -52,11 +53,13 @@ export default function ProgramRecord() {
       const userId =
         user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
 
-      console.log(userId);
       const data = await getAllProgramsRecord(userId);
-      console.log(data);
 
-      setPrograms(data);
+      const completedPrograms = data.filter((program) =>
+        ["ABSENT", "COMPLETED"].includes(program.registrationStatus)
+      );
+
+      setPrograms(completedPrograms);
     } catch (error) {
       console.error("Error fetching programs:", error);
       Alert.alert("Error", "Failed to load programs");

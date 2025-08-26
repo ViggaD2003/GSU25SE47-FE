@@ -476,7 +476,12 @@
       "status": {
         "active": "Đang được mở",
         "onGoing": "Đang diễn ra",
-        "completed": "Đã hoàn thành"
+        "completed": "Đã kết thúc",
+        "pCompleted": "Đã hoàn thành",
+        "enrolled": "Đã đăng ký",
+        "inProgress": "Đang tham dự",
+        "absent": "Vắng mặt",
+        "unknown": "Không xác định"
       },
       "studentStatus": {
         "absent": "Vắng mặt",

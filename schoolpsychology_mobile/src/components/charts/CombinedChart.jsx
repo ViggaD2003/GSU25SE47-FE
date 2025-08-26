@@ -403,6 +403,10 @@ const CombinedChart = ({
     },
   };
 
+  const totalDataPoints = useMemo(() => {
+    return combinedData.length;
+  }, [combinedData]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.chartTitle}>
@@ -432,7 +436,9 @@ const CombinedChart = ({
             <LineChart
               data={lineChartData}
               width={
-                dataLength >= 5 ? dynamicWidth + 20 * dataLength : dynamicWidth
+                dataLength >= 5
+                  ? dynamicWidth + 15 * totalDataPoints
+                  : dynamicWidth
               }
               // width={500}
               height={isCustomDate ? 350 : 300}
@@ -502,13 +508,20 @@ const CombinedChart = ({
             {
               position: "absolute",
               left: (() => {
-                const isOnLeftHalf = tooltipPosition.x < width / 2;
+                const halfWidth = width / 2;
+                const isOnLeftHalf = tooltipPosition.x < halfWidth;
+                const isNearHalf =
+                  tooltipPosition.x < halfWidth + 50 &&
+                  tooltipPosition.x > halfWidth - 50;
 
+                if (isNearHalf) {
+                  return halfWidth - 50;
+                }
                 if (!isOnLeftHalf) {
                   // Nếu ở nửa trái màn hình, hiển thị tooltip bên phải điểm chạm
                   return isCustomDate
-                    ? tooltipPosition.x - 200
-                    : tooltipPosition.x - 140;
+                    ? tooltipPosition.x - 250
+                    : tooltipPosition.x - width / 2 - 100;
                 } else {
                   // Nếu ở nửa phải màn hình, hiển thị tooltip bên trái điểm chạm
                   return isCustomDate
@@ -668,11 +681,14 @@ const styles = StyleSheet.create({
   },
   // Tooltip styles
   tooltipContainer: {
+    paddingHorizontal: 10,
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    padding: 12,
+    padding: 10,
     width: "auto",
-    maxWidth: 300,
+    height: "auto",
+    minWidth: 150,
+    maxWidth: 350,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
@@ -695,13 +711,13 @@ const styles = StyleSheet.create({
     paddingRight: 24,
   },
   tooltipDate: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "600",
     color: "#374151",
     marginLeft: 6,
   },
   tooltipBody: {
-    gap: 8,
+    // gap: 16,
   },
   tooltipSummary: {
     backgroundColor: "#F9FAFB",
@@ -723,7 +739,10 @@ const styles = StyleSheet.create({
     color: "#1F2937",
   },
   tooltipDetails: {
-    gap: 4,
+    gap: 6,
+    height: "auto",
+    width: "auto",
+    padding: 1,
   },
   tooltipDetailItem: {
     paddingVertical: 2,
@@ -732,11 +751,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    flex: 1,
+    gap: 10,
   },
   tooltipTypeContainer: {
     flexDirection: "row",
     alignItems: "center",
-    flex: 1,
   },
   tooltipTypeDot: {
     width: 6,
