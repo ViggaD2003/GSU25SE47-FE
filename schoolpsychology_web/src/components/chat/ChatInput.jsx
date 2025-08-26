@@ -4,6 +4,7 @@ const ChatInput = ({ onSendMessage }) => {
     const [message, setMessage] = useState('');
 
     const handleSubmit = (e) => {
+        console.log("Submitting message:", message);
         e.preventDefault();
         if (message.trim()) {
             onSendMessage(message);
@@ -20,16 +21,17 @@ const ChatInput = ({ onSendMessage }) => {
 
     return (
         <div className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 p-4">
-            <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+            <form onSubmit={(e) => handleSubmit(e)} className="flex items-end space-x-3">
                 <div className="flex-1">
                     <textarea
                         value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onChange={(e) => {
+                            console.log(e.target.value);
+                         setMessage(e.target.value)
+                        }
+                    }
                         placeholder="Nhập tin nhắn..."
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-                        rows="1"
-                        style={{ minHeight: '40px', maxHeight: '120px' }}
                     />
                 </div>
                 <button

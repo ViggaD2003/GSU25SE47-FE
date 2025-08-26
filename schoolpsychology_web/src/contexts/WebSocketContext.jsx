@@ -173,7 +173,9 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        // import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        "ws://localhost:8080/ws" + `?token=${jwtToken}`
+
       )
       socketRef.current = socket
 
@@ -267,6 +269,35 @@ export const WebSocketProvider = ({ children }) => {
     [isConnectionReady]
   )
 
+
+  const sendMessage2 = useCallback(
+    (
+      route, body
+    ) => {
+      if (!isConnectionReady()) {
+        console.log('[WebSocket] Not connected, connecting...')
+        connectWebSocket()
+      }
+
+      try {
+        // console.log('🔍 sendMessage', body)
+        const destination = route
+        const bodyData = {
+          sender: body.sender,
+          content: body.content,
+          timestamp: body.timestamp
+        }
+        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
+        // console.log('[WebSocket] Message sent to:', destination)
+      } catch (error) {
+        console.error('[WebSocket] Error sending message:', error)
+        throw new Error('Failed to send message')
+      }
+    },
+    [isConnectionReady]
+  )
+
+
   // Kết nối WebSocket khi user đã đăng nhập - tối ưu dependencies
   useEffect(() => {
     if (isAuthenticated && user && jwtToken) {
@@ -354,6 +385,7 @@ export const WebSocketProvider = ({ children }) => {
       isConnected,
       isConnecting,
       sendMessage,
+      sendMessage2,
       subscribeToTopic,
       notifications,
       clearNotifications,
@@ -367,6 +399,7 @@ export const WebSocketProvider = ({ children }) => {
       isConnected,
       isConnecting,
       sendMessage,
+      sendMessage2,
       subscribeToTopic,
       notifications,
       clearNotifications,
