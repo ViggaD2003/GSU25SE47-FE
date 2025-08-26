@@ -173,7 +173,8 @@ export const WebSocketProvider = ({ children }) => {
       })
 
       const socket = new WebSocket(
-        import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        // import.meta.env.VITE_WS_URL + `?token=${jwtToken}`
+        "ws://localhost:8080/ws" + `?token=${jwtToken}`
       )
       socketRef.current = socket
 
@@ -259,6 +260,31 @@ export const WebSocketProvider = ({ children }) => {
         }
         stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
         // console.log('[WebSocket] Message sent to:', destination)
+      } catch (error) {
+        console.error('[WebSocket] Error sending message:', error)
+        throw new Error('Failed to send message')
+      }
+    },
+    [isConnectionReady]
+  )
+
+  const sendMessage2 = useCallback(
+    (roomId, body) => {
+      if (!isConnectionReady()) {
+        console.log('[WebSocket] Not connected, connecting...')
+        connectWebSocket()
+      }
+
+      try {
+        const destination = `/app/chat/${roomId}`
+        const bodyData = {
+          sender: body.sender,
+          message: body.message,
+          timestamp: body.timestamp,
+        }
+        console.log('🔍 sendMessage2', bodyData)
+        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
+        console.log('[WebSocket] Message sent to:', destination)
       } catch (error) {
         console.error('[WebSocket] Error sending message:', error)
         throw new Error('Failed to send message')
@@ -354,6 +380,7 @@ export const WebSocketProvider = ({ children }) => {
       isConnected,
       isConnecting,
       sendMessage,
+      sendMessage2,
       subscribeToTopic,
       notifications,
       clearNotifications,
@@ -367,6 +394,7 @@ export const WebSocketProvider = ({ children }) => {
       isConnected,
       isConnecting,
       sendMessage,
+      sendMessage2,
       subscribeToTopic,
       notifications,
       clearNotifications,
