@@ -198,7 +198,7 @@ const RealTimeProvider = ({ children }) => {
 
   const subscribeToChat = useCallback(
     (roomId) => {
-      if (!stompClientRef.current || !isConnected || !user?.email) {
+      if (!stompClientRef?.current || !user?.email) {
         return;
       }
 
@@ -213,17 +213,20 @@ const RealTimeProvider = ({ children }) => {
             return;
           }
 
-          if (message.type === "CHAT") {
-            setChatMessages((prev) => [...prev, message]);
-          } else if (message.type === "JOIN") {
+          if (message.type === "JOIN") {
             setActiveChat(true);
+            return;
           } else if (message.type === "LEAVE") {
             setActiveChat(false);
+            return;
+          } else if (message.type === "CHAT") {
+            setChatMessages((prev) => [...prev, message]);
+            return;
           }
         }
       );
     },
-    [stompClientRef, isConnected, user?.email]
+    [stompClientRef.current]
   );
 
   // const sendActiveChat = useCallback(
@@ -263,19 +266,8 @@ const RealTimeProvider = ({ children }) => {
   );
 
   const sendMessageToCounselor = useCallback(
-    (msg, roomId, client = stompClientRef.current) => {
-      if (!isAuthenticated) {
-        console.warn("[WebSocket] Not authenticated");
-        return;
-      }
-
-      if (!client) {
-        console.warn("[WebSocket] Not connected");
-        return;
-      }
-
-      if (!roomId) {
-        console.warn("[WebSocket] No room chat id");
+    (msg, roomId) => {
+      if (!stompClientRef.current || !roomId || !user?.email) {
         return;
       }
 
@@ -286,14 +278,20 @@ const RealTimeProvider = ({ children }) => {
         type: msg.messageType || "CHAT",
       };
 
-      setChatMessages((prev) => [...prev, bodyData]);
-
-      let destination = `/app/chat/${roomId}`;
+      let destination;
       if (["JOIN", "LEAVE"].includes(msg.messageType)) {
         destination = `/app/chat.addUser/${roomId}`;
+      } else if (msg.messageType === "CHAT") {
+        destination = `/app/chat/${roomId}`;
+        setChatMessages((prev) => [...prev, bodyData]);
       }
 
-      client.publish({
+      console.log(
+        "[WebSocket_sendMessageToCounselor] 🔔 Destination",
+        destination
+      );
+
+      stompClientRef.current.publish({
         destination: destination,
         headers: { "content-type": "application/json" },
         body: JSON.stringify(bodyData),
@@ -304,7 +302,7 @@ const RealTimeProvider = ({ children }) => {
         bodyData
       );
     },
-    [isAuthenticated]
+    [stompClientRef.current, user?.email]
   );
 
   const disconnectWebSocket = useCallback(async () => {

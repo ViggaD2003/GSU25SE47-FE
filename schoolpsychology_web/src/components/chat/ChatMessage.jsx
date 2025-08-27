@@ -1,5 +1,6 @@
 import React from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
+import dayjs from 'dayjs'
 
 const ChatMessage = ({ message, isOwn, t }) => {
   const { isDarkMode } = useTheme()
@@ -9,7 +10,7 @@ const ChatMessage = ({ message, isOwn, t }) => {
       // Nếu đã có Z thì parse trực tiếp
       const date = new Date(timeString)
 
-      if (isNaN(date.getTime())) return timeString
+      if (!dayjs(timeString).isValid()) return timeString
 
       return date.toLocaleString('vi-VN', {
         hour: '2-digit',
@@ -26,9 +27,9 @@ const ChatMessage = ({ message, isOwn, t }) => {
   }
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} w-full`}>
       <div
-        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+        className={`max-w-1/2 px-4 py-2 rounded-lg ${
           isOwn
             ? 'bg-blue-500 text-white rounded-br-none'
             : `border rounded-bl-none ${
@@ -38,7 +39,9 @@ const ChatMessage = ({ message, isOwn, t }) => {
               }`
         }`}
       >
-        <p className="text-sm">{message?.message || t('chat.noMessage')}</p>
+        <p className="text-sm wrap-break-word">
+          {message?.message || t('chat.noMessage')}
+        </p>
         <div
           className={`text-xs mt-1 ${
             isOwn

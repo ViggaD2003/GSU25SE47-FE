@@ -32,6 +32,7 @@ import ChildSelector, {
 import { useFocusEffect } from "@react-navigation/native";
 import { Toast } from "@/components/common";
 import { getChatMessages, getChatRooms } from "@/services/api/chatApi";
+import dayjs from "dayjs";
 
 const CaseDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -42,7 +43,6 @@ const CaseDetails = ({ route, navigation }) => {
     sendMessageToCounselor,
     subscribeToChat,
     activeChat,
-    setActiveChat,
   } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -67,7 +67,7 @@ const CaseDetails = ({ route, navigation }) => {
   const chatRef = useRef(null);
 
   const fetchChatMessages = async (roomId) => {
-    if (roomId) {
+    if (roomId || roomChatId) {
       const data = await getChatMessages(roomId || roomChatId);
       console.log("[CaseDetails] Fetch chat messages", data);
       setChatMessages(data);
@@ -129,8 +129,8 @@ const CaseDetails = ({ route, navigation }) => {
 
       setCaseDetails(data);
 
-      if (data && !caseId) {
-        await fetchRoomChat(data.caseInfo.id);
+      if (data && !caseId && data.caseInfo.status === "IN_PROGRESS") {
+        await fetchRoomChat(id);
       }
 
       // Animate content appearance
@@ -149,7 +149,7 @@ const CaseDetails = ({ route, navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchCaseDetails()])
+    await Promise.all([fetchCaseDetails(), refreshUser()])
       .then(() => {
         console.log("[CaseDetails] Refreshed");
       })
@@ -161,7 +161,7 @@ const CaseDetails = ({ route, navigation }) => {
   useFocusEffect(
     useCallback(() => {
       fetchCaseDetails();
-    }, [])
+    }, [selectedChild])
   );
 
   useEffect(() => {
@@ -213,12 +213,15 @@ const CaseDetails = ({ route, navigation }) => {
 
                   const data = await confirmCase(caseId, body);
 
-                  if (status === "CONFIRMED" && data) {
-                    setCaseDetails(data);
-                  } else if (status === "REJECTED" && data) {
+                  console.log(data);
+
+                  if (data && data.status === "CONFIRMED") {
+                    setCaseDetails({ caseInfo: data });
+                  } else if (data && data.status === "REJECTED") {
                     refreshUser();
                     setCaseDetails(null);
                   }
+
                   setToast({
                     visible: true,
                     message: t(`case.${status.toLowerCase()}.success`),
@@ -264,13 +267,12 @@ const CaseDetails = ({ route, navigation }) => {
       const newMessage = {
         message: currentMessage,
         sender: user.email,
-        timestamp: new Date(),
+        timestamp: dayjs(),
         messageType: "CHAT",
       };
 
-      if (roomChatId) {
-        sendMessageToCounselor(newMessage, roomChatId);
-      }
+      sendMessageToCounselor(newMessage, roomChatId);
+
       setCurrentMessage("");
 
       // Scroll to bottom after sending message
@@ -879,7 +881,7 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderChatButton = () => {
-    if (caseId) {
+    if (caseId || caseDetails?.caseInfo.status !== "IN_PROGRESS") {
       return null;
     }
 
@@ -1031,8 +1033,8 @@ const styles = StyleSheet.create({
   },
   chatContainer: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
     height: "98%",
   },
   chatHeader: {
@@ -1042,8 +1044,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#3B82F6",
     padding: 12,
     paddingHorizontal: 16,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   chatTitle: {
     color: "#FFFFFF",
@@ -1062,12 +1064,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   onlineStatus: {
-    color: "#007E22",
+    color: "#11FF51FF",
     fontSize: 13,
     fontWeight: "600",
   },
   offlineStatus: {
-    color: "#B40B0B",
+    color: "#C21C1CFF",
     fontSize: 13,
     fontWeight: "600",
   },

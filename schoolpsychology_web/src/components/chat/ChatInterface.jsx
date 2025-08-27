@@ -7,7 +7,6 @@ import { useWebSocket } from '@/contexts/WebSocketContext'
 import { useAuth } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
-import dayjs from 'dayjs'
 
 const ChatInterface = ({ caseId }) => {
   const { subscribeToTopic, sendMessage2 } = useWebSocket()
@@ -65,7 +64,7 @@ const ChatInterface = ({ caseId }) => {
   useEffect(() => {
     if (!caseId) return
     fetchRoomChat()
-  }, [caseId, fetchRoomChat])
+  }, [caseId])
 
   const subcribe = useCallback(() => {
     if (!selectedRoom) return
@@ -139,11 +138,11 @@ const ChatInterface = ({ caseId }) => {
     const newMessage = {
       sender: user.email,
       message: text,
-      timestamp: dayjs(),
+      timestamp: new Date(),
     }
-
-    await sendMessage2(selectedRoom.id, newMessage)
     setMessages(prev => [...prev, newMessage]) // hiển thị ngay
+
+    sendMessage2(selectedRoom.id, newMessage)
 
     // Scroll to bottom after message is added
     setTimeout(() => {
@@ -227,7 +226,7 @@ const ChatInterface = ({ caseId }) => {
             />
             <div
               ref={chatRef}
-              className={`flex-1 overflow-y-auto p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
+              className={`flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
             >
               {isLoading ? (
                 <div className="h-full flex items-center justify-center">
