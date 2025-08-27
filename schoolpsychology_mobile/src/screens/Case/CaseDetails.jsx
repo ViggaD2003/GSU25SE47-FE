@@ -41,6 +41,8 @@ const CaseDetails = ({ route, navigation }) => {
     setChatMessages,
     sendMessageToCounselor,
     subscribeToChat,
+    activeChat,
+    setActiveChat,
   } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -75,8 +77,6 @@ const CaseDetails = ({ route, navigation }) => {
   // Fetch chat rooms
   const fetchRoomChat = async (id) => {
     try {
-      // console.log("user", user);
-
       if (caseId) {
         return;
       }
@@ -129,8 +129,7 @@ const CaseDetails = ({ route, navigation }) => {
 
       setCaseDetails(data);
 
-      if (data) {
-        console.log("[CaseDetails] Fetch room chat", data.caseInfo.id);
+      if (data && !caseId) {
         await fetchRoomChat(data.caseInfo.id);
       }
 
@@ -791,7 +790,14 @@ const CaseDetails = ({ route, navigation }) => {
         >
           {/* Chat Header */}
           <View style={styles.chatHeader}>
-            <Text style={styles.chatTitle}>{t("chat.title")}</Text>
+            <View style={styles.titleContainer}>
+              <Text style={styles.chatTitle}>{t("chat.title")}</Text>
+              {activeChat ? (
+                <Text style={styles.onlineStatus}>{t("chat.online")}</Text>
+              ) : (
+                <Text style={styles.offlineStatus}>{t("chat.offline")}</Text>
+              )}
+            </View>
             <TouchableOpacity onPress={toggleChat} style={styles.closeButton}>
               <Ionicons name="close" size={24} color="#FFFFFF" />
             </TouchableOpacity>
@@ -873,6 +879,10 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderChatButton = () => {
+    if (caseId) {
+      return null;
+    }
+
     return (
       <TouchableOpacity
         style={styles.chatFloatingButton}
@@ -1037,7 +1047,7 @@ const styles = StyleSheet.create({
   },
   chatTitle: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
   },
   closeButton: {
@@ -1048,6 +1058,19 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#F9FAFB",
   },
+  titleContainer: {
+    gap: 8,
+  },
+  onlineStatus: {
+    color: "#007E22",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  offlineStatus: {
+    color: "#B40B0B",
+    fontSize: 13,
+    fontWeight: "600",
+  },
   messageContainer: {
     marginBottom: 15,
   },
@@ -1056,7 +1079,6 @@ const styles = StyleSheet.create({
     maxWidth: "80%",
     flexDirection: "row",
   },
-
   userMessage: {
     alignSelf: "flex-end",
   },

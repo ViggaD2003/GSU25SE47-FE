@@ -1133,6 +1133,8 @@
   },
   "chat": {
     "title": "Chat with counselor",
-    "placeholder": "Enter message..."
+    "placeholder": "Enter message...",
+    "online": "Online",
+    "offline": "Offline"
   }
 }

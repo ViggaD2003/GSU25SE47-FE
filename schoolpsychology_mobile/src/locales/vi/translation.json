@@ -1155,6 +1155,8 @@
   },
   "chat": {
     "title": "Liên hệ với tư vấn viên",
-    "placeholder": "Nhập tin nhắn..."
+    "placeholder": "Nhập tin nhắn...",
+    "online": "Đang hoạt động",
+    "offline": "Đã ngưng hoạt động"
   }
 }

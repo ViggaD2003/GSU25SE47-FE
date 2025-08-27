@@ -33,6 +33,7 @@ const RealTimeProvider = ({ children }) => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("info");
   const [roomChatId, setRoomChatId] = useState(null);
+  const [activeChat, setActiveChat] = useState(false);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState([]);
@@ -208,8 +209,16 @@ const RealTimeProvider = ({ children }) => {
           if (!roomId) return;
           console.log("[WebSocket] 🔔 Chat message", message);
 
-          if (message.sender !== user.email && message.type === "CHAT") {
+          if (message.sender === user.email) {
+            return;
+          }
+
+          if (message.type === "CHAT") {
             setChatMessages((prev) => [...prev, message]);
+          } else if (message.type === "JOIN") {
+            setActiveChat(true);
+          } else if (message.type === "LEAVE") {
+            setActiveChat(false);
           }
         }
       );
@@ -360,7 +369,8 @@ const RealTimeProvider = ({ children }) => {
       setChatMessages,
       subscribeToChat,
       setRoomChatId,
-      // sendActiveChat,
+      activeChat,
+      setActiveChat,
     }),
     [
       isConnected,
@@ -370,6 +380,9 @@ const RealTimeProvider = ({ children }) => {
       chatMessages,
       setChatMessages,
       subscribeToChat,
+      setRoomChatId,
+      activeChat,
+      setActiveChat,
     ]
   );
 
