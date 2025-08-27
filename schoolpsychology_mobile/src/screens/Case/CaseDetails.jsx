@@ -41,8 +41,8 @@ const CaseDetails = ({ route, navigation }) => {
     chatMessages,
     setChatMessages,
     sendMessageToCounselor,
-    subscribeToChat,
     activeChat,
+    setRoomChatId,
   } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -62,13 +62,12 @@ const CaseDetails = ({ route, navigation }) => {
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
   const [chatFadeAnim] = useState(new Animated.Value(0));
-  const [roomChatId, setRoomChatId] = useState(null);
 
   const chatRef = useRef(null);
 
   const fetchChatMessages = async (roomId) => {
-    if (roomId || roomChatId) {
-      const data = await getChatMessages(roomId || roomChatId);
+    if (roomId) {
+      const data = await getChatMessages(roomId);
       console.log("[CaseDetails] Fetch chat messages", data);
       setChatMessages(data);
     }
@@ -84,14 +83,11 @@ const CaseDetails = ({ route, navigation }) => {
       console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
 
       if (res) {
-        sendMessageToCounselor(
-          {
-            sender: user.email,
-            timestamp: new Date(),
-            messageType: "JOIN",
-          },
-          res.id
-        );
+        sendMessageToCounselor({
+          sender: user.email,
+          timestamp: new Date(),
+          messageType: "JOIN",
+        });
 
         setRoomChatId(res.id);
 
@@ -163,12 +159,6 @@ const CaseDetails = ({ route, navigation }) => {
       fetchCaseDetails();
     }, [selectedChild])
   );
-
-  useEffect(() => {
-    if (roomChatId) {
-      subscribeToChat(roomChatId);
-    }
-  }, [roomChatId, subscribeToChat]);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -271,7 +261,7 @@ const CaseDetails = ({ route, navigation }) => {
         messageType: "CHAT",
       };
 
-      sendMessageToCounselor(newMessage, roomChatId);
+      sendMessageToCounselor(newMessage);
 
       setCurrentMessage("");
 

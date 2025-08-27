@@ -196,38 +196,35 @@ const RealTimeProvider = ({ children }) => {
     client.activate();
   }, []);
 
-  const subscribeToChat = useCallback(
-    (roomId) => {
-      if (!stompClientRef?.current || !user?.email) {
-        return;
-      }
+  const subscribeToChat = useCallback(() => {
+    if (!stompClientRef?.current || !user?.email) {
+      return;
+    }
 
-      chatSubscriptionRef.current = subscribeToTopic(
-        stompClientRef.current,
-        `/topic/chat/${roomId}`,
-        (message) => {
-          if (!roomId) return;
-          console.log("[WebSocket] 🔔 Chat message", message);
+    chatSubscriptionRef.current = subscribeToTopic(
+      stompClientRef.current,
+      `/topic/chat/${roomChatId}`,
+      (message) => {
+        if (!roomChatId) return;
+        console.log("[WebSocket] 🔔 Chat message", message);
 
-          if (message.sender === user.email) {
-            return;
-          }
-
-          if (message.type === "JOIN") {
-            setActiveChat(true);
-            return;
-          } else if (message.type === "LEAVE") {
-            setActiveChat(false);
-            return;
-          } else if (message.type === "CHAT") {
-            setChatMessages((prev) => [...prev, message]);
-            return;
-          }
+        if (message.sender === user.email) {
+          return;
         }
-      );
-    },
-    [stompClientRef.current]
-  );
+
+        if (message.type === "JOIN") {
+          setActiveChat(true);
+          return;
+        } else if (message.type === "LEAVE") {
+          setActiveChat(false);
+          return;
+        } else if (message.type === "CHAT") {
+          setChatMessages((prev) => [...prev, message]);
+          return;
+        }
+      }
+    );
+  }, [stompClientRef.current, user?.email, roomChatId]);
 
   // const sendActiveChat = useCallback(
   //   (roomId) => {
@@ -266,8 +263,8 @@ const RealTimeProvider = ({ children }) => {
   );
 
   const sendMessageToCounselor = useCallback(
-    (msg, roomId) => {
-      if (!stompClientRef.current || !roomId || !user?.email) {
+    (msg) => {
+      if (!stompClientRef.current || !roomChatId || !user?.email) {
         return;
       }
 
@@ -280,9 +277,9 @@ const RealTimeProvider = ({ children }) => {
 
       let destination;
       if (["JOIN", "LEAVE"].includes(msg.messageType)) {
-        destination = `/app/chat.addUser/${roomId}`;
+        destination = `/app/chat.addUser/${roomChatId}`;
       } else if (msg.messageType === "CHAT") {
-        destination = `/app/chat/${roomId}`;
+        destination = `/app/chat/${roomChatId}`;
         setChatMessages((prev) => [...prev, bodyData]);
       }
 
@@ -302,7 +299,7 @@ const RealTimeProvider = ({ children }) => {
         bodyData
       );
     },
-    [stompClientRef.current, user?.email]
+    [stompClientRef.current, user?.email, roomChatId]
   );
 
   const disconnectWebSocket = useCallback(async () => {
@@ -317,14 +314,11 @@ const RealTimeProvider = ({ children }) => {
     if (chatSubscriptionRef.current) {
       try {
         await Promise.all([
-          sendMessageToCounselor(
-            {
-              sender: user.email,
-              timestamp: new Date(),
-              messageType: "LEAVE",
-            },
-            roomChatId
-          ),
+          sendMessageToCounselor({
+            sender: user.email,
+            timestamp: new Date(),
+            messageType: "LEAVE",
+          }),
         ]);
         chatSubscriptionRef.current.unsubscribe();
       } catch {}
@@ -339,6 +333,12 @@ const RealTimeProvider = ({ children }) => {
     setIsConnected(false);
     setIsConnecting(false);
   }, []);
+
+  useEffect(() => {
+    if (roomChatId) {
+      subscribeToChat();
+    }
+  }, [roomChatId]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -369,6 +369,8 @@ const RealTimeProvider = ({ children }) => {
       setRoomChatId,
       activeChat,
       setActiveChat,
+      roomChatId,
+      setRoomChatId,
     }),
     [
       isConnected,
@@ -381,6 +383,8 @@ const RealTimeProvider = ({ children }) => {
       setRoomChatId,
       activeChat,
       setActiveChat,
+      roomChatId,
+      setRoomChatId,
     ]
   );
 
