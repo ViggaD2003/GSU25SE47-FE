@@ -304,7 +304,7 @@ const RealTimeProvider = ({ children }) => {
         bodyData
       );
     },
-    []
+    [isAuthenticated]
   );
 
   const disconnectWebSocket = useCallback(async () => {
