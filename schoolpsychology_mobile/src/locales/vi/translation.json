@@ -1152,5 +1152,9 @@
         "message": "Lưu cài đặt thất bại. Vui lòng thử lại."
       }
     }
+  },
+  "chat": {
+    "title": "Liên hệ với tư vấn viên",
+    "placeholder": "Nhập tin nhắn..."
   }
 }

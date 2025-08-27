@@ -1130,5 +1130,9 @@
         "message": "Failed to save settings. Please try again."
       }
     }
+  },
+  "chat": {
+    "title": "Chat with counselor",
+    "placeholder": "Enter message..."
   }
 }

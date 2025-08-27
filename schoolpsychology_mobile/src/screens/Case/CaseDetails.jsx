@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,9 @@ import {
   Animated,
   Alert,
   TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Text } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
@@ -20,7 +23,7 @@ import HeaderWithTab from "@/components/ui/header/HeaderWithTab";
 import StatisticsCard from "@/components/dashboard/StatisticsCard";
 import BarChart from "@/components/charts/BarChart";
 import Loading from "@/components/common/Loading";
-import { useAuth, useChildren } from "@/contexts";
+import { useAuth, useChildren, useRealTime } from "@/contexts";
 import { confirmCase, getCaseByCaseId } from "@/services/api/caseApi";
 import { getLevelConfig } from "@/constants/levelConfig";
 import ChildSelector, {
@@ -28,10 +31,17 @@ import ChildSelector, {
 } from "@/components/common/ChildSelector";
 import { useFocusEffect } from "@react-navigation/native";
 import { Toast } from "@/components/common";
+import { getChatMessages, getChatRooms } from "@/services/api/chatApi";
 
 const CaseDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
+  const {
+    chatMessages,
+    setChatMessages,
+    sendMessageToCounselor,
+    subscribeToChat,
+  } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +55,52 @@ const CaseDetails = ({ route, navigation }) => {
     type: "info",
   });
   const hasActiveCase = user?.caseId || selectedChild?.caseId;
+
+  // Chat states
+  const [isChatVisible, setIsChatVisible] = useState(false);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [chatFadeAnim] = useState(new Animated.Value(0));
+  const [roomChatId, setRoomChatId] = useState(null);
+
+  const chatRef = useRef(null);
+
+  const fetchChatMessages = async (roomId) => {
+    if (roomId) {
+      const data = await getChatMessages(roomId || roomChatId);
+      console.log("[CaseDetails] Fetch chat messages", data);
+      setChatMessages(data);
+    }
+  };
+
+  // Fetch chat rooms
+  const fetchRoomChat = async (id) => {
+    try {
+      // console.log("user", user);
+
+      if (caseId) {
+        return;
+      }
+      const res = await getChatRooms(id);
+      console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
+
+      if (res) {
+        sendMessageToCounselor(
+          {
+            sender: user.email,
+            timestamp: new Date(),
+            messageType: "JOIN",
+          },
+          res.id
+        );
+
+        setRoomChatId(res.id);
+
+        await fetchChatMessages(res.id);
+      }
+    } catch (err) {
+      console.error("Error fetching chat rooms:", err);
+    }
+  };
 
   const fetchCaseDetails = async () => {
     try {
@@ -73,6 +129,11 @@ const CaseDetails = ({ route, navigation }) => {
 
       setCaseDetails(data);
 
+      if (data) {
+        console.log("[CaseDetails] Fetch room chat", data.caseInfo.id);
+        await fetchRoomChat(data.caseInfo.id);
+      }
+
       // Animate content appearance
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -89,7 +150,7 @@ const CaseDetails = ({ route, navigation }) => {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchCaseDetails(), refreshUser()])
+    await Promise.all([fetchCaseDetails()])
       .then(() => {
         console.log("[CaseDetails] Refreshed");
       })
@@ -98,15 +159,26 @@ const CaseDetails = ({ route, navigation }) => {
       });
   };
 
-  useEffect(() => {
-    fetchCaseDetails();
-  }, [selectedChild, user?.caseId, caseId]);
-
   useFocusEffect(
     useCallback(() => {
       fetchCaseDetails();
-    }, [selectedChild, user?.caseId, caseId])
+    }, [])
   );
+
+  useEffect(() => {
+    if (roomChatId) {
+      subscribeToChat(roomChatId);
+    }
+  }, [roomChatId, subscribeToChat]);
+
+  // Auto scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatMessages.length > 0 && chatRef.current) {
+      setTimeout(() => {
+        chatRef.current?.scrollToEnd({ animated: true });
+      }, 500);
+    }
+  }, [chatMessages]);
 
   const handleConfirmCase = async (status) => {
     try {
@@ -168,6 +240,44 @@ const CaseDetails = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error("Error confirming case:", error);
+    }
+  };
+
+  // Chat functions
+  const toggleChat = () => {
+    setIsChatVisible(!isChatVisible);
+    Animated.timing(chatFadeAnim, {
+      toValue: isChatVisible ? 0 : 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    // Scroll to bottom when opening chat
+    if (!isChatVisible && chatMessages.length > 0) {
+      setTimeout(() => {
+        chatRef.current?.scrollToEnd({ animated: true });
+      }, 400); // Wait for animation to complete
+    }
+  };
+
+  const sendMessage = () => {
+    if (currentMessage.trim()) {
+      const newMessage = {
+        message: currentMessage,
+        sender: user.email,
+        timestamp: new Date(),
+        messageType: "CHAT",
+      };
+
+      if (roomChatId) {
+        sendMessageToCounselor(newMessage, roomChatId);
+      }
+      setCurrentMessage("");
+
+      // Scroll to bottom after sending message
+      setTimeout(() => {
+        chatRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   };
 
@@ -669,6 +779,116 @@ const CaseDetails = ({ route, navigation }) => {
     );
   };
 
+  const renderChatModal = () => {
+    if (!isChatVisible) return null;
+
+    return (
+      <Animated.View style={[styles.chatModal, { opacity: chatFadeAnim }]}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+          style={styles.chatContainer}
+        >
+          {/* Chat Header */}
+          <View style={styles.chatHeader}>
+            <Text style={styles.chatTitle}>{t("chat.title")}</Text>
+            <TouchableOpacity onPress={toggleChat} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Chat Messages */}
+          <ScrollView
+            ref={chatRef}
+            style={styles.chatMessages}
+            showsVerticalScrollIndicator={false}
+          >
+            {chatMessages.map((message, index) => (
+              <View key={index} style={styles.messageContainer}>
+                <View
+                  style={[
+                    styles.contentContainer,
+                    message.sender === user.email
+                      ? styles.userMessage
+                      : styles.botMessage,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.messageText,
+                      message.sender === user.email
+                        ? styles.userMessageText
+                        : styles.botMessageText,
+                    ]}
+                  >
+                    {message.message}
+                  </Text>
+                </View>
+
+                <Text
+                  style={[
+                    styles.messageTime,
+                    message.sender === user.email
+                      ? styles.userMessage
+                      : styles.botMessage,
+                  ]}
+                >
+                  {new Date(message.timestamp).toLocaleTimeString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+
+          {/* Chat Input */}
+          <View style={styles.chatInputContainer}>
+            <TextInput
+              style={styles.chatInput}
+              value={currentMessage}
+              onChangeText={setCurrentMessage}
+              placeholder={t("chat.placeholder")}
+              multiline
+              maxLength={500}
+              placeholderTextColor="#6B7280"
+            />
+            <TouchableOpacity
+              onPress={sendMessage}
+              style={[
+                styles.sendButton,
+                !currentMessage.trim() && { opacity: 0.5 },
+              ]}
+              disabled={!currentMessage.trim()}
+            >
+              <Ionicons name="send" size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Animated.View>
+    );
+  };
+
+  const renderChatButton = () => {
+    return (
+      <TouchableOpacity
+        style={styles.chatFloatingButton}
+        onPress={toggleChat}
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={["#3B82F6", "#1D4ED8"]}
+          style={styles.chatButtonGradient}
+        >
+          <Ionicons name="chatbubble-ellipses" size={24} color="#FFFFFF" />
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  };
+
   const renderButton = () => {
     if (user.role === "STUDENT" || !isNewCase) {
       return null;
@@ -756,6 +976,10 @@ const CaseDetails = ({ route, navigation }) => {
               </View>
             )}
           </ScrollView>
+
+          {/* Chat Components */}
+          {renderChatButton()}
+          {renderChatModal()}
         </>
       )}
     </Container>
@@ -763,17 +987,135 @@ const CaseDetails = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  // Chat Styles
+  chatFloatingButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    zIndex: 1000,
+  },
+  chatButtonGradient: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  chatModal: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: 1001,
+    justifyContent: "flex-end",
+  },
+  chatContainer: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: "98%",
+  },
+  chatHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#3B82F6",
+    padding: 12,
+    paddingHorizontal: 16,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  chatTitle: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  chatMessages: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: "#F9FAFB",
+  },
+  messageContainer: {
+    marginBottom: 15,
+  },
+  contentContainer: {
+    marginBottom: 5,
+    maxWidth: "80%",
+    flexDirection: "row",
+  },
+
+  userMessage: {
+    alignSelf: "flex-end",
+  },
+  botMessage: {
+    alignSelf: "flex-start",
+  },
+  messageText: {
+    padding: 12,
+    borderRadius: 16,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  userMessageText: {
+    backgroundColor: "#3B82F6",
+    color: "#FFFFFF",
+  },
+  botMessageText: {
+    backgroundColor: "#E5E7EB",
+    color: "#1F2937",
+  },
+  messageTime: {
+    fontSize: 10,
+    color: "#6B7280",
+    // marginTop: 4,
+    // textAlign: "right",
+  },
+  chatInputContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+  },
+  chatInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 12,
+    fontSize: 14,
+    maxHeight: 100,
+    backgroundColor: "#F9FAFB",
+    color: "#000",
+  },
+  sendButton: {
+    backgroundColor: "#3B82F6",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   childSelectorContainer: {
     marginHorizontal: 20,
     marginTop: 16,
   },
-  // childSelector: {
-  //   marginTop: ,
-  // },
-  // childSelectionContainer: {
-  //   paddingHorizontal: 16,
-  //   minHeight: 150,
-  // },
   scrollContent: {
     // paddingBottom: 32,
   },
