@@ -276,11 +276,16 @@ export const WebSocketProvider = ({ children }) => {
       }
 
       try {
-        const destination = `/app/chat/${roomId}`
         const bodyData = {
           sender: body.sender,
-          message: body.message,
+          message: body.message || '',
           timestamp: body.timestamp,
+          type: body.messageType || 'CHAT',
+        }
+
+        let destination = `/app/chat/${roomId}`
+        if (['JOIN', 'LEAVE'].includes(body.messageType)) {
+          destination = `/app/chat.addUser/${roomId}`
         }
         console.log('🔍 sendMessage2', bodyData)
         stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))

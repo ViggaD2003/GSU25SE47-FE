@@ -1,13 +1,13 @@
 import React from 'react'
+import { useTheme } from '@/contexts/ThemeContext'
 
 const ChatMessage = ({ message, isOwn, t }) => {
+  const { isDarkMode } = useTheme()
   const formatTime = timeString => {
     if (!timeString) return ''
     try {
       // Nếu đã có Z thì parse trực tiếp
-      const date = timeString.endsWith('Z')
-        ? new Date(timeString)
-        : new Date(timeString + 'Z')
+      const date = new Date(timeString)
 
       if (isNaN(date.getTime())) return timeString
 
@@ -31,13 +31,21 @@ const ChatMessage = ({ message, isOwn, t }) => {
         className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
           isOwn
             ? 'bg-blue-500 text-white rounded-br-none'
-            : 'bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-bl-none'
+            : `border rounded-bl-none ${
+                isDarkMode
+                  ? 'bg-gray-700 text-gray-200 border-gray-600'
+                  : 'bg-white text-gray-800 border-gray-200'
+              }`
         }`}
       >
         <p className="text-sm">{message?.message || t('chat.noMessage')}</p>
         <div
           className={`text-xs mt-1 ${
-            isOwn ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+            isOwn
+              ? 'text-blue-100'
+              : isDarkMode
+                ? 'text-gray-400'
+                : 'text-gray-500'
           }`}
         >
           {formatTime(message?.timestamp)}

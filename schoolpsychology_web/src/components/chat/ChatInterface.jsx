@@ -6,6 +6,8 @@ import api from '@/services/api'
 import { useWebSocket } from '@/contexts/WebSocketContext'
 import { useAuth } from '@/hooks'
 import { useTranslation } from 'react-i18next'
+import { useTheme } from '@/contexts/ThemeContext'
+import dayjs from 'dayjs'
 
 const ChatInterface = ({ caseId }) => {
   const { subscribeToTopic, sendMessage2 } = useWebSocket()
@@ -16,11 +18,13 @@ const ChatInterface = ({ caseId }) => {
   const { t } = useTranslation()
   const chatRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [activeUsers, setActiveUsers] = useState([])
+  const { isDarkMode } = useTheme()
 
   const fetchChatMessages = async roomId => {
     try {
       setIsLoading(true)
-      const chatRoomId = roomId || selectedRoom
+      const chatRoomId = roomId || selectedRoom.id
       const res = await api.get(
         `/api/v1/chat/chat-message?chatRoomId=${chatRoomId}`
       )
@@ -37,9 +41,20 @@ const ChatInterface = ({ caseId }) => {
     try {
       const res = await api.get(`/api/v1/chat/chat-room?caseId=${caseId}`)
       if (res.data.length > 0) {
+        console.log('Fetched chat rooms:', res.data)
+
         setRoomChatIds(res.data || [])
+        res.data.forEach(room => {
+          if (room && room.id) {
+            sendMessage2(room.id, {
+              sender: user.email,
+              timestamp: new Date(),
+              messageType: 'JOIN',
+            })
+          }
+        })
         setSelectedRoom(res.data[0]) // chọn phòng đầu tiên
-        await fetchChatMessages(res.data[0])
+        await fetchChatMessages(res.data[0].id)
       }
     } catch (err) {
       console.error('Error fetching chat rooms:', err)
@@ -52,19 +67,38 @@ const ChatInterface = ({ caseId }) => {
     fetchRoomChat()
   }, [caseId, fetchRoomChat])
 
-  // Subscribe WebSocket khi chọn phòng
-  useEffect(() => {
+  const subcribe = useCallback(() => {
     if (!selectedRoom) return
 
-    const unsubscribe = subscribeToTopic(`/topic/chat/${selectedRoom}`, msg => {
-      try {
-        if (msg.sender !== user.email) {
-          setMessages(prev => [...prev, msg])
+    const unsubscribe = subscribeToTopic(
+      `/topic/chat/${selectedRoom.id}`,
+      msg => {
+        try {
+          if (!msg || !msg.sender) return
+
+          if (msg.type === 'CHAT') {
+            setMessages(prev => [...prev, msg])
+          }
+
+          if (['JOIN', 'LEAVE'].includes(msg.type)) {
+            setActiveUsers(prev => {
+              const filterUser = prev.find(u => u.sender === msg.sender)
+
+              if (filterUser) {
+                filterUser.type = msg.type
+                return [
+                  ...prev.filter(u => u.sender !== msg.sender),
+                  filterUser,
+                ]
+              }
+              return [...prev, msg]
+            })
+          }
+        } catch (err) {
+          console.error('Invalid WS message:', msg, err)
         }
-      } catch (err) {
-        console.error('Invalid WS message:', msg, err)
       }
-    })
+    )
 
     // cleanup
     return () => {
@@ -73,6 +107,11 @@ const ChatInterface = ({ caseId }) => {
       }
     }
   }, [selectedRoom, subscribeToTopic, user.email])
+
+  // Subscribe WebSocket khi chọn phòng
+  useEffect(() => {
+    subcribe()
+  }, [subcribe])
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
@@ -98,10 +137,10 @@ const ChatInterface = ({ caseId }) => {
     const newMessage = {
       sender: user.email,
       message: text,
-      timestamp: new Date().toISOString(),
+      timestamp: dayjs(),
     }
 
-    await sendMessage2(selectedRoom, newMessage)
+    await sendMessage2(selectedRoom.id, newMessage)
     setMessages(prev => [...prev, newMessage]) // hiển thị ngay
 
     // Scroll to bottom after message is added
@@ -111,37 +150,58 @@ const ChatInterface = ({ caseId }) => {
   }
 
   const handleSelectRoom = async roomId => {
-    setSelectedRoom(roomId)
+    setSelectedRoom(roomChatIds.find(r => r.id === roomId))
     setMessages([])
     await fetchChatMessages(roomId)
   }
 
   return (
-    <div className="flex h-full bg-gray-50 dark:bg-gray-900">
+    <div
+      className={`flex h-full ${isDarkMode ? 'bg-gray-900' : ' bg-gray-50'}`}
+    >
       {/* Sidebar: Danh sách phòng */}
-      <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
-            {t('chat.room')}
-          </h2>
+      <div
+        className={`w-64  border-r flex flex-col  ${isDarkMode ? 'text-gray-200 border-gray-700 bg-gray-800' : 'bg-white text-gray-800  border-gray-200'}`}
+      >
+        <div
+          className={`p-4 border-b ${
+            isDarkMode
+              ? 'bg-gray-800 border-gray-700'
+              : 'bg-white border-gray-200'
+          }`}
+        >
+          <h2 className="text-base font-semibold">{t('chat.room')}</h2>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {roomChatIds.map(roomId => (
+          {roomChatIds.map(room => (
             <div
-              key={roomId}
-              onClick={() => handleSelectRoom(roomId)}
-              className={`p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors 
-                ${selectedRoom === roomId ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-l-blue-500' : ''}`}
+              key={room.id}
+              onClick={() => handleSelectRoom(room.id)}
+              className={`p-4 cursor-pointer transition-colors 
+                ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}
+                ${
+                  selectedRoom === room.id
+                    ? isDarkMode
+                      ? 'bg-blue-900/20 border-l-4 border-l-blue-500'
+                      : 'bg-blue-50 border-l-4 border-l-blue-500'
+                    : ''
+                }`}
             >
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center text-lg">
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${isDarkMode ? 'bg-gray-600' : 'bg-gray-200'}`}
+                >
                   💬
                 </div>
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {t('chat.room')} {roomId}
+                  <h4
+                    className={`text-sm font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}
+                  >
+                    {t('chat.room')} {room.roleRoom}
                   </h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p
+                    className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                  >
                     {t('chat.roomDescription')}
                   </p>
                 </div>
@@ -158,15 +218,14 @@ const ChatInterface = ({ caseId }) => {
             <ChatHeader
               t={t}
               student={{
-                name: `${t('chat.room')} ${selectedRoom}`,
-                avatar: '💬',
-                online: true,
+                ...selectedRoom,
+                ...activeUsers.find(u => u.sender === selectedRoom.email),
               }}
               caseId={caseId}
             />
             <div
               ref={chatRef}
-              className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900"
+              className={`flex-1 overflow-y-auto p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
             >
               {isLoading ? (
                 <div className="h-full flex items-center justify-center">
@@ -187,7 +246,9 @@ const ChatInterface = ({ caseId }) => {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-500">{t('chat.selectRoom')}</p>
+            <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              {t('chat.selectRoom')}
+            </p>
           </div>
         )}
       </div>
