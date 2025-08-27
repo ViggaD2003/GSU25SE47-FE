@@ -182,7 +182,7 @@ const ChatInterface = ({ caseId }) => {
               className={`p-4 cursor-pointer transition-colors 
                 ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}
                 ${
-                  selectedRoom === room.id
+                  selectedRoom.id === room.id
                     ? isDarkMode
                       ? 'bg-blue-900/20 border-l-4 border-l-blue-500'
                       : 'bg-blue-50 border-l-4 border-l-blue-500'
