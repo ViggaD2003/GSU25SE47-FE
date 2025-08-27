@@ -76,6 +76,8 @@ const ChatInterface = ({ caseId }) => {
         try {
           if (!msg || !msg.sender) return
 
+          if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
+
           if (msg.type === 'CHAT') {
             setMessages(prev => [...prev, msg])
           }

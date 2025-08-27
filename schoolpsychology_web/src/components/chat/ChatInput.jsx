@@ -27,6 +27,8 @@ const ChatInput = ({ onSendMessage, t }) => {
             onKeyDown={e => {
               if (e.key === 'Enter' && e.shiftKey) {
                 setMessage(message + '\n')
+              } else if (e.key === 'Enter') {
+                handleSubmit(e)
               }
             }}
             placeholder={t('chat.sendMessagePlaceholder')}
