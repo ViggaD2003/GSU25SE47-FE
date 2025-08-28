@@ -5,7 +5,7 @@ import { useTheme } from '@/contexts/ThemeContext'
 
 const ChatHeader = ({ student, caseId: _caseId = null, t }) => {
   const { isDarkMode } = useTheme()
-  const online = student?.type === 'JOIN' ? true : false
+  const online = student?.isOnline
 
   return (
     <div

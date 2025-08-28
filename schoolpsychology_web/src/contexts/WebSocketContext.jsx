@@ -39,8 +39,8 @@ export const WebSocketProvider = ({ children }) => {
 
   // Kiểm tra trạng thái kết nối an toàn
   const isConnectionReady = useCallback(() => {
-    return stompClientRef?.current && stompClientRef?.current?.connected
-  }, [stompClientRef])
+    return stompClientRef?.current && user && isAuthenticated
+  }, [stompClientRef, user, isAuthenticated])
 
   // Hàm cleanup an toàn - không cần dependencies
   const safeCleanup = useCallback(() => {
@@ -129,7 +129,7 @@ export const WebSocketProvider = ({ children }) => {
     }, 30000) // gửi mỗi 30 giây
 
     console.log('[WebSocket] Heartbeat started')
-  }, [isConnectionReady])
+  }, [isConnectionReady, safeCleanup])
 
   const subscribeToTopic = useCallback(
     (topic, callback) => {
@@ -159,46 +159,6 @@ export const WebSocketProvider = ({ children }) => {
       }
     },
     [isConnectionReady, stompClientRef]
-  )
-
-  const sendMessage2 = useCallback(
-    (type = 'CHAT', roomId = '', body = { sender: user?.email }) => {
-      if (!isConnectionReady()) {
-        console.log('[WebSocket] Not connected, connecting...')
-        connectWebSocket()
-      }
-
-      try {
-        let destination
-
-        if (type === 'ADD_USER') {
-          console.log('[WebSocket_sendMessage2] 🔍 add user', body.sender)
-
-          destination = `/app/chat.addUser`
-          stompClientRef?.current?.send(
-            destination,
-            {},
-            JSON.stringify({ username: user?.email })
-          )
-          return
-        } else if (type === 'CHAT' && roomId) {
-          destination = `/app/chat/${roomId}`
-        }
-        const bodyData = {
-          sender: body.sender,
-          message: body.message || '',
-          timestamp: body.timestamp,
-        }
-
-        console.log('🔍 sendMessage2', bodyData)
-        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
-        console.log('[WebSocket] Message sent to:', destination)
-      } catch (error) {
-        console.error('[WebSocket] Error sending message:', error)
-        throw new Error('Failed to send message')
-      }
-    },
-    [isConnectionReady, user?.email, stompClientRef?.current]
   )
 
   const connectWebSocket = useCallback(() => {
@@ -271,14 +231,13 @@ export const WebSocketProvider = ({ children }) => {
           startHeartbeat()
 
           // send message to add user
-          user &&
-            Promise.all([sendMessage2('ADD_USER')]).then(() => {
-              stompClient.subscribe(`/topic/onlineUsers`, msg => {
-                const data = JSON.parse(msg.body)
-                console.log('[WebSocket] Online users:', data)
-                setOnlineUsers(data || [])
-              })
-            })
+          // Promise.all([sendMessage2('ADD_USER')]).then(() => {
+          //   stompClient.subscribe(`/topic/onlineUsers`, msg => {
+          //     const data = JSON.parse(msg.body)
+          //     console.log('[WebSocket] Online users:', data)
+          //     setOnlineUsers(data || [])
+          //   })
+          // })
         },
         error => {
           console.error('[WebSocket] STOMP connection error:', error)
@@ -293,7 +252,7 @@ export const WebSocketProvider = ({ children }) => {
       setIsConnecting(false)
       safeCleanup()
     }
-  }, [jwtToken, isConnecting, isConnected, safeCleanup, user?.email])
+  }, [jwtToken, isConnecting, isConnected, safeCleanup, startHeartbeat])
 
   const sendMessage = useCallback(
     (
@@ -331,6 +290,46 @@ export const WebSocketProvider = ({ children }) => {
     [isConnectionReady]
   )
 
+  const sendMessage2 = useCallback(
+    (type = 'CHAT', roomId = '', body = { sender: user?.email }) => {
+      if (!isConnectionReady()) {
+        console.log('[WebSocket] Not connected, connecting...')
+        connectWebSocket()
+      }
+
+      try {
+        let destination
+
+        if (type === 'ADD_USER') {
+          console.log('[WebSocket_sendMessage2] 🔍 add user', body.sender)
+
+          destination = `/app/chat.addUser`
+          stompClientRef?.current?.send(
+            destination,
+            {},
+            JSON.stringify({ username: user?.email })
+          )
+          return
+        } else if (type === 'CHAT' && roomId) {
+          destination = `/app/chat/${roomId}`
+        }
+        const bodyData = {
+          sender: body.sender,
+          message: body.message || '',
+          timestamp: body.timestamp,
+        }
+
+        console.log('🔍 sendMessage2', bodyData)
+        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
+        console.log('[WebSocket] Message sent to:', destination)
+      } catch (error) {
+        console.error('[WebSocket] Error sending message:', error)
+        throw new Error('Failed to send message')
+      }
+    },
+    [isConnectionReady, user?.email, stompClientRef, connectWebSocket]
+  )
+
   // Kết nối WebSocket khi user đã đăng nhập - tối ưu dependencies
   useEffect(() => {
     if (isAuthenticated && user && jwtToken) {
@@ -338,7 +337,13 @@ export const WebSocketProvider = ({ children }) => {
     } else {
       safeCleanup()
     }
-  }, [isAuthenticated, user?.id, jwtToken]) // Chỉ depend vào user.id thay vì toàn bộ user object
+  }, [isAuthenticated, user, jwtToken, connectWebSocket, safeCleanup]) // Chỉ depend vào user.id thay vì toàn bộ user object
+
+  useEffect(() => {
+    if (isConnectionReady()) {
+      sendMessage2('ADD_USER')
+    }
+  }, [isConnectionReady, sendMessage2])
 
   // Subscribe to notifications khi đã kết nối - tối ưu dependencies
   useEffect(() => {

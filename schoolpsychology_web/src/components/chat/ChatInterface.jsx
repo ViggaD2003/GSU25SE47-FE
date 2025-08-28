@@ -9,11 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const ChatInterface = ({ caseId }) => {
-  const {
-    // subscribeToTopic,
-    sendMessage2,
-    onlineUsers: activeUsers,
-  } = useWebSocket()
+  const { subscribeToTopic, sendMessage2, onlineUsers } = useWebSocket()
   const [messages, setMessages] = useState([])
   const [roomChatIds, setRoomChatIds] = useState([])
   const [selectedRoom, setSelectedRoom] = useState(null)
@@ -61,36 +57,36 @@ const ChatInterface = ({ caseId }) => {
     fetchRoomChat()
   }, [caseId])
 
-  // const subcribe = useCallback(() => {
-  //   if (!selectedRoom) return
+  const subcribe = useCallback(() => {
+    if (!selectedRoom) return
 
-  //   const unsubscribe = subscribeToTopic(
-  //     `/topic/chat/${selectedRoom.id}`,
-  //     msg => {
-  //       try {
-  //         if (!msg || !msg.sender) return
+    const unsubscribe = subscribeToTopic(
+      `/topic/chat/${selectedRoom.id}`,
+      msg => {
+        try {
+          if (!msg || !msg.sender) return
 
-  //         if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
+          if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
 
-  //         setMessages(prev => [...prev, { ...msg, timestamp: new Date() }])
-  //       } catch (err) {
-  //         console.error('Invalid WS message:', msg, err)
-  //       }
-  //     }
-  //   )
+          setMessages(prev => [...prev, { ...msg, timestamp: new Date() }])
+        } catch (err) {
+          console.error('Invalid WS message:', msg, err)
+        }
+      }
+    )
 
-  //   // cleanup
-  //   return () => {
-  //     if (typeof unsubscribe === 'function') {
-  //       unsubscribe()
-  //     }
-  //   }
-  // }, [selectedRoom, subscribeToTopic, user.email])
+    // cleanup
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe()
+      }
+    }
+  }, [selectedRoom, subscribeToTopic, user.email])
 
   // Subscribe WebSocket khi chọn phòng
-  // useEffect(() => {
-  //   subcribe()
-  // }, [subcribe])
+  useEffect(() => {
+    subcribe()
+  }, [subcribe])
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
@@ -198,7 +194,7 @@ const ChatInterface = ({ caseId }) => {
               t={t}
               student={{
                 ...selectedRoom,
-                ...activeUsers.find(u => u.sender === selectedRoom.email),
+                isOnline: Array(onlineUsers || []).includes(selectedRoom.email),
               }}
               caseId={caseId}
             />

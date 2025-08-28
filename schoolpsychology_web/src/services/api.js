@@ -12,7 +12,7 @@ import { getToken, updateToken } from '../utils/authHelpers'
 let isRefreshing = false
 let refreshPromise = null
 
-const controller = new AbortController()
+let controller = new AbortController()
 
 // Utility function to handle server errors
 const handleServerError = (error, showNotification = true) => {
@@ -139,6 +139,8 @@ api.interceptors.request.use(
     const isExcludedPath = excludedPaths.some(path => config.url.includes(path))
     const token = getToken()
 
+    controller = new AbortController()
+    config.signal = controller.signal
     if (isExcludedPath || !token) {
       config.headers.Authorization = ''
       return config
@@ -154,6 +156,7 @@ api.interceptors.request.use(
       } catch {
         console.error('❌ Request: Token refresh failed, request will fail')
         store.dispatch(forceLogout())
+        controller.abort()
       }
     } else {
       config.headers.Authorization = `Bearer ${token}`
