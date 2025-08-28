@@ -103,11 +103,7 @@ const LayoutComponent = () => {
   const [collapsed, setCollapsed] = useState(false)
   const [lastNotificationCount, setLastNotificationCount] = useState(0)
   const [isPending, startTransition] = useTransition()
-  const {
-    notifications,
-    setNotifications,
-    // sendMessage
-  } = useWebSocket()
+  const { notifications, setNotifications, sendMessage } = useWebSocket()
 
   // Refs for managing async operations
   const notificationFetchRef = useRef(null)
@@ -419,7 +415,7 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
-              {/* <Button onClick={() => sendMessage()}>Test</Button> */}
+              <Button onClick={() => sendMessage()}>Test</Button>
 
               {/* Notifications */}
               <NotificationBell />

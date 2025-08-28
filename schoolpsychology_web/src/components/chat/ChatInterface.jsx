@@ -9,7 +9,11 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const ChatInterface = ({ caseId }) => {
-  const { subscribeToTopic, sendMessage2 } = useWebSocket()
+  const {
+    // subscribeToTopic,
+    sendMessage2,
+    onlineUsers: activeUsers,
+  } = useWebSocket()
   const [messages, setMessages] = useState([])
   const [roomChatIds, setRoomChatIds] = useState([])
   const [selectedRoom, setSelectedRoom] = useState(null)
@@ -17,7 +21,6 @@ const ChatInterface = ({ caseId }) => {
   const { t } = useTranslation()
   const chatRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [activeUsers, setActiveUsers] = useState([])
   const { isDarkMode } = useTheme()
 
   const fetchChatMessages = async roomId => {
@@ -43,15 +46,7 @@ const ChatInterface = ({ caseId }) => {
         console.log('Fetched chat rooms:', res.data)
 
         setRoomChatIds(res.data || [])
-        res.data.forEach(room => {
-          if (room && room.id) {
-            sendMessage2(room.id, {
-              sender: user.email,
-              timestamp: new Date(),
-              messageType: 'JOIN',
-            })
-          }
-        })
+
         setSelectedRoom(res.data[0]) // chọn phòng đầu tiên
         await fetchChatMessages(res.data[0].id)
       }
@@ -66,53 +61,36 @@ const ChatInterface = ({ caseId }) => {
     fetchRoomChat()
   }, [caseId])
 
-  const subcribe = useCallback(() => {
-    if (!selectedRoom) return
+  // const subcribe = useCallback(() => {
+  //   if (!selectedRoom) return
 
-    const unsubscribe = subscribeToTopic(
-      `/topic/chat/${selectedRoom.id}`,
-      msg => {
-        try {
-          if (!msg || !msg.sender) return
+  //   const unsubscribe = subscribeToTopic(
+  //     `/topic/chat/${selectedRoom.id}`,
+  //     msg => {
+  //       try {
+  //         if (!msg || !msg.sender) return
 
-          if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
+  //         if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
 
-          if (msg.type === 'CHAT') {
-            setMessages(prev => [...prev, msg])
-          }
+  //         setMessages(prev => [...prev, { ...msg, timestamp: new Date() }])
+  //       } catch (err) {
+  //         console.error('Invalid WS message:', msg, err)
+  //       }
+  //     }
+  //   )
 
-          if (['JOIN', 'LEAVE'].includes(msg.type)) {
-            setActiveUsers(prev => {
-              const filterUser = prev.find(u => u.sender === msg.sender)
-
-              if (filterUser) {
-                filterUser.type = msg.type
-                return [
-                  ...prev.filter(u => u.sender !== msg.sender),
-                  filterUser,
-                ]
-              }
-              return [...prev, msg]
-            })
-          }
-        } catch (err) {
-          console.error('Invalid WS message:', msg, err)
-        }
-      }
-    )
-
-    // cleanup
-    return () => {
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [selectedRoom, subscribeToTopic, user.email])
+  //   // cleanup
+  //   return () => {
+  //     if (typeof unsubscribe === 'function') {
+  //       unsubscribe()
+  //     }
+  //   }
+  // }, [selectedRoom, subscribeToTopic, user.email])
 
   // Subscribe WebSocket khi chọn phòng
-  useEffect(() => {
-    subcribe()
-  }, [subcribe])
+  // useEffect(() => {
+  //   subcribe()
+  // }, [subcribe])
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
@@ -142,7 +120,7 @@ const ChatInterface = ({ caseId }) => {
     }
     setMessages(prev => [...prev, newMessage]) // hiển thị ngay
 
-    sendMessage2(selectedRoom.id, newMessage)
+    sendMessage2('CHAT', selectedRoom.id, newMessage)
 
     // Scroll to bottom after message is added
     setTimeout(() => {

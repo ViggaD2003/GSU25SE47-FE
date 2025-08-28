@@ -1,16 +1,12 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import {
-  selectIsAuthenticated,
-  selectLoading,
-  selectIsRestoredFromStorage,
-} from '../../store/slices/authSlice'
+import { selectLoading } from '../../store/slices/authSlice'
+import { useAuth } from '@/hooks'
 
 const GuestRoute = ({ children }) => {
-  const isAuthenticated = useSelector(selectIsAuthenticated)
+  const { user } = useAuth()
   const loading = useSelector(selectLoading)
-  const isRestoredFromStorage = useSelector(selectIsRestoredFromStorage)
 
   // Show loading spinner while auth is being initialized
   if (loading) {
@@ -22,7 +18,7 @@ const GuestRoute = ({ children }) => {
   }
 
   // Only redirect if user is authenticated and this is NOT restored from storage (i.e., fresh login)
-  if (isAuthenticated && !isRestoredFromStorage) {
+  if (user) {
     return <Navigate to={'/dashboard'} replace />
   }
 

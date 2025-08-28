@@ -1,11 +1,7 @@
 import React, { Suspense } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import {
-  selectIsAuthenticated,
-  selectLoading,
-  hasRouteAccess,
-} from '../../store/slices/authSlice'
+import { selectLoading, hasRouteAccess } from '../../store/slices/authSlice'
 import AccessFail from '../../pages/AccessFail'
 import { useAuth } from '@/hooks'
 
@@ -35,8 +31,7 @@ const LoadingSpinner = () => (
 )
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const isAuthenticated = useSelector(selectIsAuthenticated)
-  const { userRole } = useAuth()
+  const { userRole, user } = useAuth()
   const loading = useSelector(selectLoading)
   const location = useLocation()
 
@@ -45,7 +40,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <LoadingSpinner />
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to={'/login'} replace />
   }
   // If specific roles are required, check them

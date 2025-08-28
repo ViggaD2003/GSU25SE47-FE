@@ -12,6 +12,8 @@ import { getToken, updateToken } from '../utils/authHelpers'
 let isRefreshing = false
 let refreshPromise = null
 
+const controller = new AbortController()
+
 // Utility function to handle server errors
 const handleServerError = (error, showNotification = true) => {
   const { status } = error.response || {}
@@ -63,6 +65,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  signal: controller.signal,
 })
 
 // Centralized token refresh logic with improved error handling and duplicate prevention
@@ -218,6 +221,8 @@ api.interceptors.response.use(
     ) {
       console.log('⚠️ Response: 403 Forbidden - access denied')
 
+      controller.abort()
+
       // Always logout on 403 - it usually means insufficient permissions or session issues
       store.dispatch(forceLogout())
 
@@ -225,7 +230,7 @@ api.interceptors.response.use(
       notificationService.error({
         message: 'Quyền truy cập bị từ chối',
         description:
-          'Bạn không có quyền thực hiện hành động này hoặc phiên làm việc đã kết thúc.',
+          'Bạn không có quyền thực hiện hành động này hoặc tài khoản đang đăng nhập ở nơi khác.',
         duration: 6,
       })
     }
