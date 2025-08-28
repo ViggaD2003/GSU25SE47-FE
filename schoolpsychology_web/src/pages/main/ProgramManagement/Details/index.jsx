@@ -39,19 +39,17 @@ import {
   CheckCircleOutlined,
   ClockCircleOutlined,
   ExclamationCircleOutlined,
-  PlusOutlined,
-  EyeOutlined,
   SearchOutlined,
 } from '@ant-design/icons'
 
 import { getProgramById } from '@/store/actions/programActions'
 import { clearProgram } from '@/store/slices/programSlice'
+import { useTheme } from '@/contexts/ThemeContext'
 import {
   ProgramOverview,
   ProgramStatistics,
   ParticipantList,
   SurveyInfo,
-  ProgramCharts,
 } from './components'
 import { caseAPI } from '@/services/caseApi'
 import { programAPI } from '@/services/programApi'
@@ -66,6 +64,7 @@ const ProgramDetails = () => {
   const dispatch = useDispatch()
   const { t } = useTranslation()
   const [messageApi, contextHolder] = message.useMessage()
+  const { isDarkMode } = useTheme()
   const { user } = useSelector(state => state.auth)
   const { program, loading, error } = useSelector(state => state.program)
   const [activeTab, setActiveTab] = useState('overview')
@@ -85,7 +84,7 @@ const ProgramDetails = () => {
       user?.role?.toLowerCase() !== 'manager' &&
       user?.categories &&
       user?.categories?.length > 0 &&
-      user?.categories?.some(c => c.id === program?.category?.id)
+      user?.categories?.some(c => c === program?.category?.id)
     )
   }, [user, program])
 
@@ -170,9 +169,10 @@ const ProgramDetails = () => {
       // console.log('Fetched cases:', data)
       // console.log('participants', program.participants)
 
+      console.log('data', data)
       // Filter out cases that are already participants
       const filteredCases = data.filter(
-        c => !program.participants?.some(p => p?.cases?.id === c.id)
+        c => !program.participants?.some(p => p?.student?.id === c.student.id)
       )
       // console.log('Filtered cases:', filteredCases)
       setAvailableCases(filteredCases)
@@ -605,12 +605,16 @@ const ProgramDetails = () => {
                       key={caseItem.id}
                       style={{
                         padding: '12px',
-                        border: '1px solid #f0f0f0',
+                        border: `1px solid ${isDarkMode ? '#374151' : '#f0f0f0'}`,
                         borderRadius: '6px',
                         marginBottom: '8px',
                         backgroundColor: selectedCaseIds.includes(caseItem.id)
-                          ? '#f6ffed'
-                          : 'white',
+                          ? isDarkMode
+                            ? '#1f4e3c'
+                            : '#f6ffed'
+                          : isDarkMode
+                            ? '#1f2937'
+                            : 'white',
                       }}
                     >
                       <Checkbox
@@ -619,17 +623,31 @@ const ProgramDetails = () => {
                       />
                       <div style={{ marginLeft: '16px', flex: 1 }}>
                         <div
-                          style={{ fontWeight: 'bold', marginBottom: '4px' }}
+                          style={{
+                            fontWeight: 'bold',
+                            marginBottom: '4px',
+                            color: isDarkMode ? '#f9fafb' : '#000000d9',
+                          }}
                         >
                           {caseItem?.student?.fullName} - {caseItem?.title}
                         </div>
                         <Text type="secondary" ellipsis>
                           {caseItem?.student?.email}
                         </Text>
-                        <div style={{ color: '#666', fontSize: '14px' }}>
+                        <div
+                          style={{
+                            color: isDarkMode ? '#9ca3af' : '#666',
+                            fontSize: '14px',
+                          }}
+                        >
                           {caseItem?.categoryName} - {caseItem?.codeCategory}
                         </div>
-                        <div style={{ color: '#666', fontSize: '14px' }}>
+                        <div
+                          style={{
+                            color: isDarkMode ? '#9ca3af' : '#666',
+                            fontSize: '14px',
+                          }}
+                        >
                           {caseItem?.description}
                         </div>
                       </div>

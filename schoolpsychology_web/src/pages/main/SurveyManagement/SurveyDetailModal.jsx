@@ -658,6 +658,8 @@ const SurveyDetailModal = ({
     if (cases.length > 0) {
       setAddedCases(cases.filter(c => c.isAddSurvey))
       setRemovedCases(cases.filter(c => !c.isAddSurvey))
+      setSelectedAddedCases([])
+      setSelectedRemovedCases([])
     }
   }, [survey, cases])
 
@@ -800,6 +802,8 @@ const SurveyDetailModal = ({
             icon={<PlusOutlined />}
             onClick={() => {
               setShowAddCase(true)
+              setSelectedAddedCases([])
+              setSelectedRemovedCases([])
               fetchCases()
             }}
             style={{ marginLeft: 'auto' }}
@@ -1209,10 +1213,6 @@ const SurveyDetailModal = ({
   )
 
   const handleCaseSelection = (caseId, type) => {
-    // console.log('handleCaseSelection')
-
-    // console.log('caseId', caseId)
-    // console.log('type', type)
     if (type === 'removed') {
       setSelectedAddedCases(prev => {
         if (prev.includes(caseId)) {
@@ -1221,6 +1221,10 @@ const SurveyDetailModal = ({
         return [...prev, caseId]
       })
     } else {
+      console.log('handleCaseSelection')
+      console.log('caseId', caseId)
+      console.log('type', type)
+
       setSelectedRemovedCases(prev => {
         if (prev.includes(caseId)) {
           return prev.filter(id => id !== caseId)
@@ -1231,11 +1235,6 @@ const SurveyDetailModal = ({
   }
 
   const handleSelectAll = (checked, type) => {
-    // console.log('selectAll')
-
-    // console.log('checked', checked)
-    // console.log('type', type)
-
     if (checked) {
       if (type === 'removed') {
         setSelectedAddedCases(addedCases.map(c => c.id))
@@ -1251,26 +1250,42 @@ const SurveyDetailModal = ({
     }
   }
 
-  const handleAddCase = () => {
+  const handleAddCase = async () => {
     const params = {
       surveyId: survey?.surveyId || survey?.id || surveyId,
-      caseIds: selectedAddedCases,
+      caseIds: selectedRemovedCases,
     }
+    console.log('params', params)
 
-    dispatch(addCaseToSurvey(params))
+    await dispatch(addCaseToSurvey(params))
+      .unwrap()
+      .then(() => {
+        Promise.all([fetchSurveyDetails(), fetchCases()]).then(() => {
+          setSelectedRemovedCases([])
+          setSelectedAddedCases([])
+        })
+      })
   }
 
-  const handleRemoveCase = async caseId => {
-    try {
-      await surveyAPI.removeCaseFromSurvey({
-        surveyId: survey?.surveyId || survey?.id || surveyId,
-        caseId: caseId,
-      })
-      messageApi.success(t('surveyManagement.messages.removeCaseSuccess'))
-      fetchSurveyDetails() // Refresh the survey details
-    } catch {
-      messageApi.error(t('surveyManagement.messages.removeCaseError'))
-    }
+  const handleRemoveCase = async () => {
+    console.log('selectedAddedCases', selectedAddedCases)
+    new Promise(() => {
+      surveyAPI
+        .removeCaseFromSurveyCaseLink({
+          surveyId: survey?.surveyId || survey?.id || surveyId,
+          caseIds: selectedAddedCases,
+        })
+        .then(() => {
+          messageApi.success(t('surveyManagement.messages.removeCaseSuccess'))
+          Promise.all([fetchSurveyDetails(), fetchCases()]).then(() => {
+            setSelectedAddedCases([])
+            setSelectedRemovedCases([])
+          })
+        })
+        .catch(() => {
+          messageApi.error(t('surveyManagement.messages.removeCaseError'))
+        })
+    })
   }
 
   const renderAddedCaseList = () => (
@@ -1312,9 +1327,9 @@ const SurveyDetailModal = ({
             style={{
               padding: '12px',
               marginBottom: '8px',
-              background: '#fff',
+              background: isDarkMode ? '#1f2937' : '#fff',
               borderRadius: '8px',
-              border: '1px solid #f0f0f0',
+              border: isDarkMode ? '1px solid #374151' : '1px solid #f0f0f0',
             }}
           >
             <div style={{ width: '100%' }}>
@@ -1360,14 +1375,22 @@ const SurveyDetailModal = ({
                       <Typography.Text type="secondary">
                         Student:
                       </Typography.Text>
-                      <div>{item.student.fullName}</div>
+                      <div
+                        style={{ color: isDarkMode ? '#f9fafb' : '#000000d9' }}
+                      >
+                        {item.student.fullName}
+                      </div>
                     </Col>
 
                     <Col span={12}>
                       <Typography.Text type="secondary">
                         Current Level:
                       </Typography.Text>
-                      <div>{item.currentLevel.label}</div>
+                      <div
+                        style={{ color: isDarkMode ? '#f9fafb' : '#000000d9' }}
+                      >
+                        {item.currentLevel.label}
+                      </div>
                     </Col>
                   </Row>
 
@@ -1428,9 +1451,9 @@ const SurveyDetailModal = ({
             style={{
               padding: '12px',
               marginBottom: '8px',
-              background: '#fff',
+              background: isDarkMode ? '#1f2937' : '#fff',
               borderRadius: '8px',
-              border: '1px solid #f0f0f0',
+              border: isDarkMode ? '1px solid #374151' : '1px solid #f0f0f0',
             }}
           >
             <div style={{ width: '100%' }}>
@@ -1476,14 +1499,22 @@ const SurveyDetailModal = ({
                       <Typography.Text type="secondary">
                         Student:
                       </Typography.Text>
-                      <div>{item.student.fullName}</div>
+                      <div
+                        style={{ color: isDarkMode ? '#f9fafb' : '#000000d9' }}
+                      >
+                        {item.student.fullName}
+                      </div>
                     </Col>
 
                     <Col span={12}>
                       <Typography.Text type="secondary">
                         Current Level:
                       </Typography.Text>
-                      <div>{item.currentLevel.label}</div>
+                      <div
+                        style={{ color: isDarkMode ? '#f9fafb' : '#000000d9' }}
+                      >
+                        {item.currentLevel.label}
+                      </div>
                     </Col>
                   </Row>
 
@@ -1591,7 +1622,6 @@ const SurveyDetailModal = ({
             ]
       }
       width={1300}
-      style={{ top: 20 }}
       styles={{
         body: {
           maxHeight: '70vh',
@@ -1600,6 +1630,7 @@ const SurveyDetailModal = ({
           paddingRight: 14,
         },
       }}
+      centered
     >
       <Spin spinning={fetching} tip={t('surveyManagement.detail.loading')}>
         {survey ? (

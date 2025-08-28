@@ -68,9 +68,15 @@ const ProgramStatistics = ({ program, statistics }) => {
   }
 
   const scoreDistribution = {
-    ENHANCED: participants.filter(p => p.finalScore > 0).length,
-    STABLE: participants.filter(p => p.finalScore === 0).length,
-    DECLINED: participants.filter(p => p.finalScore < 0).length,
+    ENHANCED: participants.filter(
+      p => p.finalScore > 0 && p.status === 'COMPLETED'
+    ).length,
+    STABLE: participants.filter(
+      p => p.finalScore === 0 && p.status === 'COMPLETED'
+    ).length,
+    DECLINED: participants.filter(
+      p => p.finalScore < 0 && p.status === 'COMPLETED'
+    ).length,
   }
 
   const participantTypeDistribution = {

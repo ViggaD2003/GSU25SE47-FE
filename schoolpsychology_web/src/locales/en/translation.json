@@ -582,6 +582,11 @@
           "ON_GOING": "On Going",
           "COMPLETED": "Completed",
           "ABSENT": "Absent"
+        },
+        "typeTitle": "Participation Type",
+        "type": {
+          "assigned": "Assigned",
+          "notAssigned": "Not Assigned"
         }
       },
       "basicInfo": "Basic Information",
@@ -1240,6 +1245,8 @@
     }
   },
   "appointment": {
+    "selectedCase": "Selected Case",
+    "noCase": "No case",
     "title": "Appointment Management",
     "description": "Manage your appointments and their information",
     "refresh": "Refresh",
@@ -2374,7 +2381,8 @@
     "quickActions": "Quick Actions",
     "viewFullProfile": "View Full Profile",
     "exportData": "Export Data",
-    "sendMessage": "Send Message"
+    "sendMessage": "Send Message",
+    "noFinalScore": "No final score"
   },
   "chat": {
     "room": "Room",

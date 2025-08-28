@@ -34,4 +34,13 @@ export const surveyAPI = {
     )
     return response.data
   },
+
+  removeCaseFromSurveyCaseLink: async data => {
+    if (!data) return
+    const { surveyId, caseIds } = data
+    const response = await api.patch(
+      `/api/v1/cases/remove-survey?surveyId=${surveyId}&caseIds=${caseIds}`
+    )
+    return response.data
+  },
 }

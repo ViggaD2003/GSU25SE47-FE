@@ -30,7 +30,9 @@ import {
   ReloadOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  FlagFilled,
 } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 
 const { Text, Title } = Typography
 
@@ -46,6 +48,7 @@ const ParticipantList = ({
   refresh,
 }) => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   const getStatusColor = status => {
     switch (status) {
@@ -81,41 +84,27 @@ const ParticipantList = ({
     }
   }
 
-  const getPriorityColor = priority => {
-    switch (priority) {
-      case 'HIGH':
-        return 'red'
-      case 'MEDIUM':
-        return 'orange'
-      case 'LOW':
-        return 'green'
-      default:
-        return 'default'
-    }
-  }
-
-  const getProgressTrendColor = trend => {
-    switch (trend) {
-      case 'IMPROVED':
-        return 'green'
-      case 'STABLE':
-        return 'blue'
-      case 'DECLINED':
-        return 'red'
-      default:
-        return 'default'
-    }
-  }
-
   const columns = [
     {
       title: t('programManagement.participants.studentInfo'),
       dataIndex: 'student',
       key: 'student',
       width: 120,
-      render: (student, _record) => (
+      render: (student, record) => (
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
           <Space>
+            {record.cases && (
+              <Tooltip title={t('caseManagement.details.title')}>
+                <Button
+                  type="link"
+                  danger
+                  icon={<FlagFilled />}
+                  onClick={() => {
+                    navigate(`/case-management/details/${record.cases.id}`)
+                  }}
+                />
+              </Tooltip>
+            )}
             <Avatar
               size="large"
               icon={<UserOutlined />}
@@ -168,48 +157,18 @@ const ParticipantList = ({
       ),
     },
     {
-      title: t('programManagement.participants.caseInfo'),
+      title: t('programManagement.participants.typeTitle'),
       dataIndex: 'cases',
       key: 'cases',
-      width: 200,
-      render: (cases, _record) => (
+      width: 150,
+      render: cases => (
         <div>
-          {cases ? (
-            <Space direction="vertical" size="small" style={{ width: '100%' }}>
-              <Text strong style={{ fontSize: '13px', color: '#1890ff' }}>
-                {cases.title}
-              </Text>
-              <div>
-                <Space size="small">
-                  <Tag color={getPriorityColor(cases.priority)} size="small">
-                    {cases.priority}
-                  </Tag>
-                  <Tag color={getStatusColor(cases.status)} size="small">
-                    {cases.status}
-                  </Tag>
-                </Space>
-              </div>
-              <div>
-                <Tag
-                  color={getProgressTrendColor(cases.progressTrend)}
-                  size="small"
-                >
-                  {cases.progressTrend}
-                </Tag>
-              </div>
-              {cases.description && (
-                <Text type="secondary" style={{ fontSize: '12px' }}>
-                  {cases.description.length > 50
-                    ? `${cases.description.substring(0, 50)}...`
-                    : cases.description}
-                </Text>
-              )}
-            </Space>
-          ) : (
-            <Text type="secondary" italic>
-              {t('programManagement.participants.noCaseAssigned')}
-            </Text>
-          )}
+          <Text style={{ color: !cases ? 'green' : 'red ' }}>
+            {' '}
+            {cases
+              ? t(`programManagement.participants.type.assigned`)
+              : t(`programManagement.participants.type.notAssigned`)}
+          </Text>
         </div>
       ),
     },
@@ -258,44 +217,34 @@ const ParticipantList = ({
               {t('programManagement.participants.finalScore')}:
             </Text>
             <br />
-            <Text
-              strong
-              style={{
-                fontSize: '16px',
-                color:
-                  record.finalScore > 0
-                    ? 'green'
-                    : record.finalScore < 0
-                      ? 'red'
-                      : 'gray',
-              }}
-            >
-              {record.finalScore > 0 ? (
-                <ArrowUpOutlined />
-              ) : record.finalScore < 0 ? (
-                <ArrowDownOutlined />
-              ) : (
-                ''
-              )}
-              {record.finalScore !== null && record.finalScore !== undefined
-                ? record.finalScore.toFixed(1)
-                : '-'}
-            </Text>
-          </div>
-          {record.cases?.currentLevel && (
-            <div>
-              <Text type="secondary" style={{ fontSize: '12px' }}>
-                {t('programManagement.participants.currentLevel')}:
-              </Text>
-              <br />
-              <Tag
-                color={getPriorityColor(record.cases.currentLevel.levelType)}
-                size="small"
+            {record.status === 'COMPLETED' ? (
+              <Text
+                strong
+                style={{
+                  fontSize: '16px',
+                  color:
+                    record.finalScore > 0
+                      ? 'green'
+                      : record.finalScore < 0
+                        ? 'red'
+                        : 'gray',
+                }}
               >
-                {record.cases.currentLevel.label}
-              </Tag>
-            </div>
-          )}
+                {record.finalScore > 0 ? (
+                  <ArrowUpOutlined />
+                ) : record.finalScore < 0 ? (
+                  <ArrowDownOutlined />
+                ) : (
+                  ''
+                )}
+                {record.finalScore !== null && record.finalScore !== undefined
+                  ? record.finalScore.toFixed(1)
+                  : '-'}
+              </Text>
+            ) : (
+              <Text type="secondary">-</Text>
+            )}
+          </div>
         </Space>
       ),
     },
@@ -353,11 +302,7 @@ const ParticipantList = ({
         }
         extra={
           <Space align="center" size="middle">
-            <Button
-              type="primary"
-              icon={<ReloadOutlined />}
-              onClick={handleRefresh}
-            >
+            <Button icon={<ReloadOutlined />} onClick={handleRefresh}>
               {t('common.refresh')}
             </Button>
             {userRole === 'counselor' && hasAvailableCases && (
@@ -365,7 +310,6 @@ const ParticipantList = ({
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={onOpenAddCasesModal}
-                size="large"
               >
                 {t('programManagement.participants.addCases')}
               </Button>

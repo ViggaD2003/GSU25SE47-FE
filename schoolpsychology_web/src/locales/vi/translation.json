@@ -672,7 +672,12 @@
       "totalParticipants": "Tổng số học viên",
       "withCases": "Có ca tư vấn",
       "enrolled": "Đã đăng ký",
-      "completed": "Đã hoàn thành"
+      "completed": "Đã hoàn thành",
+      "typeTitle": "Hình thức tham gia",
+      "type": {
+        "assigned": "Được thêm vào",
+        "notAssigned": "Chủ động tham gia"
+      }
     }
   },
   "caseManagement": {
@@ -1548,6 +1553,8 @@
     }
   },
   "appointment": {
+    "selectedCase": "Case đã chọn",
+    "noCase": "Không có case nào",
     "title": "Quản lý cuộc hẹn",
     "description": "Quản lý các cuộc hẹn và thông tin của chúng",
     "refresh": "Làm mới",
@@ -2459,7 +2466,8 @@
     "quickActions": "Thao tác nhanh",
     "viewFullProfile": "Xem hồ sơ đầy đủ",
     "exportData": "Xuất dữ liệu",
-    "sendMessage": "Gửi tin nhắn"
+    "sendMessage": "Gửi tin nhắn",
+    "noFinalScore": "Không có điểm cuối cùng"
   },
   "chat": {
     "room": "Phòng",

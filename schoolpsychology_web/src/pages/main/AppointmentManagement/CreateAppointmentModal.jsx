@@ -225,7 +225,7 @@ const CreateAppointmentModalContent = ({ isOpen, onClose, onSuccess }) => {
 
     return cases.map(c => ({
       value: c.id,
-      label: `${c.title || c.id} - ${c.student?.studentCode}`,
+      label: `${c.title || c.id} (${c.student?.email} - ${c.student?.studentCode})`,
       studentId: c.student?.id,
     }))
   }, [cases])
@@ -372,13 +372,14 @@ const CreateAppointmentModalContent = ({ isOpen, onClose, onSuccess }) => {
       return
     }
 
-    setLoading(true)
+    // setLoading(true)
 
     try {
       const appointmentData = {
         slotId: selectedTimeSlot.slotId || null,
         bookedForId: selectedCase.student?.id,
-        isOnline: form.getFieldValue('location') === 'online' ? true : false,
+        isOnline:
+          form.getFieldValue('appointmentType') === 'online' ? true : false,
         startDateTime: dayjs(selectedTimeSlot.startTime)
           .local()
           .format('YYYY-MM-DDTHH:mm:ss'),
@@ -811,7 +812,7 @@ const CreateAppointmentModalContent = ({ isOpen, onClose, onSuccess }) => {
                       {t('appointment.form.location')}:
                     </span>
                     <span className="flex items-center gap-2">
-                      {form.getFieldValue('location') === 'online' ? (
+                      {form.getFieldValue('appointmentType') === 'online' ? (
                         <VideoCameraOutlined className="text-blue-500" />
                       ) : (
                         <EnvironmentOutlined className="text-green-500" />
@@ -821,50 +822,29 @@ const CreateAppointmentModalContent = ({ isOpen, onClose, onSuccess }) => {
                           isDarkMode ? 'text-gray-100' : 'text-gray-900'
                         }`}
                       >
-                        {form.getFieldValue('location') === 'online'
+                        {form.getFieldValue('appointmentType') === 'online'
                           ? t('appointment.form.locationOnline')
                           : t('appointment.form.locationOffline')}
                       </span>
                     </span>
                   </div>
 
-                  {form.getFieldValue('reasonBooking') && (
-                    <div className="flex justify-between items-center">
-                      <span
-                        className={`font-medium ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`}
-                      >
-                        {t('appointment.reasonBooking')}:
-                      </span>
-                      <span
-                        className={`${
-                          isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                        }`}
-                      >
-                        {form.getFieldValue('reasonBooking')}
-                      </span>
-                    </div>
-                  )}
-
-                  {form.getFieldValue('notes') && (
-                    <div className="flex justify-between items-center">
-                      <span
-                        className={`font-medium ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`}
-                      >
-                        {t('appointment.notes')}:
-                      </span>
-                      <span
-                        className={`${
-                          isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                        }`}
-                      >
-                        {form.getFieldValue('notes')}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between items-center">
+                    <span
+                      className={`font-medium ${
+                        isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}
+                    >
+                      {t('appointment.reasonBooking')}:
+                    </span>
+                    <span
+                      className={`${
+                        isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                      }`}
+                    >
+                      {form.getFieldValue('reasonBooking') || '-'}
+                    </span>
+                  </div>
                 </div>
               </div>
             </Card>

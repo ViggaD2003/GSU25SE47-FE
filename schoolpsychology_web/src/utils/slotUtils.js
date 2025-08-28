@@ -268,12 +268,12 @@ export const generateTimeSlots = (
   }
 
   // Debug logging
-  console.log(`Generated ${slots.length} time slots for slot ${slotId}:`, {
-    originalStart: originalSlotStart.toISOString(),
-    originalEnd: originalSlotEnd.toISOString(),
-    firstSlot: slots[0]?.startTime?.toISOString(),
-    lastSlot: slots[slots.length - 1]?.endTime?.toISOString(),
-  })
+  // console.log(`Generated ${slots.length} time slots for slot ${slotId}:`, {
+  //   originalStart: originalSlotStart.toISOString(),
+  //   originalEnd: originalSlotEnd.toISOString(),
+  //   firstSlot: slots[0]?.startTime?.toISOString(),
+  //   lastSlot: slots[slots.length - 1]?.endTime?.toISOString(),
+  // })
 
   return slots
 }

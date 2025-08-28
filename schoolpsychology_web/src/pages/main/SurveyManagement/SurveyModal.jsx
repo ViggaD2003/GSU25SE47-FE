@@ -241,7 +241,6 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
             borderColor: 'red',
           },
         }}
-        style={{ top: '2%' }}
         styles={{
           body: {
             height: '76vh',
@@ -249,6 +248,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
             padding: '16px 24px',
           },
         }}
+        centered
       >
         <Form
           form={form}
