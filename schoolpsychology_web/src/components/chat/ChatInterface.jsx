@@ -194,7 +194,9 @@ const ChatInterface = ({ caseId }) => {
               t={t}
               student={{
                 ...selectedRoom,
-                isOnline: Array(onlineUsers || []).includes(selectedRoom.email),
+                isOnline: Array(...(onlineUsers || [])).includes(
+                  selectedRoom.email
+                ),
               }}
               caseId={caseId}
             />

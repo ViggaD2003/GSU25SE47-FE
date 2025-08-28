@@ -33,7 +33,6 @@ const RealTimeProvider = ({ children }) => {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("info");
   const [roomChatId, setRoomChatId] = useState(null);
-  const [activeChat, setActiveChat] = useState(false);
 
   // Chat state
   const [chatMessages, setChatMessages] = useState([]);
@@ -41,9 +40,11 @@ const RealTimeProvider = ({ children }) => {
   const stompClientRef = useRef(null);
   const notiSubscriptionRef = useRef(null);
   const chatSubscriptionRef = useRef(null);
+  const addUserSubscriptionRef = useRef(null);
   const tokenRef = useRef(token);
   const isConnectedRef = useRef(false);
   const isConnectingRef = useRef(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   // Giữ token & trạng thái mới nhất
   useEffect(() => {
@@ -58,9 +59,15 @@ const RealTimeProvider = ({ children }) => {
 
   const subscribeToTopic = useCallback((client, topic, callback) => {
     if (!client) {
-      console.warn("[WebSocket] Cannot subscribe: connection not ready");
+      console.warn("[WebSocket] Cannot subscribe: client not available");
       return null;
     }
+
+    if (!client.connected) {
+      console.warn("[WebSocket] Cannot subscribe: STOMP client not connected");
+      return null;
+    }
+
     console.log("[WebSocket] 🔔 Subscribing to topic", topic);
 
     try {
@@ -197,9 +204,19 @@ const RealTimeProvider = ({ children }) => {
   }, []);
 
   const subscribeToChat = useCallback(() => {
-    if (!stompClientRef?.current || !user?.email) {
+    if (!stompClientRef?.current || !user?.email || !roomChatId) {
+      console.warn(
+        "[WebSocket] Cannot subscribe to chat: missing requirements"
+      );
       return;
     }
+
+    if (!stompClientRef.current.connected) {
+      console.warn("[WebSocket] Cannot subscribe to chat: not connected");
+      return;
+    }
+
+    console.log("[WebSocket] 🔔 Subscribing to chat room:", roomChatId);
 
     chatSubscriptionRef.current = subscribeToTopic(
       stompClientRef.current,
@@ -208,44 +225,39 @@ const RealTimeProvider = ({ children }) => {
         if (!roomChatId) return;
         console.log("[WebSocket] 🔔 Chat message", message);
 
-        if (message.sender === user.email) {
-          return;
-        }
-
-        if (message.type === "JOIN") {
-          setActiveChat(true);
-          return;
-        } else if (message.type === "LEAVE") {
-          setActiveChat(false);
-          return;
-        } else if (message.type === "CHAT") {
-          setChatMessages((prev) => [...prev, message]);
-          return;
-        }
+        if (message.sender === user.email) return;
+        setChatMessages((prev) => [
+          ...prev,
+          { ...message, timestamp: new Date() },
+        ]);
       }
     );
-  }, [stompClientRef.current, user?.email, roomChatId]);
+  }, [stompClientRef.current, user?.email, roomChatId, subscribeToTopic]);
 
-  // const sendActiveChat = useCallback(
-  //   (roomId) => {
-  //     if (!stompClientRef.current || !isConnected) {
-  //       console.error("[WebSocket] Not connected");
-  //       return;
-  //     }
+  const subscribeToAddUser = useCallback(() => {
+    if (!stompClientRef?.current || !user?.email) {
+      console.warn(
+        "[WebSocket] Cannot subscribe to addUser: missing requirements"
+      );
+      return;
+    }
 
-  //     if (!roomId) {
-  //       console.error("[WebSocket] No room chat id");
-  //       return;
-  //     }
+    if (!stompClientRef.current.connected) {
+      console.warn("[WebSocket] Cannot subscribe to addUser: not connected");
+      return;
+    }
 
-  //     stompClientRef.current.publish({
-  //       destination: `/app/chat.addUser/${roomId}`,
-  //       headers: { "content-type": "application/json" },
-  //       body: JSON.stringify(bodyData),
-  //     });
-  //   },
-  //   [stompClientRef, isConnected, user?.email]
-  // );
+    console.log("[WebSocket] 🔔 Subscribing to addUser topic");
+
+    addUserSubscriptionRef.current = subscribeToTopic(
+      stompClientRef.current,
+      `/topic/onlineUsers`,
+      (user) => {
+        console.log("[WebSocket] 🔔 Add user user", user);
+        setOnlineUsers(user || []);
+      }
+    );
+  }, [stompClientRef.current, user?.email, subscribeToTopic]);
 
   const sendMessage = useCallback(
     (msg) => {
@@ -263,98 +275,170 @@ const RealTimeProvider = ({ children }) => {
   );
 
   const sendMessageToCounselor = useCallback(
-    (msg) => {
-      if (!stompClientRef.current || !roomChatId || !user?.email) {
+    (type = "ADD_USER", roomId, msg) => {
+      if (!stompClientRef.current || !user?.email) {
+        console.warn("[WebSocket] Cannot send message: missing requirements");
         return;
       }
 
-      const bodyData = {
-        sender: msg.sender,
-        message: msg.message || "",
-        timestamp: msg.timestamp,
-        type: msg.messageType || "CHAT",
-      };
-
-      let destination;
-      if (["JOIN", "LEAVE"].includes(msg.messageType)) {
-        destination = `/app/chat.addUser/${roomChatId}`;
-      } else if (msg.messageType === "CHAT") {
-        destination = `/app/chat/${roomChatId}`;
-        setChatMessages((prev) => [...prev, bodyData]);
+      if (!stompClientRef.current.connected) {
+        console.warn("[WebSocket] Cannot send message: not connected");
+        return;
       }
 
-      console.log(
-        "[WebSocket_sendMessageToCounselor] 🔔 Destination",
-        destination
-      );
+      try {
+        let destination;
 
-      stompClientRef.current.publish({
-        destination: destination,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(bodyData),
-      });
+        if (type === "ADD_USER") {
+          destination = `/app/chat.addUser`;
+          stompClientRef.current.publish({
+            destination: destination,
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ username: user?.email }),
+          });
+          return;
+        } else if (type === "CHAT" && roomId) {
+          destination = `/app/chat/${roomId}`;
+        } else if (msg && roomChatId) {
+          destination = `/app/chat/${roomChatId}`;
+        }
 
-      console.log(
-        "[WebSocket_sendMessageToCounselor] 🔔 Send message to counselor",
-        bodyData
-      );
+        if (!destination) {
+          console.warn("[WebSocket] No destination for message type:", type);
+          return;
+        }
+
+        const bodyData = {
+          sender: msg?.sender || user.email,
+          message: msg?.message || "",
+          timestamp: msg?.timestamp || new Date(),
+          messageType: msg?.messageType || "CHAT",
+        };
+
+        if (type !== "ADD_USER") {
+          setChatMessages((prev) => [...prev, bodyData]);
+        }
+
+        stompClientRef.current.publish({
+          destination: destination,
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(bodyData),
+        });
+      } catch (error) {
+        console.error("[WebSocket] Error sending message:", error);
+        throw new Error("Failed to send message");
+      }
     },
     [stompClientRef.current, user?.email, roomChatId]
   );
 
+  useEffect(() => {
+    if (stompClientRef.current && user?.email && isConnected) {
+      sendMessageToCounselor("ADD_USER");
+    }
+  }, [
+    stompClientRef.current,
+    user?.email,
+    isConnected,
+    sendMessageToCounselor,
+  ]);
+
+  useEffect(() => {
+    if (stompClientRef.current && user?.email && isConnected) {
+      subscribeToAddUser();
+    }
+  }, [stompClientRef.current, user?.email, isConnected, subscribeToAddUser]);
+
   const disconnectWebSocket = useCallback(async () => {
     console.log("[WebSocket] 🔌 Disconnect");
 
+    // Unsubscribe from notifications
     if (notiSubscriptionRef.current) {
       try {
         notiSubscriptionRef.current.unsubscribe();
-      } catch {}
+      } catch (error) {
+        console.warn(
+          "[WebSocket] Error unsubscribing from notifications:",
+          error
+        );
+      }
       notiSubscriptionRef.current = null;
     }
+
+    // Unsubscribe from chat
     if (chatSubscriptionRef.current) {
       try {
-        await Promise.all([
-          sendMessageToCounselor({
-            sender: user.email,
-            timestamp: new Date(),
-            messageType: "LEAVE",
-          }),
-        ]);
         chatSubscriptionRef.current.unsubscribe();
-      } catch {}
+      } catch (error) {
+        console.warn("[WebSocket] Error unsubscribing from chat:", error);
+      }
       chatSubscriptionRef.current = null;
     }
+
+    // Unsubscribe from addUser/onlineUsers
+    if (addUserSubscriptionRef.current) {
+      try {
+        addUserSubscriptionRef.current.unsubscribe();
+      } catch (error) {
+        console.warn("[WebSocket] Error unsubscribing from addUser:", error);
+      }
+      addUserSubscriptionRef.current = null;
+    }
+
+    // Deactivate STOMP client
     if (stompClientRef.current) {
       try {
         stompClientRef.current.deactivate();
-      } catch {}
+      } catch (error) {
+        console.warn("[WebSocket] Error deactivating STOMP client:", error);
+      }
       stompClientRef.current = null;
     }
+
+    // Clear state
     setIsConnected(false);
     setIsConnecting(false);
+    setChatMessages([]);
+    setOnlineUsers([]);
+    setRoomChatId(null);
+
+    console.log("[WebSocket] ✅ Disconnected and cleaned up");
   }, []);
 
   useEffect(() => {
-    if (roomChatId) {
+    if (roomChatId && isConnected) {
       subscribeToChat();
     }
-  }, [roomChatId]);
+  }, [roomChatId, isConnected, subscribeToChat]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
+      console.log(
+        "[WebSocket] 🔌 Authentication failed or token missing - disconnecting"
+      );
       disconnectWebSocket();
       return;
     }
+
     if (isConnected || isConnecting) {
+      console.log("[WebSocket] Already connected or connecting - skipping");
       return;
     }
 
+    console.log("[WebSocket] 🔌 Attempting to connect WebSocket");
     setIsConnecting(true);
     if (!stompClientRef.current && isAuthenticated && token) {
       connectWebSocket();
     }
     // return () => disconnectWebSocket();
-  }, [isAuthenticated, token, stompClientRef]);
+  }, [
+    isAuthenticated,
+    token,
+    connectWebSocket,
+    disconnectWebSocket,
+    isConnected,
+    isConnecting,
+  ]);
 
   const value = useMemo(
     () => ({
@@ -367,10 +451,9 @@ const RealTimeProvider = ({ children }) => {
       setChatMessages,
       subscribeToChat,
       setRoomChatId,
-      activeChat,
-      setActiveChat,
       roomChatId,
       setRoomChatId,
+      onlineUsers,
     }),
     [
       isConnected,
@@ -381,10 +464,9 @@ const RealTimeProvider = ({ children }) => {
       setChatMessages,
       subscribeToChat,
       setRoomChatId,
-      activeChat,
-      setActiveChat,
       roomChatId,
       setRoomChatId,
+      onlineUsers,
     ]
   );
 

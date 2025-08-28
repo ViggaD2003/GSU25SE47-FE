@@ -41,8 +41,9 @@ const CaseDetails = ({ route, navigation }) => {
     chatMessages,
     setChatMessages,
     sendMessageToCounselor,
-    activeChat,
+    onlineUsers: activeChat,
     setRoomChatId,
+    roomChatId,
   } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -68,7 +69,7 @@ const CaseDetails = ({ route, navigation }) => {
   const fetchChatMessages = async (roomId) => {
     if (roomId) {
       const data = await getChatMessages(roomId);
-      console.log("[CaseDetails] Fetch chat messages", data);
+      // console.log("[CaseDetails] Fetch chat messages", data);
       setChatMessages(data);
     }
   };
@@ -83,11 +84,7 @@ const CaseDetails = ({ route, navigation }) => {
       console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
 
       if (res) {
-        sendMessageToCounselor({
-          sender: user.email,
-          timestamp: new Date(),
-          messageType: "JOIN",
-        });
+        sendMessageToCounselor("ADD_USER");
 
         setRoomChatId(res.id);
 
@@ -261,7 +258,7 @@ const CaseDetails = ({ route, navigation }) => {
         messageType: "CHAT",
       };
 
-      sendMessageToCounselor(newMessage);
+      sendMessageToCounselor("CHAT", roomChatId, newMessage);
 
       setCurrentMessage("");
 
@@ -772,6 +769,7 @@ const CaseDetails = ({ route, navigation }) => {
 
   const renderChatModal = () => {
     if (!isChatVisible) return null;
+    const counselor = caseDetails?.caseInfo?.counselor?.email;
 
     return (
       <Animated.View style={[styles.chatModal, { opacity: chatFadeAnim }]}>
@@ -784,7 +782,7 @@ const CaseDetails = ({ route, navigation }) => {
           <View style={styles.chatHeader}>
             <View style={styles.titleContainer}>
               <Text style={styles.chatTitle}>{t("chat.title")}</Text>
-              {activeChat ? (
+              {Array(...(activeChat || [])).includes(counselor) ? (
                 <Text style={styles.onlineStatus}>{t("chat.online")}</Text>
               ) : (
                 <Text style={styles.offlineStatus}>{t("chat.offline")}</Text>
