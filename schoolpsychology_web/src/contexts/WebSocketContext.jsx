@@ -158,7 +158,7 @@ export const WebSocketProvider = ({ children }) => {
         return null
       }
     },
-    [isConnectionReady]
+    [isConnectionReady, stompClientRef]
   )
 
   const sendMessage2 = useCallback(
@@ -271,7 +271,14 @@ export const WebSocketProvider = ({ children }) => {
           startHeartbeat()
 
           // send message to add user
-          user && sendMessage2('ADD_USER')
+          user &&
+            Promise.all([sendMessage2('ADD_USER')]).then(() => {
+              stompClient.subscribe(`/topic/onlineUsers`, msg => {
+                const data = JSON.parse(msg.body)
+                console.log('[WebSocket] Online users:', data)
+                setOnlineUsers(data || [])
+              })
+            })
         },
         error => {
           console.error('[WebSocket] STOMP connection error:', error)
@@ -336,7 +343,6 @@ export const WebSocketProvider = ({ children }) => {
   // Subscribe to notifications khi đã kết nối - tối ưu dependencies
   useEffect(() => {
     if (isConnected && isConnectionReady()) {
-      console.log('[WebSocket] 🔍 subscribe to notifications')
       subscriptionRef.current = subscribeToTopic(
         '/user/queue/notifications',
         data => {
