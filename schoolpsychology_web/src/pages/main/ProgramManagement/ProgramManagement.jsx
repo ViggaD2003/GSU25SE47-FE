@@ -79,14 +79,12 @@ const ProgramManagement = () => {
 
   // Fetch programs on component mount
   useEffect(() => {
-    if (programs.length === 0) {
-      Promise.all([
-        dispatch(getAllPrograms()),
-        fetchCategories(),
-        user.role === 'manager' && fetchCounselors(),
-      ])
-    }
-  }, [])
+    Promise.all([
+      programs.length === 0 && dispatch(getAllPrograms()),
+      fetchCategories(),
+      user.role === 'manager' && fetchCounselors(),
+    ])
+  }, [programs.length, dispatch, user.role])
 
   // Handle error messages
   useEffect(() => {
