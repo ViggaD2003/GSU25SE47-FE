@@ -284,7 +284,7 @@ const useSlotsManagement = (
       const processedGrouped = processAndFilterSlots(slotsData);
       setGroupedSlots(processedGrouped);
     } catch (error) {
-      console.error("Lỗi khi tải danh sách slot:", error);
+      console.warn("Lỗi khi tải danh sách slot:", error);
       showToastMessage(t("common.errorLoadData"), "error");
       setGroupedSlots({});
       setVisibleDays(VISIBLE_DAYS);
@@ -353,7 +353,7 @@ const useCounselorsManagement = (hostType, showToastMessage, t) => {
       setCounselors(mappedCounselors);
       return mappedCounselors[0]; // Return first counselor for auto-selection
     } catch (error) {
-      console.error("Lỗi khi tải danh sách tư vấn viên:", error);
+      console.warn("Lỗi khi tải danh sách tư vấn viên:", error);
       showToastMessage(t("common.errorLoadData"), "error");
       return null;
     } finally {
@@ -384,7 +384,7 @@ const useCalendarManagement = () => {
         const settings = CalendarService.getSettings();
         setCalendarSettings(settings);
       } catch (error) {
-        console.error("Error loading calendar settings:", error);
+        console.warn("Error loading calendar settings:", error);
       }
     };
 
@@ -423,7 +423,7 @@ const createBookingData = (
 ) => {
   // Validate required parameters
   if (!selectedSlot || !user || !hostType) {
-    console.error("createBookingData: Missing required parameters", {
+    console.warn("createBookingData: Missing required parameters", {
       selectedSlot: !!selectedSlot,
       user: !!user,
       hostType: !!hostType,
@@ -442,7 +442,7 @@ const createBookingData = (
 
   // Validate bookedForId
   if (!bookedForId) {
-    console.error("createBookingData: No valid bookedForId found", {
+    console.warn("createBookingData: No valid bookedForId found", {
       userRole: user?.role,
       selectedChildUserId: selectedChild?.userId,
       userId: user?.id,
@@ -631,14 +631,6 @@ const BookingScreen = ({ navigation }) => {
     [bookingState.setSelectedSlot]
   );
 
-  const handleChildSelect = useCallback(
-    (child) => {
-      bookingState.updateSelectedChild(child);
-      slotsManagement.resetSlots();
-    },
-    [bookingState.updateSelectedChild, slotsManagement.resetSlots]
-  );
-
   const handleBooking = useCallback(async () => {
     // console.log("submit");
 
@@ -702,7 +694,7 @@ const BookingScreen = ({ navigation }) => {
 
             // Validate bookingData
             if (!bookingData) {
-              console.error("Failed to create booking data");
+              console.warn("Failed to create booking data");
               toast.showToastMessage(
                 t("appointment.errors.bookingError") ||
                   "Không thể tạo dữ liệu đặt lịch",
@@ -736,7 +728,7 @@ const BookingScreen = ({ navigation }) => {
                 }
               } catch (error) {
                 Alert.alert(t("appointment.toast.calendarSyncErrorMessage"));
-                console.error("Error syncing appointment to calendar:", error);
+                console.warn("Error syncing appointment to calendar:", error);
               }
             }
 
@@ -748,7 +740,7 @@ const BookingScreen = ({ navigation }) => {
               });
             }, 1000);
           } catch (error) {
-            console.error("Lỗi khi đặt lịch hẹn:", error);
+            console.warn("Lỗi khi đặt lịch hẹn:", error);
 
             // Xử lý lỗi server
             if (
@@ -786,7 +778,7 @@ const BookingScreen = ({ navigation }) => {
   const handleBackPress = useCallback(() => {
     // Kiểm tra t có tồn tại không
     if (!t) {
-      console.error("Translation function 't' is not available");
+      console.warn("Translation function 't' is not available");
       return;
     }
 
@@ -948,49 +940,6 @@ const BookingScreen = ({ navigation }) => {
       </View>
     );
   }, [bookingState.selectedBookedFor?.teacherId, t]);
-
-  const renderChildSelection = useCallback(() => {
-    if (
-      user?.role !== "PARENTS" ||
-      !user?.children ||
-      user.children.length <= 1
-    ) {
-      return null;
-    }
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.dropdownContainer}>
-          <Dropdown
-            label=""
-            placeholder={t("appointment.booking.selectStudent")}
-            data={user.children.map((child) => ({
-              ...child,
-              label: child.fullName,
-              value: child.userId,
-            }))}
-            value={bookingState.selectedChild?.userId}
-            onSelect={handleChildSelect}
-          />
-        </View>
-        {bookingState.selectedChild && (
-          <View style={styles.selectedChildIndicator}>
-            <Ionicons name="checkmark-circle" size={16} color="#059669" />
-            <Text style={styles.selectedChildText}>
-              {t("appointment.booking.selectedStudent")}:{" "}
-              {bookingState.selectedChild.fullName}
-            </Text>
-          </View>
-        )}
-      </View>
-    );
-  }, [
-    user?.role,
-    user?.children,
-    bookingState.selectedChild,
-    handleChildSelect,
-    t, // Add t to dependency array
-  ]);
 
   const renderHostSelection = useCallback(
     () => (

@@ -321,7 +321,7 @@ const SurveyRecord = ({ navigation }) => {
           showToast("Không thể tải dữ liệu khảo sát", "error");
         }
       } catch (error) {
-        console.error("Error fetching survey records:", error);
+        console.warn("Error fetching survey records:", error);
         showToast("Có lỗi xảy ra khi tải dữ liệu", "error");
       } finally {
         setInitialLoading(false);

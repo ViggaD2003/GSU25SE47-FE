@@ -10,7 +10,7 @@ export const getCaseByCaseId = async (caseId) => {
     const response = await api.get(`/api/v1/cases/${caseId}`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching case by caseId:", error);
+    console.warn("Error fetching case by caseId:", error);
     throw error;
   }
 };
@@ -23,7 +23,7 @@ export const getClosedCases = async (accountId) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching closed cases:", error);
+    console.warn("Error fetching closed cases:", error);
     throw error;
   }
 };
@@ -36,7 +36,7 @@ export const confirmCase = async (caseId, body) => {
     const response = await api.put(`/api/v1/cases/${caseId}`, body);
     return response.data;
   } catch (error) {
-    console.error("Error confirming case:", error);
+    console.warn("Error confirming case:", error);
     throw error;
   }
 };

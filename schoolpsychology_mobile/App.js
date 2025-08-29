@@ -35,7 +35,7 @@ function RootNavigation() {
       // Ensure user state is cleared and navigate to login
       await logout();
     } catch (error) {
-      console.error("Error in logout callback:", error);
+      console.warn("Error in logout callback:", error);
     }
   }, [logout]);
 

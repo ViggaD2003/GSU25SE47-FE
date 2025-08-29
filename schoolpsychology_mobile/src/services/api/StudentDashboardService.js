@@ -41,7 +41,7 @@ class StudentDashboardService {
 
       return response.data;
     } catch (error) {
-      console.error("Error fetching student dashboard:", error);
+      console.warn("Error fetching student dashboard:", error);
       throw error;
     }
   }

@@ -107,7 +107,7 @@ const EventScreen = ({ route, navigation }) => {
 
         setEvents(data || []);
       } catch (error) {
-        console.error("Error loading events for week:", error);
+        console.warn("Error loading events for week:", error);
         setEvents([]);
       } finally {
         setLoading(false);

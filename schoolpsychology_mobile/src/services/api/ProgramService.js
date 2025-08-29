@@ -11,7 +11,7 @@ export const fetchAllRecommendedPrograms = async (studentId) => {
     );
     return response.data || [];
   } catch (error) {
-    console.error("Error fetching recommended programs:", error);
+    console.warn("Error fetching recommended programs:", error);
     throw error;
   }
 };
@@ -30,7 +30,7 @@ export const fetchProgramDetails = async (programId, studentId) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error fetching program details:", error);
+    console.warn("Error fetching program details:", error);
     throw error;
   }
 };
@@ -46,7 +46,7 @@ export const joinProgram = async (programId) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error joining program:", error);
+    console.warn("Error joining program:", error);
     throw error;
   }
 };
@@ -62,7 +62,7 @@ export const leaveProgram = async (programId, studentId) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error leaving program:", error);
+    console.warn("Error leaving program:", error);
     throw error;
   }
 };
@@ -76,7 +76,7 @@ export const saveProgramSurveyResult = async (surveyResult) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Error saving program survey result:", error);
+    console.warn("Error saving program survey result:", error);
     throw error;
   }
 };
@@ -91,7 +91,7 @@ export const getAllProgramsRecord = async (studentId) => {
 
     return response.data;
   } catch (error) {
-    console.error("Error fetching all programs record:", error);
+    console.warn("Error fetching all programs record:", error);
     throw error;
   }
 };

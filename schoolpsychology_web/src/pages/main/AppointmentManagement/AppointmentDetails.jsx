@@ -1253,7 +1253,7 @@ const AppointmentDetails = () => {
           appointmentData={appointment}
           assessmentStatus={appointment.status}
           message={messageApi}
-          categories={categories}
+          categories={Array(...(categories || []).filter(c => c.isActive))}
         />
       )}
     </div>

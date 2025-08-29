@@ -11,7 +11,7 @@ export const getPublishedSurveys = async (userId) => {
 
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy survey đã publish:", err);
+    console.warn("Lỗi khi lấy survey đã publish:", err);
     throw err;
   }
 };
@@ -23,7 +23,7 @@ export const getSurveyById = async (surveyId) => {
     const data = response.data;
     return data;
   } catch (error) {
-    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
+    console.warn("Lỗi khi lấy chi tiết khảo sát:", error);
     throw error;
   }
 };
@@ -58,7 +58,7 @@ export const getSurveyRecordsByAccount = async (accountId, params = {}) => {
     );
     return response.data;
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu khảo sát theo account:", error);
+    console.warn("Lỗi khi lấy dữ liệu khảo sát theo account:", error);
     throw error;
   }
 };
@@ -70,7 +70,7 @@ export const getSurveyRecordById = async (surveyRecordId) => {
     const data = response.data;
     return data;
   } catch (error) {
-    console.error("Lỗi khi lấy chi tiết khảo sát:", error);
+    console.warn("Lỗi khi lấy chi tiết khảo sát:", error);
     throw error;
   }
 };
@@ -100,7 +100,7 @@ export const postSurveyResult = async (result) => {
       return response.data;
     }
   } catch (error) {
-    console.error("Lỗi khi gửi kết quả khảo sát:", error.response.data);
+    console.warn("Lỗi khi gửi kết quả khảo sát:", error.response.data);
     throw error;
   }
 };
@@ -150,7 +150,7 @@ export const saveSurveyProgress = async (surveyId, answers) => {
     );
     return true;
   } catch (error) {
-    console.error("Error saving survey progress:", error);
+    console.warn("Error saving survey progress:", error);
     return false;
   }
 };
@@ -185,7 +185,7 @@ export const loadSurveyProgress = async (surveyId) => {
     }
     return null;
   } catch (error) {
-    console.error("Error loading survey progress:", error);
+    console.warn("Error loading survey progress:", error);
     return null;
   }
 };
@@ -198,7 +198,7 @@ export const clearSurveyProgress = async (surveyId) => {
     console.log("Survey progress cleared:", surveyId);
     return true;
   } catch (error) {
-    console.error("Error clearing survey progress:", error);
+    console.warn("Error clearing survey progress:", error);
     return false;
   }
 };
@@ -221,7 +221,7 @@ export const getAllSurveyProgress = async () => {
         try {
           return JSON.parse(value);
         } catch (error) {
-          console.error("Error parsing progress data:", error);
+          console.warn("Error parsing progress data:", error);
           return null;
         }
       })
@@ -232,7 +232,7 @@ export const getAllSurveyProgress = async () => {
 
     return userProgressData;
   } catch (error) {
-    console.error("Error getting all survey progress:", error);
+    console.warn("Error getting all survey progress:", error);
     return [];
   }
 };
@@ -261,7 +261,7 @@ export const clearOtherUsersProgress = async () => {
           keysToRemove.push(key);
         }
       } catch (error) {
-        console.error("Error parsing progress data:", error);
+        console.warn("Error parsing progress data:", error);
         // Remove corrupted data
         keysToRemove.push(key);
       }
@@ -279,7 +279,7 @@ export const clearOtherUsersProgress = async () => {
 
     return keysToRemove.length;
   } catch (error) {
-    console.error("Error clearing other users progress:", error);
+    console.warn("Error clearing other users progress:", error);
     return 0;
   }
 };

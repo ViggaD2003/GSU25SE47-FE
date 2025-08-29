@@ -435,11 +435,7 @@ const CombinedChart = ({
           <View style={[styles.chartWrapper]}>
             <LineChart
               data={lineChartData}
-              width={
-                dataLength >= 5
-                  ? dynamicWidth + 15 * totalDataPoints
-                  : dynamicWidth
-              }
+              width={dynamicWidth}
               // width={500}
               height={isCustomDate ? 350 : 300}
               chartConfig={chartConfig}
@@ -457,7 +453,7 @@ const CombinedChart = ({
                   return value.length > 8 ? value.slice(0, 8) + "..." : value;
                 }
                 return isCustomDate
-                  ? dayjs.utc(value, "DD/MM/YYYY HH:mm").format("DD/MM HH:mm")
+                  ? dayjs.utc(value, "DD/MM/YYYY HH:mm").format("HH:mm")
                   : dayjs.utc(value, "DD/MM/YYYY").format("DD/MM");
               }}
             />
@@ -515,18 +511,14 @@ const CombinedChart = ({
                   tooltipPosition.x > halfWidth - 50;
 
                 if (isNearHalf) {
-                  return halfWidth - 50;
+                  return halfWidth - 120;
                 }
                 if (!isOnLeftHalf) {
                   // Nếu ở nửa trái màn hình, hiển thị tooltip bên phải điểm chạm
-                  return isCustomDate
-                    ? tooltipPosition.x - 250
-                    : tooltipPosition.x - width / 2 - 100;
+                  return tooltipPosition.x - 130;
                 } else {
                   // Nếu ở nửa phải màn hình, hiển thị tooltip bên trái điểm chạm
-                  return isCustomDate
-                    ? tooltipPosition.x - 30
-                    : tooltipPosition.x;
+                  return tooltipPosition.x - 30;
                 }
               })(),
               top: tooltipPosition.y,

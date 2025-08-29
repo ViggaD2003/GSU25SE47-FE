@@ -46,7 +46,7 @@ const ClosedCases = ({ navigation }) => {
       const cases = await getClosedCases(userId);
       setClosedCases(cases || []);
     } catch (error) {
-      console.error("Error fetching closed cases:", error);
+      console.warn("Error fetching closed cases:", error);
       setError(error.message || "Failed to load closed cases");
     } finally {
       setLoading(false);

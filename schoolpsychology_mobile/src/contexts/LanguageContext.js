@@ -86,7 +86,7 @@ export const LanguageProvider = ({ children }) => {
           finalLanguage
         );
       } catch (error) {
-        console.error("LanguageProvider: Error loading language:", error);
+        console.warn("LanguageProvider: Error loading language:", error);
         // Fallback to Vietnamese
         console.log(
           "LanguageProvider: Falling back to Vietnamese due to error"
@@ -108,7 +108,7 @@ export const LanguageProvider = ({ children }) => {
       await AsyncStorage.setItem("language", lang);
       console.log("LanguageProvider: Language changed successfully to:", lang);
     } catch (error) {
-      console.error("LanguageProvider: Error changing language:", error);
+      console.warn("LanguageProvider: Error changing language:", error);
     }
   };
 
@@ -130,10 +130,7 @@ export const LanguageProvider = ({ children }) => {
       await AsyncStorage.removeItem("language");
       console.log("LanguageProvider: Cleared language from AsyncStorage");
     } catch (error) {
-      console.error(
-        "LanguageProvider: Error clearing language storage:",
-        error
-      );
+      console.warn("LanguageProvider: Error clearing language storage:", error);
     }
   };
 

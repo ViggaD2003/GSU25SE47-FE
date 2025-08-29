@@ -292,7 +292,7 @@ const SurveyTaking = ({ route, navigation }) => {
         }
       }
     } catch (error) {
-      console.error("Error saving survey progress:", error);
+      console.warn("Error saving survey progress:", error);
       showToast(t("survey.taking.saveProgress.error"), "error");
     } finally {
       setTimeout(() => {
@@ -437,7 +437,7 @@ const SurveyTaking = ({ route, navigation }) => {
         });
       }
     } catch (error) {
-      console.error("Error submitting survey:", error);
+      console.warn("Error submitting survey:", error);
       showToast(t("survey.taking.errors.submitError"), "error");
     } finally {
       setIsSubmitting(false);

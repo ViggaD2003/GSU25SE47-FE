@@ -99,7 +99,7 @@ export const refreshAccessToken = async () => {
 
     return accessToken;
   } catch (error) {
-    console.error("Refresh token failed:", error);
+    console.warn("Refresh token failed:", error);
 
     // Clear tokens on refresh failure
     await handleRefreshTokenFailure();
@@ -155,7 +155,7 @@ export const logout = async (callLogoutAPI = false) => {
 
     return logoutResult;
   } catch (error) {
-    console.error("Logout error:", error);
+    console.warn("Logout error:", error);
     // Force logout even if there's an error
     return await performLogout(true);
   }
@@ -170,12 +170,12 @@ export const forceLogout = async () => {
     // Perform local logout without API call
     return await performLogout(true);
   } catch (error) {
-    console.error("Force logout error:", error);
+    console.warn("Force logout error:", error);
     // Even if there's an error, try to clear tokens
     try {
       await clearTokens();
     } catch (clearError) {
-      console.error("Error clearing tokens during force logout:", clearError);
+      console.warn("Error clearing tokens during force logout:", clearError);
     }
     return false;
   }
@@ -199,7 +199,7 @@ export const handleLogout = async (
           { cancelable: true }
         );
       } catch (alertError) {
-        console.error("Error showing logout alert:", alertError);
+        console.warn("Error showing logout alert:", alertError);
       }
     }
 
@@ -208,7 +208,7 @@ export const handleLogout = async (
 
     return result;
   } catch (error) {
-    console.error("Error in handleLogout:", error);
+    console.warn("Error in handleLogout:", error);
     return false;
   }
 };

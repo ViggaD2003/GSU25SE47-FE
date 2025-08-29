@@ -92,7 +92,7 @@ const CaseDetails = ({ route, navigation }) => {
         await fetchChatMessages(res.id);
       }
     } catch (err) {
-      console.error("Error fetching chat rooms:", err);
+      console.warn("Error fetching chat rooms:", err);
     }
   };
 
@@ -134,7 +134,7 @@ const CaseDetails = ({ route, navigation }) => {
         useNativeDriver: true,
       }).start();
     } catch (error) {
-      console.error("Error fetching case details:", error);
+      console.warn("Error fetching case details:", error);
       setCaseDetails(null);
     } finally {
       setLoading(false);
@@ -229,7 +229,7 @@ const CaseDetails = ({ route, navigation }) => {
         );
       }
     } catch (error) {
-      console.error("Error confirming case:", error);
+      console.warn("Error confirming case:", error);
     }
   };
 
@@ -795,7 +795,7 @@ const CaseDetails = ({ route, navigation }) => {
           </View>
 
           {/* Chat Messages */}
-          {isConnectionReady ? (
+          {isConnectionReady() ? (
             <ScrollView
               ref={chatRef}
               style={styles.chatMessages}
@@ -872,7 +872,7 @@ const CaseDetails = ({ route, navigation }) => {
                 styles.sendButton,
                 !currentMessage.trim() && { opacity: 0.5 },
               ]}
-              disabled={!currentMessage.trim() || !isConnectionReady}
+              disabled={!currentMessage.trim() || !isConnectionReady()}
             >
               <Ionicons name="send" size={20} color="#FFFFFF" />
             </TouchableOpacity>

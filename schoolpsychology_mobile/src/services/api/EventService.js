@@ -82,7 +82,7 @@ const EventService = {
       });
       return response.data;
     } catch (error) {
-      console.error("Error fetching event by ID:", error);
+      console.warn("Error fetching event by ID:", error);
       throw error;
     }
   },

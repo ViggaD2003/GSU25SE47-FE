@@ -23,7 +23,7 @@ try {
     MentalHealthSection
   );
 } catch (error) {
-  console.error("Error importing MentalHealthSection:", error);
+  console.warn("Error importing MentalHealthSection:", error);
   MentalHealthSection = null;
 }
 
@@ -114,7 +114,7 @@ const DashboardScreen = () => {
 
       setDashboardData(data);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      console.warn("Error fetching dashboard data:", error);
       setDashboardData(null);
       setError(error.message || "Failed to load dashboard data");
       // You might want to show an error message to the user here

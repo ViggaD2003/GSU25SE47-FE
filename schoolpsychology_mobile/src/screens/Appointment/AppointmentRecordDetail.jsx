@@ -39,7 +39,7 @@ const AppointmentRecordDetail = () => {
         const data = await getAppointmentById(recordId);
         setRecord(data);
       } catch (error) {
-        console.error("Lỗi khi tải chi tiết hồ sơ:", error);
+        console.warn("Lỗi khi tải chi tiết hồ sơ:", error);
         Alert.alert("Lỗi", "Không thể tải chi tiết hồ sơ");
       } finally {
         setLoading(false);

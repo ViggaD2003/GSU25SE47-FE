@@ -12,7 +12,7 @@ const MentalHealthSection = ({
 
   // Safety check for translation function
   if (!t || typeof t !== "function") {
-    console.error("Translation function not available");
+    console.warn("Translation function not available");
     return (
       <View
         style={{
@@ -31,7 +31,7 @@ const MentalHealthSection = ({
 
   // Safety check for mentalStatistic prop
   if (!mentalStatistic || typeof mentalStatistic !== "object") {
-    console.error("Invalid mentalStatistic prop:", mentalStatistic);
+    console.warn("Invalid mentalStatistic prop:", mentalStatistic);
     return (
       <View
         style={{

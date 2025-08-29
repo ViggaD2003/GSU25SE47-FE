@@ -98,7 +98,7 @@ export default function ParentHome({ user, navigation }) {
       const initialData = (response || []).slice(0, PAGE_SIZE);
       setDisplayedData(initialData);
     } catch (error) {
-      console.error(`Error loading today's plans:`, error);
+      console.warn(`Error loading today's plans:`, error);
       setTodayPlans([]);
       setDisplayedData([]);
     } finally {
@@ -136,7 +136,7 @@ export default function ParentHome({ user, navigation }) {
     try {
       await Promise.all([getTodayPlans()]);
     } catch (error) {
-      console.error(`Error loading data:`, error);
+      console.warn(`Error loading data:`, error);
     } finally {
       setLoading(false);
     }

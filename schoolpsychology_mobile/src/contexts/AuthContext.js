@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       try {
         callback();
       } catch (error) {
-        console.error("Logout callback error:", error);
+        console.warn("Logout callback error:", error);
       }
     });
   }, []);
@@ -76,19 +76,19 @@ export const AuthProvider = ({ children }) => {
         try {
           await clearOtherUsersProgress();
         } catch (error) {
-          console.error("Error clearing other users progress on load:", error);
+          console.warn("Error clearing other users progress on load:", error);
         }
       } else {
         // Clear user state if not authenticated
         setUser(null);
       }
     } catch (error) {
-      console.error("Error loading user:", error);
+      console.warn("Error loading user:", error);
       // Clear tokens and user state on error
       try {
         await authLogout();
       } catch (logoutError) {
-        console.error("Error during logout after load failure:", logoutError);
+        console.warn("Error during logout after load failure:", logoutError);
       }
       setUser(null);
     } finally {
@@ -109,12 +109,12 @@ export const AuthProvider = ({ children }) => {
       try {
         await clearOtherUsersProgress();
       } catch (error) {
-        console.error("Error clearing other users progress:", error);
+        console.warn("Error clearing other users progress:", error);
       }
 
       return result;
     } catch (error) {
-      console.error("Login error in context:", error);
+      console.warn("Login error in context:", error);
       throw error;
     }
   }, []);
@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }) => {
         position: "top",
       });
     } catch (error) {
-      console.error("Logout error in context:", error);
+      console.warn("Logout error in context:", error);
       // Still clear user state even if logout fails
       setUser(null);
       triggerLogout();

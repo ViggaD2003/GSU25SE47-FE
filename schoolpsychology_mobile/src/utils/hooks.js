@@ -179,7 +179,7 @@ export const useTokenErrorHandler = (logoutFunction) => {
               throw new Error("No token received after refresh");
             }
           } catch (refreshError) {
-            console.error("Token refresh failed after 403:", refreshError);
+            console.warn("Token refresh failed after 403:", refreshError);
             console.log("Performing logout due to refresh failure after 403");
 
             // Force logout after refresh failure
@@ -220,13 +220,13 @@ export const useTokenErrorHandler = (logoutFunction) => {
           }
         }
       } catch (handleError) {
-        console.error("Error in token error handler:", handleError);
+        console.warn("Error in token error handler:", handleError);
 
         // Force logout as last resort
         try {
           await performLogout(true);
         } catch (finalError) {
-          console.error("Final logout attempt failed:", finalError);
+          console.warn("Final logout attempt failed:", finalError);
         }
       } finally {
         isHandlingErrorRef.current = false;
@@ -283,7 +283,7 @@ export const useApiCall = (handleTokenError) => {
       try {
         return await apiFunction(...args);
       } catch (error) {
-        console.error("API call error:", error);
+        console.warn("API call error:", error);
 
         // Handle 403 errors with refresh token logic
         if (error?.response?.status === 403) {
@@ -308,7 +308,7 @@ export const useApiCall = (handleTokenError) => {
               throw new Error("No token received after refresh");
             }
           } catch (refreshError) {
-            console.error("Token refresh failed in useApiCall:", refreshError);
+            console.warn("Token refresh failed in useApiCall:", refreshError);
             console.log(
               "Performing logout due to refresh failure in useApiCall"
             );
@@ -320,7 +320,7 @@ export const useApiCall = (handleTokenError) => {
               );
               await performLogout(true);
             } catch (logoutError) {
-              console.error("Logout failed in useApiCall:", logoutError);
+              console.warn("Logout failed in useApiCall:", logoutError);
             }
 
             // Re-throw the error for component handling
@@ -372,7 +372,7 @@ export const useNotifications = () => {
         setUnreadCount(data.filter((n) => !n.isRead).length);
       }
     } catch (err) {
-      console.error("Error fetching notifications:", err);
+      console.warn("Error fetching notifications:", err);
       setError(err.message || "Failed to fetch notifications");
     } finally {
       setIsLoading(false);
@@ -385,7 +385,7 @@ export const useNotifications = () => {
       try {
         const res = await NotificationAPI.readNotification(notificationId);
         console.log(res);
-        
+
         setNotifications((prev) =>
           prev.map((n) =>
             n.id === notificationId ? { ...n, isRead: true } : n
@@ -396,7 +396,7 @@ export const useNotifications = () => {
         // TODO: Add API call to mark as read on server
         // await NotificationAPI.markAsRead(notificationId);
       } catch (err) {
-        console.error("Error marking notification as read:", err);
+        console.warn("Error marking notification as read:", err);
         // Revert local state on error
         fetchNotifications();
       }
@@ -414,7 +414,7 @@ export const useNotifications = () => {
       // TODO: Add API call to mark all as read on server
       // await NotificationAPI.markAllAsRead();
     } catch (err) {
-      console.error("Error marking all notifications as read:", err);
+      console.warn("Error marking all notifications as read:", err);
       fetchNotifications();
     }
   }, [fetchNotifications]);
@@ -492,7 +492,7 @@ export const useServerErrorHandler = () => {
             throw new Error("No token received after refresh");
           }
         } catch (refreshError) {
-          console.error("Token refresh failed after 403:", refreshError);
+          console.warn("Token refresh failed after 403:", refreshError);
           console.log("Performing logout due to refresh failure after 403");
 
           // Force logout after refresh failure
@@ -502,7 +502,7 @@ export const useServerErrorHandler = () => {
             );
             await performLogout(true);
           } catch (logoutError) {
-            console.error(
+            console.warn(
               "Logout failed after 403 refresh failure:",
               logoutError
             );

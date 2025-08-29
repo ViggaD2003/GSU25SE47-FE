@@ -91,7 +91,7 @@ const EventList = ({ route, navigation }) => {
           break;
       }
     } catch (err) {
-      console.error("Error fetching events:", err);
+      console.warn("Error fetching events:", err);
       setError(t("common.errorLoadData"));
       setEvents([]);
     } finally {

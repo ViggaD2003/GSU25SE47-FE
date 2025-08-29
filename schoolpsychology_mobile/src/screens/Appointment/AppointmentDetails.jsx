@@ -51,7 +51,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       const appointmentData = await getAppointmentById(appointment.id);
       setAppointmentData(appointmentData);
     } catch (error) {
-      console.error("Error fetching appointment:", error);
+      console.warn("Error fetching appointment:", error);
       setError("Failed to load appointment details. Please try again.");
     } finally {
       setLoading(false);
@@ -123,7 +123,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       //   );
       //   console.log("Appointment sync status:", isSynced);
       // } catch (syncError) {
-      //   console.error("Error checking sync status:", syncError);
+      //   console.warn("Error checking sync status:", syncError);
       //   // Nếu không thể kiểm tra, giả sử không sync
       //   isSynced = false;
       // }
@@ -142,12 +142,12 @@ const AppointmentDetails = ({ route, navigation }) => {
         eventId = await CalendarService.getEventIdForAppointment(appointmentId);
         console.log("Event ID from mapping:", eventId);
       } catch (mappingError) {
-        console.error("Error getting event mapping:", mappingError);
+        console.warn("Error getting event mapping:", mappingError);
         // Nếu không thể lấy mapping, xóa mapping để tránh inconsistency
         try {
           await CalendarService.removeEventMapping(appointmentId);
         } catch (removeMappingError) {
-          console.error("Error removing event mapping:", removeMappingError);
+          console.warn("Error removing event mapping:", removeMappingError);
         }
         return {
           success: true,
@@ -160,7 +160,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         try {
           await CalendarService.removeEventMapping(appointmentId);
         } catch (removeMappingError) {
-          console.error("Error removing event mapping:", removeMappingError);
+          console.warn("Error removing event mapping:", removeMappingError);
         }
         return {
           success: true,
@@ -174,7 +174,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         deleteSuccess = await CalendarService.deleteEvent(eventId);
         console.log("Event deletion result:", deleteSuccess);
       } catch (deleteError) {
-        console.error("Error deleting calendar event:", deleteError);
+        console.warn("Error deleting calendar event:", deleteError);
         deleteSuccess = false;
       }
 
@@ -183,7 +183,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         await CalendarService.removeEventMapping(appointmentId);
         console.log("Event mapping removed successfully");
       } catch (removeMappingError) {
-        console.error("Error removing event mapping:", removeMappingError);
+        console.warn("Error removing event mapping:", removeMappingError);
       }
 
       if (deleteSuccess) {
@@ -198,13 +198,13 @@ const AppointmentDetails = ({ route, navigation }) => {
         };
       }
     } catch (error) {
-      console.error("Unexpected error in removeEventFromCalendar:", error);
+      console.warn("Unexpected error in removeEventFromCalendar:", error);
       // Xóa mapping để tránh inconsistency
       try {
         await CalendarService.removeEventMapping(appointmentId);
         console.log("Event mapping removed after error");
       } catch (removeMappingError) {
-        console.error(
+        console.warn(
           "Error removing event mapping after error:",
           removeMappingError
         );
@@ -337,13 +337,13 @@ const AppointmentDetails = ({ route, navigation }) => {
                 setShowConfirmModal(false);
                 navigation.goBack();
               } catch (error) {
-                console.error("Error after confirming appointment:", error);
+                console.warn("Error after confirming appointment:", error);
                 // Fallback navigation
                 setTimeout(() => {
                   try {
                     navigation.goBack();
                   } catch (navError) {
-                    console.error("Fallback navigation failed:", navError);
+                    console.warn("Fallback navigation failed:", navError);
                   }
                 }, 100);
               }
@@ -352,7 +352,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         ]
       );
     } catch (error) {
-      console.error("Error confirming appointment:", error);
+      console.warn("Error confirming appointment:", error);
       Alert.alert(
         t("common.alerts.error"),
         t("appointment.errors.confirmError"),
@@ -379,13 +379,13 @@ const AppointmentDetails = ({ route, navigation }) => {
                 setShowRejectModal(false);
                 navigation.goBack();
               } catch (error) {
-                console.error("Error after rejecting appointment:", error);
+                console.warn("Error after rejecting appointment:", error);
                 // Fallback navigation
                 setTimeout(() => {
                   try {
                     navigation.goBack();
                   } catch (navError) {
-                    console.error("Fallback navigation failed:", navError);
+                    console.warn("Fallback navigation failed:", navError);
                   }
                 }, 100);
               }
@@ -394,7 +394,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         ]
       );
     } catch (error) {
-      console.error("Error rejecting appointment:", error);
+      console.warn("Error rejecting appointment:", error);
       Alert.alert(
         t("common.alerts.error"),
         t("appointment.errors.rejectError"),
@@ -419,7 +419,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         calendarResult = await removeEventFromCalendar(appointmentData.id);
         console.log("Calendar cleanup result:", calendarResult);
       } catch (calendarError) {
-        console.error("Calendar cleanup error:", calendarError);
+        console.warn("Calendar cleanup error:", calendarError);
         // Tạo kết quả mặc định nếu calendar có lỗi
         calendarResult = {
           success: false,
@@ -440,7 +440,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         // Không dừng quá trình hủy hẹn nếu calendar có lỗi
       }
     } catch (error) {
-      console.error("Unexpected error during calendar cleanup:", error);
+      console.warn("Unexpected error during calendar cleanup:", error);
       // Không dừng quá trình hủy hẹn nếu có lỗi bất ngờ
     } finally {
       setLoading(false);
@@ -452,14 +452,14 @@ const AppointmentDetails = ({ route, navigation }) => {
       setShowReasonModal(true);
       console.log("Successfully showed reason modal");
     } catch (modalError) {
-      console.error("Error showing reason modal:", modalError);
+      console.warn("Error showing reason modal:", modalError);
       // Fallback: thử hiển thị modal một lần nữa
       setTimeout(() => {
         try {
           setShowCancelModal(false);
           setShowReasonModal(true);
         } catch (fallbackError) {
-          console.error("Fallback modal display failed:", fallbackError);
+          console.warn("Fallback modal display failed:", fallbackError);
         }
       }, 100);
     }
@@ -519,7 +519,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       try {
         calendarResult = await removeEventFromCalendar(appointmentData.id);
       } catch (calendarError) {
-        console.error("Calendar cleanup error in submit:", calendarError);
+        console.warn("Calendar cleanup error in submit:", calendarError);
         calendarResult = {
           success: false,
           message: "Calendar cleanup failed",
@@ -531,7 +531,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         setSelectedReason(null);
         setCustomReason("");
       } catch (modalError) {
-        console.error("Error hiding reason modal:", modalError);
+        console.warn("Error hiding reason modal:", modalError);
       }
 
       // Hiển thị thông báo thành công với thông tin về calendar
@@ -560,16 +560,13 @@ const AppointmentDetails = ({ route, navigation }) => {
             try {
               navigation.goBack();
             } catch (navError) {
-              console.error("Navigation error after cancel:", navError);
+              console.warn("Navigation error after cancel:", navError);
               // Fallback navigation
               setTimeout(() => {
                 try {
                   navigation.goBack();
                 } catch (fallbackNavError) {
-                  console.error(
-                    "Fallback navigation failed:",
-                    fallbackNavError
-                  );
+                  console.warn("Fallback navigation failed:", fallbackNavError);
                 }
               }, 100);
             }
@@ -577,7 +574,7 @@ const AppointmentDetails = ({ route, navigation }) => {
         },
       ]);
     } catch (error) {
-      console.error("Error cancelling appointment:", error);
+      console.warn("Error cancelling appointment:", error);
       Alert.alert(
         t("common.alerts.error"),
         t("appointment.errors.cancelError"),
@@ -1020,7 +1017,7 @@ const AppointmentDetails = ({ route, navigation }) => {
           try {
             setShowCancelModal(false);
           } catch (error) {
-            console.error("Error hiding cancel modal:", error);
+            console.warn("Error hiding cancel modal:", error);
           }
         }}
         type="danger"
@@ -1037,7 +1034,7 @@ const AppointmentDetails = ({ route, navigation }) => {
           try {
             setShowConfirmModal(false);
           } catch (error) {
-            console.error("Error hiding confirm modal:", error);
+            console.warn("Error hiding confirm modal:", error);
           }
         }}
         type="success"
@@ -1054,7 +1051,7 @@ const AppointmentDetails = ({ route, navigation }) => {
           try {
             setShowRejectModal(false);
           } catch (error) {
-            console.error("Error hiding reject modal:", error);
+            console.warn("Error hiding reject modal:", error);
           }
         }}
         type="danger"
@@ -1068,7 +1065,7 @@ const AppointmentDetails = ({ route, navigation }) => {
           try {
             setShowReasonModal(false);
           } catch (error) {
-            console.error("Error hiding reason modal:", error);
+            console.warn("Error hiding reason modal:", error);
           }
         }}
       >
@@ -1087,7 +1084,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                   try {
                     setShowReasonModal(false);
                   } catch (error) {
-                    console.error("Error hiding reason modal:", error);
+                    console.warn("Error hiding reason modal:", error);
                   }
                 }}
                 style={styles.closeButton}

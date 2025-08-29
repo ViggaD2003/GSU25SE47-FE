@@ -19,7 +19,7 @@ const loadSettings = async () => {
       settings = { ...settings, ...JSON.parse(storedSettings) };
     }
   } catch (error) {
-    console.error("Error loading calendar settings:", error);
+    console.warn("Error loading calendar settings:", error);
   }
 };
 
@@ -29,7 +29,7 @@ const saveSettings = async () => {
     console.log("Saving calendar settings to AsyncStorage:", settings);
     await AsyncStorage.setItem("calendarSettings", JSON.stringify(settings));
   } catch (error) {
-    console.error("Error saving calendar settings:", error);
+    console.warn("Error saving calendar settings:", error);
   }
 };
 
@@ -39,7 +39,7 @@ const checkPermissions = async () => {
     const { status } = await Calendar.getCalendarPermissionsAsync();
     return status === "granted";
   } catch (error) {
-    console.error("Error checking calendar permissions:", error);
+    console.warn("Error checking calendar permissions:", error);
     return false;
   }
 };
@@ -50,7 +50,7 @@ const requestPermissions = async () => {
     const { status } = await Calendar.requestCalendarPermissionsAsync();
     return status === "granted";
   } catch (error) {
-    console.error("Error requesting calendar permissions:", error);
+    console.warn("Error requesting calendar permissions:", error);
     return false;
   }
 };
@@ -82,7 +82,7 @@ const getDefaultCalendar = async () => {
     defaultCalendarId = defaultCalendar?.id;
     return defaultCalendarId;
   } catch (error) {
-    console.error("Error getting default calendar:", error);
+    console.warn("Error getting default calendar:", error);
     return null;
   }
 };
@@ -101,7 +101,7 @@ const getCalendars = async () => {
     );
     return calendars;
   } catch (error) {
-    console.error("Error getting calendars:", error);
+    console.warn("Error getting calendars:", error);
     return [];
   }
 };
@@ -141,7 +141,7 @@ const isEventAlreadyAdded = async (
       return titleMatch && timeMatch;
     });
   } catch (error) {
-    console.error("Error checking if event already exists:", error);
+    console.warn("Error checking if event already exists:", error);
     return false; // Nếu có lỗi, cho phép tạo event để tránh mất dữ liệu
   }
 };
@@ -199,7 +199,7 @@ const createEvent = async (eventData) => {
     console.log("Calendar event created:", eventId);
     return eventId;
   } catch (error) {
-    console.error("Error creating calendar event:", error);
+    console.warn("Error creating calendar event:", error);
     return null;
   }
 };
@@ -243,7 +243,7 @@ const updateEvent = async (eventId, eventData) => {
     console.log("Calendar event updated:", eventId);
     return true;
   } catch (error) {
-    console.error("Error updating calendar event:", error);
+    console.warn("Error updating calendar event:", error);
     return false;
   }
 };
@@ -271,7 +271,7 @@ const deleteEvent = async (eventId) => {
     console.log("Calendar event deleted:", eventId);
     return true;
   } catch (error) {
-    console.error("Error deleting calendar event:", error);
+    console.warn("Error deleting calendar event:", error);
     return false;
   }
 };
@@ -293,7 +293,7 @@ const getEvents = async (startDate, endDate) => {
 
     return events;
   } catch (error) {
-    console.error("Error getting calendar events:", error);
+    console.warn("Error getting calendar events:", error);
     return [];
   }
 };
@@ -309,7 +309,7 @@ const storeEventMapping = async (appointmentId, eventId) => {
       JSON.stringify(mappingsObj)
     );
   } catch (error) {
-    console.error("Error storing event mapping:", error);
+    console.warn("Error storing event mapping:", error);
   }
 };
 
@@ -320,7 +320,7 @@ const getEventIdForAppointment = async (appointmentId) => {
     const mappingsObj = mappings ? JSON.parse(mappings) : {};
     return mappingsObj[appointmentId];
   } catch (error) {
-    console.error("Error getting event mapping:", error);
+    console.warn("Error getting event mapping:", error);
     return null;
   }
 };
@@ -336,7 +336,7 @@ const removeEventMapping = async (appointmentId) => {
       JSON.stringify(mappingsObj)
     );
   } catch (error) {
-    console.error("Error removing event mapping:", error);
+    console.warn("Error removing event mapping:", error);
   }
 };
 
@@ -416,7 +416,7 @@ const syncAppointments = async (calendarId, appointments = []) => {
           errorCount++;
         }
       } catch (error) {
-        console.error("Error syncing appointment:", appointment.id, error);
+        console.warn("Error syncing appointment:", appointment.id, error);
         errorCount++;
       }
     }
@@ -431,7 +431,7 @@ const syncAppointments = async (calendarId, appointments = []) => {
       }`,
     };
   } catch (error) {
-    console.error("Error syncing appointments:", error);
+    console.warn("Error syncing appointments:", error);
     return { success: false, message: "Failed to sync appointments" };
   }
 };
@@ -492,7 +492,7 @@ const syncSurveys = async (calendarId, surveys) => {
           errorCount++;
         }
       } catch (error) {
-        console.error("Error syncing survey:", survey.id, error);
+        console.warn("Error syncing survey:", survey.id, error);
         errorCount++;
       }
     }
@@ -507,7 +507,7 @@ const syncSurveys = async (calendarId, surveys) => {
       }`,
     };
   } catch (error) {
-    console.error("Error syncing surveys:", error);
+    console.warn("Error syncing surveys:", error);
     return { success: false, message: "Failed to sync surveys" };
   }
 };
@@ -552,7 +552,7 @@ const syncEvent = async (eventType, eventData) => {
       return { success: false, message: "Invalid event type" };
     }
   } catch (error) {
-    console.error("Error syncing event to calendar:", error);
+    console.warn("Error syncing event to calendar:", error);
     return { success: false, message: "Failed to sync event to calendar" };
   }
 };
@@ -613,7 +613,7 @@ const isAppointmentAlreadySynced = async (appointmentId) => {
       return false;
     }
   } catch (error) {
-    console.error("Error checking if appointment is synced:", error);
+    console.warn("Error checking if appointment is synced:", error);
     return false;
   }
 };
@@ -658,7 +658,7 @@ const initialize = async () => {
     await getDefaultCalendar();
     return true;
   } catch (error) {
-    console.error("Calendar service initialization error:", error);
+    console.warn("Calendar service initialization error:", error);
     return false;
   }
 };

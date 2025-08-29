@@ -15,7 +15,7 @@ export const setTokens = async (token) => {
     }
     await AsyncStorage.setItem(AUTH_CONFIG.TOKEN_KEY, token);
   } catch (error) {
-    console.error("Error saving tokens:", error);
+    console.warn("Error saving tokens:", error);
     throw error;
   }
 };
@@ -24,7 +24,7 @@ export const getAccessToken = async () => {
   try {
     return await AsyncStorage.getItem(AUTH_CONFIG.TOKEN_KEY);
   } catch (error) {
-    console.error("Error getting access token:", error);
+    console.warn("Error getting access token:", error);
     return null;
   }
 };
@@ -38,7 +38,7 @@ export const clearTokens = async () => {
   try {
     await AsyncStorage.removeItem(AUTH_CONFIG.TOKEN_KEY);
   } catch (error) {
-    console.error("Error clearing tokens:", error);
+    console.warn("Error clearing tokens:", error);
   }
 };
 
@@ -53,7 +53,7 @@ export const isTokenExpired = (token) => {
     const bufferTime = AUTH_CONFIG.TOKEN_EXPIRATION_BUFFER;
     return decoded.exp < currentTime + bufferTime;
   } catch (error) {
-    console.error("Error decoding token:", error);
+    console.warn("Error decoding token:", error);
     return true;
   }
 };
@@ -69,7 +69,7 @@ export const isTokenActuallyExpired = (token) => {
     // No buffer time - check actual expiration
     return decoded.exp < currentTime;
   } catch (error) {
-    console.error("Error decoding token:", error);
+    console.warn("Error decoding token:", error);
     return true;
   }
 };
@@ -86,7 +86,7 @@ export const shouldRefreshToken = async () => {
     const bufferTime = AUTH_CONFIG.TOKEN_EXPIRATION_BUFFER;
     return decoded.exp < currentTime + bufferTime;
   } catch (error) {
-    console.error("Error checking token refresh:", error);
+    console.warn("Error checking token refresh:", error);
     return true;
   }
 };
@@ -103,7 +103,7 @@ export const validateUserRole = (token) => {
     }
     return decoded;
   } catch (error) {
-    console.error("Error validating user role:", error);
+    console.warn("Error validating user role:", error);
     throw error;
   }
 };
@@ -124,7 +124,7 @@ export const validateToken = async (token) => {
 
     return { isValid: true, decoded };
   } catch (error) {
-    console.error("Error validating token:", error);
+    console.warn("Error validating token:", error);
     return { isValid: false, error: AUTH_ERRORS.INVALID_TOKEN };
   }
 };
@@ -136,7 +136,7 @@ export const handleRefreshTokenFailure = async () => {
     await clearTokens();
     return true;
   } catch (error) {
-    console.error("Error handling refresh token failure:", error);
+    console.warn("Error handling refresh token failure:", error);
     return false;
   }
 };
@@ -156,7 +156,7 @@ export const isTokenValidForRefresh = async () => {
     const maxRefreshAge = 7 * 24 * 60 * 60; // 7 days in seconds
     return decoded.iat && currentTime - decoded.iat < maxRefreshAge;
   } catch (error) {
-    console.error("Error checking token validity for refresh:", error);
+    console.warn("Error checking token validity for refresh:", error);
     return false;
   }
 };
@@ -190,7 +190,7 @@ export const performLogout = async (force = false) => {
       console.log("Logout process completed successfully");
       return true;
     } catch (error) {
-      console.error("Error during logout process:", error);
+      console.warn("Error during logout process:", error);
 
       // Reset global state even on error
       isLoggingOut = false;
@@ -200,7 +200,7 @@ export const performLogout = async (force = false) => {
       try {
         await clearTokens();
       } catch (clearError) {
-        console.error("Error clearing tokens during logout:", clearError);
+        console.warn("Error clearing tokens during logout:", clearError);
       }
 
       return false;

@@ -60,7 +60,7 @@ export const login = async (email, password) => {
       },
     };
   } catch (error) {
-    console.error("Login error:", error);
+    console.warn("Login error:", error);
     throw error;
   }
 };
@@ -79,7 +79,7 @@ export const isAuthenticated = async () => {
     const tokenValidation = await validateToken(token);
     return tokenValidation.isValid;
   } catch (error) {
-    console.error("Error checking authentication:", error);
+    console.warn("Error checking authentication:", error);
     return false;
   }
 };
@@ -120,7 +120,7 @@ export const getCurrentUser = async () => {
       fullName: user.fullName || decoded.fullname,
     };
   } catch (error) {
-    console.error("Error getting current user:", error);
+    console.warn("Error getting current user:", error);
     return null;
   }
 };
@@ -159,7 +159,7 @@ export const checkAndHandleRefreshTokenFailure = async () => {
 
     return false; // No failure detected
   } catch (error) {
-    console.error("Error checking refresh token failure:", error);
+    console.warn("Error checking refresh token failure:", error);
     await handleRefreshTokenFailure();
     return true; // Failure was handled
   }
@@ -188,7 +188,7 @@ export const authLogout = async () => {
     // Use the enhanced logout function
     return await performLogout();
   } catch (error) {
-    console.error("Auth logout error:", error);
+    console.warn("Auth logout error:", error);
     // Force logout even if there's an error
     return await performLogout(true);
   }

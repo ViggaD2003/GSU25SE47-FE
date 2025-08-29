@@ -82,7 +82,7 @@ export default function StudentHome({ user, navigation }) {
       const response = await fetchAllRecommendedPrograms(user.id);
       setRecommandedPrograms(response);
     } catch (error) {
-      console.error(`Error loading recommended programs:`, error);
+      console.warn(`Error loading recommended programs:`, error);
       setRecommandedPrograms([]);
     }
   };
@@ -107,7 +107,7 @@ export default function StudentHome({ user, navigation }) {
       const initialData = (response || []).slice(0, PAGE_SIZE);
       setDisplayedData(initialData);
     } catch (error) {
-      console.error(`Error loading today's plans:`, error);
+      console.warn(`Error loading today's plans:`, error);
       setTodayPlans([]);
       setDisplayedData([]);
     }
@@ -143,7 +143,7 @@ export default function StudentHome({ user, navigation }) {
     try {
       await Promise.all([getTodayPlans(), fetchRecommandedPrograms()]);
     } catch (error) {
-      console.error(`Er or loading data:`, error);
+      console.warn(`Er or loading data:`, error);
     } finally {
       setLoading(false);
       setRefreshing(false);

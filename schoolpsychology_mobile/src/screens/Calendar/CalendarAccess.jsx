@@ -50,7 +50,7 @@ export default function CalendarAccess() {
       setReminderTime(settings.reminderTime || 15);
       setCalendarPermission(await calendarService.checkPermissions());
     } catch (error) {
-      console.error("Error initializing calendar:", error);
+      console.warn("Error initializing calendar:", error);
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export default function CalendarAccess() {
       console.log("Saving calendar settings:", settingsToSave);
       await calendarService.updateSettings(settingsToSave);
     } catch (error) {
-      console.error("Error saving calendar settings:", error);
+      console.warn("Error saving calendar settings:", error);
       throw error; // Re-throw để component có thể handle
     }
   };
@@ -102,7 +102,7 @@ export default function CalendarAccess() {
         return false;
       }
     } catch (error) {
-      console.error("Error requesting calendar permission:", error);
+      console.warn("Error requesting calendar permission:", error);
       return false;
     }
   };
@@ -136,7 +136,7 @@ export default function CalendarAccess() {
         reminderTime,
       });
     } catch (error) {
-      console.error("Error in handleSyncToggle:", error);
+      console.warn("Error in handleSyncToggle:", error);
       // Revert the state if save failed
       setSyncEnabled(!value);
       Alert.alert("Error", "Failed to save sync settings. Please try again.");
@@ -156,7 +156,7 @@ export default function CalendarAccess() {
         reminderTime,
       });
     } catch (error) {
-      console.error("Error in handleAutoSyncToggle:", error);
+      console.warn("Error in handleAutoSyncToggle:", error);
       // Revert the state if save failed
       setAutoSync(!value);
       Alert.alert(
@@ -176,7 +176,7 @@ export default function CalendarAccess() {
         reminderTime,
       });
     } catch (error) {
-      console.error("Error in handleReminderToggle:", error);
+      console.warn("Error in handleReminderToggle:", error);
       // Revert the state if save failed
       setReminderEnabled(!value);
       Alert.alert(
@@ -215,7 +215,7 @@ export default function CalendarAccess() {
       });
       closeReminderModal();
     } catch (error) {
-      console.error("Error in saveReminderTime:", error);
+      console.warn("Error in saveReminderTime:", error);
       Alert.alert("Error", "Failed to save reminder time. Please try again.");
     }
   };
@@ -297,7 +297,7 @@ export default function CalendarAccess() {
         Alert.alert("Sync Failed", result.message, [{ text: "OK" }]);
       }
     } catch (error) {
-      console.error("Error syncing calendar:", error);
+      console.warn("Error syncing calendar:", error);
       Alert.alert("Error", "Failed to sync calendar. Please try again.");
     } finally {
       setSyncing(false);

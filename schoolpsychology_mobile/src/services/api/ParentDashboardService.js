@@ -9,7 +9,7 @@ export const getChildSurveyRecords = async (accountId) => {
     const data = response.data.data || [];
     return data.filter((item) => item.status === "COMPLETED");
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu survey record:", error);
+    console.warn("Lỗi khi lấy dữ liệu survey record:", error);
     throw error;
   }
 };
@@ -23,7 +23,7 @@ export const getChildAppointmentRecords = async (accountId) => {
     // return response.data;
     return [];
   } catch (error) {
-    console.error("Lỗi khi lấy appointment records:", error);
+    console.warn("Lỗi khi lấy appointment records:", error);
     throw error;
   }
 };
@@ -37,7 +37,7 @@ export const getChildSupportProgramRecords = async (accountId) => {
     // return response.data;
     return [];
   } catch (error) {
-    console.error("Lỗi khi lấy support program records:", error);
+    console.warn("Lỗi khi lấy support program records:", error);
     throw error;
   }
 };

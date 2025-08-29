@@ -10,7 +10,7 @@ export const createAppointment = async (appointment) => {
 
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi tạo lịch hẹn:", err);
+    console.warn("Lỗi khi tạo lịch hẹn:", err);
     throw err;
   }
 };
@@ -24,7 +24,7 @@ export const getAppointmentById = async (appointmentId) => {
     const response = await api.get(`/api/v1/appointments/${appointmentId}`);
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy chi tiết lịch hẹn:", err);
+    console.warn("Lỗi khi lấy chi tiết lịch hẹn:", err);
     throw err;
   }
 };
@@ -53,7 +53,7 @@ export const getAppointmentById = async (appointmentId) => {
 //     );
 //     return response.data;
 //   } catch (err) {
-//     console.error("Lỗi khi cập nhật lịch hẹn:", err);
+//     console.warn("Lỗi khi cập nhật lịch hẹn:", err);
 //     throw err;
 //   }
 // };
@@ -72,7 +72,7 @@ export const updateAppointmentStatus = async (appointmentId, status) => {
     );
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi cập nhật trạng thái lịch hẹn:", err);
+    console.warn("Lỗi khi cập nhật trạng thái lịch hẹn:", err);
     throw err;
   }
 };
@@ -91,7 +91,7 @@ export const cancelAppointment = async (appointmentId, reasonCancel) => {
     );
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi hủy lịch hẹn:", err);
+    console.warn("Lỗi khi hủy lịch hẹn:", err);
     throw err;
   }
 };
@@ -107,7 +107,7 @@ export const getActiveAppointments = async (accountId) => {
     );
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy lịch hẹn hoạt động:", err);
+    console.warn("Lỗi khi lấy lịch hẹn hoạt động:", err);
     throw err;
   }
 };
@@ -123,7 +123,7 @@ export const getPastAppointments = async (accountId) => {
     );
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy lịch hẹn quá khứ:", err);
+    console.warn("Lỗi khi lấy lịch hẹn quá khứ:", err);
     throw err;
   }
 };
@@ -134,7 +134,7 @@ export const getAllCounselors = async () => {
     const response = await api.get("/api/v1/account/view-counselor");
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy danh sách cán bộ tư vấn:", err);
+    console.warn("Lỗi khi lấy danh sách cán bộ tư vấn:", err);
     throw err;
   }
 };

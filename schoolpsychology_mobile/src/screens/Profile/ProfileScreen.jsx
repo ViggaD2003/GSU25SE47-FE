@@ -31,7 +31,7 @@ export default function ProfileScreen({ navigation }) {
       await logout();
       // AuthContext will handle the state update and navigation
     } catch (error) {
-      console.error("Logout error:", error);
+      console.warn("Logout error:", error);
       // Still logout locally even if API call fails
       await logout();
     }

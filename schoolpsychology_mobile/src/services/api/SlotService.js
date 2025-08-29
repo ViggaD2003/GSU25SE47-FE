@@ -6,7 +6,7 @@ export const getSlotsWithHostById = async (hostById) => {
     const response = await api.get(`/api/v1/slots?hostById=${hostById}`);
     return response.data;
   } catch (err) {
-    console.error("Lỗi khi lấy slot của cán bộ tư vấn:", err);
+    console.warn("Lỗi khi lấy slot của cán bộ tư vấn:", err);
     throw err;
   }
 };

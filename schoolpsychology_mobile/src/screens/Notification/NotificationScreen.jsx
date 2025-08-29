@@ -37,7 +37,7 @@ const NotificationScreen = ({ navigation }) => {
     try {
       await refreshNotifications();
     } catch (error) {
-      console.error("❌ NotificationScreen: Refresh failed:", error);
+      console.warn("❌ NotificationScreen: Refresh failed:", error);
       Alert.alert(t("common.errorTitle"), t("notifications.refreshFailed"));
     }
   }, [refreshNotifications]);
@@ -48,7 +48,7 @@ const NotificationScreen = ({ navigation }) => {
     try {
       await refreshNotifications();
     } catch (error) {
-      console.error("❌ NotificationScreen: Manual refresh failed:", error);
+      console.warn("❌ NotificationScreen: Manual refresh failed:", error);
       Alert.alert(t("common.errorTitle"), t("notifications.refreshFailed"));
     }
   }, [refreshNotifications]);
@@ -59,7 +59,7 @@ const NotificationScreen = ({ navigation }) => {
       try {
         await markAsRead(notificationId);
       } catch (error) {
-        console.error(
+        console.warn(
           "❌ NotificationScreen: Error marking notification as read:",
           error
         );
@@ -130,7 +130,7 @@ const NotificationScreen = ({ navigation }) => {
             break;
         }
       } catch (error) {
-        console.error(
+        console.warn(
           "❌ NotificationScreen: Error handling notification press:",
           error
         );
@@ -373,7 +373,7 @@ const NotificationScreen = ({ navigation }) => {
         updateCellsBatchingPeriod={50}
         disableVirtualization={false}
         onError={(error) => {
-          console.error("❌ FlatList error:", error);
+          console.warn("❌ FlatList error:", error);
         }}
       />
 

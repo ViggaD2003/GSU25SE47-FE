@@ -49,15 +49,15 @@ const handleServerError = (error, showNotification = true) => {
 
   switch (status) {
     case 502:
-      console.error("❌ Response: 502 Bad Gateway error detected");
+      console.warn("❌ Response: 502 Bad Gateway error detected");
       return new Error("Server temporarily unavailable");
 
     case 503:
-      console.error("❌ Response: 503 Service Unavailable error detected");
+      console.warn("❌ Response: 503 Service Unavailable error detected");
       return new Error("Service temporarily unavailable");
 
     case 504:
-      console.error("❌ Response: 504 Gateway Timeout error detected");
+      console.warn("❌ Response: 504 Gateway Timeout error detected");
       return new Error("Gateway timeout");
 
     default:
@@ -121,7 +121,7 @@ const triggerLogoutCallback = () => {
         logoutCallback();
       }, 0);
     } catch (callbackError) {
-      console.error("Logout callback error:", callbackError);
+      console.warn("Logout callback error:", callbackError);
       // Reset flag if callback fails so it can be retried
       isLogoutCallbackTriggered = false;
     }
@@ -146,7 +146,7 @@ const triggerToastCallback = (message, type = "error") => {
         toastCallback(message, type);
       }, 0);
     } catch (callbackError) {
-      console.error("Toast callback error:", callbackError);
+      console.warn("Toast callback error:", callbackError);
     }
   } else {
     console.warn(
@@ -227,7 +227,7 @@ api.interceptors.request.use(
             return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
           }
         } catch (refreshError) {
-          console.error("Token refresh failed during request:", refreshError);
+          console.warn("Token refresh failed during request:", refreshError);
           // Clear local tokens only, no API call
           await clearTokens();
           // Show toast message
@@ -247,7 +247,7 @@ api.interceptors.request.use(
         );
       }
     } catch (error) {
-      console.error("Error in request interceptor:", error.message);
+      console.warn("Error in request interceptor:", error.message);
       return Promise.reject(error);
     }
     return config;
@@ -265,7 +265,7 @@ api.interceptors.response.use(
 
     // Handle network errors
     if (!error.response) {
-      console.error("Network or CORS error:", error.message);
+      console.warn("Network or CORS error:", error.message);
       return Promise.reject(new Error(AUTH_ERRORS.NETWORK_ERROR));
     }
 
@@ -332,7 +332,7 @@ api.interceptors.response.use(
           throw new Error("No token received after refresh");
         }
       } catch (refreshError) {
-        console.error("Token refresh failed after 403 error:", refreshError);
+        console.warn("Token refresh failed after 403 error:", refreshError);
         console.log(
           "Clearing local tokens and navigating to login due to refresh failure after 403"
         );
@@ -349,7 +349,7 @@ api.interceptors.response.use(
           // Navigate to login immediately
           triggerLogoutCallback();
         } catch (clearError) {
-          console.error(
+          console.warn(
             "Error clearing tokens after 403 refresh failure:",
             clearError
           );

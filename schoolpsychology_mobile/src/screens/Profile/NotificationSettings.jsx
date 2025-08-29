@@ -54,7 +54,7 @@ const NotificationSettings = ({ navigation }) => {
       //   setSettings(JSON.parse(savedSettings));
       // }
     } catch (error) {
-      console.error("Error loading settings:", error);
+      console.warn("Error loading settings:", error);
     }
   };
 
@@ -64,7 +64,7 @@ const NotificationSettings = ({ navigation }) => {
       // TODO: Save to AsyncStorage
       // await AsyncStorage.setItem('notificationSettings', JSON.stringify(newSettings));
     } catch (error) {
-      console.error("Error saving settings:", error);
+      console.warn("Error saving settings:", error);
     }
   };
 

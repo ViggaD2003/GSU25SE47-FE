@@ -66,7 +66,7 @@ const AppointmentRecord = () => {
         : response.data || [];
       setRecords(recordsData);
     } catch (error) {
-      console.error("Lỗi khi tải danh sách hồ sơ:", error);
+      console.warn("Lỗi khi tải danh sách hồ sơ:", error);
     } finally {
       setLoading(false);
     }

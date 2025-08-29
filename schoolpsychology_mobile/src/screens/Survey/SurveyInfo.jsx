@@ -44,7 +44,7 @@ const SurveyInfo = ({ route, navigation }) => {
         setSurvey(response);
       }
     } catch (error) {
-      console.error("Lỗi khi lấy thông tin khảo sát:", error);
+      console.warn("Lỗi khi lấy thông tin khảo sát:", error);
       showToast(t("survey.info.loadError"), "error");
     } finally {
       setLoading(false);

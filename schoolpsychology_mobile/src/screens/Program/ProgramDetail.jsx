@@ -89,7 +89,7 @@ export default function ProgramDetail() {
       setProgram(data);
       setIsJoined(data.student ? true : false);
     } catch (error) {
-      console.error("Error fetching program details:", error);
+      console.warn("Error fetching program details:", error);
       Alert.alert(t("common.errorTitle"), t("common.errors.loadError"));
     } finally {
       setLoading(false);
@@ -119,7 +119,7 @@ export default function ProgramDetail() {
       Alert.alert(t("common.success"), t("program.detail.joinSuccess"));
       fetchProgramData();
     } catch (error) {
-      console.error("Error joining program:", error);
+      console.warn("Error joining program:", error);
       Alert.alert(t("common.errorTitle"), t("program.detail.joinError"));
     } finally {
       setJoining(false);
@@ -155,7 +155,7 @@ export default function ProgramDetail() {
               );
               fetchProgramData();
             } catch (error) {
-              console.error("Error leaving program:", error);
+              console.warn("Error leaving program:", error);
               Alert.alert(
                 t("common.errorTitle"),
                 t("program.detail.leaveError")
@@ -271,7 +271,8 @@ export default function ProgramDetail() {
       program &&
       program.status === "ACTIVE" &&
       (!program?.student || program?.student?.surveyRecord?.length === 0) &&
-      isBeforeStartTime
+      isBeforeStartTime &&
+      !program.student?.caseId
     );
   };
 
@@ -293,8 +294,9 @@ export default function ProgramDetail() {
     // console.log("exitSurvey", exitSurvey);
 
     const isActiveSurvey = program.isActiveSurvey;
-    const finalScore = entrySurvey?.totalScore - exitSurvey?.totalScore;
-    const finalScoreColor = finalScore > 0 ? "#34C759" : "#FF3B30";
+    const finalScore = program.student?.finalScore;
+    const finalScoreColor =
+      program.student?.finalScore < 0 ? "#34C759" : "#FF3B30";
 
     const isOnStartTime =
       dayjs().isAfter(dayjs(program.startTime)) ||
@@ -304,10 +306,6 @@ export default function ProgramDetail() {
       dayjs().isSame(dayjs(program.endTime), "day");
 
     const isOnTime = isOnStartTime && isOnEndTime;
-
-    console.log("isOnStartTime", isOnStartTime);
-    console.log("isOnEndTime", isOnEndTime);
-    console.log("isOnTime", isOnTime);
 
     return (
       <View style={styles.section}>
@@ -371,7 +369,7 @@ export default function ProgramDetail() {
                         params: { surveyId: program.surveyId, programId },
                       });
                     }}
-                    disabled={!isOnTime}
+                    disabled={program.status !== "ON_GOING" && !isOnTime}
                   >
                     <Text style={styles.statusBadgeText}>
                       {t("program.detail.surveyProgress.takeSurvey")}
@@ -512,9 +510,9 @@ export default function ProgramDetail() {
             <View style={styles.finalScoreHeader}>
               <Ionicons
                 name={
-                  finalScore > 0
+                  finalScore < 0
                     ? "trending-up"
-                    : finalScore < 0
+                    : finalScore > 0
                     ? "trending-down"
                     : "remove"
                 }
@@ -531,7 +529,7 @@ export default function ProgramDetail() {
               <Text
                 style={[styles.finalScoreValue, { color: finalScoreColor }]}
               >
-                {finalScore > 0 ? `+${finalScore}` : finalScore}
+                {finalScore}
               </Text>
 
               {/* Trend Indicator */}
@@ -543,9 +541,9 @@ export default function ProgramDetail() {
               >
                 <Ionicons
                   name={
-                    finalScore > 0
+                    finalScore < 0
                       ? "arrow-up"
-                      : finalScore < 0
+                      : finalScore > 0
                       ? "arrow-down"
                       : "remove"
                   }
@@ -553,9 +551,9 @@ export default function ProgramDetail() {
                   color="#FFFFFF"
                 />
                 <Text style={styles.trendText}>
-                  {finalScore > 0
+                  {finalScore < 0
                     ? t("program.detail.surveyProgress.improvement")
-                    : finalScore < 0
+                    : finalScore > 0
                     ? t("program.detail.surveyProgress.decline")
                     : t("program.detail.surveyProgress.noChange")}
                 </Text>

@@ -56,7 +56,7 @@ export default function ProgramList() {
 
       setPrograms(data);
     } catch (error) {
-      console.error("Error fetching programs:", error);
+      console.warn("Error fetching programs:", error);
       Alert.alert("Error", "Failed to load programs");
     } finally {
       setLoading(false);
