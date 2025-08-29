@@ -33,6 +33,7 @@ import {
   FlagFilled,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import Search from 'antd/es/input/Search'
 
 const { Text, Title } = Typography
 
@@ -49,6 +50,7 @@ const ParticipantList = ({
 }) => {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const [searchText, setSearchText] = React.useState('')
 
   const getStatusColor = status => {
     switch (status) {
@@ -223,22 +225,22 @@ const ParticipantList = ({
                 style={{
                   fontSize: '16px',
                   color:
-                    record.finalScore > 0
+                    record.finalScore < 0
                       ? 'green'
-                      : record.finalScore < 0
+                      : record.finalScore > 0
                         ? 'red'
                         : 'gray',
                 }}
               >
-                {record.finalScore > 0 ? (
+                {record.finalScore < 0 ? (
                   <ArrowUpOutlined />
-                ) : record.finalScore < 0 ? (
+                ) : record.finalScore > 0 ? (
                   <ArrowDownOutlined />
                 ) : (
                   ''
                 )}
                 {record.finalScore !== null && record.finalScore !== undefined
-                  ? record.finalScore.toFixed(1)
+                  ? Math.abs(record.finalScore).toFixed(1)
                   : '-'}
               </Text>
             ) : (
@@ -247,6 +249,18 @@ const ParticipantList = ({
           </div>
         </Space>
       ),
+
+      sorter: (a, b) => {
+        const scoreA =
+          a.finalScore !== null && a.finalScore !== undefined
+            ? a.finalScore
+            : Number.NEGATIVE_INFINITY
+        const scoreB =
+          b.finalScore !== null && b.finalScore !== undefined
+            ? b.finalScore
+            : Number.NEGATIVE_INFINITY
+        return scoreA - scoreB
+      },
     },
     {
       // title: t('common.actions'),
@@ -268,12 +282,21 @@ const ParticipantList = ({
     },
   ]
 
+  const filteredParticipants = useMemo(() => {
+    if (!searchText.trim()) return participants
+    return participants.filter(p => {
+      const matchesSearch =
+        p.student?.email.toLowerCase().includes(searchText.toLowerCase()) || ''
+      return matchesSearch
+    })
+  }, [participants, searchText])
+
   const tableData = useMemo(() => {
-    return participants.map((participant, index) => ({
+    return filteredParticipants.map((participant, index) => ({
       key: participant.id || index,
       ...participant,
     }))
-  }, [participants])
+  }, [filteredParticipants])
 
   const summaryStats = useMemo(() => {
     const total = participants.length
@@ -361,6 +384,13 @@ const ParticipantList = ({
             </Card>
           </Col>
         </Row>
+
+        <Search
+          placeholder={t('common.searchByEmail')}
+          allowClear
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+        />
 
         <Divider />
 

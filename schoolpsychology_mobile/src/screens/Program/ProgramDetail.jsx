@@ -526,19 +526,7 @@ export default function ProgramDetail() {
 
             {/* Score Display */}
             <View style={styles.scoreDisplay}>
-              <Text
-                style={[styles.finalScoreValue, { color: finalScoreColor }]}
-              >
-                {finalScore}
-              </Text>
-
-              {/* Trend Indicator */}
-              <View
-                style={[
-                  styles.trendBadge,
-                  { backgroundColor: finalScoreColor },
-                ]}
-              >
+              <View style={styles.trendBadge}>
                 <Ionicons
                   name={
                     finalScore < 0
@@ -547,9 +535,23 @@ export default function ProgramDetail() {
                       ? "arrow-down"
                       : "remove"
                   }
-                  size={16}
-                  color="#FFFFFF"
+                  size={32}
+                  color={finalScoreColor}
                 />
+                <Text
+                  style={[styles.finalScoreValue, { color: finalScoreColor }]}
+                >
+                  {Math.abs(finalScore)}
+                </Text>
+              </View>
+
+              {/* Trend Indicator */}
+              <View
+                style={[
+                  styles.trendBadge,
+                  { backgroundColor: finalScoreColor },
+                ]}
+              >
                 <Text style={styles.trendText}>
                   {finalScore < 0
                     ? t("program.detail.surveyProgress.improvement")

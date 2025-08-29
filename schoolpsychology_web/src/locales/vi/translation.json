@@ -1287,6 +1287,7 @@
     }
   },
   "common": {
+    "searchByEmail": "Tìm kiếm theo email...",
     "assign": "Gán",
     "assigned": "Đã gán",
     "completed": "Hoàn thành",

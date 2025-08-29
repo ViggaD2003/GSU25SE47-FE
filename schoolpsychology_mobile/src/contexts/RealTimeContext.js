@@ -187,10 +187,7 @@ const RealTimeProvider = ({ children }) => {
           setToastType(mappedType);
           setToastVisible(true);
         } catch (err) {
-          // console.log("[WebSocket] 🔔 Notification parse error", err);
-          setToastMessage("Bạn có thông báo mới");
-          setToastType("info");
-          setToastVisible(true);
+          console.warn("[WebSocket] 🔔 Notification parse error", err);
         }
       }
     );
