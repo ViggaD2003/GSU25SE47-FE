@@ -93,6 +93,75 @@ const RealTimeProvider = ({ children }) => {
     }
   }, []);
 
+  const subscribeToNotifications = useCallback(() => {
+    if (!stompClientRef?.current || !user?.email) {
+      console.warn(
+        "[WebSocket] Cannot subscribe to notifications: missing requirements"
+      );
+      return;
+    }
+
+    notiSubscriptionRef.current = subscribeToTopic(
+      stompClientRef.current,
+      `/user/queue/notifications`,
+      (payload) => {
+        try {
+          console.log("[WebSocket] 🔔 Notification payload", payload);
+
+          const content =
+            payload?.title ||
+            payload?.message ||
+            payload?.body ||
+            payload?.content ||
+            "Bạn có thông báo mới";
+
+          const rawType = (payload?.type || payload?.level || "info")
+            .toString()
+            .toLowerCase();
+          const mappedType = rawType.includes("success")
+            ? "success"
+            : rawType.includes("error") || rawType.includes("fail")
+            ? "error"
+            : rawType.includes("warn")
+            ? "warning"
+            : rawType.includes("server")
+            ? "server-error"
+            : "info";
+
+          if (payload) {
+            setNotifications((prev) => [
+              {
+                id: payload.id || Date.now(),
+                title: payload.title || "Thông báo",
+                body:
+                  payload.body || payload.message || payload.content || content,
+                type: mappedType,
+                createdAt: payload.createdAt || new Date().toISOString(),
+                isRead: false,
+              },
+              ...prev,
+            ]);
+          }
+          // Hiển thị toast
+          setToastMessage(content);
+          setToastType(mappedType);
+          setToastVisible(true);
+        } catch (err) {
+          // console.log("[WebSocket] 🔔 Notification parse error", err);
+          setToastMessage("Bạn có thông báo mới");
+          setToastType("info");
+          setToastVisible(true);
+        }
+      }
+    );
+
+    return () => {
+      if (notiSubscriptionRef.current) {
+        notiSubscriptionRef.current.unsubscribe();
+      }
+    };
+  }, [stompClientRef.current, user?.email, subscribeToTopic]);
+
   const connectWebSocket = useCallback(() => {
     const currentToken = tokenRef.current;
     if (!currentToken) {
@@ -118,63 +187,6 @@ const RealTimeProvider = ({ children }) => {
         console.log("[WebSocket] ✅ Connected");
         setIsConnected(true);
         setIsConnecting(false);
-
-        notiSubscriptionRef.current = subscribeToTopic(
-          client,
-          `/user/queue/notifications`,
-          (payload) => {
-            try {
-              console.log("[WebSocket] 🔔 Notification payload", payload);
-
-              const content =
-                payload?.title ||
-                payload?.message ||
-                payload?.body ||
-                payload?.content ||
-                "Bạn có thông báo mới";
-
-              const rawType = (payload?.type || payload?.level || "info")
-                .toString()
-                .toLowerCase();
-              const mappedType = rawType.includes("success")
-                ? "success"
-                : rawType.includes("error") || rawType.includes("fail")
-                ? "error"
-                : rawType.includes("warn")
-                ? "warning"
-                : rawType.includes("server")
-                ? "server-error"
-                : "info";
-
-              if (payload) {
-                setNotifications((prev) => [
-                  {
-                    id: payload.id || Date.now(),
-                    title: payload.title || "Thông báo",
-                    body:
-                      payload.body ||
-                      payload.message ||
-                      payload.content ||
-                      content,
-                    type: mappedType,
-                    createdAt: payload.createdAt || new Date().toISOString(),
-                    isRead: false,
-                  },
-                  ...prev,
-                ]);
-              }
-              // Hiển thị toast
-              setToastMessage(content);
-              setToastType(mappedType);
-              setToastVisible(true);
-            } catch (err) {
-              // console.log("[WebSocket] 🔔 Notification parse error", err);
-              setToastMessage("Bạn có thông báo mới");
-              setToastType("info");
-              setToastVisible(true);
-            }
-          }
-        );
       },
       onDisconnect: () => {
         console.log("[WebSocket] 🔌 Disconnected");
@@ -232,6 +244,12 @@ const RealTimeProvider = ({ children }) => {
         ]);
       }
     );
+
+    return () => {
+      if (chatSubscriptionRef.current) {
+        chatSubscriptionRef.current.unsubscribe();
+      }
+    };
   }, [stompClientRef.current, user?.email, roomChatId, subscribeToTopic]);
 
   const subscribeToAddUser = useCallback(() => {
@@ -257,6 +275,12 @@ const RealTimeProvider = ({ children }) => {
         setOnlineUsers(user || []);
       }
     );
+
+    return () => {
+      if (addUserSubscriptionRef.current) {
+        addUserSubscriptionRef.current.unsubscribe();
+      }
+    };
   }, [stompClientRef.current, user?.email, subscribeToTopic]);
 
   const sendMessage = useCallback(
@@ -346,8 +370,17 @@ const RealTimeProvider = ({ children }) => {
   useEffect(() => {
     if (stompClientRef.current && user?.email && isConnected) {
       subscribeToAddUser();
+      subscribeToNotifications();
+      subscribeToChat();
     }
-  }, [stompClientRef.current, user?.email, isConnected, subscribeToAddUser]);
+  }, [
+    stompClientRef.current,
+    user?.email,
+    isConnected,
+    subscribeToAddUser,
+    subscribeToNotifications,
+    subscribeToChat,
+  ]);
 
   const disconnectWebSocket = useCallback(async () => {
     console.log("[WebSocket] 🔌 Disconnect");
@@ -405,11 +438,11 @@ const RealTimeProvider = ({ children }) => {
     console.log("[WebSocket] ✅ Disconnected and cleaned up");
   }, []);
 
-  useEffect(() => {
-    if (roomChatId && isConnected) {
-      subscribeToChat();
-    }
-  }, [roomChatId, isConnected, subscribeToChat]);
+  // useEffect(() => {
+  //   if (roomChatId && isConnected) {
+  //     subscribeToChat();
+  //   }
+  // }, [roomChatId, isConnected, subscribeToChat]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
