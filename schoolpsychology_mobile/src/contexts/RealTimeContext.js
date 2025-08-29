@@ -296,7 +296,7 @@ const RealTimeProvider = ({ children }) => {
 
   const sendMessage = useCallback(
     (msg) => {
-      if (!stompClientRef.current || !isConnected) {
+      if (!isConnectionReady) {
         console.error("[WebSocket] Not connected");
         return;
       }
@@ -306,18 +306,13 @@ const RealTimeProvider = ({ children }) => {
         body: JSON.stringify(msg),
       });
     },
-    [isConnected]
+    [isConnectionReady]
   );
 
   const sendMessageToCounselor = useCallback(
     (type = "ADD_USER", roomId, msg) => {
-      if (!stompClientRef.current || !user?.email) {
+      if (!isConnectionReady) {
         console.warn("[WebSocket] Cannot send message: missing requirements");
-        return;
-      }
-
-      if (!stompClientRef.current.connected) {
-        console.warn("[WebSocket] Cannot send message: not connected");
         return;
       }
 
@@ -364,7 +359,7 @@ const RealTimeProvider = ({ children }) => {
         throw new Error("Failed to send message");
       }
     },
-    [stompClientRef.current, user?.email, roomChatId]
+    [isConnectionReady, roomChatId]
   );
 
   // Send message to counselor

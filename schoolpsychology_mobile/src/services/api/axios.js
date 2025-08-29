@@ -64,6 +64,7 @@ const handleServerError = (error, showNotification = true) => {
       return error;
   }
 };
+let controller = new AbortController();
 
 // Dynamic baseURL based on platform
 const baseURL =
@@ -77,6 +78,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  signal: controller.signal,
 });
 
 export const refreshApi = axios.create({
@@ -84,6 +86,7 @@ export const refreshApi = axios.create({
   timeout: AUTH_CONFIG.REQUEST_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
+    signal: controller.signal,
     // Note: refreshApi intentionally doesn't include Authorization header
     // as it's used for token refresh without requiring authentication
   },
@@ -192,6 +195,9 @@ api.interceptors.request.use(
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
 
+      controller = new AbortController();
+      config.signal = controller.signal;
+
       // Check if token is actually expired (no buffer time)
       if (isTokenActuallyExpired(token)) {
         console.log(
@@ -208,6 +214,7 @@ api.interceptors.request.use(
             console.log(
               "Token refresh failed, clearing local tokens and navigating to login"
             );
+            controller.abort();
             // Clear local tokens only, no API call
             await clearTokens();
             // Show toast message
@@ -283,49 +290,17 @@ api.interceptors.response.use(
     ) {
       originalRequest._retry = true;
 
-      try {
-        // Check if logout is already in progress
-        if (isLogoutInProgress()) {
-          console.log("Logout in progress, skipping token refresh");
-          return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-        }
+      controller.abort();
+      await clearTokens();
+      // Show toast message
+      triggerToastCallback(
+        "Tài khoản hiện đã bị vô hiệu hóa hoặc đã hết hạn",
+        "warning"
+      );
+      // Navigate to login immediately
+      triggerLogoutCallback();
 
-        console.log("Attempting to refresh token due to 401 error");
-        // Try to refresh the token
-        const newToken = await refreshAccessToken();
-        if (newToken) {
-          console.log("Token refresh successful, retrying original request");
-          // Retry the original request with new token
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        }
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-
-        // Refresh failed, clear local tokens only (no API call)
-        try {
-          console.log(
-            "Clearing local tokens and navigating to login due to refresh failure"
-          );
-          await clearTokens();
-          // Show toast message
-          triggerToastCallback(
-            "Tài khoản hiện được đăng nhập nơi khác",
-            "warning"
-          );
-          // Navigate to login immediately
-          triggerLogoutCallback();
-        } catch (clearError) {
-          console.error(
-            "Error clearing tokens during refresh failure:",
-            clearError
-          );
-          // Even if clearing fails, still try to navigate
-          triggerLogoutCallback();
-        }
-
-        return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
-      }
+      return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
     }
 
     // Handle 403 Forbidden - try to refresh token, then logout if failed
@@ -364,6 +339,7 @@ api.interceptors.response.use(
 
         try {
           // Clear local tokens only (no API call)
+          controller.abort();
           await clearTokens();
           // Show toast message
           triggerToastCallback(

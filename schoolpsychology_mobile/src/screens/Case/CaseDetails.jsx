@@ -872,7 +872,7 @@ const CaseDetails = ({ route, navigation }) => {
                 styles.sendButton,
                 !currentMessage.trim() && { opacity: 0.5 },
               ]}
-              disabled={!currentMessage.trim()}
+              disabled={!currentMessage.trim() || !isConnectionReady}
             >
               <Ionicons name="send" size={20} color="#FFFFFF" />
             </TouchableOpacity>
