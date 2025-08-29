@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 
-const ChatInput = ({ onSendMessage, t }) => {
+const ChatInput = ({ onSendMessage, t, isConnectionReady = false }) => {
   const { isDarkMode } = useTheme()
   const [message, setMessage] = useState('')
 
@@ -15,7 +15,7 @@ const ChatInput = ({ onSendMessage, t }) => {
 
   return (
     <div
-      className={`p-4 border-t ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      className={`w-full p-4 border-t ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
     >
       <form className="flex items-start space-x-3" onSubmit={handleSubmit}>
         <div className="flex-1 relative">
@@ -42,7 +42,7 @@ const ChatInput = ({ onSendMessage, t }) => {
         </div>
         <button
           type="submit"
-          disabled={!message.trim()}
+          disabled={!message.trim() || !isConnectionReady}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <svg

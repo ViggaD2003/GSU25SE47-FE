@@ -9,7 +9,8 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 
 const ChatInterface = ({ caseId }) => {
-  const { subscribeToTopic, sendMessage2, onlineUsers } = useWebSocket()
+  const { subscribeToTopic, sendMessage2, onlineUsers, isConnectionReady } =
+    useWebSocket()
   const [messages, setMessages] = useState([])
   const [roomChatIds, setRoomChatIds] = useState([])
   const [selectedRoom, setSelectedRoom] = useState(null)
@@ -57,36 +58,35 @@ const ChatInterface = ({ caseId }) => {
     fetchRoomChat()
   }, [caseId])
 
-  const subcribe = useCallback(() => {
+  // Subscribe WebSocket khi chọn phòng
+  useEffect(() => {
     if (!selectedRoom) return
+
+    console.log(
+      '[WebSocket] subscribe to topic',
+      `/topic/chat/${selectedRoom.id}`
+    )
 
     const unsubscribe = subscribeToTopic(
       `/topic/chat/${selectedRoom.id}`,
       msg => {
-        try {
-          if (!msg || !msg.sender) return
+        if (!msg || !msg.sender) return
+        if (msg.sender === user.email) return
 
-          if (msg.sender === user.email) return // bỏ qua tin nhắn của chính mình
-
-          setMessages(prev => [...prev, { ...msg, timestamp: new Date() }])
-        } catch (err) {
-          console.error('Invalid WS message:', msg, err)
-        }
+        setMessages(prev => [...prev, { ...msg, timestamp: new Date() }])
       }
     )
 
-    // cleanup
     return () => {
+      console.log(
+        '[WebSocket] unsubscribe from topic',
+        `/topic/chat/${selectedRoom.id}`
+      )
       if (typeof unsubscribe === 'function') {
         unsubscribe()
       }
     }
-  }, [selectedRoom, subscribeToTopic, user.email])
-
-  // Subscribe WebSocket khi chọn phòng
-  useEffect(() => {
-    subcribe()
-  }, [subcribe])
+  }, [selectedRoom?.id, user.email, subscribeToTopic])
 
   // Auto scroll to bottom when messages change
   useEffect(() => {
@@ -132,11 +132,11 @@ const ChatInterface = ({ caseId }) => {
 
   return (
     <div
-      className={`flex h-full ${isDarkMode ? 'bg-gray-900' : ' bg-gray-50'}`}
+      className={`flex w-full h-full ${isDarkMode ? 'bg-gray-900' : ' bg-gray-50'}`}
     >
       {/* Sidebar: Danh sách phòng */}
       <div
-        className={`w-64  border-r flex flex-col  ${isDarkMode ? 'text-gray-200 border-gray-700 bg-gray-800' : 'bg-white text-gray-800  border-gray-200'}`}
+        className={`min-w-40 max-w-72 border-r flex flex-col  ${isDarkMode ? 'text-gray-200 border-gray-700 bg-gray-800' : 'bg-white text-gray-800  border-gray-200'}`}
       >
         <div
           className={`p-4 border-b ${
@@ -147,7 +147,7 @@ const ChatInterface = ({ caseId }) => {
         >
           <h2 className="text-base font-semibold">{t('chat.room')}</h2>
         </div>
-        <div className="flex-1 overflow-y-auto">
+        <div className="overflow-y-auto">
           {roomChatIds.map(room => (
             <div
               key={room.id}
@@ -187,7 +187,7 @@ const ChatInterface = ({ caseId }) => {
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex flex-col h-full w-full">
         {selectedRoom ? (
           <>
             <ChatHeader
@@ -202,9 +202,9 @@ const ChatInterface = ({ caseId }) => {
             />
             <div
               ref={chatRef}
-              className={`flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
+              className={`w-full h-full overflow-y-auto overflow-x-hidden p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
             >
-              {isLoading ? (
+              {isLoading || !isConnectionReady ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
@@ -219,7 +219,11 @@ const ChatInterface = ({ caseId }) => {
                 ))
               )}
             </div>
-            <ChatInput onSendMessage={handleSendMessage} t={t} />
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              t={t}
+              isConnectionReady={isConnectionReady}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">

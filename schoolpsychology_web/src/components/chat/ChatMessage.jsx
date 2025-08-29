@@ -27,7 +27,9 @@ const ChatMessage = ({ message, isOwn, t }) => {
   }
 
   return (
-    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} w-full`}>
+    <div
+      className={`flex ${isOwn ? 'justify-end' : 'justify-start'} max-w-full`}
+    >
       <div
         className={`max-w-1/2 px-4 py-2 rounded-lg ${
           isOwn
@@ -39,9 +41,9 @@ const ChatMessage = ({ message, isOwn, t }) => {
               }`
         }`}
       >
-        <p className="text-sm wrap-break-word">
+        <span className="text-sm break-all whitespace-pre-wrap">
           {message?.message || t('chat.noMessage')}
-        </p>
+        </span>
         <div
           className={`text-xs mt-1 ${
             isOwn

@@ -139,12 +139,11 @@ export const WebSocketProvider = ({ children }) => {
       }
 
       try {
-        const subscription = stompClientRef?.current?.subscribe(
+        const subscription = stompClientRef.current?.subscribe(
           topic,
           message => {
             try {
-              console.log('[WebSocket] 🔍 subscribe to topic', topic)
-
+              console.log('[WebSocket] 🔍 message from', topic)
               const body = JSON.parse(message.body)
               callback(body)
             } catch (error) {
@@ -152,13 +151,20 @@ export const WebSocketProvider = ({ children }) => {
             }
           }
         )
-        return subscription
+
+        // ✅ Trả về một hàm để hủy đăng ký
+        return () => {
+          if (subscription) {
+            console.log('[WebSocket] ❌ unsubscribe from', topic)
+            subscription.unsubscribe()
+          }
+        }
       } catch (error) {
         console.error('[WebSocket] Error subscribing to topic:', error)
         return null
       }
     },
-    [isConnectionReady, stompClientRef]
+    [isConnectionReady]
   )
 
   const connectWebSocket = useCallback(() => {
@@ -451,8 +457,10 @@ export const WebSocketProvider = ({ children }) => {
       setNotifications,
       safeCleanup,
       onlineUsers,
+      isConnectionReady,
     }),
     [
+      isConnectionReady,
       isConnected,
       isConnecting,
       sendMessage,

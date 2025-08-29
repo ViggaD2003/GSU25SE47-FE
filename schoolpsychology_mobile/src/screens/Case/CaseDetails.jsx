@@ -44,6 +44,7 @@ const CaseDetails = ({ route, navigation }) => {
     onlineUsers: activeChat,
     setRoomChatId,
     roomChatId,
+    isConnectionReady,
   } = useRealTime();
   const { caseId, headerTitle, from, subTitle } = route.params;
   const [caseDetails, setCaseDetails] = useState(null);
@@ -794,52 +795,65 @@ const CaseDetails = ({ route, navigation }) => {
           </View>
 
           {/* Chat Messages */}
-          <ScrollView
-            ref={chatRef}
-            style={styles.chatMessages}
-            showsVerticalScrollIndicator={false}
-          >
-            {chatMessages.map((message, index) => (
-              <View key={index} style={styles.messageContainer}>
-                <View
-                  style={[
-                    styles.contentContainer,
-                    message.sender === user.email
-                      ? styles.userMessage
-                      : styles.botMessage,
-                  ]}
-                >
-                  <Text
+          {isConnectionReady ? (
+            <ScrollView
+              ref={chatRef}
+              style={styles.chatMessages}
+              showsVerticalScrollIndicator={false}
+            >
+              {chatMessages.map((message, index) => (
+                <View key={index} style={styles.messageContainer}>
+                  <View
                     style={[
-                      styles.messageText,
+                      styles.contentContainer,
                       message.sender === user.email
-                        ? styles.userMessageText
-                        : styles.botMessageText,
+                        ? styles.userMessage
+                        : styles.botMessage,
                     ]}
                   >
-                    {message.message}
+                    <Text
+                      style={[
+                        styles.messageText,
+                        message.sender === user.email
+                          ? styles.userMessageText
+                          : styles.botMessageText,
+                      ]}
+                    >
+                      {message.message}
+                    </Text>
+                  </View>
+
+                  <Text
+                    style={[
+                      styles.messageTime,
+                      message.sender === user.email
+                        ? styles.userMessage
+                        : styles.botMessage,
+                    ]}
+                  >
+                    {new Date(message.timestamp).toLocaleTimeString("vi-VN", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </Text>
                 </View>
-
-                <Text
-                  style={[
-                    styles.messageTime,
-                    message.sender === user.email
-                      ? styles.userMessage
-                      : styles.botMessage,
-                  ]}
-                >
-                  {new Date(message.timestamp).toLocaleTimeString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </Text>
-              </View>
-            ))}
-          </ScrollView>
+              ))}
+            </ScrollView>
+          ) : (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+                // marginTop: 100,
+              }}
+            >
+              <Loading />
+            </View>
+          )}
 
           {/* Chat Input */}
           <View style={styles.chatInputContainer}>

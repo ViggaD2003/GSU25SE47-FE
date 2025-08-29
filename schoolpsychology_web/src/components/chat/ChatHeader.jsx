@@ -9,7 +9,7 @@ const ChatHeader = ({ student, caseId: _caseId = null, t }) => {
 
   return (
     <div
-      className={`p-4 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
+      className={`flex-1 p-4 border-b ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}
     >
       <div className="flex items-center space-x-3">
         <div className="relative">
@@ -20,11 +20,6 @@ const ChatHeader = ({ student, caseId: _caseId = null, t }) => {
               className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}
             />
           </div>
-          {online && (
-            <div
-              className={`absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 rounded-full ${isDarkMode ? 'border-gray-800' : 'border-white'}`}
-            ></div>
-          )}
         </div>
         <div className="flex-1">
           <h3

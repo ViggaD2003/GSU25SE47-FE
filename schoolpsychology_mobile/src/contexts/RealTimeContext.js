@@ -38,6 +38,7 @@ const RealTimeProvider = ({ children }) => {
   const [chatMessages, setChatMessages] = useState([]);
 
   const stompClientRef = useRef(null);
+  const heartbeatIntervalRef = useRef(null);
   const notiSubscriptionRef = useRef(null);
   const chatSubscriptionRef = useRef(null);
   const addUserSubscriptionRef = useRef(null);
@@ -57,17 +58,49 @@ const RealTimeProvider = ({ children }) => {
     isConnectingRef.current = isConnecting;
   }, [isConnecting]);
 
+  const isConnectionReady = useMemo(() => {
+    console.log(
+      "[WebSocket] isConnectionReady",
+      stompClientRef?.current,
+      isConnected,
+      user
+    );
+    return stompClientRef?.current && isConnected && user;
+  }, [stompClientRef.current, user, isConnected]);
+
+  // Start heartbeat
+  const startHeartbeat = useCallback((client) => {
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+    }
+
+    heartbeatIntervalRef.current = setInterval(() => {
+      console.log("[WebSocket] Start heartbeat");
+      if (client && client.connected) {
+        try {
+          sendMessage({
+            title: "Heartbeat",
+            content: "Heartbeat",
+            username: "",
+            notificationType: "PING",
+            relatedEntityId: "0",
+          });
+          console.log("[WebSocket] Heartbeat PING sent");
+        } catch (error) {
+          console.warn("[WebSocket] Heartbeat failed:", error);
+          disconnectWebSocket();
+        }
+      } else {
+        console.warn("[WebSocket] Connection not ready for heartbeat");
+        clearInterval(heartbeatIntervalRef.current);
+        heartbeatIntervalRef.current = null;
+      }
+    }, 30000); // gửi mỗi 30 giây
+
+    console.log("[WebSocket] Heartbeat started");
+  }, []);
+
   const subscribeToTopic = useCallback((client, topic, callback) => {
-    if (!client) {
-      console.warn("[WebSocket] Cannot subscribe: client not available");
-      return null;
-    }
-
-    if (!client.connected) {
-      console.warn("[WebSocket] Cannot subscribe: STOMP client not connected");
-      return null;
-    }
-
     console.log("[WebSocket] 🔔 Subscribing to topic", topic);
 
     try {
@@ -94,11 +127,9 @@ const RealTimeProvider = ({ children }) => {
   }, []);
 
   const subscribeToNotifications = useCallback(() => {
-    if (!stompClientRef?.current || !user?.email) {
-      console.warn(
-        "[WebSocket] Cannot subscribe to notifications: missing requirements"
-      );
-      return;
+    if (notiSubscriptionRef.current) {
+      console.log("[WebSocket] 🔔 Unsubscribing from notifications topic");
+      notiSubscriptionRef.current.unsubscribe();
     }
 
     notiSubscriptionRef.current = subscribeToTopic(
@@ -107,6 +138,11 @@ const RealTimeProvider = ({ children }) => {
       (payload) => {
         try {
           console.log("[WebSocket] 🔔 Notification payload", payload);
+
+          if (payload.type === "PING") {
+            console.log("[WebSocket] 🔔 Heartbeat PING received");
+            return;
+          }
 
           const content =
             payload?.title ||
@@ -154,13 +190,7 @@ const RealTimeProvider = ({ children }) => {
         }
       }
     );
-
-    return () => {
-      if (notiSubscriptionRef.current) {
-        notiSubscriptionRef.current.unsubscribe();
-      }
-    };
-  }, [stompClientRef.current, user?.email, subscribeToTopic]);
+  }, [subscribeToTopic]);
 
   const connectWebSocket = useCallback(() => {
     const currentToken = tokenRef.current;
@@ -180,8 +210,8 @@ const RealTimeProvider = ({ children }) => {
       forceBinaryWSFrames: true,
       appendMissingNULLonIncoming: true,
       reconnectDelay: 5000,
-      heartbeatIncoming: 10000,
-      heartbeatOutgoing: 10000,
+      heartbeatIncoming: 30000,
+      heartbeatOutgoing: 30000,
 
       onConnect: () => {
         console.log("[WebSocket] ✅ Connected");
@@ -216,16 +246,16 @@ const RealTimeProvider = ({ children }) => {
   }, []);
 
   const subscribeToChat = useCallback(() => {
-    if (!stompClientRef?.current || !user?.email || !roomChatId) {
+    if (!roomChatId) {
       console.warn(
         "[WebSocket] Cannot subscribe to chat: missing requirements"
       );
       return;
     }
 
-    if (!stompClientRef.current.connected) {
-      console.warn("[WebSocket] Cannot subscribe to chat: not connected");
-      return;
+    if (chatSubscriptionRef.current) {
+      console.log("[WebSocket] 🔔 Unsubscribing from chat topic");
+      chatSubscriptionRef.current.unsubscribe();
     }
 
     console.log("[WebSocket] 🔔 Subscribing to chat room:", roomChatId);
@@ -244,25 +274,12 @@ const RealTimeProvider = ({ children }) => {
         ]);
       }
     );
-
-    return () => {
-      if (chatSubscriptionRef.current) {
-        chatSubscriptionRef.current.unsubscribe();
-      }
-    };
   }, [stompClientRef.current, user?.email, roomChatId, subscribeToTopic]);
 
   const subscribeToAddUser = useCallback(() => {
-    if (!stompClientRef?.current || !user?.email) {
-      console.warn(
-        "[WebSocket] Cannot subscribe to addUser: missing requirements"
-      );
-      return;
-    }
-
-    if (!stompClientRef.current.connected) {
-      console.warn("[WebSocket] Cannot subscribe to addUser: not connected");
-      return;
+    if (addUserSubscriptionRef.current) {
+      console.log("[WebSocket] 🔔 Unsubscribing from addUser topic");
+      addUserSubscriptionRef.current.unsubscribe();
     }
 
     console.log("[WebSocket] 🔔 Subscribing to addUser topic");
@@ -271,17 +288,11 @@ const RealTimeProvider = ({ children }) => {
       stompClientRef.current,
       `/topic/onlineUsers`,
       (user) => {
-        console.log("[WebSocket] 🔔 Add user user", user);
+        console.log("[WebSocket] 🔔 Add user", user);
         setOnlineUsers(user || []);
       }
     );
-
-    return () => {
-      if (addUserSubscriptionRef.current) {
-        addUserSubscriptionRef.current.unsubscribe();
-      }
-    };
-  }, [stompClientRef.current, user?.email, subscribeToTopic]);
+  }, [subscribeToTopic]);
 
   const sendMessage = useCallback(
     (msg) => {
@@ -356,31 +367,34 @@ const RealTimeProvider = ({ children }) => {
     [stompClientRef.current, user?.email, roomChatId]
   );
 
+  // Send message to counselor
   useEffect(() => {
-    if (stompClientRef.current && user?.email && isConnected) {
+    if (isConnectionReady) {
+      startHeartbeat(stompClientRef.current);
       sendMessageToCounselor("ADD_USER");
     }
-  }, [
-    stompClientRef.current,
-    user?.email,
-    isConnected,
-    sendMessageToCounselor,
-  ]);
+  }, [isConnectionReady, sendMessageToCounselor]);
 
+  // Add user
   useEffect(() => {
-    if (stompClientRef.current && user?.email && isConnected) {
+    if (isConnectionReady) {
       subscribeToAddUser();
+    }
+  }, [isConnectionReady, subscribeToAddUser]);
+
+  // Notifications
+  useEffect(() => {
+    if (isConnectionReady) {
       subscribeToNotifications();
+    }
+  }, [isConnectionReady, subscribeToNotifications]);
+
+  // Chat
+  useEffect(() => {
+    if (isConnectionReady && roomChatId) {
       subscribeToChat();
     }
-  }, [
-    stompClientRef.current,
-    user?.email,
-    isConnected,
-    subscribeToAddUser,
-    subscribeToNotifications,
-    subscribeToChat,
-  ]);
+  }, [isConnectionReady, subscribeToChat]);
 
   const disconnectWebSocket = useCallback(async () => {
     console.log("[WebSocket] 🔌 Disconnect");
@@ -418,6 +432,12 @@ const RealTimeProvider = ({ children }) => {
       addUserSubscriptionRef.current = null;
     }
 
+    // Clear heartbeat interval
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current);
+      heartbeatIntervalRef.current = null;
+    }
+
     // Deactivate STOMP client
     if (stompClientRef.current) {
       try {
@@ -437,12 +457,6 @@ const RealTimeProvider = ({ children }) => {
 
     console.log("[WebSocket] ✅ Disconnected and cleaned up");
   }, []);
-
-  // useEffect(() => {
-  //   if (roomChatId && isConnected) {
-  //     subscribeToChat();
-  //   }
-  // }, [roomChatId, isConnected, subscribeToChat]);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -487,6 +501,7 @@ const RealTimeProvider = ({ children }) => {
       roomChatId,
       setRoomChatId,
       onlineUsers,
+      isConnectionReady,
     }),
     [
       isConnected,
@@ -500,6 +515,7 @@ const RealTimeProvider = ({ children }) => {
       roomChatId,
       setRoomChatId,
       onlineUsers,
+      isConnectionReady,
     ]
   );
 
