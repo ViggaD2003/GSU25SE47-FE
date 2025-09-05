@@ -63,75 +63,24 @@ const useToast = () => {
 };
 
 // Custom hook for booking state management
-const useBookingState = (user, selectedChild) => {
+const useBookingState = (user) => {
+  const userId = user?.id || user?.userId;
   const [hostType, setHostType] = useState(null);
   const [selectedCounselor, setSelectedCounselor] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [reason, setReason] = useState("");
-  const [bookedForId, setBookedForId] = useState(() => {
-    // Initialize bookedForId based on user role
-    // PARENTS: book for selected child, STUDENT: book for themselves
-    if (user?.role === "PARENTS") {
-      return selectedChild?.userId || user?.id; // Fallback to user.id if no selectedChild
-    } else {
-      return user?.id;
-    }
-  });
+  const [bookedForId, setBookedForId] = useState(userId);
+
+  console.log("userId", user.id);
 
   // Add selectedChild state to the hook
-  const [selectedChildState, setSelectedChildState] = useState(selectedChild);
-
-  // Sync selectedChildState with prop changes
-  useEffect(() => {
-    console.log("useBookingState - Syncing selectedChildState:", {
-      from: selectedChild,
-      to: selectedChildState,
-    });
-    setSelectedChildState(selectedChild);
-  }, [selectedChild]);
-
-  // Debug initial state
-  useEffect(() => {
-    console.log("useBookingState - Initial state:", {
-      userRole: user?.role,
-      userId: user?.id,
-      selectedChild: selectedChild,
-      selectedChildUserId: selectedChild?.userId,
-      bookedForId: bookedForId,
-      selectedBookedFor: selectedBookedFor,
-    });
-  }, []);
-
-  // Debug selectedChild changes
-  useEffect(() => {
-    console.log("useBookingState - selectedChild changed:", {
-      selectedChild: selectedChild,
-      selectedChildUserId: selectedChild?.userId,
-      userRole: user?.role,
-    });
-  }, [selectedChild, user?.role]);
-
-  const [selectedBookedFor, setSelectedBookedFor] = useState(() => {
-    // For PARENTS: use selectedChild data if available, otherwise fallback to user data
-    if (user?.role === "PARENTS" && selectedChild) {
-      return {
-        id: selectedChild.userId,
-        fullName: selectedChild.fullName,
-        gender: selectedChild.gender,
-        dob: selectedChild.dob,
-        teacherId: selectedChild.teacherId,
-      };
-    } else {
-      // For STUDENT or PARENTS without selectedChild: use user data
-      return {
-        id: user?.id,
-        fullName: user?.fullName,
-        gender: user?.gender,
-        dob: user?.dob,
-        teacherId: user?.teacherId,
-      };
-    }
+  const [selectedBookedFor, setSelectedBookedFor] = useState({
+    id: userId,
+    fullName: user?.fullName,
+    gender: user?.gender,
+    dob: user?.dob,
+    teacherId: user?.classDto?.teacher?.id,
   });
 
   // Reset booking state
@@ -142,40 +91,33 @@ const useBookingState = (user, selectedChild) => {
     setIsOnline(false);
     setReason("");
     // Reset bookedForId based on current user role and selectedChild
-    const newBookedForId =
-      user?.role === "PARENTS" ? selectedChildState?.userId : user?.id;
-    setBookedForId(newBookedForId);
-  }, [user?.role, user?.id, selectedChildState?.userId]);
+    setBookedForId(userId);
+  }, [userId]);
 
   // Update selected child and related state
   const updateSelectedChild = useCallback(
     (child) => {
-      console.log("updateSelectedChild called with:", child);
-
-      // Update local selectedChild state
-      setSelectedChildState(child);
-
       if (user?.role === "PARENTS" && child) {
         console.log("Updating for PARENTS role with child:", child);
         // For PARENTS: book for the selected child
-        setBookedForId(child.userId);
+        setBookedForId(child?.userId || child?.id);
         setSelectedBookedFor({
-          id: child.userId,
+          id: child?.userId || child?.id,
           fullName: child.fullName,
           gender: child.gender,
           dob: child.dob,
-          teacherId: child.teacherId,
+          teacherId: child.classDto?.teacher?.id,
         });
       } else if (user?.role === "STUDENT") {
         console.log("Updating for STUDENT role");
         // For STUDENT: book for themselves
-        setBookedForId(user.id);
+        setBookedForId(user?.id || user?.userId);
         setSelectedBookedFor({
-          id: user.id,
+          id: user?.id || user?.userId,
           fullName: user.fullName,
           gender: user.gender,
           dob: user.dob,
-          teacherId: user.teacherId,
+          teacherId: user.classDto?.teacher?.id,
         });
       }
 
@@ -192,25 +134,26 @@ const useBookingState = (user, selectedChild) => {
   // Update selectedBookedFor when user changes
   const updateSelectedBookedFor = useCallback(
     (userData) => {
+      console.log("userdata");
+
+      const userDataId = userData?.userId || userData?.id;
       setSelectedBookedFor({
-        id: userData?.id,
+        id: userDataId,
         fullName: userData?.fullName,
         gender: userData?.gender,
         dob: userData?.dob,
-        teacherId: userData?.teacherId,
+        teacherId: userData.classDto?.teacher?.id,
       });
 
-      // Set bookedForId based on user role
-      if (user?.role === "PARENTS") {
-        // For PARENTS: keep the current bookedForId (should be selectedChild)
-        setBookedForId(selectedChildState?.userId);
-      } else if (user?.role === "STUDENT") {
+      if (user?.role === "STUDENT") {
         // For STUDENT: use the user's id
-        setBookedForId(userData?.id);
+        setBookedForId(userId);
       }
     },
-    [user?.role, selectedChildState?.userId]
+    [user]
   );
+
+  console.log("BookForId", bookedForId);
 
   return {
     hostType,
@@ -229,8 +172,6 @@ const useBookingState = (user, selectedChild) => {
     setSelectedBookedFor: updateSelectedBookedFor,
     resetBookingState,
     updateSelectedChild,
-    selectedChild: selectedChildState,
-    setSelectedChild: setSelectedChildState,
   };
 };
 
@@ -431,11 +372,12 @@ const createBookingData = (
     });
     return null;
   }
+  console.log(selectedChild);
 
   // Determine bookedForId based on user role
   let bookedForId;
   if (user?.role === "PARENTS") {
-    bookedForId = selectedChild?.userId || user?.id;
+    bookedForId = selectedChild?.id || selectedChild?.userId;
   } else {
     bookedForId = user?.id;
   }
@@ -530,15 +472,6 @@ const BookingScreen = ({ navigation }) => {
   const { selectedChild, children } = useChildren();
   const { t } = useTranslation();
 
-  // Debug selectedChild from context
-  useEffect(() => {
-    console.log("BookingScreen - selectedChild from context:", {
-      selectedChild: selectedChild,
-      selectedChildUserId: selectedChild?.userId,
-      userRole: user?.role,
-    });
-  }, [selectedChild, user?.role]);
-
   // Show loading state while auth is loading
   if (authLoading || !user) {
     return null;
@@ -546,7 +479,9 @@ const BookingScreen = ({ navigation }) => {
 
   // Custom hooks - MUST be called before any conditional returns
   const toast = useToast();
-  const bookingState = useBookingState(user, selectedChild);
+  const selectedUser = user.role === "PARENTS" ? selectedChild : user;
+  const bookingState = useBookingState(selectedUser);
+
   const { handleServerError, showToast, toastMessage, toastType, hideToast } =
     useServerErrorHandler();
 
@@ -642,6 +577,8 @@ const BookingScreen = ({ navigation }) => {
       return;
     }
 
+    console.log("bookingState", bookingState);
+
     const confirmationMessage = createConfirmationMessage(
       bookingState.hostType,
       bookingState.selectedCounselor,
@@ -664,10 +601,6 @@ const BookingScreen = ({ navigation }) => {
             // Debug logging to see what data we have
             console.log("Debug - user:", user);
             console.log(
-              "Debug - bookingState.selectedChild:",
-              bookingState.selectedChild
-            );
-            console.log(
               "Debug - bookingState.selectedBookedFor:",
               bookingState.selectedBookedFor
             );
@@ -678,9 +611,7 @@ const BookingScreen = ({ navigation }) => {
 
             // Get the appropriate data for the selected person
             const selectedPerson =
-              user?.role === "PARENTS"
-                ? bookingState.selectedChild || { userId: user?.id, ...user }
-                : user;
+              user?.role === "PARENTS" ? selectedChild : user;
 
             const bookingData = createBookingData(
               bookingState.selectedSlot,
@@ -903,9 +834,9 @@ const BookingScreen = ({ navigation }) => {
         toast.hideToast();
 
         if (!global.selectedChildForAppointment) {
-          bookingState.setSelectedChild(null);
           // Set bookedForId based on user role
-          const newBookedForId = user?.role === "PARENTS" ? null : user?.id;
+          const newBookedForId =
+            user?.role === "PARENTS" ? selectedChild?.id : user?.id;
           bookingState.setBookedForId(newBookedForId);
         }
       };
@@ -915,7 +846,6 @@ const BookingScreen = ({ navigation }) => {
     }, [
       user?.id,
       bookingState.resetBookingState,
-      bookingState.setSelectedChild,
       bookingState.setBookedForId,
       slotsManagement.resetSlots,
       toast.hideToast,

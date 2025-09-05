@@ -86,13 +86,14 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
             setSelectedCategory(availableCategories[0]),
           ])
         } else {
-          setCategories(response || [])
+          const activeCategories = [...response].filter(c => c?.isActive)
+          setCategories(activeCategories || [])
           Promise.all([
             resetFormFields({
-              categoryId: response[0]?.id,
+              categoryId: activeCategories[0]?.id,
               questions: [],
             }),
-            setSelectedCategory(response[0]),
+            setSelectedCategory(activeCategories[0]),
           ])
         }
       }

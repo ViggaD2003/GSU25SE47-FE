@@ -402,9 +402,12 @@
       "flexible": "Linh hoạt",
       "empty": {
         "title": "Không có chương trình",
-        "description": "Vui lòng quay lại sau để xem các chương trình mới.",
+        "description": "Hiện không có chương trình nào đang hoạt động.",
         "browseAll": "Xem tất cả chương trình"
       }
+    },
+    "supportPrograms": {
+      "title": "Chương trình hỗ trợ"
     },
     "planToday": {
       "title": "Kế hoạch hôm nay",

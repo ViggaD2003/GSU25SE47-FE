@@ -400,7 +400,7 @@ const ClientManagement = () => {
         {isCreateCase && (
           <CaseModal
             user={user}
-            categories={categories}
+            categories={[...categories].filter(c => c.isActive)}
             visible={isCreateCase}
             onCancel={handleModalCancel}
             onSubmit={handleModalOk}

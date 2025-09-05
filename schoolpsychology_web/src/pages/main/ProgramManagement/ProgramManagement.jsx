@@ -443,7 +443,7 @@ const ProgramManagement = () => {
           visible={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           onOk={handleSave}
-          categories={categories}
+          categories={[...categories].filter(c => c?.isActive)}
           counselors={counselors}
           messageApi={messageApi}
         />

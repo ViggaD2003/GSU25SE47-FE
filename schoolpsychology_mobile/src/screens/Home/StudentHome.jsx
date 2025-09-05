@@ -14,7 +14,7 @@ import { Loading } from "../../components";
 import { Alert } from "../../components";
 import { Entypo, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import EventService from "../../services/api/EventService";
-import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
+import { fetchActivePrograms } from "../../services/api/ProgramService";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts";
@@ -79,7 +79,7 @@ export default function StudentHome({ user, navigation }) {
 
   const fetchRecommandedPrograms = async () => {
     try {
-      const response = await fetchAllRecommendedPrograms(user.id);
+      const response = await fetchActivePrograms();
       setRecommandedPrograms(response);
     } catch (error) {
       console.warn(`Error loading recommended programs:`, error);
@@ -285,13 +285,13 @@ export default function StudentHome({ user, navigation }) {
         </ScrollView>
       </View>
 
-      {/* Recommended Programs */}
+      {/*Support Programs */}
       {user?.role === "STUDENT" && !user?.caseId && (
         <View style={styles.sectionContainer}>
           <View style={styles.headerContainer}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>
-                {t("home.recommendedPrograms.title")}
+                {t("home.supportPrograms.title")}
               </Text>
               <View style={styles.programCountContainer}>
                 <Text style={styles.programCountText}>

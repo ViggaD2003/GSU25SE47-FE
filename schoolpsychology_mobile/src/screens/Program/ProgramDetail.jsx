@@ -28,6 +28,7 @@ import {
 import { Loading } from "../../components/common";
 import { useAuth, useChildren } from "@/contexts";
 import dayjs from "dayjs";
+import { surveyRecords } from "@/constants";
 
 const { width } = Dimensions.get("window");
 
@@ -45,6 +46,8 @@ export default function ProgramDetail() {
   const [isJoined, setIsJoined] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+
+  console.log("user", user);
 
   // Show loading state while auth is loading
   if (authLoading || !user) {
@@ -264,17 +267,19 @@ export default function ProgramDetail() {
     }
   };
 
-  const canJoinOrLeave = () => {
+  const canJoinOrLeave = useCallback(() => {
+    if (!program) {
+      return false;
+    }
     const isBeforeStartTime = dayjs().isBefore(dayjs(program.startTime));
-    // console.log("program", program);
+    console.log("program", program);
     return (
-      program &&
       program.status === "ACTIVE" &&
       (!program?.student || program?.student?.surveyRecord?.length === 0) &&
-      isBeforeStartTime &&
+      // isBeforeStartTime &&
       !program.student?.caseId
     );
-  };
+  }, [program]);
 
   const renderSurveyProgress = () => {
     if (!program.student || !program.student.surveyRecord) {
@@ -360,7 +365,15 @@ export default function ProgramDetail() {
               ) : (
                 user.role === "STUDENT" && (
                   <TouchableOpacity
-                    style={[styles.statusBadge, { backgroundColor: "#007AFF" }]}
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor:
+                          program.status !== "ON_GOING" && !isOnTime
+                            ? "gray"
+                            : "#007AFF",
+                      },
+                    ]}
                     onPress={() => {
                       // console.log(user.token);
 
@@ -455,7 +468,10 @@ export default function ProgramDetail() {
                     <TouchableOpacity
                       style={[
                         styles.statusBadge,
-                        { backgroundColor: "#007AFF" },
+                        {
+                          backgroundColor:
+                            !isActiveSurvey && !isOnTime ? "gray" : "#007AFF",
+                        },
                       ]}
                       onPress={() => {
                         navigation.navigate("Survey", {
