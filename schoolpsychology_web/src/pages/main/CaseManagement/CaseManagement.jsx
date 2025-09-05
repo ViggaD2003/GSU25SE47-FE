@@ -127,7 +127,11 @@ const CaseManagement = () => {
   const filteredCases = useMemo(() => {
     if (!cases) return []
 
-    return cases.filter(caseItem => {
+    const sortedCases = [...cases].sort(
+      (a, b) => dayjs(b.updatedAt).unix() - dayjs(a.updatedAt).unix()
+    )
+
+    return sortedCases.filter(caseItem => {
       // Text search
       const matchesSearch =
         !searchText.trim() ||

@@ -704,7 +704,8 @@
       "initialLevel": "Mức độ ban đầu",
       "createdAt": "Ngày tạo",
       "noDescription": "Không có mô tả",
-      "noHost": "Chưa phân công"
+      "noHost": "Chưa phân công",
+      "updatedAt": "Cập nhật lần cuối"
     },
     "form": {
       "title": "Tiêu đề",
@@ -1390,7 +1391,7 @@
       "teacherEmail": "Email giáo viên",
       "isActive": "Trạng thái",
       "grade": "Khối lớp",
-      "numberOfstudents": "Số lượng học sinh",
+      "numberOfstudents": "Số lượng",
       "active": "Đang hoạt động",
       "inactive": "Không hoạt động",
       "actions": "Thao tác"
@@ -1938,7 +1939,8 @@
       "viewDetails": "Xem chi tiết",
       "edit": "Sửa",
       "delete": "Xóa",
-      "total": "Tổng cộng"
+      "total": "Tổng cộng",
+      "updatedAt": "Cập nhật lần cuối"
     },
     "form": {
       "basicInfo": "Thông tin cơ bản",
@@ -2034,6 +2036,7 @@
       "levelTypes": {
         "low": "Thấp",
         "medium": "Vừa phải",
+        "moderate": "Vừa phải",
         "high": "Nghiêm trọng",
         "critical": "Nguy kịch"
       },
@@ -2115,6 +2118,7 @@
     "scoreLevel": {
       "low": "Thấp",
       "medium": "Trung bình",
+      "moderate": "Vừa phải",
       "high": "Cao"
     },
     "categories": {
@@ -2135,6 +2139,7 @@
     },
     "cooperationLevel": {
       "high": "Cao",
+      "moderate": "Vừa phải",
       "medium": "Trung bình",
       "low": "Thấp",
       "unknown": "Không xác định"

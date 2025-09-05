@@ -665,7 +665,8 @@
       "initialLevel": "Initial Level",
       "createdAt": "Created At",
       "noDescription": "No description",
-      "noHost": "Not assigned"
+      "noHost": "Not assigned",
+      "updatedAt": "Updated At"
     },
     "form": {
       "title": "Title",
@@ -1603,7 +1604,7 @@
       "teacherEmail": "Teacher Email",
       "isActive": "Active",
       "grade": "Grade",
-      "numberOfstudents": "Number of Students",
+      "numberOfstudents": "Quantity",
       "active": "Active",
       "inactive": "Inactive",
       "actions": "Actions"
@@ -1824,7 +1825,8 @@
     "sessionInProgress": "Session in Progress",
     "sessionInProgressDescription": "A counseling session is currently active for this appointment.",
     "continueAssessment": "Continue Assessment",
-    "noReason": "No reason"
+    "noReason": "No reason",
+    "updatedAt": "Updated At"
   },
   "categoryManagement": {
     "title": "Category Management",
@@ -1854,7 +1856,8 @@
       "viewDetails": "View Details",
       "edit": "Edit",
       "delete": "Delete",
-      "total": "Total"
+      "total": "Total",
+      "updatedAt": "Updated At"
     },
     "form": {
       "basicInfo": "Basic Information",
@@ -1950,6 +1953,7 @@
       "levelTypes": {
         "low": "Low",
         "medium": "Moderate",
+        "moderate": "Moderate",
         "high": "Severe",
         "critical": "Critical"
       },

@@ -404,11 +404,18 @@ const CaseTable = ({
         // hidden: user?.role === 'teacher',
       },
       {
-        title: t('caseManagement.table.createdAt'),
+        title: t('caseManagement.table.createdAt', 'Created At'),
         dataIndex: 'createdAt',
         key: 'createdAt',
         render: date => dayjs(date).format('DD/MM/YYYY HH:mm:ss'),
         sorter: (a, b) => dayjs(a.createdAt).unix() - dayjs(b.createdAt).unix(),
+      },
+      {
+        title: t('caseManagement.table.updatedAt', 'Updated At'),
+        dataIndex: 'updatedAt',
+        key: 'updatedAt',
+        render: date => dayjs(date).format('DD/MM/YYYY HH:mm:ss'),
+        sorter: (a, b) => dayjs(a.updatedAt).unix() - dayjs(b.updatedAt).unix(),
       },
       {
         key: 'actions',

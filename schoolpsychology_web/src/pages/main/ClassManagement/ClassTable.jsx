@@ -18,18 +18,19 @@ const ClassTable = ({
 }) => {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const canAddStudents = useCallback(
-    record => {
-      if (!record || !record.teacher) return false
-      // Check school year is future or current
-      const schoolYear = dayjs(record.schoolYear.startDate).year()
-      const currentYear = dayjs().year()
+  const canAddStudents = useCallback(record => {
+    if (!record || !record.teacher) return false
+    // Check school year is future or current
+    if (!record.schoolYear) return false
+    const schoolYear = dayjs(record.schoolYear.startDate).year()
+    const currentYear = dayjs().year()
 
-      if (!schoolYear || dayjs(schoolYear).isBefore(currentYear)) return false
-      return true
-    },
-    [data]
-  )
+    const isFuture =
+      dayjs(schoolYear).isAfter(currentYear) ||
+      dayjs(schoolYear).isSame(currentYear)
+
+    return isFuture || record.isActive
+  }, [])
 
   const columns = [
     {
@@ -53,7 +54,7 @@ const ClassTable = ({
       title: t('classManagement.table.numberOfstudents'),
       dataIndex: 'totalStudents',
       key: 'totalStudents',
-      width: 160,
+      width: 100,
     },
     {
       title: t('classManagement.table.classYear'),
@@ -67,6 +68,33 @@ const ClassTable = ({
         dayjs(a.schoolYear.startDate).unix() -
         dayjs(b.schoolYear.startDate).unix(),
     },
+    {
+      title: t('common.startDate'),
+      dataIndex: 'schoolYear',
+      key: 'schoolYear',
+      render: classYear => {
+        return classYear.startDate
+          ? dayjs(classYear.startDate).format('DD/MM/YYYY')
+          : '-'
+      },
+      // width: 180,
+      sorter: (a, b) =>
+        dayjs(a.schoolYear.startDate).unix() -
+        dayjs(b.schoolYear.startDate).unix(),
+    },
+    {
+      title: t('common.endDate'),
+      dataIndex: 'schoolYear',
+      key: 'schoolYear',
+      render: classYear => {
+        return classYear.endDate
+          ? dayjs(classYear.endDate).format('DD/MM/YYYY')
+          : '-'
+      },
+      sorter: (a, b) =>
+        dayjs(a.schoolYear.endDate).unix() - dayjs(b.schoolYear.endDate).unix(),
+    },
+
     {
       title: t('classManagement.table.isActive'),
       dataIndex: 'isActive',

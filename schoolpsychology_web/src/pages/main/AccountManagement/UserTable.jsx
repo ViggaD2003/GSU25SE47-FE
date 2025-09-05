@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'react-router-dom'
+import { getStatusColor } from '../../../constants/enums'
 
 const UserTable = ({
   user,
@@ -18,8 +19,6 @@ const UserTable = ({
   onView,
   onCreateCase,
   isActiveClass,
-  // onEdit,
-  // onDelete,
 }) => {
   const { t } = useTranslation()
   const { pathname } = useLocation()
@@ -115,13 +114,20 @@ const UserTable = ({
         title: t('userTable.latestSurvey'),
         dataIndex: 'latestSurveyRecord',
         key: 'latestSurveyRecord',
-        render: latestSurveyRecord => (
-          <span style={{ color: latestSurveyRecord ? '#52c41a' : '#999' }}>
-            {latestSurveyRecord
-              ? t('userTable.hasSurveyRecord')
-              : t('userTable.noSurveyRecord')}
-          </span>
-        ),
+        render: latestSurveyRecord => {
+          return latestSurveyRecord ? (
+            <Space direction="vertical" size={2}>
+              {latestSurveyRecord?.survey?.category.name}
+              <Tag color={getStatusColor(latestSurveyRecord.level.code)}>
+                {t(
+                  `categoryManagement.form.levelTypes.${latestSurveyRecord.level.code.toLowerCase()}`
+                )}
+              </Tag>
+            </Space>
+          ) : (
+            <Tag color="gray">{t('userTable.noSurveyRecord')}</Tag>
+          )
+        },
         hidden: hideColumnsWithoutStudentData,
       },
       {
