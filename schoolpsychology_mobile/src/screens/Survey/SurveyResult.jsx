@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   View,
@@ -18,8 +18,11 @@ import {
 } from "../../utils/helpers";
 import { getSurveyRecordById } from "@/services/api/SurveyService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import RecommendProgram from "../Program/RecommendProgram";
+import { useTranslation } from "react-i18next";
 
 const SurveyResult = ({ route, navigation }) => {
+  const { t } = useTranslation();
   const { result, showRecordsButton, type, programId } = route.params || {};
   const [surveyRecord, setSurveyRecord] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -32,6 +35,15 @@ const SurveyResult = ({ route, navigation }) => {
   const [animation] = useState(new Animated.Value(0));
 
   // console.log("result", surveyRecord);
+
+  const showRecommendedPrograms = useMemo(() => {
+    return (
+      !programId &&
+      type === "submit" &&
+      surveyRecord?.level &&
+      surveyRecord.level.code !== "LOW"
+    );
+  }, [surveyRecord]);
 
   const showToast = useCallback((message, type = "info") => {
     setToast({ visible: true, message, type });
@@ -339,6 +351,18 @@ const SurveyResult = ({ route, navigation }) => {
               </Text>
             </View>
           )}
+
+        {!isSkipped && showRecommendedPrograms && (
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryHeader}>
+              <Ionicons name="star" size={24} color="#F68F3BFF" />
+              <Text style={styles.summaryTitle}>
+                {t("home.recommendedPrograms.title")}
+              </Text>
+            </View>
+            <RecommendProgram navigation={navigation} />
+          </View>
+        )}
 
         {/* Answer Summary - Only show if not skipped and has answers */}
         {!isSkipped && hasAnswers && (

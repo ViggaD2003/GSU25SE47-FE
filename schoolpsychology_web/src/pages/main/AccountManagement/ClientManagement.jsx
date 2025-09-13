@@ -23,7 +23,7 @@ import { updatePagination } from '../../../store/slices/classSlice'
 import { useAuth } from '@/contexts/AuthContext'
 import CaseModal from '../CaseManagement/CaseModal'
 import { categoriesAPI } from '@/services/categoryApi'
-import { createCase } from '@/store/actions'
+import { createCase, getCases } from '@/store/actions'
 import { useNavigate } from 'react-router-dom'
 import dayjs from 'dayjs'
 const { Title, Text } = Typography
@@ -225,6 +225,8 @@ const ClientManagement = () => {
           setShowConfirmModal(false)
           messageApi.success(t('clientManagement.messages.createCaseSuccess'))
           setIsCreateCase(false)
+          dispatch(getClassesByCode(selectedClassCode))
+          dispatch(getCases({ accountId: user.id || user.userId }))
           loadData()
         })
         .catch(error => {
@@ -398,7 +400,7 @@ const ClientManagement = () => {
         {isCreateCase && (
           <CaseModal
             user={user}
-            categories={categories}
+            categories={[...categories].filter(c => c.isActive)}
             visible={isCreateCase}
             onCancel={handleModalCancel}
             onSubmit={handleModalOk}

@@ -116,6 +116,16 @@ export const CATEGORY_STATUS = {
   INACTIVE: false,
 }
 
+const LEVEL_CODE = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  MODERATE: 'MODERATE',
+  HIGH: 'HIGH',
+  SEVERE: 'SEVERE',
+  CRITICAL: 'CRITICAL',
+  UNKNOWN: 'UNKNOWN',
+}
+
 // Color mappings for UI
 export const STATUS_COLORS = {
   // Survey status colors
@@ -169,6 +179,15 @@ export const STATUS_COLORS = {
   [PROGRAM_STATUS.ONGOING]: 'green',
   [PROGRAM_STATUS.COMPLETED]: 'default',
   [PROGRAM_STATUS.CANCELLED]: 'red',
+
+  // Level colors
+  [LEVEL_CODE.LOW]: 'green',
+  [LEVEL_CODE.MEDIUM]: 'yellow',
+  [LEVEL_CODE.MODERATE]: 'yellow',
+  [LEVEL_CODE.HIGH]: 'orange',
+  [LEVEL_CODE.SEVERE]: 'red',
+  [LEVEL_CODE.CRITICAL]: 'red',
+  [LEVEL_CODE.UNKNOWN]: 'gray',
 }
 
 // Helper functions

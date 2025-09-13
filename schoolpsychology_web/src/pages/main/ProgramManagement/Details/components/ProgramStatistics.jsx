@@ -271,7 +271,12 @@ const ProgramStatistics = ({ program, statistics }) => {
 
         {/* Score Distribution */}
         <Col xs={24} lg={12}>
-          <Card title={t('programManagement.details.charts.scoreDistribution')}>
+          <Card
+            title={t(
+              'programManagement.details.charts.participantType',
+              'Hình thức tham gia'
+            )}
+          >
             <Pie {...pieProps} />
           </Card>
         </Col>

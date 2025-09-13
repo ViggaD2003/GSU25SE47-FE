@@ -407,9 +407,12 @@
       "flexible": "Flexible",
       "empty": {
         "title": "No programs available",
-        "description": "Check back later for new learning opportunities and programs.",
+        "description": "There are no programs currently in operation.",
         "browseAll": "Browse All Programs"
       }
+    },
+    "supportPrograms": {
+      "title": "Chương trình hỗ trợ"
     },
     "planToday": {
       "title": "Plan for today",

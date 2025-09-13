@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
@@ -29,6 +30,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../../contexts/AuthContext";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
+import { Button } from "react-native-paper";
 
 const AppointmentDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -656,6 +658,37 @@ const AppointmentDetails = ({ route, navigation }) => {
     appointmentData.hostedBy?.roleName || appointmentData.slot?.roleName
   );
 
+  const openMeet = async (url) => {
+    try {
+      let appUrl = url;
+
+      if (Platform.OS === "ios") {
+        // iOS dùng meet://
+        // Ví dụ: https://meet.google.com/abc-defg-hij  => meet://meet.google.com/abc-defg-hij
+        appUrl = url.replace("https://", "meet://");
+      } else {
+        // Android dùng package name Google Meet
+        appUrl = url.replace("https://", "com.google.android.apps.meetings://");
+      }
+
+      const supported = await Linking.canOpenURL(appUrl);
+      if (supported) {
+        await Linking.openURL(appUrl);
+      } else {
+        await Linking.openURL(url); // fallback sang browser
+      }
+    } catch (err) {
+      console.error("Error opening Meet:", err);
+    }
+  };
+
+  const disabledOpenMeet = () => {
+    const currentDay = dayjs();
+    const appointmentDate = dayjs(appointmentData.startDateTime);
+
+    return !currentDay.isSame(appointmentDate, "day");
+  };
+
   return (
     <Container>
       {/* Header */}
@@ -819,9 +852,23 @@ const AppointmentDetails = ({ route, navigation }) => {
                     <Text style={styles.detailLabel}>
                       {t("appointment.labels.location")}
                     </Text>
-                    <Text style={styles.detailValue}>
-                      {appointmentData.location}
-                    </Text>
+                    {appointmentData?.isOnline ? (
+                      <Button
+                        mode="text"
+                        labelStyle={{
+                          fontSize: 14,
+                        }}
+                        textColor="#1a73e8"
+                        onPress={() => openMeet(appointment?.location)}
+                        disabled={disabledOpenMeet()}
+                      >
+                        Join Meeting
+                      </Button>
+                    ) : (
+                      <Text style={styles.detailValue}>
+                        {appointmentData.location}
+                      </Text>
+                    )}
                   </View>
                 </View>
               </>
@@ -1353,7 +1400,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   detailContent: {
-    flex: 1,
+    // flex: 1,
   },
   detailLabel: {
     fontSize: 12,
