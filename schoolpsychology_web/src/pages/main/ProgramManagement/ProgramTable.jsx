@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
+import { PROGRAM_STATUS } from '@/constants/enums'
 
 const { Text } = Typography
 
@@ -112,20 +113,27 @@ const ProgramTable = ({
             name="status"
             rules={[{ required: true, message: t('common.required') }]}
           >
-            <Select placeholder={t('programManagement.selectStatus')}>
-              {/* <Select.Option value="PLANNING">
-                {t('programManagement.status.PLANNING')}
-              </Select.Option> */}
-              {/* <Select.Option value="ACTIVE">
-                {t('programManagement.status.ACTIVE')}
-              </Select.Option> */}
-              {program.status === 'ACTIVE' && (
-                <Select.Option value="ON_GOING">
-                  {t('programManagement.status.ON_GOING')}
-                </Select.Option>
-              )}
+            <Select
+              placeholder={t('programManagement.selectStatus')}
+              optionLabelProp="label"
+              popupMatchSelectWidth={false}
+              value={program.status} // giá trị ban đầu
+            >
+              {/* Option ẩn chỉ để hiển thị label khi value=ON_GOING */}
+              <Select.Option
+                value="ON_GOING"
+                label={t('programManagement.status.ON_GOING')}
+                hidden // 👈 sẽ không hiển thị trong dropdown
+              >
+                {t('programManagement.status.ON_GOING')}
+              </Select.Option>
+
+              {/* Các option user được phép chọn */}
               {program.status === 'ON_GOING' && (
-                <Select.Option value="COMPLETED">
+                <Select.Option
+                  value="COMPLETED"
+                  label={t('programManagement.status.COMPLETED')}
+                >
                   {t('programManagement.status.COMPLETED')}
                 </Select.Option>
               )}
@@ -147,9 +155,6 @@ const ProgramTable = ({
         dataIndex: 'name',
         key: 'name',
         width: 150,
-        sorter: true,
-        sortOrder:
-          sortConfig?.field === 'name' ? sortConfig.direction : undefined,
         render: (text, record) => (
           <div>
             <div className="flex items-center gap-2">
@@ -214,9 +219,9 @@ const ProgramTable = ({
         dataIndex: 'startTime',
         key: 'date',
         width: 120,
-        sorter: true,
-        sortOrder:
-          sortConfig?.field === 'startTime' ? sortConfig.direction : undefined,
+        sorter: (a, b) => dayjs(a.startTime).unix() - dayjs(b.startTime).unix(),
+        // sortOrder:
+        //   sortConfig?.field === 'startTime' ? sortConfig.direction : undefined,
         render: (_, record) => {
           const startTime = record.startTime
             ? dayjs(record.startTime).format('HH:mm')
@@ -244,11 +249,11 @@ const ProgramTable = ({
         key: 'status',
         width: 120,
         filters: [
-          { text: t('programManagement.status.PLANNING'), value: 'PLANNING' },
           { text: t('programManagement.status.ACTIVE'), value: 'ACTIVE' },
           { text: t('programManagement.status.ON_GOING'), value: 'ON_GOING' },
           { text: t('programManagement.status.COMPLETED'), value: 'COMPLETED' },
         ],
+        onFilter: (value, record) => record.status === value,
         render: (_, record) => renderEditForm(record),
       },
       {
@@ -256,9 +261,24 @@ const ProgramTable = ({
         dataIndex: 'createdDate',
         key: 'createdDate',
         width: 120,
+        sorter: (a, b) =>
+          dayjs(a.createdDate).unix() - dayjs(b.createdDate).unix(),
         render: (_, record) => (
           <div>
             <Text>{dayjs(record.createdDate).format('DD/MM/YYYY HH:mm')}</Text>
+          </div>
+        ),
+      },
+      {
+        title: t('programManagement.table.updatedDate'),
+        dataIndex: 'updatedDate',
+        key: 'updatedDate',
+        width: 120,
+        sorter: (a, b) =>
+          dayjs(a.updatedDate).unix() - dayjs(b.updatedDate).unix(),
+        render: (_, record) => (
+          <div>
+            <Text>{dayjs(record.updatedDate).format('DD/MM/YYYY HH:mm')}</Text>
           </div>
         ),
       },
@@ -281,14 +301,16 @@ const ProgramTable = ({
                 />
               </Tooltip>
 
-              <Tooltip title={t('programManagement.actions.edit')}>
-                <Button
-                  type="link"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEdit(record)}
-                  size="small"
-                />
-              </Tooltip>
+              {record.status === 'ON_GOING' && (
+                <Tooltip title={t('programManagement.actions.edit')}>
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEdit(record)}
+                    size="small"
+                  />
+                </Tooltip>
+              )}
             </Space>
           ) : (
             <Space size="small">

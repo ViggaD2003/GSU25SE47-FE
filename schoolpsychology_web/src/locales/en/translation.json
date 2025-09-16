@@ -331,7 +331,8 @@
       "status": "Status",
       "actions": "Actions",
       "addCase": "Add Cases",
-      "createdAt": "Created At"
+      "createdAt": "Created At",
+      "updatedDate": "Updated At"
     },
     "status": {
       "PLANNING": "Planning",
@@ -347,7 +348,9 @@
       "view": "View",
       "edit": "Edit",
       "delete": "Delete",
-      "viewDetails": "View Details"
+      "viewDetails": "View Details",
+      "save": "Save",
+      "cancel": "Cancel"
     },
     "messages": {
       "fetchError": "Failed to fetch programs",
@@ -1877,7 +1880,7 @@
       "code": "Category Code",
       "codePlaceholder": "Enter category code",
       "codeRequired": "Please enter category code",
-      "codePattern": "Code must contain only uppercase letters, numbers, and underscores",
+      "codePattern": "Code can only contain uppercase letters (A–Z), numbers (0–9), underscores (_) and hyphens (-)",
       "codeMinLength": "Code must be at least 2 characters",
       "codeMaxLength": "Code cannot exceed 20 characters",
       "description": "Description",

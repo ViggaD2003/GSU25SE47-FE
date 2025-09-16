@@ -332,7 +332,8 @@
       "status": "Trạng thái",
       "actions": "Thao tác",
       "addCase": "Thêm trường hợp đang theo dõi",
-      "createdAt": "Ngày tạo"
+      "createdAt": "Ngày tạo",
+      "updatedDate": "Ngày cập nhật"
     },
     "status": {
       "PLANNING": "Đang lên kế hoạch",
@@ -348,7 +349,9 @@
       "view": "Xem",
       "edit": "Chỉnh sửa",
       "delete": "Xóa",
-      "viewDetails": "Xem chi tiết"
+      "viewDetails": "Xem chi tiết",
+      "save": "Lưu",
+      "cancel": "Hủy"
     },
     "messages": {
       "fetchError": "Không thể tải danh sách chương trình",
@@ -1960,7 +1963,7 @@
       "code": "Mã danh mục",
       "codePlaceholder": "Nhập mã danh mục",
       "codeRequired": "Vui lòng nhập mã danh mục",
-      "codePattern": "Mã chỉ được chứa chữ hoa, số và dấu gạch dưới",
+      "codePattern": "Mã chỉ được chứa chữ in hoa (A–Z), số (0–9), dấu gạch dưới (_) và dấu gạch ngang (-)",
       "codeMinLength": "Mã phải có ít nhất 2 ký tự",
       "codeMaxLength": "Mã không được vượt quá 20 ký tự",
       "description": "Mô tả",
