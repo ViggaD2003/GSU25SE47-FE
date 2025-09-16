@@ -51,13 +51,13 @@ export const updateProgram = createAsyncThunk(
   }
 )
 
-// Delete program
-export const deleteProgram = createAsyncThunk(
-  'program/deleteProgram',
-  async (programId, { rejectWithValue }) => {
+// Update program status
+export const updateProgramStatus = createAsyncThunk(
+  'program/updateProgramStatus',
+  async ({ programId, status }, { rejectWithValue }) => {
     try {
-      await programAPI.deleteProgram(programId)
-      return programId
+      if (!programId) throw new Error('Program ID is required')
+      return await programAPI.updateStatus(programId, status)
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message)
     }

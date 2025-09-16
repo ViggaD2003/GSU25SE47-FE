@@ -379,7 +379,7 @@ const CaseCharts = ({ caseData, statistics }) => {
                 }}
               />
             </div>
-            <div style={{ marginTop: 16 }}>
+            {/* <div style={{ marginTop: 16 }}>
               <Row gutter={[16, 16]}>
                 <Col xs={24} sm={8}>
                   <Card
@@ -436,7 +436,7 @@ const CaseCharts = ({ caseData, statistics }) => {
                   </Card>
                 </Col>
               </Row>
-            </div>
+            </div> */}
           </Card>
         </Col>
       </Row>

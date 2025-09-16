@@ -415,7 +415,7 @@ const LayoutComponent = () => {
             {/* Right side controls */}
             <div className="flex items-center space-x-4">
               {/* Test notification button */}
-              <Button onClick={() => sendMessage()}>Test</Button>
+              {/* <Button onClick={() => sendMessage()}>Test</Button> */}
 
               {/* Notifications */}
               <NotificationBell />

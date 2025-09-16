@@ -13,6 +13,11 @@ export const STORAGE_KEYS = {
   LEGACY_TOKEN: 'token', // For backward compatibility
 }
 
+export const NAVIGATION_EVN = {
+  DEV: 'http://localhost:5173',
+  PROD: 'https://spmss.ocgi.space',
+}
+
 // Constants for navigation paths
 export const NAVIGATION_PATHS = {
   LOGIN: '/login',

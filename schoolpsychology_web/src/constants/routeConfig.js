@@ -85,7 +85,7 @@ export const ROUTE_CONFIG = [
       {
         key: '/student-management',
         labelKey: 'navigation.studentManagement',
-        allowedRoles: ['manager', 'teacher'],
+        allowedRoles: ['teacher'],
         element: 'ClientManagement',
       },
     ],

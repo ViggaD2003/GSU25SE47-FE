@@ -77,10 +77,8 @@ const CaseManagement = () => {
   }, [dispatch, user])
 
   useEffect(() => {
-    if (cases.length === 0) {
-      fetchData()
-    }
-  }, [cases.length])
+    fetchData()
+  }, [fetchData])
 
   useEffect(() => {
     if (error) {

@@ -50,6 +50,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
   const [loading, setLoading] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const userRole = user?.role?.toUpperCase()
+  const [createLoading, setCreateLoading] = useState(false)
 
   // Fetch categories when modal opens
   useEffect(() => {
@@ -166,6 +167,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
   )
 
   const handleOk = () => {
+    setCreateLoading(true)
     form
       .validateFields()
       .then(values => {
@@ -212,6 +214,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
         console.log('Validate Failed:', info)
         messageApi.error(info.errorFields[0].errors[0])
       })
+      .finally(() => setCreateLoading(false))
   }
 
   const handleCancel = async () => {
@@ -235,12 +238,13 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
         onCancel={handleCancel}
         width={1200}
         okText={t('common.create')}
+        okButtonProps={{
+          loading: loading || createLoading, // có thể dùng loading nếu cần
+        }}
         cancelText={t('common.cancel')}
         cancelButtonProps={{
-          style: {
-            color: 'red',
-            borderColor: 'red',
-          },
+          disabled: loading || createLoading, // 👈 disable nút OK
+          danger: true,
         }}
         styles={{
           body: {

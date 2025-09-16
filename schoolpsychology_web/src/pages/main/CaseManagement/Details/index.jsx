@@ -178,7 +178,7 @@ const CaseDetails = () => {
       const avgScore =
         allScores.length > 0
           ? allScores.reduce((sum, item) => sum + (item.score || 0), 0) /
-          allScores.length
+            allScores.length
           : 0
 
       // Extract counts with safe fallbacks
@@ -375,22 +375,28 @@ const CaseDetails = () => {
         ),
         children: <CaseCharts caseData={caseData} statistics={statistics} />,
       },
-      {
-        key: 'chat',
-        label: (
-          <Space>
-            <FileTextOutlined />
-            {t('caseManagement.details.tabs.chat')}
-          </Space>
-        ),
-        children: (
-          <div style={{ height: 600 }}>
-            <ChatInterface embedded={true} caseId={id} />
-          </div>
-        ),
-      },
+      userRole === 'counselor'
+        ? {
+            key: 'chat',
+            label: (
+              <Space>
+                <FileTextOutlined />
+                {t('caseManagement.details.tabs.chat')}
+              </Space>
+            ),
+            children: (
+              <div style={{ height: 600 }}>
+                <ChatInterface
+                  embedded={true}
+                  caseId={id}
+                  status={caseData?.caseInfo?.status}
+                />
+              </div>
+            ),
+          }
+        : {},
     ],
-    [caseData, statistics, t, id]
+    [caseData, statistics, t, id, userRole]
   )
 
   // Loading state
@@ -437,11 +443,11 @@ const CaseDetails = () => {
       <Card style={{ marginBottom: 24 }}>
         <Row justify="space-between" align="middle">
           <Col>
-            <Space size="large">
+            <Space size="large" align="start">
               <Button
                 icon={<ArrowLeftOutlined />}
                 onClick={handleGoBack}
-                size="large"
+                // size="large"
               >
                 {t('common.back')}
               </Button>
@@ -538,7 +544,7 @@ const CaseDetails = () => {
           activeKey={activeTab}
           onChange={setActiveTab}
           items={tabItems}
-          size="large"
+          // size="large"
           tabBarStyle={{ marginBottom: 24 }}
         />
       </Card>

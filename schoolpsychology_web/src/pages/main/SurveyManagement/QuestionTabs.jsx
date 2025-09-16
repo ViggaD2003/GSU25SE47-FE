@@ -1,35 +1,3 @@
-/**
- * QuestionTabs Component
- *
- * Enhanced with dynamic answer generation based on category scoring ranges.
- *
- * Features:
- * - Automatically generates answers based on category's minScore and maxScore
- * - Provides contextually appropriate answer text using the improved scoring system
- * - Supports manual editing of generated answers
- * - Shows current scoring range information
- * - Regenerates answers when category changes
- * - Validates question count for limited surveys
- *
- * Usage:
- * The component expects categories to have minScore, maxScore, isLimited, and questionLength properties.
- *
- * Example category structure:
- * {
- *   id: 2,
- *   name: "Social",
- *   code: "SOC",
- *   description: "Social Behavior",
- *   isSum: false,
- *   isLimited: true,
- *   questionLength: 5,
- *   severityWeight: 1,
- *   isActive: true,
- *   maxScore: 50,
- *   minScore: 10
- * }
- */
-
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   Form,
@@ -415,45 +383,29 @@ const QuestionTabs = ({
               <div>
                 <div style={{ marginBottom: 8 }}>
                   <Text strong>Answers:</Text>
-                  <Text type="secondary" style={{ marginLeft: 8 }}>
-                    (Score range: {minScore} - {maxScore})
-                  </Text>
-                  <Button
-                    type="dashed"
-                    onClick={() => {
-                      const newScore = maxScore + 1
-                      const newText = generateAnswerText(
-                        newScore,
-                        minScore,
-                        newScore
-                      )
-                      addAnswer({ text: newText, score: newScore })
-                    }}
-                    icon={<PlusOutlined />}
-                    style={{ marginLeft: 8 }}
-                  >
-                    Add Answer
-                  </Button>
-                  <Button
-                    type="dashed"
-                    onClick={() => {
-                      const answers = generateAnswers(minScore, maxScore)
-                      // Reset all answers to generated ones
-                      answerFields.forEach((answerField, index) => {
-                        if (answers[index]) {
-                          const form = answerField.field?.form
-                          if (form) {
-                            form.setFieldsValue({
-                              [answerField.name]: answers[index],
-                            })
-                          }
-                        }
-                      })
-                    }}
-                    style={{ marginLeft: 8 }}
-                  >
-                    Regenerate Answers
-                  </Button>
+                  {minScore !== maxScore && (
+                    <Text type="secondary" style={{ marginLeft: 8 }}>
+                      (Score range: {minScore} - {maxScore})
+                    </Text>
+                  )}
+                  {minScore === maxScore && (
+                    <Button
+                      type="dashed"
+                      onClick={() => {
+                        const newScore = maxScore + 1
+                        const newText = generateAnswerText(
+                          newScore,
+                          minScore,
+                          newScore
+                        )
+                        addAnswer({ text: newText, score: newScore })
+                      }}
+                      icon={<PlusOutlined />}
+                      style={{ marginLeft: 8 }}
+                    >
+                      Add Answer
+                    </Button>
+                  )}
                 </div>
                 {answerFields.map((answerField, _answerIndex) => {
                   // Extract key and other properties to avoid spreading key prop
@@ -491,18 +443,23 @@ const QuestionTabs = ({
                             min={minScore}
                             max={maxScore + 10} // Allow some flexibility
                             style={{ width: '100%' }}
+                            disabled={minScore !== maxScore} // Disable if only one score option
                           />
                         </Form.Item>
                       </Col>
-                      <Col span={2}>
-                        <Button
-                          type="text"
-                          danger
-                          icon={<MinusCircleOutlined />}
-                          onClick={() => removeAnswer(answerField.name)}
-                          disabled={answerFields.length <= 1}
-                        />
-                      </Col>
+                      {minScore === maxScore &&
+                        answerFields.length >
+                          2(
+                            <Col span={2}>
+                              <Button
+                                type="text"
+                                danger
+                                icon={<MinusCircleOutlined />}
+                                onClick={() => removeAnswer(answerField.name)}
+                                disabled={answerFields.length <= 1}
+                              />
+                            </Col>
+                          )}
                     </Row>
                   )
                 })}

@@ -23,6 +23,7 @@ import {
   Divider,
   Checkbox,
   Collapse,
+  Popconfirm,
 } from 'antd'
 import {
   EditOutlined,
@@ -370,9 +371,7 @@ const SurveyDetailModal = ({
         isRecurring: normalizedCycle !== RECURRING_CYCLE.NONE,
       }
       setFormValue(initialValues)
-      if (editMode) {
-        form.setFieldsValue(initialValues)
-      }
+      form.setFieldsValue(initialValues)
     } catch {
       const errorMessage = t('surveyManagement.detail.messages.fetchError')
       setError(errorMessage)
@@ -1049,9 +1048,9 @@ const SurveyDetailModal = ({
   )
 
   const renderEditForm = () => (
-    <Form form={form} layout="vertical">
+    <Form form={form}>
       <Row gutter={16}>
-        <Col span={12}>
+        <Col span={10}>
           <Form.Item
             name="title"
             label={t('surveyManagement.detail.title')}
@@ -1064,150 +1063,154 @@ const SurveyDetailModal = ({
           >
             <Input disabled={!isFieldEditable('title')} />
           </Form.Item>
-        </Col>
-        <Col span={12}>
           <Form.Item
-            name="surveyType"
-            label={t('surveyManagement.detail.surveyType')}
-            rules={[
-              {
-                required: true,
-                message: t('surveyManagement.form.surveyTypeRequired'),
-              },
-            ]}
+            name="description"
+            label={t('surveyManagement.detail.description')}
           >
-            <Select disabled={!isFieldEditable('surveyType')}>
-              {Object.values(SURVEY_TYPE).map(type => (
-                <Option key={type} value={type}>
-                  {t(`surveyManagement.enums.surveyType.${type}`)}
-                </Option>
-              ))}
-            </Select>
+            <TextArea rows={3} disabled={!isFieldEditable('description')} />
           </Form.Item>
-        </Col>
-      </Row>
 
-      <Row gutter={16}>
-        <Col span={12}>
-          <Form.Item
-            name="targetScope"
-            label={t('surveyManagement.detail.targetScope')}
-            rules={[
-              {
-                required: true,
-                message: t('surveyManagement.form.targetScopeRequired'),
-              },
-            ]}
-          >
-            <Select disabled={!isFieldEditable('targetScope')}>
-              {Object.values(TARGET_SCOPE).map(scope => (
-                <Option key={scope} value={scope}>
-                  {t(`surveyManagement.enums.targetScope.${scope}`)}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            name="targetGrade"
-            label={t('surveyManagement.detail.targetGrade')}
-          >
-            <Select disabled={!isFieldEditable('targetGrade')}>
-              {Object.values(GRADE_LEVEL).map(grade => (
-                <Option key={grade} value={grade}>
-                  {t(`surveyManagement.enums.gradeLevel.${grade}`)}
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Col>
-      </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="surveyType"
+                label={t('surveyManagement.detail.surveyType')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.surveyTypeRequired'),
+                  },
+                ]}
+              >
+                <Select disabled={!isFieldEditable('surveyType')}>
+                  {Object.values(SURVEY_TYPE).map(type => (
+                    <Option key={type} value={SURVEY_TYPE[type]}>
+                      {t(`surveyManagement.enums.surveyType.${type}`)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
 
-      <Row gutter={16}>
-        <Col span={16}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="targetScope"
+                label={t('surveyManagement.detail.targetScope')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.targetScopeRequired'),
+                  },
+                ]}
+              >
+                <Select disabled={!isFieldEditable('targetScope')}>
+                  {Object.values(TARGET_SCOPE).map(scope => (
+                    <Option key={scope} value={scope}>
+                      {t(`surveyManagement.enums.targetScope.${scope}`)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="targetGrade"
+                label={t('surveyManagement.detail.targetGrade')}
+              >
+                <Select disabled={!isFieldEditable('targetGrade')}>
+                  {Object.values(GRADE_LEVEL).map(grade => (
+                    <Option key={grade} value={GRADE_LEVEL[grade]}>
+                      {t(`surveyManagement.enums.gradeLevel.${grade}`)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="isRequired"
+                label={t('surveyManagement.detail.required')}
+                valuePropName="checked"
+              >
+                <Switch disabled={!isFieldEditable('isRequired')} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="recurringCycle"
+                label={t('surveyManagement.detail.recurringCycle')}
+              >
+                <Select disabled={!isFieldEditable('recurringCycle')}>
+                  {Object.values(RECURRING_CYCLE).map(cycle => (
+                    <Option key={cycle} value={cycle}>
+                      {t(`surveyManagement.enums.recurringCycle.${cycle}`)}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* <Row gutter={16}>
+        <Col span={12}>
           <Form.Item
             name="status"
             label={t('surveyManagement.detail.status')}
             rules={[{ required: true }]}
           >
             <Select disabled={!isFieldEditable('status')}>
-              <Option key={'ARCHIVED'} value={'ARCHIVED'}>
-                {t(`surveyManagement.enums.surveyStatus.ARCHIVED`)}
-              </Option>
-            </Select>
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item
-            name="isRequired"
-            label={t('surveyManagement.detail.required')}
-            valuePropName="checked"
-          >
-            <Switch disabled={!isFieldEditable('isRequired')} />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      <Form.Item
-        name="description"
-        label={t('surveyManagement.detail.description')}
-      >
-        <TextArea rows={3} disabled={!isFieldEditable('description')} />
-      </Form.Item>
-
-      <Row gutter={16}>
-        <Col span={12}>
-          <Form.Item
-            name="startDate"
-            label={t('surveyManagement.detail.startDate')}
-            rules={[
-              {
-                required: true,
-                message: t('surveyManagement.form.startDateRequired'),
-              },
-            ]}
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              disabled={!isFieldEditable('startDate')}
-            />
-          </Form.Item>
-        </Col>
-        <Col span={12}>
-          <Form.Item
-            name="endDate"
-            label={t('surveyManagement.detail.endDate')}
-            rules={[
-              {
-                required: true,
-                message: t('surveyManagement.form.endDateRequired'),
-              },
-            ]}
-          >
-            <DatePicker
-              style={{ width: '100%' }}
-              disabled={!isFieldEditable('endDate')}
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-
-      <Row gutter={16}>
-        <Col span={12}>
-          <Form.Item
-            name="recurringCycle"
-            label={t('surveyManagement.detail.recurringCycle')}
-          >
-            <Select disabled={!isFieldEditable('recurringCycle')}>
-              {Object.values(RECURRING_CYCLE).map(cycle => (
-                <Option key={cycle} value={cycle}>
-                  {t(`surveyManagement.enums.recurringCycle.${cycle}`)}
+              {Object.values(SURVEY_STATUS).map(status => (
+                <Option key={status} value={SURVEY_STATUS[status]}>
+                  {t(`surveyManagement.enums.surveyStatus.${status}`)}
                 </Option>
               ))}
             </Select>
           </Form.Item>
         </Col>
+      </Row> */}
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="startDate"
+                label={t('surveyManagement.detail.startDate')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.startDateRequired'),
+                  },
+                ]}
+              >
+                <DatePicker
+                  style={{ width: '100%' }}
+                  disabled={!isFieldEditable('startDate')}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="endDate"
+                label={t('surveyManagement.detail.endDate')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('surveyManagement.form.endDateRequired'),
+                  },
+                ]}
+              >
+                <DatePicker
+                  style={{ width: '100%' }}
+                  disabled={!isFieldEditable('endDate')}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Col>
+        <Col span={14}>{renderQuestions()}</Col>
       </Row>
     </Form>
   )
@@ -1602,18 +1605,33 @@ const SurveyDetailModal = ({
       footer={
         editMode
           ? [
-              <Button key="cancel" danger onClick={handleCancel}>
-                {t('surveyManagement.detail.cancel')}
-              </Button>,
-              <Button
-                key="save"
-                type="primary"
-                icon={<SaveOutlined />}
-                onClick={handleSave}
-                loading={loading}
+              <Popconfirm
+                key={'cancel'}
+                title={t('surveyManagement.detail.cancelConfirm')}
+                onConfirm={handleCancel}
+                okText={t('common.yes')}
+                cancelText={t('common.no')}
               >
-                {t('surveyManagement.detail.save')}
-              </Button>,
+                <Button key="cancel" danger>
+                  {t('surveyManagement.detail.cancel')}
+                </Button>
+              </Popconfirm>,
+              <Popconfirm
+                key={'save'}
+                title={t('surveyManagement.detail.saveConfirm')}
+                onConfirm={handleSave}
+                okText={t('common.yes')}
+                cancelText={t('common.no')}
+              >
+                <Button
+                  key="save"
+                  type="primary"
+                  icon={<SaveOutlined />}
+                  loading={loading}
+                >
+                  {t('surveyManagement.detail.save')}
+                </Button>
+              </Popconfirm>,
             ]
           : [
               <Button key="close" danger onClick={onClose}>

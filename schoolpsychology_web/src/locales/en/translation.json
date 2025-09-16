@@ -1083,6 +1083,8 @@
       }
     },
     "detail": {
+      "cancelConfirm": "Are you sure you want to cancel your changes?",
+      "saveConfirm": "Are you sure you want to save your changes?",
       "title": "Survey Details",
       "description": "Description",
       "status": "Status",
@@ -1627,6 +1629,9 @@
       "studentList": "Student List"
     },
     "form": {
+      "classes": "Classes",
+      "refreshTeachers": "Refresh Teachers",
+      "teachersAvailable": "Teachers Available",
       "codeClass": "Class Code",
       "codeClassPlaceholder": "Enter class code",
       "codeClassRequired": "Please enter class code",
@@ -2402,6 +2407,7 @@
     "sendMessagePlaceholder": "Enter message...",
     "sendMessageButton": "Send",
     "hint": "Press Enter to send, Shift + Enter to send a new line",
-    "noMessage": "No message available"
+    "noMessage": "No message available",
+    "disabledDesc": "You can only send messages when the case is in progress."
   }
 }

@@ -38,13 +38,13 @@ const ClassTable = ({
       dataIndex: ['grade', 'codeClass'],
       key: 'codeClass',
       render: (_, record) => (
-        <div className="flex justify-between items-center space-x-2">
+        <Space direction="vertical" size={2}>
           <div>
             <BookOutlined className="text-blue-500" />
             <Text strong>{record.codeClass}</Text>
           </div>
           <Tag color="purple">{record.grade}</Tag>
-        </div>
+        </Space>
       ),
       // width: 160,
       fixed: 'left',

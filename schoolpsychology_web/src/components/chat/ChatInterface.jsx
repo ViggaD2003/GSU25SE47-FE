@@ -7,8 +7,9 @@ import { useWebSocket } from '@/contexts/WebSocketContext'
 import { useAuth } from '@/hooks'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
+import { Alert, Empty } from 'antd'
 
-const ChatInterface = ({ caseId }) => {
+const ChatInterface = ({ caseId, status = 'IN_PROGRESS' }) => {
   const { subscribeToTopic, sendMessage2, onlineUsers, isConnectionReady } =
     useWebSocket()
   const [messages, setMessages] = useState([])
@@ -200,6 +201,9 @@ const ChatInterface = ({ caseId }) => {
               }}
               caseId={caseId}
             />
+            {status !== 'IN_PROGRESS' && (
+              <Alert message={t('chat.disabledDesc')} type="warning" showIcon />
+            )}
             <div
               ref={chatRef}
               className={`w-full h-full overflow-y-auto overflow-x-hidden p-4 space-y-4 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}
@@ -208,7 +212,7 @@ const ChatInterface = ({ caseId }) => {
                 <div className="h-full flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 </div>
-              ) : (
+              ) : messages.length > 0 ? (
                 messages.map((m, idx) => (
                   <ChatMessage
                     t={t}
@@ -217,12 +221,16 @@ const ChatInterface = ({ caseId }) => {
                     isOwn={m.sender === user.email}
                   />
                 ))
+              ) : (
+                <Empty description={t('chat.noMessage')} className="mt-15" />
               )}
             </div>
+
             <ChatInput
               onSendMessage={handleSendMessage}
               t={t}
               isConnectionReady={isConnectionReady}
+              disabled={status !== 'IN_PROGRESS'}
             />
           </>
         ) : (

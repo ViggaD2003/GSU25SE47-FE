@@ -58,7 +58,6 @@ const GoogleCallBack = () => {
             }, 8000)
             return
           }
-
           const result = await handleGoogleCallback(token)
           console.log('Google callback result:', result)
 

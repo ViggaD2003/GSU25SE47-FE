@@ -1,7 +1,12 @@
 import React, { useState } from 'react'
 import { useTheme } from '@/contexts/ThemeContext'
 
-const ChatInput = ({ onSendMessage, t, isConnectionReady = false }) => {
+const ChatInput = ({
+  onSendMessage,
+  t,
+  isConnectionReady = false,
+  disabled,
+}) => {
   const { isDarkMode } = useTheme()
   const [message, setMessage] = useState('')
 
@@ -36,13 +41,14 @@ const ChatInput = ({ onSendMessage, t, isConnectionReady = false }) => {
               isDarkMode
                 ? 'border-gray-600 bg-gray-700 text-gray-100 placeholder-gray-400'
                 : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-            }`}
+            } ${!isConnectionReady || disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             rows={1}
+            disabled={!isConnectionReady || disabled}
           />
         </div>
         <button
           type="submit"
-          disabled={!message.trim() || !isConnectionReady}
+          disabled={!message.trim() || !isConnectionReady || disabled}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <svg
