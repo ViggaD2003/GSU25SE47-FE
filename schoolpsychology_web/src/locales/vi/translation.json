@@ -332,7 +332,8 @@
       "status": "Trạng thái",
       "actions": "Thao tác",
       "addCase": "Thêm trường hợp đang theo dõi",
-      "createdAt": "Ngày tạo"
+      "createdAt": "Ngày tạo",
+      "updatedDate": "Ngày cập nhật"
     },
     "status": {
       "PLANNING": "Đang lên kế hoạch",
@@ -348,7 +349,9 @@
       "view": "Xem",
       "edit": "Chỉnh sửa",
       "delete": "Xóa",
-      "viewDetails": "Xem chi tiết"
+      "viewDetails": "Xem chi tiết",
+      "save": "Lưu",
+      "cancel": "Hủy"
     },
     "messages": {
       "fetchError": "Không thể tải danh sách chương trình",
@@ -1124,6 +1127,8 @@
       }
     },
     "detail": {
+      "cancelConfirm": "Bạn có chắc chắn muốn hủy bỏ các thay đổi không?",
+      "saveConfirm": "Bạn có chắc chắn muốn lưu các thay đổi không?",
       "title": "Chi tiết khảo sát",
       "description": "Mô tả",
       "status": "Trạng thái",
@@ -1414,6 +1419,9 @@
       "studentList": "Danh sách học sinh"
     },
     "form": {
+      "classes": "Lớp học",
+      "refreshTeachers": "Làm mới danh sách giáo viên",
+      "teachersAvailable": "Giáo viên đang có",
       "codeClass": "Mã lớp",
       "codeClassPlaceholder": "Nhập mã lớp",
       "codeClassRequired": "Vui lòng nhập mã lớp",
@@ -1955,7 +1963,7 @@
       "code": "Mã danh mục",
       "codePlaceholder": "Nhập mã danh mục",
       "codeRequired": "Vui lòng nhập mã danh mục",
-      "codePattern": "Mã chỉ được chứa chữ hoa, số và dấu gạch dưới",
+      "codePattern": "Mã chỉ được chứa chữ in hoa (A–Z), số (0–9), dấu gạch dưới (_) và dấu gạch ngang (-)",
       "codeMinLength": "Mã phải có ít nhất 2 ký tự",
       "codeMaxLength": "Mã không được vượt quá 20 ký tự",
       "description": "Mô tả",
@@ -2488,6 +2496,7 @@
     "sendMessagePlaceholder": "Nhập tin nhắn...",
     "sendMessageButton": "Gửi",
     "hint": "Nhấn Enter để gửi, Shift + Enter để xuống dòng",
-    "noMessage": "Không có tin nhắn nào"
+    "noMessage": "Không có tin nhắn nào",
+    "disabledDesc": "Bạn chỉ có thể gửi tin nhắn khi case đang trong trạng thái xử lý."
   }
 }

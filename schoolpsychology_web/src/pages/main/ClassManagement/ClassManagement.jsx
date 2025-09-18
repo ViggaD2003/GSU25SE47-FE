@@ -238,7 +238,7 @@ const ClassManagement = () => {
                 prefix={<SearchOutlined />}
               />
             </Col>
-            <Col xs={24} sm={12} lg={6}>
+            <Col>
               <Select
                 placeholder={t('classManagement.filters.classYear')}
                 allowClear

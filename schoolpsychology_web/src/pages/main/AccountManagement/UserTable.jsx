@@ -118,11 +118,16 @@ const UserTable = ({
           return latestSurveyRecord ? (
             <Space direction="vertical" size={2}>
               {latestSurveyRecord?.survey?.category.name}
-              <Tag color={getStatusColor(latestSurveyRecord.level.code)}>
-                {t(
-                  `categoryManagement.form.levelTypes.${latestSurveyRecord.level.code.toLowerCase()}`
-                )}
-              </Tag>
+              <Space size={2}>
+                <Tag color="blue">
+                  {latestSurveyRecord?.survey?.category.code}
+                </Tag>
+                <Tag color={getStatusColor(latestSurveyRecord.level.code)}>
+                  {t(
+                    `categoryManagement.form.levelTypes.${latestSurveyRecord.level.code.toLowerCase()}`
+                  )}
+                </Tag>
+              </Space>
             </Space>
           ) : (
             <Tag color="gray">{t('userTable.noSurveyRecord')}</Tag>
@@ -159,7 +164,7 @@ const UserTable = ({
         ),
       },
     ],
-    [data, pathname, user]
+    [data, pathname, user, t]
   )
 
   return (

@@ -1136,7 +1136,7 @@ const CategoryModal = ({
                           message: t('categoryManagement.form.codeRequired'),
                         },
                         {
-                          pattern: /^[A-Z0-9_]+$/,
+                          pattern: /^[A-Z0-9_-]+$/,
                           message: t('categoryManagement.form.codePattern'),
                         },
                         {

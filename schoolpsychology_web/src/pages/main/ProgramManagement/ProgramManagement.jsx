@@ -29,7 +29,11 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { getAllPrograms, createProgram } from '@/store/actions/programActions'
+import {
+  getAllPrograms,
+  createProgram,
+  updateProgramStatus,
+} from '@/store/actions/programActions'
 import {
   updateFilters,
   updatePagination,
@@ -224,9 +228,7 @@ const ProgramManagement = () => {
       user.role !== 'manager' && dispatch(loadAccount()).unwrap(),
       user.role === 'manager' && fetchCounselors(),
       dispatch(getAllPrograms()).unwrap(),
-    ]).then(() => {
-      messageApi.success(t('common.refreshSuccess'))
-    })
+    ])
     // messageApi.success(t('common.refreshSuccess'))
   }, [dispatch, t, messageApi, user])
 
@@ -234,7 +236,6 @@ const ProgramManagement = () => {
   const handleResetFilters = useCallback(() => {
     setSearchText('')
     dispatch(resetFilters())
-    messageApi.success(t('common.filtersReset'))
   }, [dispatch, messageApi, t])
 
   // Handle create program
@@ -243,8 +244,15 @@ const ProgramManagement = () => {
   }, [])
 
   // Handle view program
-  const handleView = useCallback(program => {
+  const handleView = program => {
     navigate(`/program-management/details/${program.id}`)
+  }
+
+  // Handle update program status
+  const handleUpdateStatus = useCallback(async (programId, newStatus) => {
+    await dispatch(
+      updateProgramStatus({ programId, status: newStatus })
+    ).unwrap()
   }, [])
 
   // Handle save program (create/update)
@@ -289,6 +297,14 @@ const ProgramManagement = () => {
       dispatch(updatePagination({ total: sortedPrograms.length }))
     }
   }, [sortedPrograms.length, pagination.total, dispatch])
+
+  const validFilters = useMemo(
+    () =>
+      Object.entries(filters).filter(
+        ([_key, value]) => value !== null && value !== undefined
+      ).length,
+    [filters]
+  )
 
   return (
     <div className="program-management">
@@ -402,18 +418,26 @@ const ProgramManagement = () => {
                 onChange={value => handleFilterChange('category', value)}
                 loading={loadingCategories}
                 className="w-full"
+                optionLabelProp="label"
+                popupMatchSelectWidth={false}
               >
                 {categories.map(category => (
-                  <Option key={category.id} value={category.id}>
-                    {category.name}
+                  <Option
+                    key={category.id}
+                    value={category.id}
+                    label={category.code}
+                  >
+                    {category.code}
                   </Option>
                 ))}
               </Select>
-              <Button
-                icon={<ClearOutlined />}
-                onClick={handleResetFilters}
-                title={t('programManagement.filters.reset')}
-              />
+              {(validFilters || searchText.trim()) && (
+                <Button
+                  icon={<ClearOutlined />}
+                  onClick={handleResetFilters}
+                  title={t('programManagement.filters.reset')}
+                />
+              )}
             </Space>
           </Col>
         </Row>
@@ -431,6 +455,7 @@ const ProgramManagement = () => {
             }}
             onPageChange={handlePageChange}
             onView={handleView}
+            onUpdateStatus={handleUpdateStatus}
             sortConfig={sortConfig}
             onSort={handleSort}
           />

@@ -369,35 +369,30 @@ const CreateClass = () => {
                   loading={fetching}
                   size="small"
                 >
-                  {t(
-                    'classManagement.form.refreshTeachers',
-                    'Refresh Teachers'
-                  )}
+                  {t('classManagement.form.refreshTeachers')}
                 </Button>
                 <Space size={10}>
                   <Text type="secondary">
-                    {t(
-                      'classManagement.form.teachersAvailable',
-                      'Teachers Available'
-                    )}
-                    : {teachers.length}
+                    {t('classManagement.form.teachersAvailable')}:{' '}
+                    {teachers.length}
                   </Text>
                   <Divider type="vertical" size="large" />
                   <Text type="secondary">
                     {t('classManagement.form.schoolYear', 'School Year')}:{' '}
-                    {
-                      schoolYears.find(
-                        schoolYear => schoolYear.id === formValues.schoolYear
-                      )?.name
-                    }
+                    {schoolYears.find(
+                      schoolYear => schoolYear.id === formValues.schoolYear
+                    )?.name || '-'}
                   </Text>
                   <Divider type="vertical" size="large" />
                   <Text type="secondary">
                     {t('classManagement.form.grade', 'Grade')}:{' '}
-                    {GRADE_LEVEL[formValues.grade || '']}
+                    {GRADE_LEVEL[formValues.grade || ''] || '-'}
                   </Text>
                   <Divider type="vertical" size="large" />
-                  <Text type="secondary">Classes: {classes.length}</Text>
+                  <Text type="secondary">
+                    {t('classManagement.form.classes', 'Classes')}:{' '}
+                    {classes.length}
+                  </Text>
                 </Space>
               </Space>
             </div>

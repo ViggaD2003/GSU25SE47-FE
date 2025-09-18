@@ -127,16 +127,22 @@ const programSlice = createSlice({
         state.loading = false
         state.error = action.error.message
       })
-      // deleteProgram
-      .addCase('program/deleteProgram/pending', state => {
+      // updateProgramStatus
+      .addCase('program/updateProgramStatus/pending', state => {
         state.loading = true
         state.error = null
       })
-      .addCase('program/deleteProgram/fulfilled', (state, action) => {
+      .addCase('program/updateProgramStatus/fulfilled', (state, action) => {
         state.loading = false
-        state.programs = state.programs.filter(p => p.id !== action.meta.arg)
+        const index = state.programs.findIndex(p => p.id === action.payload.id)
+        if (index !== -1) {
+          state.programs[index] = action.payload
+        }
+        if (state.program?.id === action.payload.id) {
+          state.program = action.payload
+        }
       })
-      .addCase('program/deleteProgram/rejected', (state, action) => {
+      .addCase('program/updateProgramStatus/rejected', (state, action) => {
         state.loading = false
         state.error = action.error.message
       })

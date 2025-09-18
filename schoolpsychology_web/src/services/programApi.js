@@ -36,33 +36,19 @@ export const programAPI = {
 
   updateProgram: async (programId, programData) => {
     const response = await api.put(
-      `/api/v1/support-programs/${programId}`,
+      `/api/v1/support-programs/${programId}/update-program`,
       programData
     )
     return response.data
   },
 
-  deleteProgram: async programId => {
-    const response = await api.delete(`/api/v1/support-programs/${programId}`)
+  updateStatus: async (programId, status = 'ON_GOING') => {
+    const response = await api.put(
+      `/api/v1/support-programs/${programId}?status=${status}`
+    )
     return response.data
   },
 
-  uploadThumbnail: async thumbnail => {
-    try {
-      console.log('thumbnail', thumbnail)
-
-      const formData = new FormData()
-      formData.append('image', thumbnail) // Thêm file vào FormData
-      const response = await api.post('/api/v1/upload-file', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      console.log(response.data)
-      return response.data
-    } catch (error) {
-      console.error('Upload error:', error)
-      throw error // Ném lỗi để component Upload xử lý trạng thái 'error'
-    }
-  },
   openSurvey: async supportProgramId => {
     const response = await api.patch(
       `/api/v1/support-programs/open-survey?supportProgramId=${supportProgramId}`

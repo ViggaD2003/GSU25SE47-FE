@@ -660,6 +660,9 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   const openMeet = async (url) => {
     try {
+      console.log(url);
+
+      if (!url) return;
       let appUrl = url;
 
       if (Platform.OS === "ios") {
@@ -859,7 +862,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                           fontSize: 14,
                         }}
                         textColor="#1a73e8"
-                        onPress={() => openMeet(appointment?.location)}
+                        onPress={() => openMeet(appointmentData?.location)}
                         disabled={disabledOpenMeet()}
                       >
                         Join Meeting
