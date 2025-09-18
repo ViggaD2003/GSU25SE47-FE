@@ -20,8 +20,12 @@ import {
   SettingOutlined,
   TrophyOutlined,
   InfoCircleOutlined,
+  CloseCircleFilled,
+  CheckOutlined,
+  StopOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import ActionDropdown from '@/components/common/ActionDropdown'
 
 const { Text } = Typography
 
@@ -31,7 +35,8 @@ const CategoryTable = ({
   pagination,
   onChange,
   onView,
-  // onEdit,
+  onEdit,
+  onToggleStatus,
   // onDelete,
 }) => {
   const { t } = useTranslation()
@@ -122,34 +127,31 @@ const CategoryTable = ({
     {
       key: 'actions',
       render: (_, record) => (
-        <Space size="small">
-          <Tooltip title={t('categoryManagement.table.viewDetails')}>
-            <Button
-              type="link"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => onView && onView(record)}
-            />
-          </Tooltip>
-          {/* <Tooltip title={t('categoryManagement.table.edit')}>
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => onEdit && onEdit(record)}
-              className="text-green-500 hover:text-green-700"
-            />
-          </Tooltip>
-          <Tooltip title={t('categoryManagement.table.delete')}>
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              size="small"
-              onClick={() => onDelete && onDelete(record)}
-              className="text-red-500 hover:text-red-700"
-            />
-          </Tooltip> */}
-        </Space>
+        <ActionDropdown
+          actions={[
+            {
+              key: 'view',
+              label: t('categoryManagement.table.viewDetails'),
+              icon: <EyeOutlined />,
+              onClick: () => onView(record),
+            },
+            {
+              key: 'edit',
+              label: t('categoryManagement.table.edit'),
+              icon: <EditOutlined />,
+              onClick: () => onEdit(record),
+            },
+            {
+              key: 'status',
+              label: record.isActive
+                ? t('categoryManagement.table.inactive')
+                : t('categoryManagement.table.active'),
+              icon: record.isActive ? <StopOutlined /> : <CheckOutlined />,
+              onClick: () => onToggleStatus(record.id, !record.isActive),
+              danger: record.isActive,
+            },
+          ]}
+        />
       ),
       width: 50,
       fixed: 'right',

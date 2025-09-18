@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { useAuth } from '@/contexts/AuthContext'
 import { PROGRAM_STATUS } from '@/constants/enums'
+import ActionDropdown from '@/components/common/ActionDropdown'
 
 const { Text } = Typography
 
@@ -32,6 +33,7 @@ const ProgramTable = ({
   sortConfig,
   onSort,
   onUpdateStatus, // Add this prop for handling status updates
+  onUpdate, // Add this prop for handling program updates
 }) => {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -73,7 +75,7 @@ const ProgramTable = ({
     [t]
   )
 
-  const handleEdit = useCallback(
+  const handleEditStatus = useCallback(
     program => {
       setEditingId(program.id)
       form.setFieldsValue({ status: program.status })
@@ -289,29 +291,33 @@ const ProgramTable = ({
         fixed: 'right',
         render: (_, record) => {
           const isEditing = editingId === record.id
-
           return !isEditing ? (
-            <Space size="small">
-              <Tooltip title={t('programManagement.actions.view')}>
-                <Button
-                  type="link"
-                  icon={<EyeOutlined />}
-                  onClick={() => onView(record)}
-                  size="small"
-                />
-              </Tooltip>
-
-              {record.status === 'ON_GOING' && (
-                <Tooltip title={t('programManagement.actions.edit')}>
-                  <Button
-                    type="link"
-                    icon={<EditOutlined />}
-                    onClick={() => handleEdit(record)}
-                    size="small"
-                  />
-                </Tooltip>
-              )}
-            </Space>
+            <ActionDropdown
+              actions={[
+                {
+                  key: 'view',
+                  label: t('programManagement.actions.view'),
+                  icon: <EyeOutlined />,
+                  onClick: () => onView(record),
+                },
+                record.status === 'ON_GOING'
+                  ? {
+                      key: 'edit_status',
+                      label: t('programManagement.actions.editStatus'),
+                      icon: <EditOutlined />,
+                      onClick: () => handleEditStatus(record),
+                    }
+                  : null,
+                record.status === 'ACTIVE' && isManager
+                  ? {
+                      key: 'edit',
+                      label: t('programManagement.actions.edit'),
+                      icon: <EditOutlined />,
+                      onClick: () => onUpdate(record),
+                    }
+                  : null,
+              ].filter(Boolean)}
+            />
           ) : (
             <Space size="small">
               <Tooltip title={t('programManagement.actions.cancel')}>
@@ -341,7 +347,6 @@ const ProgramTable = ({
       isManager,
       editingId,
       renderEditForm,
-      handleEdit,
       handleCancel,
       handleSave,
     ]

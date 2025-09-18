@@ -141,16 +141,16 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
     [resetFormFields, categories]
   )
 
-  const handleTargetScopeChange = useCallback(
-    scope => {
-      if (TARGET_SCOPE.GRADE === scope) {
-        form.setFieldValue({
-          targetGrade: [],
-        })
-      }
-    },
-    [form]
-  )
+  // const handleTargetScopeChange = useCallback(
+  //   scope => {
+  //     if (TARGET_SCOPE.ALL === scope) {
+  //       form.setFieldValue({
+  //         targetGrade: [],
+  //       })
+  //     }
+  //   },
+  //   [form]
+  // )
 
   const handleSurveyTypeChange = useCallback(
     type => {
@@ -355,7 +355,6 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
                           placeholder={t(
                             'surveyManagement.form.targetScopePlaceholder'
                           )}
-                          onChange={handleTargetScopeChange}
                         >
                           {Object.values(TARGET_SCOPE)
                             .filter(scope => scope !== TARGET_SCOPE.NONE)
@@ -378,44 +377,54 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
                       prevValues.targetScope !== currentValues.targetScope
                     }
                   >
-                    {({ getFieldValue }) => (
-                      <Form.Item
-                        name="targetGrade"
-                        label={t('surveyManagement.form.targetGrade')}
-                        rules={[
-                          {
-                            required:
-                              getFieldValue('targetScope') ===
-                              TARGET_SCOPE.GRADE,
-                            message: t(
-                              'surveyManagement.form.targetGradeRequired'
-                            ),
-                          },
-                        ]}
-                        hidden={
-                          getFieldValue('surveyType') !== SURVEY_TYPE.SCREENING
-                        }
-                      >
-                        <Select
-                          mode="multiple"
-                          allowClear
-                          maxTagCount={2}
-                          placeholder={t(
-                            'surveyManagement.form.targetGradePlaceholder'
-                          )}
-                          maxCount={2}
-                          disabled={
-                            getFieldValue('targetScope') !== TARGET_SCOPE.GRADE
+                    {({ getFieldValue, resetFields }) => {
+                      // khi scope thay đổi thì reset
+                      if (getFieldValue('targetScope') !== TARGET_SCOPE.GRADE) {
+                        resetFields(['targetGrade'])
+                      }
+
+                      return (
+                        <Form.Item
+                          name="targetGrade"
+                          label={t('surveyManagement.form.targetGrade')}
+                          rules={[
+                            {
+                              required:
+                                getFieldValue('targetScope') ===
+                                TARGET_SCOPE.GRADE,
+                              message: t(
+                                'surveyManagement.form.targetGradeRequired'
+                              ),
+                            },
+                          ]}
+                          hidden={
+                            getFieldValue('surveyType') !==
+                            SURVEY_TYPE.SCREENING
                           }
                         >
-                          {Object.values(GRADE_LEVEL).map(grade => (
-                            <Option key={grade} value={grade}>
-                              {t(`surveyManagement.enums.gradeLevel.${grade}`)}
-                            </Option>
-                          ))}
-                        </Select>
-                      </Form.Item>
-                    )}
+                          <Select
+                            mode="multiple"
+                            allowClear
+                            maxTagCount={2}
+                            placeholder={t(
+                              'surveyManagement.form.targetGradePlaceholder'
+                            )}
+                            disabled={
+                              getFieldValue('targetScope') !==
+                              TARGET_SCOPE.GRADE
+                            }
+                          >
+                            {Object.values(GRADE_LEVEL).map(grade => (
+                              <Option key={grade} value={grade}>
+                                {t(
+                                  `surveyManagement.enums.gradeLevel.${grade}`
+                                )}
+                              </Option>
+                            ))}
+                          </Select>
+                        </Form.Item>
+                      )
+                    }}
                   </Form.Item>
                 </Col>
               </Row>

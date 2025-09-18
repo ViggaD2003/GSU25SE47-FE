@@ -168,25 +168,19 @@ const CategoryManagement = () => {
     setIsModalVisible(true)
   }, [])
 
-  // Handle delete
-  const handleDelete = useCallback(
-    _record => {
-      Modal.confirm({
-        title: t('categoryManagement.messages.deleteTitle'),
-        content: t('categoryManagement.messages.deleteConfirm'),
-        icon: <ExclamationCircleOutlined />,
-        onOk: async () => {
-          try {
-            // Note: API doesn't have delete endpoint, so this is placeholder
-            messageApi.success(t('categoryManagement.messages.deleteSuccess'))
-            fetchCategories()
-          } catch {
-            messageApi.error(t('categoryManagement.messages.deleteError'))
-          }
-        },
-      })
+  //Handle toggle status
+  const handleToggleStatus = useCallback(
+    async (recordId, newStatus) => {
+      try {
+        await categoriesAPI.updateStatus(recordId, newStatus)
+        messageApi.success(t('categoryManagement.messages.statusUpdateSuccess'))
+        fetchCategories()
+      } catch (error) {
+        console.error('Failed to update category status:', error)
+        messageApi.error(t('categoryManagement.messages.statusUpdateError'))
+      }
     },
-    [t, messageApi, fetchCategories]
+    [messageApi, t, fetchCategories]
   )
 
   // Handle add
@@ -354,7 +348,7 @@ const CategoryManagement = () => {
             onChange={handleTableChange}
             onView={handleView}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onToggleStatus={handleToggleStatus}
           />
         </Suspense>
       </Card>

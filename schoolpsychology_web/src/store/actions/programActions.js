@@ -44,7 +44,26 @@ export const updateProgram = createAsyncThunk(
   'program/updateProgram',
   async ({ programId, programData }, { rejectWithValue }) => {
     try {
-      return await programAPI.updateProgram(programId, programData)
+      console.log('programData', programData)
+      console.log('programId', programId)
+
+      // Check if this is a complex update with thumbnail
+      if (
+        programData.hasNewThumbnail &&
+        programData.existingThumbnail &&
+        programData.thumbnail
+      ) {
+        console.log('updateProgramWithThumbnail')
+
+        return await programAPI.updateProgramWithThumbnail(
+          programId,
+          programData
+        )
+      } else {
+        console.log('updateProgram')
+        // Simple update without thumbnail changes
+        return await programAPI.updateProgram(programId, programData.request)
+      }
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message)
     }

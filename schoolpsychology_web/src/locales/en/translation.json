@@ -345,8 +345,9 @@
       "offline": "Offline"
     },
     "actions": {
-      "view": "View",
+      "view": "View Details",
       "edit": "Edit",
+      "editStatus": "Edit Status",
       "delete": "Delete",
       "viewDetails": "View Details",
       "save": "Save",
@@ -410,15 +411,19 @@
       "date": "Date",
       "dateRequired": "Program date is required",
       "dateMinDays": "Date must be at least 1 days from today",
+      "dateNotPast": "Date cannot be in the past",
       "datePlaceholder": "Select program date",
       "startTime": "Start Time",
       "startTimeRequired": "Start time is required",
       "startTimePlaceholder": "Select start time",
       "startTimeAfter17": "Start time must be after 15:00",
+      "startTimeBefore20": "Start time must be before 20:00",
       "endTime": "End Time",
       "endTimeRequired": "End time is required",
       "endTimePlaceholder": "Select end time",
       "timeRangeMinHour": "Time range must be at least 1 hour apart",
+      "endTimeBefore21": "End time must be before 21:00",
+      "startTimeFirst": "Please select start time first",
       "location": "Location",
       "locationRequired": "Location is required for offline programs",
       "locationPlaceholder": "Enter program location (required for offline)",
@@ -2020,7 +2025,9 @@
       "duplicateLevelCode": "Level code already exists. Please use a different code.",
       "categoryScoreRangeInvalid": "Category score range is invalid. Minimum score must be less than maximum score.",
       "questionCountRequired": "Question count is required when limited access is enabled.",
-      "levelValidationError": "Please check the level form for errors"
+      "levelValidationError": "Please check the level form for errors",
+      "statusUpdateSuccess": "Category status updated successfully",
+      "statusUpdateError": "Failed to update category status"
     },
     "loadingDetails": "Loading category details..."
   },

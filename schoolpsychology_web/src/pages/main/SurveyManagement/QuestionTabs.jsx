@@ -91,29 +91,29 @@ const QuestionTabs = ({
 
     // Get severity level text
     const severityText =
-      severityLevels[clampedScore]?.label || `Mức độ ${score}`
+      severityLevels[clampedScore]?.label || `Severity ${score}`
 
     // Get frequency text
     const frequencyText =
-      frequencyGuidelines[clampedScore] || `Tần suất ${score}`
+      frequencyGuidelines[clampedScore] || `Frequency ${score}`
 
     // Get impairment text
     const impairmentText =
-      impairmentGuidelines[clampedScore] || `Ảnh hưởng ${score}`
+      impairmentGuidelines[clampedScore] || `Impairment ${score}`
 
     // For very small ranges (1-2 points), use simple labels
     if (maxScore - minScore <= 2) {
-      if (score === minScore) return 'Không có'
-      if (score === maxScore) return 'Có'
-      return `Mức độ ${score}`
+      if (score === minScore) return 'No'
+      if (score === maxScore) return 'Yes'
+      return `Severity ${score}`
     }
 
     // For small ranges (3-4 points), use basic severity labels
     if (maxScore - minScore <= 4) {
-      if (clampedScore <= 1) return 'Thấp'
-      if (clampedScore <= 2) return 'Trung bình thấp'
-      if (clampedScore <= 3) return 'Trung bình'
-      return 'Cao'
+      if (clampedScore < 1) return 'Low'
+      if (clampedScore < 2) return 'Moderate'
+      if (clampedScore < 3) return 'High'
+      return 'Critical'
     }
 
     // For larger ranges, use more detailed text
@@ -447,19 +447,17 @@ const QuestionTabs = ({
                           />
                         </Form.Item>
                       </Col>
-                      {minScore === maxScore &&
-                        answerFields.length >
-                          2(
-                            <Col span={2}>
-                              <Button
-                                type="text"
-                                danger
-                                icon={<MinusCircleOutlined />}
-                                onClick={() => removeAnswer(answerField.name)}
-                                disabled={answerFields.length <= 1}
-                              />
-                            </Col>
-                          )}
+                      {minScore === maxScore && answerFields.length > 2 && (
+                        <Col span={2}>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<MinusCircleOutlined />}
+                            onClick={() => removeAnswer(answerField.name)}
+                            disabled={answerFields.length <= 1}
+                          />
+                        </Col>
+                      )}
                     </Row>
                   )
                 })}

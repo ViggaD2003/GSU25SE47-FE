@@ -21,10 +21,10 @@ import { BulbOutlined, UploadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import dayjs from 'dayjs'
-import { ProgramCreationHelper } from '@/components'
 // import { RECURRING_CYCLE } from '@/constants/enums'
 import Title from 'antd/es/typography/Title'
 import QuestionTabs from '../SurveyManagement/QuestionTabs'
+import QuestionEditTabs from './QuestionEditTabs'
 // import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Text } = Typography
@@ -40,16 +40,64 @@ const ProgramModal = ({
   categories = [],
   counselors = [],
   messageApi,
+  isEdit = false,
+  program = null,
 }) => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
-  const [showHelper, setShowHelper] = useState(false)
   const [startTimeValue, setStartTimeValue] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [thumbnail, setThumbnail] = useState(null)
   // const { sendMessage } = useWebSocket()
+
+  useEffect(() => {
+    if (isEdit && program) {
+      // Find category from the program data structure
+      setSelectedCategory(program.category?.id || null)
+
+      const currentDate = dayjs()
+      const startTime = dayjs(program.startTime)
+      const endTime = dayjs(program.endTime)
+      const updatedStartTime = currentDate
+        .hour(startTime.hour())
+        .minute(startTime.minute())
+        .second(startTime.second())
+
+      const updatedEndTime = currentDate
+        .hour(endTime.hour())
+        .minute(endTime.minute())
+        .second(endTime.second())
+
+      setStartTimeValue(updatedStartTime)
+
+      // Set form values with proper mapping
+      form.setFieldsValue({
+        name: program.name || '',
+        description: program.description || '',
+        location: program.location || '',
+        maxParticipants: program.maxParticipants || 10,
+        categoryId: program.category?.id,
+        hostedBy: program.hostedBy?.id,
+        date: dayjs(program.startTime).startOf('day'),
+        startTime: updatedStartTime,
+        endTime: updatedEndTime,
+      })
+
+      // Handle thumbnail for edit mode
+      if (program.thumbnail?.url) {
+        const thumbnailFile = {
+          uid: '-1',
+          name: 'thumbnail.jpg',
+          status: 'done',
+          url: program.thumbnail.url,
+        }
+        setThumbnail(thumbnailFile)
+        form.setFieldValue('thumbnail', thumbnailFile)
+      }
+    }
+  }, [isEdit, program])
 
   const uploadProps = {
     name: 'image',
@@ -59,10 +107,13 @@ const ProgramModal = ({
     showUploadList: {
       extra: ({ size = 0 }) => (
         <span style={{ color: '#cccccc' }}>
-          ({(size / 1024 / 1024).toFixed(2)}MB)
+          {size > 0 ? `(${(size / 1024 / 1024).toFixed(2)}MB)` : ''}
         </span>
       ),
-      showRemoveIcon: true,
+    },
+    onRemove: () => {
+      setThumbnail(null)
+      form.setFieldValue('thumbnail', undefined)
     },
     customRequest(info) {
       const { file } = info
@@ -86,10 +137,17 @@ const ProgramModal = ({
       }
 
       // File is valid
+      const fileObj = {
+        uid: file.uid,
+        name: file.name,
+        status: 'done',
+        originFileObj: file,
+      }
+
       form.setFieldValue('thumbnail', file)
       info.onSuccess(file)
       messageApi.success(t('programManagement.messages.fileUploadSuccess'))
-      setThumbnail(file)
+      setThumbnail(fileObj)
     },
   }
 
@@ -113,15 +171,54 @@ const ProgramModal = ({
   }, [form, categories, counselors])
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !isEdit) {
       setDefaultValues()
     }
-  }, [visible, setDefaultValues])
+  }, [visible, isEdit])
 
   const handleFormValuesChange = (changedValues, _allValues) => {
     if (changedValues.startTime !== undefined) {
       setStartTimeValue(changedValues.startTime)
+      // Re-validate endTime when startTime changes
+      if (form.getFieldValue('endTime')) {
+        form.validateFields(['endTime'])
+      }
     }
+
+    // Update time fields with new date when date changes
+    if (changedValues.date !== undefined) {
+      const newDate = changedValues.date
+
+      // Update startTime with new date if it exists
+      const currentStartTime = form.getFieldValue('startTime')
+      if (currentStartTime) {
+        const updatedStartTime = newDate
+          .hour(currentStartTime.hour())
+          .minute(currentStartTime.minute())
+          .second(currentStartTime.second())
+        form.setFieldValue('startTime', updatedStartTime)
+        setStartTimeValue(updatedStartTime)
+      }
+
+      // Update endTime with new date if it exists
+      const currentEndTime = form.getFieldValue('endTime')
+      if (currentEndTime) {
+        const updatedEndTime = newDate
+          .hour(currentEndTime.hour())
+          .minute(currentEndTime.minute())
+          .second(currentEndTime.second())
+        form.setFieldValue('endTime', updatedEndTime)
+      }
+
+      // Re-validate time fields
+      if (currentStartTime) {
+        form.validateFields(['startTime'])
+      }
+      if (currentEndTime) {
+        form.validateFields(['endTime'])
+      }
+    }
+
     if (changedValues.categoryId !== undefined) {
       setSelectedCategory(
         categories.find(category => category.id === changedValues.categoryId)
@@ -136,10 +233,49 @@ const ProgramModal = ({
       let values
 
       try {
-        // Validate both forms simultaneously
-        ;[values] = await Promise.all([form.validateFields()])
-      } catch {
-        messageApi.error(t('programManagement.messages.fillAllFields'))
+        // In edit mode, skip questions validation
+        if (isEdit) {
+          // Get all form values first
+          const allValues = form.getFieldsValue()
+
+          console.log('allValues', allValues)
+          console.log('thumbnail', thumbnail)
+
+          // Validate only non-question fields
+          values = await form.validateFields([
+            'name',
+            'description',
+            'maxParticipants',
+            'date',
+            'startTime',
+            'endTime',
+            'location',
+            'categoryId',
+            'hostedBy',
+            'thumbnail',
+          ])
+
+          // Add questions from form values without validation
+          values.questions = allValues.questions || []
+        } else {
+          // For create mode, validate all fields including questions
+          values = await form.validateFields()
+        }
+      } catch (errorInfo) {
+        // Focus on the first field with error
+        if (errorInfo.errorFields && errorInfo.errorFields.length > 0) {
+          const firstErrorField = errorInfo.errorFields[0].name[0]
+          // Scroll to and focus the first error field
+          form.scrollToField(firstErrorField)
+
+          // Show specific error message for the first field
+          const firstError = errorInfo.errorFields[0].errors[0]
+          messageApi.error(
+            firstError || t('programManagement.messages.fillAllFields')
+          )
+        } else {
+          messageApi.error(t('programManagement.messages.fillAllFields'))
+        }
         setLoading(false)
         return
       }
@@ -157,11 +293,45 @@ const ProgramModal = ({
         endTime: endDate + 'T' + values.endTime.format('HH:mm:ss.SSS') + 'Z',
         location: values.location || '',
         hostedBy: values.hostedBy,
-        categoryId: values.categoryId,
-        // Add survey data
-        addNewSurveyDto: {
-          title: 'Khảo sát chương trình',
-          description: 'Khảo sát chương trình được tạo khi tạo chương trình',
+      }
+
+      if (isEdit) {
+        // Format data for update API
+        programData.surveyId =
+          program?.programSurvey?.surveyId || program?.surveyId
+
+        // Process questions for update format
+        if (values.questions && values.questions.length > 0) {
+          programData.survey = {
+            title: program?.programSurvey?.title || 'Support Program Survey',
+            description:
+              program?.programSurvey?.description ||
+              'Support Program Survey is created when creating support program',
+            surveyType: program?.programSurvey?.surveyType || 'PROGRAM',
+            isRequired:
+              program?.programSurvey?.isRequired !== undefined
+                ? program.programSurvey.isRequired
+                : true,
+            isRecurring:
+              program?.programSurvey?.isRecurring !== undefined
+                ? program.programSurvey.isRecurring
+                : false,
+            recurringCycle: program?.programSurvey?.recurringCycle || 'NONE',
+            startDate: startDate,
+            endDate: dayjs(values.date).add(1, 'day').format('YYYY-MM-DD'),
+            targetScope: program?.programSurvey?.targetScope || 'NONE',
+            targetGrade: program?.programSurvey?.targetGrade || [],
+            updateQuestions: [],
+            newQuestions: [],
+          }
+        }
+      } else {
+        // Format data for create API
+        programData.categoryId = values.categoryId
+        programData.addNewSurveyDto = {
+          title: 'Support Program Survey',
+          description:
+            'Support Program Survey is created when creating support program',
           isRequired: true,
           isRecurring: false,
           recurringCycle: 'NONE',
@@ -182,23 +352,37 @@ const ProgramModal = ({
                 score: a.score,
               })),
             })) || [],
-        },
+        }
       }
 
       // console.log('programData', programData)
 
+      // Handle thumbnail data
+      let thumbnailData = null
+      let hasNewThumbnail = false
+
+      if (thumbnail) {
+        if (thumbnail.originFileObj) {
+          // New thumbnail upload
+          thumbnailData = thumbnail.originFileObj
+          hasNewThumbnail = true
+        } else if (!isEdit) {
+          // For create mode with existing URL (shouldn't happen)
+          thumbnailData = thumbnail.url
+        }
+      }
+
       const requestData = {
-        thumbnail: thumbnail,
+        thumbnail: thumbnailData,
         request: { ...programData },
+        hasNewThumbnail: hasNewThumbnail,
+        programId: isEdit ? program?.id : null,
+        existingThumbnail: isEdit ? program?.thumbnail : null,
       }
 
       const selectedCounselor = counselors.find(c => c.id === values.hostedBy)
 
-      console.log('selectedCounselor', selectedCounselor)
-
-      await onOk(requestData, selectedCounselor.email)
-
-      handleCancel()
+      await onOk(requestData, selectedCounselor?.email, !isEdit)
     } catch (error) {
       console.error('Submit failed:', error)
       throw error
@@ -215,20 +399,13 @@ const ProgramModal = ({
   }
 
   const getModalTitle = () => {
-    const title = t('programManagement.modal.addTitle')
+    const title = !isEdit
+      ? t('programManagement.modal.addTitle')
+      : t('programManagement.modal.editTitle')
 
     return (
       <div className="flex items-center justify-between">
         <span>{title}</span>
-        <Button
-          type="text"
-          icon={<BulbOutlined className="text-yellow-500" />}
-          onClick={() => setShowHelper(!showHelper)}
-          className="mr-4"
-          size="small"
-        >
-          {t('programHelper.toggle')}
-        </Button>
       </div>
     )
   }
@@ -238,44 +415,113 @@ const ProgramModal = ({
       return Promise.reject(new Error(t('programManagement.form.dateRequired')))
     }
 
-    const minDate = MIN_DATE // Minimum 7 days from now
+    // For edit mode, allow current date if it's not in the past
+    const minDate = isEdit ? dayjs().startOf('day') : MIN_DATE
     if (value.isBefore(minDate, 'day')) {
-      return Promise.reject(new Error(t('programManagement.form.dateMinDays')))
+      const errorMessage = isEdit
+        ? t('programManagement.form.dateNotPast')
+        : t('programManagement.form.dateMinDays')
+      return Promise.reject(new Error(errorMessage))
     }
 
     return Promise.resolve()
   }
 
-  const validateTimeRange = () => {
-    const startTime = form.getFieldValue('startTime')
-    const endTime = form.getFieldValue('endTime')
-
-    if (!startTime || !endTime) {
-      return Promise.resolve()
+  const validateStartTime = (_, value) => {
+    if (!value) {
+      return Promise.reject(
+        new Error(t('programManagement.form.startTimeRequired'))
+      )
     }
 
+    // Get the selected date from form
+    const selectedDate = form.getFieldValue('date')
+    if (!selectedDate) {
+      return Promise.reject(new Error(t('programManagement.form.dateRequired')))
+    }
+
+    // Update the value to use the selected date while keeping the time
+    const updatedValue = selectedDate
+      .hour(value.hour())
+      .minute(value.minute())
+      .second(value.second())
+
+    console.log('updated value', updatedValue.format('DD/MM/YYYY HH:mm'))
+
     // Check if start time is after 15:00 (3 PM)
-    const minStartTime = dayjs().hour(15).minute(0).second(0)
-    if (startTime.isBefore(minStartTime, 'minute')) {
+    const minStartTime = selectedDate.hour(15).minute(0).second(0)
+    if (updatedValue.isBefore(minStartTime, 'minute')) {
       return Promise.reject(
         new Error(t('programManagement.form.startTimeAfter17'))
       )
     }
 
+    // Check if start time is before 20:00 (8 PM)
+    const maxStartTime = selectedDate.hour(20).minute(0).second(0)
+    if (updatedValue.isAfter(maxStartTime, 'minute')) {
+      return Promise.reject(
+        new Error(t('programManagement.form.startTimeBefore20'))
+      )
+    }
+
+    // Update the form field value with the correct date
+    form.setFieldValue('startTime', updatedValue)
+
+    return Promise.resolve()
+  }
+
+  const validateEndTime = (_, value) => {
+    if (!value) {
+      return Promise.reject(
+        new Error(t('programManagement.form.endTimeRequired'))
+      )
+    }
+
+    const startTime = form.getFieldValue('startTime')
+    if (!startTime) {
+      return Promise.reject(
+        new Error(t('programManagement.form.startTimeFirst'))
+      )
+    }
+
+    // Get the selected date from form
+    const selectedDate = form.getFieldValue('date')
+    if (!selectedDate) {
+      return Promise.reject(new Error(t('programManagement.form.dateRequired')))
+    }
+
+    // Update the value to use the selected date while keeping the time
+    const updatedValue = selectedDate
+      .hour(value.hour())
+      .minute(value.minute())
+      .second(value.second())
+
     // Check if time range is at least 1 hour
-    const timeDiff = endTime.diff(startTime, 'hour', true)
+    const timeDiff = updatedValue.diff(startTime, 'hour', true)
     if (timeDiff < 1) {
       return Promise.reject(
         new Error(t('programManagement.form.timeRangeMinHour'))
       )
     }
 
+    // Check if end time is not too late (before 21:00)
+    const maxEndTime = selectedDate.hour(21).minute(0).second(0)
+    if (updatedValue.isAfter(maxEndTime, 'minute')) {
+      return Promise.reject(
+        new Error(t('programManagement.form.endTimeBefore21'))
+      )
+    }
+
+    // Update the form field value with the correct date
+    form.setFieldValue('endTime', updatedValue)
+
     return Promise.resolve()
   }
 
   const disabledDate = current => {
-    const minDate = MIN_DATE // Must be at least 7 days from now
-    return current && current < minDate.startOf('day')
+    // For edit mode, allow current date if it's not in the past
+    const minDate = isEdit ? dayjs().startOf('day') : MIN_DATE
+    return current && current < minDate
   }
 
   const disabledStartTime = () => {
@@ -328,12 +574,20 @@ const ProgramModal = ({
 
   const handleCategoryChange = value => {
     const category = categories.find(category => category.id === value)
-    Promise.all([
-      setSelectedCategory(category),
-      form.setFieldsValue({
-        questions: [],
-      }),
-    ])
+
+    // For create mode, clear questions and let QuestionTabs handle generation
+    if (!isEdit) {
+      Promise.all([
+        setSelectedCategory(category),
+        form.setFieldsValue({
+          questions: [],
+        }),
+      ])
+    } else {
+      // For edit mode, just update the selected category
+      // Don't clear questions as they should be preserved in edit mode
+      setSelectedCategory(category)
+    }
   }
 
   return (
@@ -343,7 +597,7 @@ const ProgramModal = ({
       onCancel={handleCancel}
       footer={
         <Space size="middle" style={{ paddingTop: '10px' }}>
-          <Button onClick={handleCancel} size="large">
+          <Button onClick={handleCancel} size="large" danger>
             {t('common.cancel')}
           </Button>
           <Button
@@ -351,8 +605,9 @@ const ProgramModal = ({
             onClick={handleOk}
             loading={loading}
             size="large"
+            disabled={loading}
           >
-            {t('common.create')}
+            {isEdit ? t('common.update') : t('common.create')}
           </Button>
         </Space>
       }
@@ -370,15 +625,9 @@ const ProgramModal = ({
       >
         <Row style={{ height: 'calc(100vh - 250px)' }}>
           <Col
-            span={12}
+            span={!isEdit ? 12 : 24}
             style={{ height: '100%', overflowY: 'auto', paddingRight: '12px' }}
           >
-            {/* Program Creation Helper */}
-            <ProgramCreationHelper
-              visible={showHelper}
-              onClose={() => setShowHelper(false)}
-            />
-
             {/* Basic Information */}
             <Card
               title={t('programManagement.form.basicInfo')}
@@ -437,6 +686,7 @@ const ProgramModal = ({
                       popupMatchSelectWidth={false}
                       onChange={handleCategoryChange}
                       optionLabelProp="label"
+                      disabled={isEdit} // Disable category selection in edit mode
                     >
                       {categories.map(category => (
                         <Option
@@ -495,7 +745,27 @@ const ProgramModal = ({
                     rules={[
                       {
                         required: true,
-                        message: t('surveyManagement.form.thumbnailRequired'),
+                        message: '',
+                      },
+                      {
+                        validator: (_, value) => {
+                          // Check conditions: thumbnail exists and not removed
+                          const hasValidThumbnail =
+                            thumbnail != null &&
+                            form.getFieldValue('thumbnail').status !==
+                              'removed' &&
+                            value != null
+
+                          if (!hasValidThumbnail) {
+                            return Promise.reject(
+                              new Error(
+                                t('surveyManagement.form.thumbnailRequired')
+                              )
+                            )
+                          }
+
+                          return Promise.resolve()
+                        },
                       },
                     ]}
                   >
@@ -629,13 +899,10 @@ const ProgramModal = ({
                   <Form.Item
                     label={t('programManagement.form.startTime')}
                     name="startTime"
+                    dependencies={['date']}
                     rules={[
                       {
-                        required: true,
-                        message: t('programManagement.form.startTimeRequired'),
-                      },
-                      {
-                        validator: validateTimeRange,
+                        validator: validateStartTime,
                       },
                     ]}
                   >
@@ -647,7 +914,7 @@ const ProgramModal = ({
                         'programManagement.form.startTimePlaceholder'
                       )}
                       disabledTime={disabledStartTime}
-                      minuteStep={15}
+                      minuteStep={30}
                       showSecond={false}
                       showNow={false}
                     />
@@ -658,14 +925,10 @@ const ProgramModal = ({
                   <Form.Item
                     label={t('programManagement.form.endTime')}
                     name="endTime"
-                    dependencies={['startTime', 'date']}
+                    dependencies={['startTime']}
                     rules={[
                       {
-                        required: true,
-                        message: t('programManagement.form.endTimeRequired'),
-                      },
-                      {
-                        validator: validateTimeRange,
+                        validator: validateEndTime,
                       },
                     ]}
                   >
@@ -677,7 +940,7 @@ const ProgramModal = ({
                         'programManagement.form.endTimePlaceholder'
                       )}
                       disabledTime={disabledEndTime}
-                      minuteStep={15}
+                      minuteStep={30}
                       showSecond={false}
                       showNow={false}
                       disabled={!startTimeValue}
@@ -716,7 +979,7 @@ const ProgramModal = ({
 
           {/* Survey Information */}
           <Col
-            span={12}
+            span={!isEdit ? 12 : 0}
             style={{ height: '100%', overflowY: 'auto', paddingLeft: '12px' }}
           >
             <Card
@@ -742,16 +1005,19 @@ const ProgramModal = ({
                 }}
               >
                 <Form.List name="questions">
-                  {(fields, { add, remove }) => (
-                    <QuestionTabs
-                      t={t}
-                      fields={fields}
-                      add={add}
-                      remove={remove}
-                      selectedCategory={selectedCategory}
-                      messageApi={messageApi}
-                    />
-                  )}
+                  {(fields, { add, remove }) => {
+                    return (
+                      <QuestionTabs
+                        t={t}
+                        fields={fields}
+                        add={add}
+                        remove={remove}
+                        selectedCategory={selectedCategory}
+                        messageApi={messageApi}
+                        form={form}
+                      />
+                    )
+                  }}
                 </Form.List>
               </div>
             </Card>

@@ -58,9 +58,9 @@ const ProgramOverview = ({ program }) => {
         <Col xs={24} lg={8}>
           <Card>
             <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-              {program.thumbnail ? (
+              {program.thumbnail?.url ? (
                 <Image
-                  src={program.thumbnail}
+                  src={program.thumbnail?.url}
                   alt={program.name}
                   style={{
                     width: '100%',

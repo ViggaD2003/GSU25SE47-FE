@@ -33,6 +33,7 @@ import {
   getAllPrograms,
   createProgram,
   updateProgramStatus,
+  updateProgram,
 } from '@/store/actions/programActions'
 import {
   updateFilters,
@@ -74,6 +75,8 @@ const ProgramManagement = () => {
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [counselors, setCounselors] = useState([])
+  const [isEdit, setIsEdit] = useState(false)
+  const [programToEdit, setProgramToEdit] = useState(null)
   const navigate = useNavigate()
 
   const fetchCounselors = useCallback(async () => {
@@ -93,7 +96,7 @@ const ProgramManagement = () => {
   // Handle error messages
   useEffect(() => {
     if (error) {
-      messageApi.error(t('programManagement.messages.fetchError'))
+      // messageApi.error(t('programManagement.messages.fetchError'))
       dispatch(clearError())
     }
   }, [error, t, messageApi, dispatch])
@@ -240,6 +243,8 @@ const ProgramManagement = () => {
 
   // Handle create program
   const handleCreate = useCallback(() => {
+    setIsEdit(false)
+    setProgramToEdit(null)
     setIsModalVisible(true)
   }, [])
 
@@ -257,26 +262,92 @@ const ProgramManagement = () => {
 
   // Handle save program (create/update)
   const handleSave = useCallback(
-    async (programData, email) => {
+    async (programData, email, isCreate = true) => {
       try {
-        const data = await dispatch(createProgram(programData)).unwrap()
-        const body = {
-          relatedEntityId: data.id,
-          title: 'New Program Created',
-          username: email,
-          notificationType: 'PROGRAM',
-          content: `A new program has been created: ${data.name}`,
+        if (isCreate) {
+          const data = await dispatch(createProgram(programData)).unwrap()
+          const body = {
+            relatedEntityId: data.id,
+            title: 'New Program Created',
+            username: email,
+            notificationType: 'PROGRAM',
+            content: `A new program has been created: ${data.name}`,
+          }
+          sendMessage(body)
+          messageApi.success(t('programManagement.messages.createSuccess'))
+        } else {
+          const data = await dispatch(
+            updateProgram({
+              programId: programData.programId,
+              programData,
+            })
+          ).unwrap()
+          if (data) {
+            if (email) {
+              // Get old host email from programToEdit
+              const oldHostEmail = programData.hostedBy?.email
+
+              let notificationBody
+
+              if (oldHostEmail === email) {
+                // Same host - notify about program update
+                notificationBody = {
+                  relatedEntityId: programData.programId,
+                  title: 'Program Updated',
+                  username: email,
+                  notificationType: 'PROGRAM',
+                  content: `The program "${data.name}" has been updated.`,
+                }
+              } else {
+                // Different host - notify about program handover
+                notificationBody = {
+                  relatedEntityId: programData.programId,
+                  title: 'Program Handover',
+                  username: email,
+                  notificationType: 'PROGRAM',
+                  content: `You have been assigned as the new host for the program: ${data.name}`,
+                }
+
+                // Optionally, also notify the old host about the handover
+                if (oldHostEmail) {
+                  const oldHostNotification = {
+                    relatedEntityId: programData.programId,
+                    title: 'Program Handover',
+                    username: oldHostEmail,
+                    notificationType: 'PROGRAM',
+                    content: `The program "${data.name}" has been transferred to a new host.`,
+                  }
+                  sendMessage(oldHostNotification)
+                }
+              }
+
+              sendMessage(notificationBody)
+            }
+
+            messageApi.success(t('programManagement.messages.updateSuccess'))
+            setProgramToEdit(null)
+            handleRefresh()
+            setIsEdit(false)
+          }
         }
-        sendMessage(body)
-        messageApi.success(t('programManagement.messages.createSuccess'))
         setIsModalVisible(false)
       } catch (error) {
-        messageApi.error(t('programManagement.messages.createError'))
+        if (isCreate) {
+          messageApi.error(t('programManagement.messages.createError'))
+        } else {
+          messageApi.error(t('programManagement.messages.updateError'))
+        }
         throw error
       }
     },
     [dispatch, t, messageApi]
   )
+
+  const handleUpdate = program => {
+    setIsEdit(true)
+    setProgramToEdit(program)
+    setIsModalVisible(true)
+  }
 
   // Calculate statistics
   const statistics = useMemo(() => {
@@ -458,6 +529,7 @@ const ProgramManagement = () => {
             onUpdateStatus={handleUpdateStatus}
             sortConfig={sortConfig}
             onSort={handleSort}
+            onUpdate={handleUpdate}
           />
         </Suspense>
       </Card>
@@ -465,8 +537,14 @@ const ProgramManagement = () => {
       {/* Program Modal */}
       <Suspense fallback={null}>
         <ProgramModal
+          isEdit={isEdit}
           visible={isModalVisible}
-          onCancel={() => setIsModalVisible(false)}
+          onCancel={() => {
+            setIsModalVisible(false)
+            setIsEdit(false)
+            setProgramToEdit(null)
+          }}
+          program={programToEdit}
           onOk={handleSave}
           categories={[...categories].filter(c => c?.isActive)}
           counselors={counselors}

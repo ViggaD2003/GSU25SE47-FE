@@ -346,8 +346,9 @@
       "offline": "Trực tiếp"
     },
     "actions": {
-      "view": "Xem",
+      "view": "Xem chi tiết",
       "edit": "Chỉnh sửa",
+      "editStatus": "Chỉnh sửa trạng thái",
       "delete": "Xóa",
       "viewDetails": "Xem chi tiết",
       "save": "Lưu",
@@ -378,7 +379,7 @@
     "form": {
       "basicInfo": "Thông tin cơ bản",
       "settings": "Cài đặt chương trình",
-      "schedule": "Lịch học",
+      "schedule": "Lịch trình",
       "name": "Tên chương trình",
       "nameRequired": "Tên chương trình là bắt buộc",
       "nameMinLength": "Tên chương trình phải có ít nhất 3 ký tự",
@@ -411,15 +412,19 @@
       "date": "Ngày",
       "dateRequired": "Ngày là bắt buộc",
       "dateMinDays": "Ngày phải ít nhất 1 ngày từ hôm nay",
+      "dateNotPast": "Ngày không được ở quá khứ",
       "datePlaceholder": "Chọn ngày chương trình",
       "startTime": "Thời gian bắt đầu",
       "startTimeRequired": "Thời gian bắt đầu là bắt buộc",
       "startTimePlaceholder": "Chọn thời gian bắt đầu",
       "startTimeAfter17": "Thời gian bắt đầu phải sau 15:00",
+      "startTimeBefore20": "Thời gian bắt đầu phải trước 20:00",
       "endTime": "Thời gian kết thúc",
       "endTimeRequired": "Thời gian kết thúc là bắt buộc",
       "endTimePlaceholder": "Chọn thời gian kết thúc",
-      "timeRangeMinHour": "Thời gian phải ít nhất 1 giờ apart",
+      "timeRangeMinHour": "Thời gian phải ít nhất 1 giờ",
+      "endTimeBefore21": "Thời gian kết thúc phải trước 21:00",
+      "startTimeFirst": "Vui lòng chọn thời gian bắt đầu trước",
       "location": "Địa điểm",
       "locationRequired": "Địa điểm là bắt buộc",
       "locationPlaceholder": "Nhập địa điểm chương trình (bắt buộc cho chương trình trực tiếp)",
@@ -2103,7 +2108,9 @@
       "duplicateLevelCode": "Mã cấp độ đã tồn tại. Vui lòng sử dụng mã khác.",
       "categoryScoreRangeInvalid": "Thang điểm danh mục không hợp lệ. Điểm tối thiểu phải nhỏ hơn điểm tối đa.",
       "questionCountRequired": "Số lượng câu hỏi là bắt buộc khi bật truy cập giới hạn.",
-      "levelValidationError": "Vui lòng kiểm tra lại thông tin trong form cấp độ"
+      "levelValidationError": "Vui lòng kiểm tra lại thông tin trong form cấp độ",
+      "statusUpdateSuccess": "Cập nhật trạng thái danh mục thành công",
+      "statusUpdateError": "Không thể cập nhật trạng thái danh mục"
     },
     "loadingDetails": "Đang tải chi tiết danh mục..."
   },
