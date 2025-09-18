@@ -85,7 +85,7 @@ const COMPONENT_MAP = {
   ),
   Login: createLazyComponent(() => import('../pages/auth/Login'), 'Login'),
   ForgotPassword: createLazyComponent(
-    () => import('../pages/auth/ForgotPassword'),
+    () => import('../pages/auth/ForgotPasswordFlow'),
     'ForgotPassword'
   ),
   ClientManagement: createLazyComponent(

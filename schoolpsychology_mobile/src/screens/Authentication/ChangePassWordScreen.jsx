@@ -85,17 +85,6 @@ export default function ChangePasswordScreen({ route, navigation }) {
               marginBottom: 16,
             }}
           >
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{
-                padding: 6,
-                borderRadius: 10,
-                borderWidth: 1,
-                borderColor: BORDER,
-              }}
-            >
-              <Text style={{ color: FG }}>Back</Text>
-            </TouchableOpacity>
             <Text style={{ fontSize: 12, color: MUTED }}>
               Changing password for{" "}
               <Text style={{ fontWeight: "600", color: FG }}>

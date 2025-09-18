@@ -736,7 +736,7 @@ export default function ProgramDetail() {
               <Image
                 source={{
                   uri:
-                    program.thumbnail ||
+                    program.thumbnail.url ||
                     "https://via.placeholder.com/400x200?text=No+Image",
                 }}
                 style={styles.programImage}

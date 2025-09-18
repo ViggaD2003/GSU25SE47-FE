@@ -127,16 +127,6 @@ export default function VerifyEmailScreen({ navigation }) {
               We'll email a 6-digit code to verify it's you.
             </Text>
           </View>
-
-          {/* Footer */}
-          {/* <View style={{ marginTop: 12, alignItems: "center" }}>
-            <Text style={{ fontSize: 12, color: "#6B7280" }}>
-              Remembered it?{" "}
-              <Text style={{ fontWeight: "600", color: "#004B48", textDecorationLine: 'underline'}} onPress={() => navigation.navigate('Login')}>
-                Go back to sign in
-              </Text>
-            </Text>
-          </View> */}
         </View>
       </View>
     </SafeAreaView>

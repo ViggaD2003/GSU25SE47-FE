@@ -53,12 +53,6 @@ export default function VerifyOtpScreen({ route, navigation }) {
         <View style={{ width: "100%", maxWidth: 420 }}>
           {/* Header */}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={{ padding: 6, borderRadius: 10, borderWidth: 1, borderColor: BORDER }}
-            >
-              <Text style={{ color: FG }}>Back</Text>
-            </TouchableOpacity>
             <Text style={{ fontSize: 12, color: MUTED }}>
               Code sent to <Text style={{ fontWeight: "600", color: FG }}>{maskEmail(email)}</Text>
             </Text>
