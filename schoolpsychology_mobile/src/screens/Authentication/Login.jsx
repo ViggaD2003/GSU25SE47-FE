@@ -12,8 +12,10 @@ import {
 import { GlobalStyles } from "../../constants";
 import { useAuth } from "../../contexts";
 import { useTranslation } from "react-i18next";
+import {useNavigation} from '@react-navigation/native';
 
 const Login = () => {
+  const navigation = useNavigation();
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -114,7 +116,7 @@ const Login = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword}>
+        <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ChangePassword')}>
           <Text style={styles.forgotPasswordText}>
             {t("auth.forgotPassword")}
           </Text>

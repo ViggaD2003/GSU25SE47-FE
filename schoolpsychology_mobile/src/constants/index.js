@@ -28,18 +28,20 @@ export const AUTH_CONFIG = {
     LOGIN: "/api/v1/auth/login",
     LOGOUT: "/api/v1/auth/logout",
     REFRESH: "/api/v1/auth/refresh",
-    FORGOT_PASSWORD: "/api/v1/auth/forgot-password",
-    RESET_PASSWORD: "/api/v1/auth/reset-password",
+    FORGOT_PASSWORD: "/api/v1/auth/change-forgot-password",
     VERIFY_EMAIL: "/api/v1/auth/verify-email",
+    ACTIVATE_EMAIL: "/api/v1/auth/activate-email",
     ACCOUNT: "/api/v1/account",
   },
 
   // Excluded paths from token refresh
   EXCLUDED_PATHS: [
     "/api/v1/auth/login",
-    "/api/v1/auth/forgot-password",
     "/api/v1/auth/refresh",
     "/api/v1/auth/register",
+     "/api/v1/auth/verify-email",
+    "/api/v1/auth/activate-email",
+    "/api/v1/auth/change-forgot-password"
   ],
 
   // Allowed user roles
