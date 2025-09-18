@@ -51,7 +51,6 @@ export default function VerifyOtp({ email, onSuccess, onBack }) {
     return (
         <form onSubmit={handleSubmit} className="space-y-6" onPaste={handlePaste}>
             <div className="flex items-center gap-2 text-sm text-gray-600">
-                <button type="button" onClick={onBack} className="rounded-xl border px-2 py-1 hover:bg-gray-50">Back</button>
                 <span>Changing password for <span className="font-medium">{maskEmail(email || "")}</span></span>
             </div>
 
