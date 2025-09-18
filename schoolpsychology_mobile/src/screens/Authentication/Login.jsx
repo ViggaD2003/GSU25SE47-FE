@@ -116,7 +116,7 @@ const Login = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('VerifyEmail')}>
+        <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('ChangePassword')}>
           <Text style={styles.forgotPasswordText}>
             {t("auth.forgotPassword")}
           </Text>

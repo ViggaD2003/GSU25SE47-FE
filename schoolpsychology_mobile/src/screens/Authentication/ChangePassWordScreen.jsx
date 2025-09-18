@@ -32,6 +32,7 @@ export default function ChangePasswordScreen({ route, navigation }) {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const score = getPasswordScore(pw);
   const valid = score >= 3 && pw === confirm;
@@ -103,22 +104,31 @@ export default function ChangePasswordScreen({ route, navigation }) {
             }}
           >
             <Text style={{ fontSize: 14, color: FG }}>New password</Text>
-            <TextInput
-              value={pw}
-              onChangeText={setPw}
-              secureTextEntry
-              autoComplete="password-new"
-              style={{
-                marginTop: 8,
-                borderWidth: 1,
-                borderColor: BORDER,
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                height: 44,
-                color: FG,
-                backgroundColor: BG,
-              }}
-            />
+            <View >
+              <TextInput
+                value={pw}
+                onChangeText={setPw}
+                secureTextEntry={!showPassword}
+                autoComplete="password-new"
+                style={{
+                  marginTop: 8,
+                  borderWidth: 1,
+                  borderColor: BORDER,
+                  borderRadius: 12,
+                  paddingHorizontal: 12,
+                  height: 44,
+                  color: FG,
+                  backgroundColor: BG,
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Text style={{ fontSize: 20, color: "#888" }}>
+                  {showPassword ? "🙈" : "👁️"}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <StrengthBar score={score} color="#2563EB" />
 
             <View style={{ marginTop: 10, gap: 6 }}>
@@ -150,7 +160,7 @@ export default function ChangePasswordScreen({ route, navigation }) {
             <TextInput
               value={confirm}
               onChangeText={setConfirm}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               autoComplete="password-new"
               style={{
                 marginTop: 8,
@@ -163,6 +173,8 @@ export default function ChangePasswordScreen({ route, navigation }) {
                 backgroundColor: BG,
               }}
             />
+
+
             {confirm !== "" && confirm !== pw && (
               <Text style={{ marginTop: 6, fontSize: 12, color: "#DC2626" }}>
                 Passwords do not match.
@@ -195,4 +207,5 @@ export default function ChangePasswordScreen({ route, navigation }) {
       </View>
     </SafeAreaView>
   );
+
 }
