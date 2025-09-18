@@ -105,3 +105,71 @@ export const getSymptomsDescription = (levelConfig) => {
 
   return levelConfig?.symptomsDescription || "";
 };
+
+//NEW
+export const emailRegex = /[^@\s]+@[^@\s]+\.[^@\s]+/;
+
+
+export function maskEmail(email) {
+  if (typeof email !== "string" || !email) return "";
+  const at = email.indexOf("@");
+  if (at <= 0 || at === email.length - 1) return email;
+  const name = email.slice(0, at);
+  const domain = email.slice(at + 1);
+  const masked = name.length <= 2 ? name[0] + "*" : name[0] + "*".repeat(Math.max(1, name.length - 2)) + name[name.length - 1];
+  return `${masked}@${domain}`;
+}
+
+
+export async function apiSendOtp(email) {
+  console.log("Email Verify", email);
+  
+  const respnse = await api.post(`/api/v1/auth/verify-email?email=${email}`);
+  console.log("respnse", respnse);
+
+  return respnse;
+}
+
+
+export async function apiVerifyOtp(email, otp) {
+  const response = await api.post(`/api/v1/auth/activate-email?token=${otp}`);
+  return response;
+}
+
+
+export async function apiResetPassword(email, password, confirm) {
+  const response = await api.post(`/api/v1/auth/change-forgot-password?email=${email}`, { newPassword: password, confirmNewPassword: confirm });
+  return response;
+}
+
+
+export function getPasswordScore(pw) {
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[a-z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  return Math.min(4, score);
+}
+
+
+import { api } from "@/services";
+// ---------- src/components/StrengthBar.jsx
+import React from "react";
+import { View, Text } from "react-native";
+
+
+export default function StrengthBar({ score, color }) {
+  const pct = (score / 4) * 100;
+  return (
+    <View style={{ marginTop: 8 }}>
+      <View style={{ height: 8, width: "100%", backgroundColor: "#E5E7EB", borderRadius: 6, overflow: "hidden" }}>
+        <View style={{ height: 8, width: `${pct}%`, backgroundColor: color, borderRadius: 6 }} />
+      </View>
+      <Text style={{ marginTop: 6, fontSize: 12, color: "#6B7280" }}>
+        {["Too weak", "Weak", "Fair", "Good", "Strong"][score]}
+      </Text>
+    </View>
+  );
+}

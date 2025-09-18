@@ -175,7 +175,7 @@ api.interceptors.request.use(
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
 
-      // Skip token validation for excluded paths and refresh endpoints
+      // Skip token validation for excluded paths and refresh endpoints      
       if (
         shouldSkipTokenValidation(config.url) ||
         isRefreshEndpoint(config.url)
