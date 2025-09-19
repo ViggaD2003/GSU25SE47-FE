@@ -49,6 +49,7 @@ import { accountAPI } from '@/services/accountApi'
 import { useNavigate } from 'react-router-dom'
 import { useWebSocket } from '@/contexts/WebSocketContext'
 import { loadAccount } from '@/store/actions'
+import SurveyDetailModal from '../SurveyManagement/SurveyDetailModal'
 // import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text } = Typography
@@ -72,11 +73,13 @@ const ProgramManagement = () => {
   // Local state
   const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [isSurveyModalVisible, setIsSurveyModalVisible] = useState(false)
   const [categories, setCategories] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [counselors, setCounselors] = useState([])
   const [isEdit, setIsEdit] = useState(false)
   const [programToEdit, setProgramToEdit] = useState(null)
+  const [selectedSurveyId, setSelectedSurveyId] = useState(null)
   const navigate = useNavigate()
 
   const fetchCounselors = useCallback(async () => {
@@ -251,6 +254,15 @@ const ProgramManagement = () => {
   // Handle view program
   const handleView = program => {
     navigate(`/program-management/details/${program.id}`)
+  }
+
+  const handleViewSurvey = surveyId => {
+    setSelectedSurveyId(surveyId)
+    setIsSurveyModalVisible(true)
+  }
+
+  const handleDetailUpdated = () => {
+    dispatch(getAllPrograms())
   }
 
   // Handle update program status
@@ -530,6 +542,7 @@ const ProgramManagement = () => {
             sortConfig={sortConfig}
             onSort={handleSort}
             onUpdate={handleUpdate}
+            onViewSurvey={handleViewSurvey}
           />
         </Suspense>
       </Card>
@@ -551,6 +564,20 @@ const ProgramManagement = () => {
           messageApi={messageApi}
         />
       </Suspense>
+
+      <SurveyDetailModal
+        t={t}
+        visible={isSurveyModalVisible}
+        surveyId={selectedSurveyId}
+        onClose={() => {
+          setIsSurveyModalVisible(false)
+          setSelectedSurveyId(null)
+        }}
+        onUpdated={handleDetailUpdated}
+        messageApi={messageApi}
+        userRole={user?.role}
+        dispatch={dispatch}
+      />
     </div>
   )
 }

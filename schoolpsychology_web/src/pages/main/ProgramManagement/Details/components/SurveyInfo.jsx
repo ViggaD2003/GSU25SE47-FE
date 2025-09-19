@@ -139,11 +139,11 @@ const SurveyInfo = ({ survey }) => {
                 </Tag>
               </Descriptions.Item>
 
-              <Descriptions.Item
+              {/* <Descriptions.Item
                 label={t('programManagement.details.surveyInfo.type')}
               >
                 <Tag color="blue">{survey.surveyType}</Tag>
-              </Descriptions.Item>
+              </Descriptions.Item> */}
 
               <Descriptions.Item
                 label={t('programManagement.details.surveyInfo.required')}

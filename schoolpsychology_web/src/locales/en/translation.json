@@ -346,6 +346,7 @@
     },
     "actions": {
       "view": "View Details",
+      "viewSurvey": "View Survey",
       "edit": "Edit",
       "editStatus": "Edit Status",
       "delete": "Delete",
@@ -646,6 +647,49 @@
         "questions": "Questions",
         "view": "View Details",
         "noSurveyAssigned": "No survey assigned to this program."
+      }
+    },
+    "participants": {
+      "title": "Participant List",
+      "addCases": "Add Cases",
+      "selectCases": "Select cases to add",
+      "availableCases": "Available cases",
+      "searchCases": "Search cases",
+      "noAvailableCases": "No available cases",
+      "noParticipants": "No participants",
+      "participantDetails": "Participant Details",
+      "name": "Name",
+      "enrollmentDate": "Enrollment Date",
+      "finalScore": "Final Score",
+      "completionDate": "Completion Date",
+      "description": "Description",
+      "viewDetails": "View Details",
+      "addSuccess": "Add cases successfully",
+      "status": {
+        "title": "Status",
+        "ACTIVE": "Active",
+        "PLANNING": "Planning",
+        "ON_GOING": "On Going",
+        "COMPLETED": "Completed",
+        "ABSENT": "Absent",
+        "ENROLLED": "Enrolled",
+        "IN_PROGRESS": "In Progress"
+      },
+      "studentInfo": "Student Information",
+      "caseInfo": "Case Information",
+      "noCaseAssigned": "No case assigned",
+      "enrollmentInfo": "Enrollment Information",
+      "joinDate": "Join Date",
+      "performance": "Performance",
+      "currentLevel": "Current Level",
+      "totalParticipants": "Total Participants",
+      "withCases": "With Cases",
+      "enrolled": "Enrolled",
+      "completed": "Completed",
+      "typeTitle": "Participation Type",
+      "type": {
+        "assigned": "Assigned",
+        "notAssigned": "Not Assigned"
       }
     }
   },
@@ -1124,6 +1168,13 @@
       "noQuestions": "No questions available",
       "errorTitle": "Error Loading Survey",
       "basicInfo": "Basic Information",
+      "basicInformation": "Basic Information",
+      "surveyConfiguration": "Survey Configuration",
+      "schedule": "Schedule",
+      "requiredSurvey": "Required Survey",
+      "activeQuestions": "Active Questions",
+      "untitledQuestion": "Untitled Question",
+      "requiredQuestion": "Required Question",
       "surveyProgress": "Survey Progress",
       "active": "Active",
       "inactive": "Inactive",
@@ -1149,7 +1200,10 @@
         "fetchError": "Failed to fetch survey details",
         "noChanges": "No changes to update",
         "removeCaseSuccess": "Case removed from survey successfully",
-        "removeCaseError": "Failed to remove case from survey"
+        "removeCaseError": "Failed to remove case from survey",
+        "questionLimitReached": "Maximum number of active questions reached ({{limit}}). Please deactivate some questions first.",
+        "questionLimitNotEnough": "This survey requires exactly {{required}} active questions. You currently have {{current}} questions.",
+        "questionLimitExceeded": "This survey requires exactly {{limit}} active questions. You currently have {{current}} questions."
       },
       "recurringOptions": {
         "none": "None",
@@ -1166,8 +1220,15 @@
       "addQuestion": "Add Question",
       "newQuestions": "New Questions",
       "newQuestion": "New Question",
+      "needMore": "Need more",
+      "tooMany": "Too many",
       "questionText": "Question Text",
-      "questionDescription": "Question Description"
+      "questionDescription": "Question Description",
+      "requiredForLimitedCategory": "Required for limited category",
+      "addAnswer": "Add Answer",
+      "answerText": "Answer Text",
+      "answerTextPlaceholder": "Enter answer text...",
+      "answerTextRequired": "Please enter answer text"
     },
     "form": {
       "title": "Survey Title",
@@ -1195,8 +1256,13 @@
       "recurringCycleRequired": "Please select a recurring cycle",
       "startDate": "Start Date",
       "startDateRequired": "Please select a start date",
+      "startDatePlaceholder": "Select start date",
       "endDate": "End Date",
       "endDateRequired": "Please select an end date",
+      "endDatePlaceholder": "Select end date",
+      "questionTextPlaceholder": "Enter question text",
+      "questionDescriptionPlaceholder": "Enter question description (optional)",
+      "questionTypePlaceholder": "Select question type",
       "questions": "Questions",
       "question": "Question",
       "addQuestion": "Add Question",
@@ -1219,7 +1285,12 @@
     },
     "messages": {
       "addSuccess": "Survey created successfully",
-      "addError": "Failed to create survey"
+      "addError": "Failed to create survey",
+      "removeCaseSuccess": "Remove case from survey successfully",
+      "removeCaseError": "Failed to remove ca se from survey",
+      "questionLimitReached": "Maximum number of active questions reached ({{limit}}).  Please deactivate some questions first.",
+      "questionLimitNotEnough": "This survey requires exactly {{required}} active questions. You currently have {{current}} questions.",
+      "questionLimitExceeded": "This survey requires exactly {{limit}} active questions. You currently have {{current}} questions."
     },
     "enums": {
       "surveyStatus": {
@@ -1575,6 +1646,7 @@
     "optional": "Optional",
     "active": "Active",
     "inactive": "Inactive",
+    "new": "New",
     "description": "Description",
     "reference": "Reference",
     "refresh": "Refresh",

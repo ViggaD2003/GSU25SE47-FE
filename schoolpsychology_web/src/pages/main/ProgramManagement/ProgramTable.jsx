@@ -15,6 +15,7 @@ import {
   EditOutlined,
   CloseOutlined,
   SaveOutlined,
+  FileOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
@@ -34,6 +35,7 @@ const ProgramTable = ({
   onSort,
   onUpdateStatus, // Add this prop for handling status updates
   onUpdate, // Add this prop for handling program updates
+  onViewSurvey,
 }) => {
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -299,6 +301,12 @@ const ProgramTable = ({
                   label: t('programManagement.actions.view'),
                   icon: <EyeOutlined />,
                   onClick: () => onView(record),
+                },
+                {
+                  key: 'view_survey',
+                  label: t('programManagement.actions.viewSurvey'),
+                  icon: <FileOutlined />,
+                  onClick: () => onViewSurvey(record.programSurvey.surveyId),
                 },
                 record.status === 'ON_GOING'
                   ? {
