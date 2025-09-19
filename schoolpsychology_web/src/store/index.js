@@ -18,11 +18,19 @@ const appReducer = combineReducers({
 })
 
 const rootReducer = (state, action) => {
-  console.log('action', action)
+  // console.log('action', action)
 
   if (action.type === 'auth/logoutUser/fulfilled') {
-    // reset all state
-    state = undefined
+    return {
+      ...state,
+      survey: undefined,
+      slot: undefined,
+      appointment: undefined,
+      case: undefined,
+      class: undefined,
+      program: undefined,
+      auth: state.auth,
+    }
   }
   return appReducer(state, action)
 }

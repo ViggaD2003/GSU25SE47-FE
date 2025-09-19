@@ -21,11 +21,7 @@ import { BulbOutlined, UploadOutlined } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import dayjs from 'dayjs'
-// import { RECURRING_CYCLE } from '@/constants/enums'
-import Title from 'antd/es/typography/Title'
 import QuestionTabs from '../SurveyManagement/QuestionTabs'
-import QuestionEditTabs from './QuestionEditTabs'
-// import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Text } = Typography
 const { TextArea } = Input
@@ -50,7 +46,6 @@ const ProgramModal = ({
   const [startTimeValue, setStartTimeValue] = useState(null)
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [thumbnail, setThumbnail] = useState(null)
-  // const { sendMessage } = useWebSocket()
 
   useEffect(() => {
     if (isEdit && program) {

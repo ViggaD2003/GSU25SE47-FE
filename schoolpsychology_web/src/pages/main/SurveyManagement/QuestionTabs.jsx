@@ -15,6 +15,7 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons'
 import { QUESTION_TYPE } from '../../../constants/enums'
 import { IMPROVED_SCORING_SYSTEM } from '../../../constants/improvedAssessmentScoring'
 import { useTheme } from '../../../contexts/ThemeContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const { Option } = Select
 const { Text } = Typography
@@ -29,6 +30,7 @@ const QuestionTabs = ({
 }) => {
   const [activeKey, setActiveKey] = useState()
   const { isDarkMode } = useTheme()
+  const { currentLanguage } = useLanguage()
 
   // Function to get current category data
   const getCurrentCategory = useCallback(() => {
@@ -37,27 +39,38 @@ const QuestionTabs = ({
   }, [selectedCategory])
 
   // Function to validate question count for limited surveys
-  const validateQuestionCount = useCallback((currentCount, categoryData) => {
-    if (!categoryData) return { isValid: true, message: null }
+  const validateQuestionCount = useCallback(
+    (currentCount, categoryData) => {
+      if (!categoryData) return { isValid: true, message: null }
 
-    const { isLimited, questionLength, code } = categoryData
+      const { isLimited, questionLength, code } = categoryData
 
-    if (isLimited && questionLength !== null) {
-      if (currentCount > questionLength) {
-        return {
-          isValid: false,
-          message: `This survey type (${code}) is limited to ${questionLength} questions. You currently have ${currentCount} questions.`,
-        }
-      } else if (currentCount < questionLength) {
-        return {
-          isValid: false,
-          message: `This survey type (${code}) requires exactly ${questionLength} questions. You currently have ${currentCount} questions.`,
+      if (isLimited && questionLength !== null) {
+        if (currentCount > questionLength) {
+          return {
+            isValid: false,
+            message: t('questionTabs.message.questionLengthExceeded', {
+              code: code,
+              limit: questionLength,
+              current: currentCount,
+            }),
+          }
+        } else if (currentCount < questionLength) {
+          return {
+            isValid: false,
+            message: t('questionTabs.message.questionLengthRequired', {
+              code: code,
+              limit: questionLength,
+              current: currentCount,
+            }),
+          }
         }
       }
-    }
 
-    return { isValid: true, message: null }
-  }, [])
+      return { isValid: true, message: null }
+    },
+    [t]
+  )
 
   // Function to get category scoring range
   const getCategoryScoringRange = useCallback(() => {
@@ -76,55 +89,68 @@ const QuestionTabs = ({
   }, [getCurrentCategory])
 
   // Function to generate answer text based on score
-  const generateAnswerText = useCallback((score, minScore, maxScore) => {
-    const severityLevels = IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS
-    const frequencyGuidelines =
-      IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.frequency
-    const impairmentGuidelines =
-      IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.impairment
+  const generateAnswerText = useCallback(
+    (score, minScore, maxScore) => {
+      const severityLevels = IMPROVED_SCORING_SYSTEM.SEVERITY_LEVELS
+      const frequencyGuidelines =
+        IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.frequency
+      const impairmentGuidelines =
+        IMPROVED_SCORING_SYSTEM.ASSESSMENT_GUIDELINES.impairment
 
-    // Normalize score to 0-5 range for text generation
-    const normalizedScore = Math.round(
-      ((score - minScore) * 3) / (maxScore - minScore)
-    )
-    const clampedScore = Math.max(0, Math.min(3, normalizedScore))
+      // Normalize score to 0-5 range for text generation
+      const normalizedScore = Math.round(
+        ((score - minScore) * 3) / (maxScore - minScore)
+      )
+      const clampedScore = Math.max(0, Math.min(3, normalizedScore))
 
-    // Get severity level text
-    const severityText =
-      severityLevels[clampedScore]?.label || `Severity ${score}`
+      // Get severity level text
+      const severityText =
+        severityLevels[clampedScore]?.label ||
+        t('questionTabs.severity', { score: score })
 
-    // Get frequency text
-    const frequencyText =
-      frequencyGuidelines[clampedScore] || `Frequency ${score}`
+      // Get frequency text
+      const frequencyText =
+        frequencyGuidelines[clampedScore] ||
+        t('questionTabs.frequency', { score: score })
 
-    // Get impairment text
-    const impairmentText =
-      impairmentGuidelines[clampedScore] || `Impairment ${score}`
+      // Get impairment text
+      const impairmentText =
+        impairmentGuidelines[clampedScore] ||
+        t('questionTabs.impairment', { score: score })
 
-    // For very small ranges (1-2 points), use simple labels
-    if (maxScore - minScore <= 2) {
-      if (score === minScore) return 'No'
-      if (score === maxScore) return 'Yes'
-      return `Severity ${score}`
-    }
+      // For very small ranges (1-2 points), use simple labels
+      if (maxScore - minScore <= 2) {
+        if (score === minScore) return t('common.no')
+        if (score === maxScore) return t('common.yes')
+        return t('questionTabs.severity', { score: score })
+      }
 
-    // For small ranges (3-4 points), use basic severity labels
-    if (maxScore - minScore <= 4) {
-      if (clampedScore < 1) return 'Low'
-      if (clampedScore < 2) return 'Moderate'
-      if (clampedScore < 3) return 'High'
-      return 'Critical'
-    }
+      // For small ranges (3-4 points), use basic severity labels
+      if (maxScore - minScore <= 4) {
+        if (currentLanguage === 'en') {
+          if (clampedScore < 1) return 'Low'
+          if (clampedScore < 2) return 'Moderate'
+          if (clampedScore < 3) return 'High'
+          return 'Critical'
+        } else {
+          if (clampedScore < 1) return 'Thấp'
+          if (clampedScore < 2) return 'Vừa phải'
+          if (clampedScore < 3) return 'Cao'
+          return 'Nghiêm trọng'
+        }
+      }
 
-    // For larger ranges, use more detailed text
-    if (clampedScore <= 1) {
-      return `${severityText} - ${frequencyText}`
-    } else if (clampedScore <= 3) {
-      return `${severityText} - ${impairmentText}`
-    } else {
-      return `${severityText} - ${frequencyText}`
-    }
-  }, [])
+      // For larger ranges, use more detailed text
+      if (clampedScore <= 1) {
+        return `${severityText} - ${frequencyText}`
+      } else if (clampedScore <= 3) {
+        return `${severityText} - ${impairmentText}`
+      } else {
+        return `${severityText} - ${frequencyText}`
+      }
+    },
+    [t, currentLanguage]
+  )
 
   // Function to generate answers based on minScore and maxScore
   const generateAnswers = useCallback(
@@ -220,9 +246,9 @@ const QuestionTabs = ({
       }
     } catch (error) {
       console.error('Error updating questions for category change:', error)
-      messageApi?.error('Failed to update questions. Please try again.')
+      messageApi?.error(t('questionTabs.message.failedToUpdateQuestions'))
     }
-  }, [selectedCategory]) // Chỉ depend on selectedCategory
+  }, [selectedCategory, t]) // Chỉ depend on selectedCategory
 
   // Watch for new fields being added and set active key to the newest tab
   useEffect(() => {
@@ -257,7 +283,7 @@ const QuestionTabs = ({
 
       // Always allow removal if we have more than 1 question
       if (fields.length <= 1) {
-        messageApi.warning('At least one question is required')
+        messageApi.warning(t('questionTabs.message.atLeastOneQuestionRequired'))
         return
       }
 
@@ -265,7 +291,11 @@ const QuestionTabs = ({
       if (category && category.isLimited && category.questionLength !== null) {
         if (newCount < category.questionLength) {
           messageApi.warning(
-            `This survey type (${category.code}) requires exactly ${category.questionLength} questions. Cannot remove question.`
+            t('questionTabs.message.questionLengthRequired', {
+              code: category.code,
+              limit: category.questionLength,
+              current: newCount,
+            })
           )
           return
         }
@@ -285,7 +315,7 @@ const QuestionTabs = ({
         remove(fieldToRemove.name)
       } else {
         console.error('Field not found for key:', targetKey)
-        messageApi.error('Failed to remove question. Please try again.')
+        messageApi.error(t('questionTabs.message.failedToRemoveQuestion'))
       }
 
       // Set active key to the previous tab if current tab is removed
@@ -315,13 +345,13 @@ const QuestionTabs = ({
               rules={[
                 {
                   required: true,
-                  message: 'Please enter question text',
+                  message: t('questionTabs.message.questionTextRequired'),
                 },
               ]}
             >
               <Input.TextArea
                 rows={2}
-                placeholder="Enter your question here..."
+                placeholder={t('questionTabs.form.questionTextPlaceholder')}
               />
             </Form.Item>
           </Col>
@@ -332,11 +362,13 @@ const QuestionTabs = ({
             <Form.Item
               {...fieldProps}
               name={[field.name, 'description']}
-              label="Description (Optional)"
+              label={t('questionTabs.form.questionDescription')}
             >
               <Input.TextArea
                 rows={2}
-                placeholder="Enter question description..."
+                placeholder={t(
+                  'questionTabs.form.questionDescriptionPlaceholder'
+                )}
               />
             </Form.Item>
           </Col>
@@ -382,10 +414,11 @@ const QuestionTabs = ({
             return (
               <div>
                 <div style={{ marginBottom: 8 }}>
-                  <Text strong>Answers:</Text>
+                  <Text strong>{t('questionTabs.form.answers')}</Text>
                   {minScore !== maxScore && (
                     <Text type="secondary" style={{ marginLeft: 8 }}>
-                      (Score range: {minScore} - {maxScore})
+                      ({t('questionTabs.form.scoreRange')}: {minScore} -{' '}
+                      {maxScore})
                     </Text>
                   )}
                   {minScore === maxScore && (
@@ -420,11 +453,17 @@ const QuestionTabs = ({
                           rules={[
                             {
                               required: true,
-                              message: 'Please enter answer text',
+                              message: t(
+                                'questionTabs.form.answerTextRequired'
+                              ),
                             },
                           ]}
                         >
-                          <Input placeholder="Answer text" />
+                          <Input
+                            placeholder={t(
+                              'questionTabs.form.answerTextPlaceholder'
+                            )}
+                          />
                         </Form.Item>
                       </Col>
                       <Col span={6}>
@@ -434,12 +473,14 @@ const QuestionTabs = ({
                           rules={[
                             {
                               required: true,
-                              message: 'Please enter score',
+                              message: t('questionTabs.form.scoreRequired'),
                             },
                           ]}
                         >
                           <InputNumber
-                            placeholder="Score"
+                            placeholder={t(
+                              'questionTabs.form.scorePlaceholder'
+                            )}
                             min={minScore}
                             max={maxScore + 10} // Allow some flexibility
                             style={{ width: '100%' }}
@@ -489,7 +530,7 @@ const QuestionTabs = ({
               color: isDarkMode ? '#e8f5e8' : '#000000d9',
             }}
           >
-            Scoring System Information:
+            {t('questionTabs.form.scoringSystemInformation')}
           </Text>
           <br />
           <Text
@@ -498,12 +539,14 @@ const QuestionTabs = ({
               color: isDarkMode ? '#a0a0a0' : '#00000073',
             }}
           >
-            Current category uses score range:{' '}
+            {t('questionTabs.form.scoreRangeDesc')}:{' '}
             {getCategoryScoringRange().minScore} -{' '}
             {getCategoryScoringRange().maxScore}
             <br />
-            Answers will be automatically generated based on this range. You can
-            manually edit the text and scores as needed.
+            {t(
+              'questionTabs.form.answersWillBeAutomaticallyGeneratedBasedOnThisRange'
+            )}
+            . {t('questionTabs.form.manuallyEditTheTextAndScoresAsNeeded')}.
           </Text>
 
           {/* Question Limitations Information */}
@@ -529,7 +572,7 @@ const QuestionTabs = ({
                           : '#ff4d4f',
                     }}
                   >
-                    Question Limitations:
+                    {t('questionTabs.form.questionLimitations')}
                   </Text>
                   <br />
                   <Text
@@ -538,10 +581,15 @@ const QuestionTabs = ({
                       color: isDarkMode ? '#a0a0a0' : '#00000073',
                     }}
                   >
-                    This survey type ({code}) requires exactly {questionLength}{' '}
-                    questions.
+                    {t('questionTabs.form.questionLengthRequired', {
+                      code: code,
+                      limit: questionLength,
+                    })}
                     <br />
-                    Current: {fields.length} / {questionLength} questions
+                    {t('questionTabs.form.current', {
+                      current: fields.length,
+                      limit: questionLength,
+                    })}
                     {!validation.isValid && (
                       <Text
                         type="danger"
@@ -578,7 +626,7 @@ const QuestionTabs = ({
               fields.length > category.questionLength)
 
           return {
-            label: `Question ${index + 1}`,
+            label: `${t('questionTabs.question')} ${index + 1}`,
             key: field.key.toString(),
             children: renderQuestionForm(field, index),
             closable: canRemove,

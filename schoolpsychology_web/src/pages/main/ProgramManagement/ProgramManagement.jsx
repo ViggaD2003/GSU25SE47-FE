@@ -50,7 +50,6 @@ import { useNavigate } from 'react-router-dom'
 import { useWebSocket } from '@/contexts/WebSocketContext'
 import { loadAccount } from '@/store/actions'
 import SurveyDetailModal from '../SurveyManagement/SurveyDetailModal'
-// import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text } = Typography
 const { Search } = Input

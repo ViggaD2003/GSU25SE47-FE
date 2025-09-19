@@ -72,17 +72,11 @@ const ClientManagement = () => {
 
   // Load classes on component mount
   useEffect(() => {
-    if (!user) return
-    if (
-      classes.length === 0 ||
-      (user.role === 'teacher' && categories.length === 0)
-    ) {
-      Promise.all([
-        dispatch(getAllClasses()).unwrap(),
-        user.role !== 'manager' && fetchCategories(),
-      ])
-    }
-  }, [classes.length, user, categories.length])
+    Promise.all([
+      dispatch(getAllClasses()).unwrap(),
+      user.role !== 'manager' && fetchCategories(),
+    ])
+  }, [user.role])
 
   // Handle class code selection for manager
   const handleClassCodeChange = useCallback(

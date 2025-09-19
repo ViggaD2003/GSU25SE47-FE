@@ -199,23 +199,19 @@ const QuestionCard = React.memo(
                   `surveyManagement.enums.questionType.${question.questionType}`
                 )}
               </Tag>
-              {editMode && canEdit && (
-                <Tag
-                  color={question.isActive ? 'green' : 'red'}
-                  size="small"
-                  style={{ marginLeft: 8 }}
-                >
-                  {question.isActive
-                    ? t('common.active')
-                    : t('common.inactive')}
-                </Tag>
-              )}
+              <Tag
+                color={question.active ? 'green' : 'red'}
+                size="small"
+                style={{ marginLeft: 8 }}
+              >
+                {question.active ? t('common.active') : t('common.inactive')}
+              </Tag>
             </div>
           </div>
           {editMode && canEdit && (
             <div style={{ marginLeft: 'auto' }}>
               <Switch
-                checked={question.isActive !== false}
+                checked={question.active}
                 onChange={checked =>
                   onStatusChange(question.questionId || question.id, checked)
                 }
@@ -325,6 +321,7 @@ const SurveyDetailModal = ({
   const { user } = useSelector(state => state.auth)
   const { isDarkMode } = useTheme()
   const newQuestionsRef = useRef(null)
+  const newQuestionRefs = useRef({})
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
@@ -363,19 +360,6 @@ const SurveyDetailModal = ({
       }
 
       setSurvey(data)
-
-      // Prepare form values
-      const normalizedCycle = normalizeRecurringCycle(response.recurringCycle)
-      const initialValues = {
-        ...response,
-        startDate: response.startDate ? dayjs(response.startDate) : null,
-        endDate: response.endDate ? dayjs(response.endDate) : null,
-        questions: response.questions || [],
-        recurringCycle: normalizedCycle,
-        isRecurring: normalizedCycle !== RECURRING_CYCLE.NONE,
-      }
-      setFormValue(initialValues)
-      form.setFieldsValue(initialValues)
     } catch {
       const errorMessage = t('surveyManagement.detail.messages.fetchError')
       setError(errorMessage)
@@ -383,7 +367,7 @@ const SurveyDetailModal = ({
     } finally {
       setFetching(false)
     }
-  }, [visible, surveyId, t, messageApi, form])
+  }, [visible, surveyId, t, messageApi])
 
   // Helper functions
   const normalizeRecurringCycle = useCallback(cycle => {
@@ -479,7 +463,28 @@ const SurveyDetailModal = ({
   // Event handlers
   const handleEdit = useCallback(() => {
     setEditMode(true)
-  }, [])
+    // Prepare form values
+    const normalizedCycle = normalizeRecurringCycle(
+      survey.isRecurring
+        ? survey.recurringCycle === RECURRING_CYCLE.NONE
+          ? RECURRING_CYCLE.WEEKLY
+          : survey.recurringCycle
+        : RECURRING_CYCLE.NONE
+    )
+    const initialValues = {
+      ...survey,
+      targetGrade:
+        survey.targetScope === TARGET_SCOPE.GRADE ? survey.targetGrade : [],
+      startDate: survey.startDate ? dayjs(survey.startDate) : null,
+      endDate: survey.endDate ? dayjs(survey.endDate) : null,
+      questions: survey.questions || [],
+      recurringCycle: normalizedCycle,
+      isRecurring: survey.isRecurring,
+    }
+    setFormValue(initialValues)
+    form.setFieldsValue(initialValues)
+    setUpdatedQuestions([])
+  }, [survey, normalizeRecurringCycle, form])
 
   const handleCancel = useCallback(() => {
     setEditMode(false)
@@ -489,6 +494,26 @@ const SurveyDetailModal = ({
       form.setFieldsValue(formValue)
     }
   }, [formValue, form, editMode])
+
+  // Clear targetGrade when targetScope changes away from GRADE to avoid setState during render
+  const handleFormValuesChange = useCallback(
+    (changedValues, allValues) => {
+      if (Object.prototype.hasOwnProperty.call(changedValues, 'targetScope')) {
+        if (allValues.targetScope !== TARGET_SCOPE.GRADE) {
+          form.setFieldsValue({ targetGrade: [] })
+        }
+      }
+
+      if (Object.prototype.hasOwnProperty.call(changedValues, 'isRecurring')) {
+        if (allValues.isRecurring) {
+          form.setFieldsValue({ recurringCycle: RECURRING_CYCLE.WEEKLY })
+        } else {
+          form.setFieldsValue({ recurringCycle: RECURRING_CYCLE.NONE })
+        }
+      }
+    },
+    [form]
+  )
 
   const handleSave = useCallback(async () => {
     try {
@@ -561,10 +586,9 @@ const SurveyDetailModal = ({
           values.isRecurring !== undefined
             ? values.isRecurring
             : values.recurringCycle !== RECURRING_CYCLE.NONE,
-        recurringCycle:
-          values.recurringCycle ||
-          survey.recurringCycle ||
-          RECURRING_CYCLE.NONE,
+        recurringCycle: values.isRecurring
+          ? values.recurringCycle || RECURRING_CYCLE.WEEKLY
+          : RECURRING_CYCLE.NONE,
         startDate: values.startDate
           ? values.startDate.format('YYYY-MM-DD')
           : survey.startDate
@@ -578,44 +602,49 @@ const SurveyDetailModal = ({
         targetScope: values.targetScope || survey.targetScope,
         targetGrade: values.targetGrade || survey.targetGrade || [],
         updateQuestions:
-          updatedQuestions.map(q => ({
-            questionId: q.questionId,
-            isActive: q.isActive,
-          })) || null,
-        newQuestions: newQuestions.map(q => {
-          const formData = values.newQuestions?.[q.id] || {}
-          return {
-            text: formData.text || '',
-            description: formData.description || '',
-            questionType: formData.questionType || 'LINKERT_SCALE',
-            isRequired: survey?.category?.isLimited
-              ? true
-              : formData.required || false,
-            answers:
-              formData.answers?.map(a => ({
-                score: a.score || 1,
-                text: a.text || '',
-              })) ||
-              q.answers?.map(a => ({
-                score: a.score,
-                text: a.text,
-              })) ||
-              null,
-          }
-        }),
+          updatedQuestions.length > 0
+            ? updatedQuestions.map(q => ({
+                questionId: q.questionId,
+                isActive: q.isActive,
+              }))
+            : [],
+        newQuestions:
+          newQuestions.length > 0
+            ? newQuestions.map(q => {
+                const formData = values.newQuestions?.[q.id] || {}
+                return {
+                  text: formData.text || '',
+                  description: formData.description || '',
+                  questionType: formData.questionType || 'LINKERT_SCALE',
+                  isRequired: survey?.category?.isLimited
+                    ? true
+                    : formData.required || false,
+                  answers:
+                    formData.answers?.map(a => ({
+                      score: a.score || 1,
+                      text: a.text || '',
+                    })) ||
+                    q.answers?.map(a => ({
+                      score: a.score,
+                      text: a.text,
+                    })) ||
+                    null,
+                }
+              })
+            : [],
       }
       console.log('payload', payload)
 
-      // await surveyAPI.updateSurvey(survey.surveyId, payload)
+      await surveyAPI.updateSurvey(survey.surveyId, payload)
 
       // messageApi.success(t('surveyManagement.detail.messages.updateSuccess'))
-      // setEditMode(false)
-      // setNewQuestions([])
-      // setUpdatedQuestions([])
-      // onUpdated()
+      setEditMode(false)
+      setNewQuestions([])
+      setUpdatedQuestions([])
+      onUpdated()
 
       // // Refresh survey data
-      // fetchSurveyDetails()
+      fetchSurveyDetails()
     } catch (err) {
       if (err.errorFields) {
         return // Form validation errors - already displayed by form
@@ -643,10 +672,13 @@ const SurveyDetailModal = ({
 
   const handleRefresh = useCallback(() => {
     fetchSurveyDetails()
-  }, [fetchSurveyDetails])
+    if (editMode) {
+      handleEdit()
+    }
+  }, [fetchSurveyDetails, editMode, handleEdit])
 
   const handleQuestionStatusChange = useCallback((questionId, isActive) => {
-    console.log('Changing question status:', { questionId, isActive }) // Debug log
+    // console.log('Changing question status:', { questionId, isActive }) // Debug log
     setUpdatedQuestions(prev => {
       const existing = prev.find(q => q.questionId === questionId)
       if (existing) {
@@ -669,12 +701,12 @@ const SurveyDetailModal = ({
       if (updatedQuestion) {
         return updatedQuestion.isActive
       }
-      return question.isActive !== false
+      return question.active
     },
     [updatedQuestions]
   )
 
-  const handleAddQuestion = useCallback(() => {
+  const handleAddQuestion = () => {
     // Count active questions (existing + new) using the helper function
     const activeExistingQuestions =
       survey?.questions?.filter(q => getQuestionActiveStatus(q)).length || 0
@@ -720,8 +752,9 @@ const SurveyDetailModal = ({
       answers.push({ id: `answer_${Date.now()}_${i}`, score: i, text: '' })
     }
 
+    const newQuestionId = `new_${Date.now()}`
     const newQuestion = {
-      id: `new_${Date.now()}`,
+      id: newQuestionId,
       text: '',
       description: '',
       questionType: 'LINKERT_SCALE',
@@ -731,16 +764,19 @@ const SurveyDetailModal = ({
     }
     setNewQuestions(prev => [...prev, newQuestion])
 
-    // Scroll to new questions section after a short delay
+    // Scroll to the specific newly added question after a short delay
     setTimeout(() => {
-      if (newQuestionsRef.current) {
+      const el = newQuestionRefs.current[newQuestionId]
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      } else if (newQuestionsRef.current) {
         newQuestionsRef.current.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
         })
       }
-    }, 100)
-  }, [survey, newQuestions, messageApi, t, getQuestionActiveStatus])
+    }, 200)
+  }
 
   const handleRemoveNewQuestion = useCallback(questionId => {
     setNewQuestions(prev => prev.filter(q => q.id !== questionId))
@@ -1041,9 +1077,16 @@ const SurveyDetailModal = ({
       maxScore: 10,
     }
 
-    const canAddAnswersOrRemoveAnswers =
+    const canAddAnswers =
       Array.isArray(newQuestions.answers) &&
-      newQuestions.answers.length < maxScore - minScore + 1
+      newQuestions.answers.length <= maxScore - minScore + 1 &&
+      minScore !== maxScore
+
+    const canRemoveAnswers =
+      Array.isArray(newQuestions.answers) &&
+      newQuestions.answers.length > 0 &&
+      newQuestions.answers.length <= maxScore - minScore + 1 &&
+      minScore !== maxScore
 
     return (
       <Card
@@ -1288,7 +1331,12 @@ const SurveyDetailModal = ({
               style={{ width: '100%' }}
               dataSource={newQuestions}
               renderItem={(question, index) => (
-                <List.Item style={{ padding: '8px 0', width: '100%' }}>
+                <List.Item
+                  ref={el => {
+                    if (el) newQuestionRefs.current[question.id] = el
+                  }}
+                  style={{ padding: '8px 0', width: '100%' }}
+                >
                   <Card
                     style={{
                       marginBottom: 16,
@@ -1538,7 +1586,7 @@ const SurveyDetailModal = ({
                                 onClick={() =>
                                   handleRemoveAnswer(question.id, answer.id)
                                 }
-                                disabled={question.answers.length <= 1}
+                                disabled={!canRemoveAnswers}
                               />
                             </Form.Item>
                           </Col>
@@ -1551,7 +1599,7 @@ const SurveyDetailModal = ({
                         icon={<PlusOutlined />}
                         size="small"
                         onClick={() => handleAddAnswer(question.id)}
-                        disabled={question.answers.length >= 10}
+                        disabled={!canAddAnswers}
                       >
                         {t('surveyManagement.detail.addAnswer')}
                       </Button>
@@ -1581,7 +1629,11 @@ const SurveyDetailModal = ({
 
   const renderEditForm = () => (
     <div style={{ padding: '8px 0' }}>
-      <Form form={form} layout="vertical">
+      <Form
+        form={form}
+        layout="vertical"
+        onValuesChange={handleFormValuesChange}
+      >
         <Row gutter={24}>
           <Col span={10}>
             {/* Basic Information Section */}
@@ -1752,12 +1804,7 @@ const SurveyDetailModal = ({
                       prevValues.targetScope !== currentValues.targetScope
                     }
                   >
-                    {({ getFieldValue, resetFields }) => {
-                      // khi scope thay đổi thì reset
-                      if (getFieldValue('targetScope') !== TARGET_SCOPE.GRADE) {
-                        resetFields(['targetGrade'])
-                      }
-
+                    {({ getFieldValue }) => {
                       return (
                         <Form.Item
                           name="targetGrade"
@@ -1829,7 +1876,7 @@ const SurveyDetailModal = ({
                         }
                         checkedChildren={<CheckCircleOutlined />}
                         unCheckedChildren={<CloseOutlined />}
-                        value={survey.isRequired}
+                        defaultChecked={survey.isRequired}
                       />
                       <span style={{ marginLeft: 8 }}>
                         {t('surveyManagement.detail.requiredSurvey')}
@@ -1839,93 +1886,121 @@ const SurveyDetailModal = ({
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    name="isRecurring"
+                    shouldUpdate
                     label={t('surveyManagement.form.isRecurring')}
-                    valuePropName="checked"
-                    initialValue={false}
                   >
-                    <div
-                      style={{
-                        padding: '8px 12px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '6px',
-                        backgroundColor: !isFieldEditable('isRequired')
-                          ? '#f5f5f5'
-                          : 'white',
-                      }}
-                    >
-                      <Switch
-                        disabled={
-                          !isFieldEditable('isRecurring') ||
-                          survey.surveyType === SURVEY_TYPE.PROGRAM
-                        }
-                        checkedChildren={<CheckCircleOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        value={survey.isRecurring}
-                      />
-                      <span style={{ marginLeft: 8 }}>
-                        {t('surveyManagement.form.isRecurring')}
-                      </span>
-                    </div>
+                    {({ getFieldValue, setFieldsValue }) => {
+                      const value = getFieldValue('isRecurring')
+                      return (
+                        <div
+                          style={{
+                            padding: '8px 12px',
+                            border: '1px solid #d9d9d9',
+                            borderRadius: '6px',
+                            backgroundColor: !isFieldEditable('isRequired')
+                              ? '#f5f5f5'
+                              : 'white',
+                          }}
+                        >
+                          <Switch
+                            checked={value}
+                            onChange={checked =>
+                              setFieldsValue({ isRecurring: checked })
+                            }
+                            disabled={
+                              !isFieldEditable('isRecurring') ||
+                              survey.surveyType === SURVEY_TYPE.PROGRAM
+                            }
+                            checkedChildren={<CheckCircleOutlined />}
+                            unCheckedChildren={<CloseOutlined />}
+                            onClick={value => {
+                              if (!value) {
+                                setFieldsValue({
+                                  recurringCycle: RECURRING_CYCLE.NONE,
+                                })
+                              } else {
+                                setFieldsValue({
+                                  recurringCycle: RECURRING_CYCLE.WEEKLY,
+                                })
+                              }
+                            }}
+                          />
+                          <span style={{ marginLeft: 8 }}>
+                            {t('surveyManagement.form.isRecurring')}
+                          </span>
+                        </div>
+                      )
+                    }}
+                  </Form.Item>
+                </Col>
+                <Col span={24}>
+                  <Form.Item
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.isRecurring !== currentValues.isRecurring
+                    }
+                  >
+                    {({ getFieldValue }) =>
+                      getFieldValue('isRecurring') && (
+                        <Form.Item
+                          name="recurringCycle"
+                          label={t('surveyManagement.form.recurringCycle')}
+                          rules={[
+                            {
+                              required: true,
+                              message: t(
+                                'surveyManagement.form.recurringCycleRequired'
+                              ),
+                            },
+                            {
+                              validator: (_, value) => {
+                                if (getFieldValue('isRecurring') && value) {
+                                  const validCycles = [
+                                    RECURRING_CYCLE.WEEKLY,
+                                    RECURRING_CYCLE.MONTHLY,
+                                  ]
+                                  if (!validCycles.includes(value)) {
+                                    return Promise.reject(
+                                      new Error(
+                                        t(
+                                          'surveyManagement.form.recurringValidation.invalidCycle'
+                                        )
+                                      )
+                                    )
+                                  }
+                                }
+                                return Promise.resolve()
+                              },
+                            },
+                          ]}
+                          initialValue={
+                            survey.recurringCycle === RECURRING_CYCLE.NONE
+                              ? RECURRING_CYCLE.WEEKLY
+                              : survey.recurringCycle
+                          }
+                        >
+                          <Select
+                            placeholder={t(
+                              'surveyManagement.form.recurringCyclePlaceholder'
+                            )}
+                          >
+                            <Option value={RECURRING_CYCLE.WEEKLY}>
+                              {t(
+                                'surveyManagement.enums.recurringCycle.WEEKLY'
+                              )}
+                            </Option>
+                            <Option value={RECURRING_CYCLE.MONTHLY}>
+                              {t(
+                                'surveyManagement.enums.recurringCycle.MONTHLY'
+                              )}
+                            </Option>
+                          </Select>
+                        </Form.Item>
+                      )
+                    }
                   </Form.Item>
                 </Col>
               </Row>
-              <Form.Item
-                noStyle
-                shouldUpdate={(prevValues, currentValues) =>
-                  prevValues.isRecurring !== currentValues.isRecurring
-                }
-              >
-                {({ getFieldValue }) => (
-                  <Form.Item
-                    name="recurringCycle"
-                    label={t('surveyManagement.form.recurringCycle')}
-                    rules={[
-                      {
-                        required: getFieldValue('isRecurring'),
-                        message: t(
-                          'surveyManagement.form.recurringCycleRequired'
-                        ),
-                      },
-                      {
-                        validator: (_, value) => {
-                          if (getFieldValue('isRecurring') && value) {
-                            const validCycles = [
-                              RECURRING_CYCLE.WEEKLY,
-                              RECURRING_CYCLE.MONTHLY,
-                            ]
-                            if (!validCycles.includes(value)) {
-                              return Promise.reject(
-                                new Error(
-                                  t(
-                                    'surveyManagement.form.recurringValidation.invalidCycle'
-                                  )
-                                )
-                              )
-                            }
-                          }
-                          return Promise.resolve()
-                        },
-                      },
-                    ]}
-                    hidden={!getFieldValue('isRecurring')}
-                    initialValue={RECURRING_CYCLE.WEEKLY}
-                  >
-                    <Select
-                      placeholder={t(
-                        'surveyManagement.form.recurringCyclePlaceholder'
-                      )}
-                    >
-                      <Option value={RECURRING_CYCLE.WEEKLY}>
-                        {t('surveyManagement.enums.recurringCycle.WEEKLY')}
-                      </Option>
-                      <Option value={RECURRING_CYCLE.MONTHLY}>
-                        {t('surveyManagement.enums.recurringCycle.MONTHLY')}
-                      </Option>
-                    </Select>
-                  </Form.Item>
-                )}
-              </Form.Item>
             </Card>
 
             {/* Schedule Section */}
@@ -1942,60 +2017,183 @@ const SurveyDetailModal = ({
                 boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                 borderRadius: '8px',
               }}
-              headStyle={{
-                backgroundColor: '#fafafa',
-                borderRadius: '8px 8px 0 0',
+              styles={{
+                header: {
+                  backgroundColor: '#fafafa',
+                  borderRadius: '8px 8px 0 0',
+                },
               }}
             >
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
                     name="startDate"
-                    label={t('surveyManagement.detail.startDate')}
+                    label={t('surveyManagement.form.startDate')}
                     rules={[
                       {
                         required: true,
                         message: t('surveyManagement.form.startDateRequired'),
                       },
+                      {
+                        validator: (_, value) => {
+                          if (value) {
+                            const today = new Date()
+                            today.setHours(0, 0, 0, 0)
+                            const selectedDate = new Date(value)
+                            selectedDate.setHours(0, 0, 0, 0)
+                            if (selectedDate < today) {
+                              return Promise.reject(
+                                new Error(
+                                  t(
+                                    'surveyManagement.form.startDateBeforeToday'
+                                  )
+                                )
+                              )
+                            }
+                          }
+                          return Promise.resolve()
+                        },
+                      },
                     ]}
-                    style={{ marginBottom: 16 }}
                   >
                     <DatePicker
-                      style={{ width: '100%', borderRadius: '6px' }}
-                      placeholder={t(
-                        'surveyManagement.form.startDatePlaceholder'
-                      )}
+                      style={{ width: '100%' }}
+                      disabledDate={current => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0)
+                        return current && current < today
+                      }}
                       disabled={
                         !isFieldEditable('startDate') ||
                         survey.surveyType === SURVEY_TYPE.PROGRAM
                       }
-                      format="DD/MM/YYYY"
                     />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Form.Item
-                    name="endDate"
-                    label={t('surveyManagement.detail.endDate')}
-                    rules={[
-                      {
-                        required: true,
-                        message: t('surveyManagement.form.endDateRequired'),
-                      },
-                    ]}
-                    style={{ marginBottom: 0 }}
+                    noStyle
+                    shouldUpdate={(prevValues, currentValues) =>
+                      prevValues.startDate !== currentValues.startDate ||
+                      prevValues.isRecurring !== currentValues.isRecurring ||
+                      prevValues.recurringCycle !== currentValues.recurringCycle
+                    }
                   >
-                    <DatePicker
-                      style={{ width: '100%', borderRadius: '6px' }}
-                      placeholder={t(
-                        'surveyManagement.form.endDatePlaceholder'
-                      )}
-                      disabled={
-                        !isFieldEditable('endDate') ||
-                        survey.surveyType === SURVEY_TYPE.PROGRAM
-                      }
-                      format="DD/MM/YYYY"
-                    />
+                    {() => (
+                      <Form.Item
+                        name="endDate"
+                        label={t('surveyManagement.form.endDate')}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('surveyManagement.form.endDateRequired'),
+                          },
+                          {
+                            validator: (_, value) => {
+                              const startDate = form.getFieldValue('startDate')
+                              const isRecurring =
+                                form.getFieldValue('isRecurring')
+                              const recurringCycle =
+                                form.getFieldValue('recurringCycle')
+
+                              if (value && startDate) {
+                                const start = new Date(startDate)
+                                start.setHours(0, 0, 0, 0)
+                                const end = new Date(value)
+                                end.setHours(0, 0, 0, 0)
+
+                                if (end <= start) {
+                                  return Promise.reject(
+                                    new Error(
+                                      t(
+                                        'surveyManagement.form.endDateBeforeStartDate'
+                                      )
+                                    )
+                                  )
+                                }
+
+                                // Additional validation for recurring surveys
+                                if (isRecurring && recurringCycle) {
+                                  const daysDiff = Math.ceil(
+                                    (end - start) / (1000 * 60 * 60 * 24)
+                                  )
+                                  let maxDays = 0
+                                  let errorKey = ''
+
+                                  switch (recurringCycle) {
+                                    case RECURRING_CYCLE.WEEKLY:
+                                      maxDays = 7
+                                      errorKey = 'endDateWeekly'
+                                      break
+                                    case RECURRING_CYCLE.MONTHLY:
+                                      maxDays = 30
+                                      errorKey = 'endDateMonthly'
+                                      break
+                                  }
+
+                                  if (daysDiff > maxDays) {
+                                    return Promise.reject(
+                                      new Error(
+                                        t(
+                                          `surveyManagement.form.recurringValidation.${errorKey}`
+                                        )
+                                      )
+                                    )
+                                  }
+                                }
+                              }
+                              return Promise.resolve()
+                            },
+                          },
+                        ]}
+                      >
+                        <DatePicker
+                          style={{ width: '100%' }}
+                          disabledDate={current => {
+                            const startDate = form.getFieldValue('startDate')
+                            const isRecurring =
+                              form.getFieldValue('isRecurring')
+                            const recurringCycle =
+                              form.getFieldValue('recurringCycle')
+
+                            if (!startDate) return false
+
+                            const start = new Date(startDate)
+                            start.setHours(0, 0, 0, 0)
+                            const currentDate = new Date(current)
+                            currentDate.setHours(0, 0, 0, 0)
+
+                            // Basic constraint: end date must be after start date
+                            if (currentDate <= start) return true
+
+                            // Additional constraint for recurring surveys
+                            if (isRecurring && recurringCycle) {
+                              const daysDiff = Math.ceil(
+                                (currentDate - start) / (1000 * 60 * 60 * 24)
+                              )
+                              let maxDays = 0
+
+                              switch (recurringCycle) {
+                                case RECURRING_CYCLE.WEEKLY:
+                                  maxDays = 7
+                                  break
+                                case RECURRING_CYCLE.MONTHLY:
+                                  maxDays = 30
+                                  break
+                              }
+
+                              return daysDiff > maxDays
+                            }
+
+                            return false
+                          }}
+                          disabled={
+                            !isFieldEditable('endDate') ||
+                            survey.surveyType === SURVEY_TYPE.PROGRAM
+                          }
+                        />
+                      </Form.Item>
+                    )}
                   </Form.Item>
                 </Col>
               </Row>
@@ -2017,10 +2215,6 @@ const SurveyDetailModal = ({
         return [...prev, caseId]
       })
     } else {
-      console.log('handleCaseSelection')
-      console.log('caseId', caseId)
-      console.log('type', type)
-
       setSelectedRemovedCases(prev => {
         if (prev.includes(caseId)) {
           return prev.filter(id => id !== caseId)
@@ -2051,7 +2245,6 @@ const SurveyDetailModal = ({
       surveyId: survey?.surveyId || survey?.id || surveyId,
       caseIds: selectedRemovedCases,
     }
-    console.log('params', params)
 
     await dispatch(addCaseToSurvey(params))
       .unwrap()
@@ -2064,7 +2257,6 @@ const SurveyDetailModal = ({
   }
 
   const handleRemoveCase = async () => {
-    console.log('selectedAddedCases', selectedAddedCases)
     new Promise(() => {
       surveyAPI
         .removeCaseFromSurveyCaseLink({
@@ -2432,10 +2624,10 @@ const SurveyDetailModal = ({
               </Button>,
             ]
       }
-      width={1300}
+      width={1500}
       styles={{
         body: {
-          maxHeight: '70vh',
+          maxHeight: '75vh',
           overflowY: 'auto',
           overflowX: 'hidden',
           paddingRight: 14,

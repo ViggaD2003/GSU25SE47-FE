@@ -274,7 +274,7 @@ const ProgramStatistics = ({ program, statistics }) => {
           <Card
             title={t(
               'programManagement.details.charts.participantType',
-              'Hình thức tham gia'
+              'Participant Type'
             )}
           >
             <Pie {...pieProps} />

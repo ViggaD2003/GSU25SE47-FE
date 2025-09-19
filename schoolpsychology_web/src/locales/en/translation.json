@@ -64,6 +64,7 @@
     },
     "messages": {
       "loginSuccess": "Login successfully",
+      "loginError": "Login failed",
       "wrongFormatPassword": "Password must be at least 8 characters long",
       "invalidCredentials": "Invalid email or password",
       "loginFailed": "Login failed"
@@ -492,7 +493,7 @@
       "charts": {
         "enrollmentTrend": "Enrollment Trend",
         "statusDistribution": "Status Distribution",
-        "assessmentScores": "Điểm đánh giá",
+        "assessmentScores": "Assessment Scores",
         "participantCount": "Participant Count",
         "enrollmentRate": "Enrollment Rate",
         "averageScore": "Average Score",
@@ -509,7 +510,8 @@
         "declined": "Declined",
         "normal": "Normal",
         "case": "Case",
-        "participantTypeDistribution": "Participant Type Distribution"
+        "participantTypeDistribution": "Participant Type Distribution",
+        "participantType": "Participant Type"
       },
       "statistics": {
         "title": "Statistics",
@@ -2491,5 +2493,43 @@
     "hint": "Press Enter to send, Shift + Enter to send a new line",
     "noMessage": "No message available",
     "disabledDesc": "You can only send messages when the case is in progress."
+  },
+  "questionTabs": {
+    "question": "Question",
+    "questionType": "Question Type",
+    "questionDescription": "Question Description",
+    "questionDescriptionPlaceholder": "Enter question description",
+    "questionTypePlaceholder": "Select question type",
+    "questionRequired": "Question Required",
+    "severity": "Severity {{score}}",
+    "frequency": "Frequency {{score}}",
+    "impairment": "Impairment {{score}}",
+    "chronicity": "Chronicity {{score}}",
+    "form": {
+      "questionTextPlaceholder": "Enter question text",
+      "questionDescription": "Question Description (Optional)",
+      "questionDescriptionPlaceholder": "Enter question description",
+      "answers": "Answers",
+      "scoreRange": "Score Range",
+      "answerTextPlaceholder": "Enter answer text",
+      "answerTextRequired": "Please enter answer text",
+      "scoreRequired": "Please enter score",
+      "scorePlaceholder": "Score",
+      "scoreRangeDesc": "Current category uses score range:",
+      "answersWillBeAutomaticallyGeneratedBasedOnThisRange": "Answers will be automatically generated based on this range.",
+      "manuallyEditTheTextAndScoresAsNeeded": "You can manually edit the text and scores as needed.",
+      "questionLengthRequired": "This survey type ({{code}}) requires exactly {{limit}} questions.",
+      "current": "Current: {{current}} / {{limit}} questions",
+      "questionLimitations": "Question Limitations",
+      "scoringSystemInformation": "Scoring System Information"
+    },
+    "message": {
+      "questionLengthExceeded": "This survey type ({{code}}) is limited to {{limit}} questions. You currently have {{current}} questions.",
+      "questionLengthRequired": "This survey type ({{code}}) requires exactly {{limit}} questions. You currently have {{current}} questions.",
+      "failedToUpdateQuestions": "Failed to update questions. Please try again.",
+      "atLeastOneQuestionRequired": "At least one question is required",
+      "failedToRemoveQuestion": "Failed to remove question. Please try again.",
+      "questionTextRequired": "Please enter question text"
+    }
   }
 }

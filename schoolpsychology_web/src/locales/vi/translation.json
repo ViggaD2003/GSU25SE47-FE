@@ -406,8 +406,8 @@
       "maxParticipantsPlaceholder": "Nhập số lượng tối đa",
       "status": "Trạng thái",
       "statusRequired": "Trạng thái là bắt buộc",
-      "statusPlaceholder": "Select program status",
-      "type": "Program Type",
+      "statusPlaceholder": "Chọn trạng thái chương trình",
+      "type": "Loại chương trình",
       "typeOnline": "Trực tuyến",
       "typeOffline": "Trực tiếp",
       "date": "Ngày",
@@ -510,7 +510,8 @@
         "declined": "Giảm sút",
         "normal": "Bình thường",
         "case": "Trường hợp đang theo dõi",
-        "participantTypeDistribution": "Phân bố học viên"
+        "participantTypeDistribution": "Phân bố học viên",
+        "participantType": "Hình thức tham gia"
       },
       "statistics": {
         "title": "Thống kê",
@@ -1256,6 +1257,10 @@
       "startDateRequired": "Vui lòng chọn ngày bắt đầu",
       "endDate": "Ngày kết thúc",
       "endDateRequired": "Vui lòng chọn ngày kết thúc",
+      "endDatePlaceholder": "Chọn ngày kết thúc",
+      "questionTextPlaceholder": "Nhập nội dung câu hỏi",
+      "questionDescriptionPlaceholder": "Nhập mô tả câu hỏi (tùy chọn)",
+      "questionTypePlaceholder": "Chọn loại câu hỏi",
       "questions": "Câu hỏi",
       "question": "Câu hỏi",
       "addQuestion": "Thêm câu hỏi",
@@ -1321,6 +1326,7 @@
     }
   },
   "common": {
+    "new": "Mới",
     "searchByEmail": "Tìm kiếm theo email...",
     "assign": "Gán",
     "assigned": "Đã gán",
@@ -2528,5 +2534,43 @@
     "hint": "Nhấn Enter để gửi, Shift + Enter để xuống dòng",
     "noMessage": "Không có tin nhắn nào",
     "disabledDesc": "Bạn chỉ có thể gửi tin nhắn khi case đang trong trạng thái xử lý."
+  },
+  "questionTabs": {
+    "question": "Câu hỏi",
+    "questionType": "Loại câu hỏi",
+    "questionDescription": "Mô tả câu hỏi",
+    "questionDescriptionPlaceholder": "Nhập mô tả câu hỏi",
+    "questionTypePlaceholder": "Chọn loại câu hỏi",
+    "questionRequired": "Câu hỏi bắt buộc",
+    "severity": "Độ nghiêm trọng {{score}}",
+    "frequency": "Tần suất {{score}}",
+    "impairment": "Tác động {{score}}",
+    "chronicity": "Tính kéo dài {{score}}",
+    "form": {
+      "questionTextPlaceholder": "Nhập câu hỏi",
+      "questionDescription": "Mô tả câu hỏi (tùy chọn)",
+      "questionDescriptionPlaceholder": "Nhập mô tả câu hỏi",
+      "answers": "Câu trả lời",
+      "scoreRange": "Khoảng điểm",
+      "answerTextPlaceholder": "Nhập câu trả lời",
+      "answerTextRequired": "Vui lòng nhập câu trả lời",
+      "scoreRequired": "Vui lòng nhập điểm",
+      "scorePlaceholder": "Điểm",
+      "scoreRangeDesc": "Danh mục hiện tại sử dụng khoảng điểm:",
+      "answersWillBeAutomaticallyGeneratedBasedOnThisRange": "Câu trả lời sẽ được tự động tạo dựa trên khoảng điểm này.",
+      "manuallyEditTheTextAndScoresAsNeeded": "Bạn có thể sửa câu trả lời và điểm theo nhu cầu.",
+      "questionLengthRequired": "Loại khảo sát ({{code}}) yêu cầu đúng {{limit}} câu hỏi.",
+      "current": "Hiện tại: {{current}} / {{limit}} câu hỏi",
+      "questionLimitations": "Giới hạn câu hỏi",
+      "scoringSystemInformation": "Thông tin hệ thống đánh giá"
+    },
+    "message": {
+      "questionLengthExceeded": "Loại khảo sát ({{code}}) giới hạn {{limit}} câu hỏi. Bạn hiện tại có {{current}} câu hỏi.",
+      "questionLengthRequired": "Loại khảo sát ({{code}}) yêu cầu đúng {{limit}} câu hỏi. Bạn hiện tại có {{current}} câu hỏi.",
+      "failedToUpdateQuestions": "Lỗi khi cập nhật câu hỏi. Vui lòng thử lại.",
+      "atLeastOneQuestionRequired": "Vui lòng nhập ít nhất 1 câu hỏi",
+      "failedToRemoveQuestion": "Lỗi khi xóa câu hỏi. Vui lòng thử lại.",
+      "questionTextRequired": "Vui lòng nhập câu hỏi"
+    }
   }
 }
