@@ -11,6 +11,7 @@
     "content": "Content of notification"
   },
   "navigation": {
+    "account": "Account",
     "dashboard": "Dashboard",
     "accountManagement": {
       "title": "Account Management"
@@ -210,8 +211,10 @@
   "role": {
     "student": "Student",
     "guardian": "Guardian",
+    "parent": "Parent",
     "teacher": "Teacher",
-    "counselor": "Counselor"
+    "counselor": "Counselor",
+    "parents": "Parent"
   },
   "clientManagement": {
     "alertNoClass": "You are not assigned to any class",
@@ -238,36 +241,75 @@
     }
   },
   "staffManagement": {
-    "title": "Staff Management",
-    "description": "Manage your staff and their information",
+    "title": "Account Management",
+    "description": "Manage accounts and their information",
     "refresh": "Refresh",
-    "addStaff": "Add Staff",
-    "search": "Search staff...",
+    "addAccount": "Add Account",
+    "search": "Search account by name, email, or phone...",
     "messages": {
-      "editUserSuccess": "Edit staff successfully",
-      "addUserSuccess": "Add staff successfully",
-      "inactiveSuccess": "Inactive staff successfully"
+      "editUserSuccess": "Edit account successfully",
+      "addUserSuccess": "Add account successfully",
+      "inactiveSuccess": "Inactive account successfully",
+      "fetchError": "Failed to fetch account",
+      "accessDenied": "Access denied. You don't have permission to view this data",
+      "serverError": "Server error occurred. Please try again later",
+      "editError": "Failed to edit account",
+      "addError": "Failed to add account",
+      "statusUpdateSuccess": "Update status successfully",
+      "statusUpdateError": "Failed to update status"
     }
   },
   "userModal": {
     "editTitle": "Edit user information",
     "addTitle": "Add user information",
+    "viewTitle": "View user information",
     "form": {
       "fullName": "Full Name",
       "email": "Email",
       "phone": "Phone",
       "role": "Role",
-      "status": "Status"
+      "status": "Status",
+      "password": "Password",
+      "gender": "Gender",
+      "dob": "Date of Birth"
     },
     "roleOptions": {
       "student": "Student",
       "guardian": "Guardian",
       "teacher": "Teacher",
-      "counselor": "Counselor"
+      "counselor": "Counselor",
+      "parents": "Parent",
+      "parent": "Parent"
     },
     "statusOptions": {
       "active": "Active",
       "inactive": "Inactive"
+    },
+    "genderOptions": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "placeholder": {
+      "fullName": "Enter full name",
+      "email": "Enter email address",
+      "phone": "Enter phone number",
+      "password": "Enter password",
+      "role": "Select role",
+      "status": "Select status",
+      "dob": "Select date of birth"
+    },
+    "validation": {
+      "fullNameRequired": "Full name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "phoneRequired": "Phone number is required",
+      "phoneInvalid": "Please enter a valid phone number",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 6 characters",
+      "roleRequired": "Role is required",
+      "statusRequired": "Status is required",
+      "genderRequired": "Gender is required",
+      "dobRequired": "Date of birth is required"
     }
   },
   "userTable": {
@@ -279,6 +321,12 @@
     "dob": "Date of Birth",
     "role": "Role",
     "createCase": "Create Case",
+    "actions": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "activeConfirm": "Are you sure you want to activate this account?",
+      "inactiveConfirm": "Are you sure you want to deactivate this account?"
+    },
     "roleOptions": {
       "student": "Student",
       "guardian": "Guardian",
@@ -843,6 +891,7 @@
         "HIGH": "High",
         "MEDIUM": "Medium",
         "LOW": "Low",
+        "MODERATE": "Moderate",
         "SEVERE": "Severe",
         "CRITICAL": "Critical"
       },

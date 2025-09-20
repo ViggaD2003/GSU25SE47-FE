@@ -19,7 +19,7 @@ export const getPublishedSurveys = async (userId) => {
 //Get survey by surveyId
 export const getSurveyById = async (surveyId) => {
   try {
-    const response = await api.get(`/api/v1/survey/${surveyId}`);
+    const response = await api.get(`/api/v1/survey/${surveyId}?flag=true`);
     const data = response.data;
     return data;
   } catch (error) {

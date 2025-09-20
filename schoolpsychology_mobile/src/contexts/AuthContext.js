@@ -161,6 +161,7 @@ export const AuthProvider = ({ children }) => {
       ...prevUser,
       fullName: userData.fullName,
       isEnableSurvey: userData.isEnableSurvey,
+      caseId: userData.caseId || userData.caseProfile.id,
     }));
   }, []);
 

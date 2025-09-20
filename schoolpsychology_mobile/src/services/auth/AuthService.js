@@ -118,6 +118,7 @@ export const getCurrentUser = async () => {
       id: user.id || user.userId || decoded["user-id"],
       email: user.email || decoded.sub,
       fullName: user.fullName || decoded.fullname,
+      caseId: user.caseId || user.caseProfile?.id,
     };
   } catch (error) {
     console.warn("Error getting current user:", error);

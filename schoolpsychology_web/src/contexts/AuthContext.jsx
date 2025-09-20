@@ -263,11 +263,11 @@ export const AuthProvider = ({ children }) => {
           // Validate role authorization
           if (!isAuthorizedRole(result.user.role)) {
             dispatch(logoutUser())
-            notificationService.error({
-              message: 'Login Failed',
-              description: 'You are not authorized to access this application.',
-              duration: NOTIFICATION_DURATIONS.ERROR,
-            })
+            // notificationService.error({
+            //   message: 'Login Failed',
+            //   description: 'You are not authorized to access this application.',
+            //   duration: NOTIFICATION_DURATIONS.ERROR,
+            // })
             navigate(NAVIGATION_PATHS.LOGIN, { replace: true })
             return {
               success: false,
@@ -287,84 +287,16 @@ export const AuthProvider = ({ children }) => {
           throw new Error('Invalid login response: missing user data')
         }
       } catch (error) {
-        // Handle different types of errors
-        let errorMessage = 'Login failed. Please try again.'
-        let errorDescription = 'An unexpected error occurred during login.'
-        let shouldNavigateToLogin = false
-
-        // Check for server errors (500, 502, 503, 504)
-        if (error?.isServerError || error?.status >= 500) {
-          errorMessage = 'Server Error'
-          errorDescription =
-            'The server is experiencing issues. Please try again later or contact support.'
-          shouldNavigateToLogin = true
-        }
-        // Check for service unavailable errors
-        else if (error?.isServiceError) {
-          errorMessage = 'Service Unavailable'
-          errorDescription =
-            'The authentication service is temporarily unavailable. Please try again later.'
-          shouldNavigateToLogin = true
-        }
-        // Check for network errors
-        else if (error?.isNetworkError) {
-          errorMessage = 'Network Error'
-          errorDescription =
-            'Unable to connect to the server. Please check your internet connection.'
-          shouldNavigateToLogin = true
-        }
-        // Check for client errors (400, 401, 403)
-        else if (error?.isClientError || error?.isAuthError) {
-          errorMessage = error?.error || 'Authentication Failed'
-          errorDescription =
-            error?.message || 'Invalid credentials or access denied.'
-          shouldNavigateToLogin = false // Don't navigate for client errors, let user retry
-        }
-        // Check for HTTP errors
-        else if (error?.isHttpError) {
-          errorMessage = error?.error || 'HTTP Error'
-          errorDescription =
-            error?.message || 'An error occurred during authentication.'
-          shouldNavigateToLogin = error?.status >= 500 // Navigate for server errors
-          // console.error('🔥 HTTP eror detected during login:', error)
-        }
-        // Check for duplicate account errors
-        else if (
-          error?.message &&
-          (error.message.includes('Query did not return a unique result') ||
-            error.message.includes('duplicate') ||
-            error.message.includes('multiple accounts'))
-        ) {
-          errorMessage = 'Duplicate Account Issue'
-          errorDescription =
-            'Multiple accounts found with the same email. Please contact support to resolve this issue.'
-          shouldNavigateToLogin = true
-        }
-        // Generic error handling
-        else {
-          errorMessage = error?.error || 'Login Failed'
-          errorDescription =
-            error?.message || 'Invalid credentials. Please try again.'
-          shouldNavigateToLogin = false
-        }
-
-        // Show error notification
-        notificationService.error({
-          message: errorMessage,
-          description: errorDescription,
-          duration: NOTIFICATION_DURATIONS.ERROR,
-        })
-
         dispatch(loginFailure())
 
         // Navigate to login if needed
-        if (shouldNavigateToLogin) {
+        if (error) {
           setTimeout(() => {
             navigate(NAVIGATION_PATHS.LOGIN, { replace: true })
           }, 3000) // Wait 3 seconds before redirecting
         }
 
-        return { success: false, error: errorMessage }
+        return { success: false, error: error }
       }
     },
     [dispatch, navigate, clearAuthData]

@@ -97,52 +97,13 @@ export const ROUTE_CONFIG = [
     allowedRoles: ['manager', 'teacher'],
     element: 'UserDetail',
   },
-  // Staff Management (Staff List, Slot Management) - Manager
+
   {
-    key: 'account-staff',
+    key: '/account-management',
     icon: UserOutlined,
-    labelKey: 'navigation.staffManagement.title',
+    labelKey: 'navigation.accountManagement.title',
     allowedRoles: ['manager'],
-    children: [
-      {
-        key: '/account-staff/counselor',
-        labelKey: 'navigation.staffManagement.counselorList',
-        element: 'StaffManagement',
-        allowedRoles: ['manager'],
-      },
-      {
-        key: '/account-staff/teacher',
-        labelKey: 'navigation.staffManagement.teacherList',
-        element: 'StaffManagement',
-        allowedRoles: ['manager'],
-      },
-      {
-        key: '/account-staff/slot',
-        labelKey: 'navigation.staffManagement.workSchedule',
-        element: 'SlotManagement',
-        allowedRoles: ['manager'],
-      },
-    ],
-  },
-  {
-    key: 'account-client',
-    icon: UserOutlined,
-    labelKey: 'navigation.clientManagement.title',
-    allowedRoles: ['manager'],
-    children: [
-      {
-        key: '/account-client/student',
-        labelKey: 'navigation.clientManagement.studentList',
-        element: 'ClientManagement',
-        allowedRoles: ['manager'],
-      },
-      {
-        key: '/account-client/parent',
-        labelKey: 'navigation.clientManagement.parentList',
-        element: 'ClientManagement',
-        allowedRoles: ['manager'],
-      },
-    ],
+    element: 'StaffManagement',
   },
 
   // Slot Management (Work Schedule) - Teacher, Counselor
@@ -150,7 +111,7 @@ export const ROUTE_CONFIG = [
     key: '/work-schedule',
     icon: CalendarOutlined,
     labelKey: 'navigation.slotManagement',
-    allowedRoles: ['teacher', 'counselor'],
+    allowedRoles: ['teacher', 'counselor', 'manager'],
     element: 'SlotManagement',
   },
 

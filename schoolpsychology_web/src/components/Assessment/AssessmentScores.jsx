@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react'
+import React, { memo, useEffect, useMemo } from 'react'
 import {
   Card,
   Row,
@@ -24,6 +24,10 @@ const AssessmentScores = memo(({ assessmentScores, isDarkMode, t }) => {
       ) / assessmentScores.length
     )
   }, [assessmentScores])
+
+  useEffect(() => {
+    if (calculateTotalScore === 0) return null
+  }, [calculateTotalScore])
 
   const getRiskLevel = useMemo(() => {
     if (calculateTotalScore >= 3.9)

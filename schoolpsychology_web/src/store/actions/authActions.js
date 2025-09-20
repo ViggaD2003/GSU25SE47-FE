@@ -100,7 +100,7 @@ export const loginUser = createAsyncThunk(
     } catch (error) {
       console.error('❌ Login failed:', error)
       dispatch(loginFailure())
-      return rejectWithValue(error.response?.data?.message || error.message)
+      return rejectWithValue(error)
     }
   }
 )

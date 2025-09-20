@@ -346,7 +346,7 @@ const AppointmentDetails = () => {
   const appointmentDetails = useSelector(selectAppointmentDetails)
   const loading = useSelector(selectAppointmentLoading)
   const error = useSelector(selectAppointmentError)
-  const userRole = useSelector(selectUserRole)
+  const userRole = useSelector(selectUserRole).toUpperCase()
 
   // Local state
   const [isEditing, setIsEditing] = useState(false)
@@ -800,18 +800,6 @@ const AppointmentDetails = () => {
         {renderActionButtons()}
       </div>
 
-      {/* {appointment.isOnline && (
-        <Button
-          type="link"
-          onClick={() =>
-            window.open(appointment.location, '_blank', 'noopener,noreferrer')
-          }
-          // disabled={showAssessmentForm || updatingStatus}
-        >
-          {appointment.location}
-        </Button>
-      )} */}
-
       {/* Manager View Only Notice */}
       {userRole === 'MANAGER' && !isAppointmentRecord && (
         <Alert
@@ -832,15 +820,6 @@ const AppointmentDetails = () => {
             type="warning"
             showIcon
             style={{ marginBottom: '6px' }}
-            // action={
-            //   <Button
-            //     size="small"
-            //     type="primary"
-            //     onClick={() => setShowAssessmentForm(true)}
-            //   >
-            //     {t('appointmentDetails.continueAssessment')}
-            //   </Button>
-            // }
           />
         )}
 
@@ -1067,14 +1046,18 @@ const AppointmentDetails = () => {
               </Col>
 
               {/* Enhanced Assessment Scores */}
-              <Col xs={24} lg={24}>
-                <AssessmentScores
-                  assessmentScores={currentData.assessmentScores || []}
-                  isDarkMode={isDarkMode}
-                  t={t}
-                  categories={categories}
-                />
-              </Col>
+              {userRole !== 'TEACHER' &&
+                appointment.assessmentScores &&
+                appointment.assessmentScores.length > 0 && (
+                  <Col xs={24} lg={24}>
+                    <AssessmentScores
+                      assessmentScores={currentData.assessmentScores || []}
+                      isDarkMode={isDarkMode}
+                      t={t}
+                      categories={categories}
+                    />
+                  </Col>
+                )}
 
               {/* Enhanced Timeline */}
               {/* <Col xs={24} lg={24}>
@@ -1243,6 +1226,7 @@ const AppointmentDetails = () => {
       {/* Enhanced Assessment Form Modal */}
       {showAssessmentForm && !isAppointmentRecord && (
         <AssessmentForm
+          userRole={userRole}
           isVisible={showAssessmentForm}
           onClose={handleCloseAssessmentForm}
           onSubmit={handleAssessmentSubmit}

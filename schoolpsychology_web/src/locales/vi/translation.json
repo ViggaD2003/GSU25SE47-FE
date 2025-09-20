@@ -11,6 +11,7 @@
     "content": "Nội dung thông báo"
   },
   "navigation": {
+    "account": "Tài khoản",
     "dashboard": "Bảng điều khiển",
     "accountManagement": {
       "title": "Quản lý tài khoản"
@@ -211,7 +212,9 @@
     "student": "Học sinh",
     "guardian": "Phụ huynh",
     "teacher": "Giáo viên",
-    "counselor": "Tư vấn viên"
+    "counselor": "Tư vấn viên",
+    "parent": "Phụ huynh",
+    "parents": "Phụ huynh"
   },
   "clientManagement": {
     "alertNoClass": "Bạn chưa được phân vào lớp học nào",
@@ -238,36 +241,75 @@
     }
   },
   "staffManagement": {
-    "title": "Quản lý nhân viên",
-    "description": "Quản lý nhân viên và thông tin của họ",
+    "title": "Quản lý tài khoản",
+    "description": "Quản lý tài khoản và thông tin của họ",
     "refresh": "Làm mới",
-    "search": "Tìm kiếm nhân viên...",
-    "addStaff": "Thêm nhân viên",
+    "search": "Tìm kiếm tài khoản theo tên, email, số điện thoại...",
+    "addAccount": "Thêm tài khoản",
     "messages": {
-      "editUserSuccess": "Sửa tài khoản nhân viên thành công",
-      "addUserSuccess": "Thêm tài khoản nhân viên thành công",
-      "inactiveSuccess": "Chặn tài khoản nhân viên thành công"
+      "editUserSuccess": "Sửa tài khoản thành công",
+      "addUserSuccess": "Thêm tài khoản thành công",
+      "inactiveSuccess": "Chặn tài khoản thành công",
+      "fetchError": "Không thể tải danh sách tài khoản",
+      "accessDenied": "Truy cập bị từ chối. Bạn không có quyền xem dữ liệu này",
+      "serverError": "Lỗi máy chủ. Vui lòng thử lại sau",
+      "editError": "Không thể sửa tài khoản",
+      "addError": "Không thể thêm tài khoản",
+      "statusUpdateSuccess": "Cập nhật trạng thái thành công",
+      "statusUpdateError": "Không thể cập nhật trạng thái"
     }
   },
   "userModal": {
     "editTitle": "Sửa thông tin người dùng",
     "addTitle": "Thêm thông tin người dùng",
+    "viewTitle": "Xem thông tin người dùng",
     "form": {
       "fullName": "Họ và tên",
       "email": "Email",
       "phone": "Số điện thoại",
       "role": "Vai trò",
-      "status": "Trạng thái"
+      "status": "Trạng thái",
+      "password": "Mật khẩu",
+      "gender": "Giới tính",
+      "dob": "Ngày sinh"
     },
     "roleOptions": {
       "student": "Học sinh",
       "guardian": "Phụ huynh",
       "teacher": "Giáo viên",
-      "counselor": "Tư vấn viên"
+      "counselor": "Tư vấn viên",
+      "parents": "Phụ huynh",
+      "parent": "Phụ huynh"
     },
     "statusOptions": {
       "active": "Hoạt động",
       "inactive": "Chặn"
+    },
+    "genderOptions": {
+      "male": "Nam",
+      "female": "Nữ"
+    },
+    "placeholder": {
+      "fullName": "Nhập họ và tên",
+      "email": "Nhập địa chỉ email",
+      "phone": "Nhập số điện thoại",
+      "password": "Nhập mật khẩu",
+      "role": "Chọn vai trò",
+      "status": "Chọn trạng thái",
+      "dob": "Chọn ngày sinh"
+    },
+    "validation": {
+      "fullNameRequired": "Họ và tên là bắt buộc",
+      "emailRequired": "Email là bắt buộc",
+      "emailInvalid": "Vui lòng nhập địa chỉ email hợp lệ",
+      "phoneRequired": "Số điện thoại là bắt buộc",
+      "phoneInvalid": "Vui lòng nhập số điện thoại hợp lệ",
+      "passwordRequired": "Mật khẩu là bắt buộc",
+      "passwordMinLength": "Mật khẩu phải có ít nhất 6 ký tự",
+      "roleRequired": "Vai trò là bắt buộc",
+      "statusRequired": "Trạng thái là bắt buộc",
+      "genderRequired": "Giới tính là bắt buộc",
+      "dobRequired": "Ngày sinh là bắt buộc"
     }
   },
   "userTable": {
@@ -303,7 +345,13 @@
     "noSurveyRecord": "Không có bản ghi",
     "viewDetails": "Xem chi tiết",
     "createDate": "Ngày tạo",
-    "lastLogin": "Đăng nhập gần nhất"
+    "lastLogin": "Đăng nhập gần nhất",
+    "actions": {
+      "active": "Hoạt động",
+      "inactive": "Chặn",
+      "activeConfirm": "Bạn có chắc chắn muốn kích hoạt tài khoản này?",
+      "inactiveConfirm": "Bạn có chắc chắn muốn chặn tài khoản này?"
+    }
   },
   "programManagement": {
     "title": "Quản lý chương trình hỗ trợ",
@@ -840,6 +888,7 @@
         "HIGH": "Cao",
         "MEDIUM": "Trung bình",
         "LOW": "Thấp",
+        "MODERATE": "Trung bình",
         "SEVERE": "Nghiêm trọng",
         "CRITICAL": "Rất nghiêm trọng"
       },

@@ -35,6 +35,7 @@ const { TextArea } = Input
 
 const AssessmentForm = memo(
   ({
+    userRole,
     isVisible,
     onClose,
     onSubmit,
@@ -66,6 +67,12 @@ const AssessmentForm = memo(
 
     // Initialize assessment scores
     useEffect(() => {
+      if (userRole === 'TEACHER')
+        return setFormData(prev => ({
+          ...prev,
+          assessmentScores: [],
+        }))
+
       const initialScores = categories.map(category => ({
         categoryId: category.id,
         severityScore: 0,
@@ -80,11 +87,12 @@ const AssessmentForm = memo(
         ...prev,
         assessmentScores: initialScores,
       }))
-    }, [categories])
+    }, [categories, userRole])
     // console.log('formData', formData)
 
     // Calculate progress
     useEffect(() => {
+      if (userRole === 'TEACHER') return
       const totalFields = 3 + categories.length * 3 // session notes + summary + suggestion + each assessment item * 3 questions
       let completedFields = 0
 
@@ -106,10 +114,11 @@ const AssessmentForm = memo(
       }
 
       setProgress(Math.round((completedFields / totalFields) * 100))
-    }, [formData, categories])
+    }, [formData, categories, userRole])
 
     // Check for high-risk items
     useEffect(() => {
+      if (userRole === 'TEACHER') return
       const warnings = []
       ;(formData.assessmentScores || []).forEach(score => {
         if (
@@ -127,7 +136,7 @@ const AssessmentForm = memo(
           })
         }
       })
-    }, [formData.assessmentScores])
+    }, [formData.assessmentScores, userRole])
 
     // Auto-save to localStorage
     useEffect(() => {
@@ -165,6 +174,7 @@ const AssessmentForm = memo(
     // Handle assessment score changes
     const handleAssessmentScoreChange = useCallback(
       (categoryId, field, value) => {
+        if (userRole === 'TEACHER') return
         setFormData(prev => {
           const newScores = [...(prev.assessmentScores || [])]
           const categoryIndex = newScores.findIndex(
@@ -191,7 +201,7 @@ const AssessmentForm = memo(
           }
         })
       },
-      []
+      [userRole]
     )
 
     // Handle form field changes
@@ -244,16 +254,19 @@ const AssessmentForm = memo(
         noteSuggestion: '',
         sessionFlow: 'AVERAGE',
         studentCoopLevel: 'MEDIUM',
-        assessmentScores: categories.map(category => ({
-          categoryId: category.id,
-          severityScore: 0,
-          frequencyScore: 0,
-          impairmentScore: 0,
-          chronicityScore: 0,
-        })),
+        assessmentScores:
+          userRole === 'TEACHER'
+            ? []
+            : categories.map(category => ({
+                categoryId: category.id,
+                severityScore: 0,
+                frequencyScore: 0,
+                impairmentScore: 0,
+                chronicityScore: 0,
+              })),
         notificationSettings: {
           sendNotification: false,
-          notifyTeachers: true,
+          notifyTeachers: false,
           notifyParents: false,
           notifyAdministrators: false,
         },
@@ -527,24 +540,26 @@ const AssessmentForm = memo(
               </Col>
             </Row>
 
-            <div className="p-4">
-              <Text strong>{t('assessmentForm.form.assessement')} *</Text>
-              <Collapse
-                activeKey={expandedPanels}
-                onChange={handlePanelChange}
-                ghost
-                items={categories.map(category => ({
-                  key: category.id,
-                  label: renderAssessmentItemHeader(category),
-                  children: renderAssessmentItemContent(category),
-                  extra: (
-                    <Tooltip title={category.description}>
-                      <InfoCircleOutlined className="text-blue-500" />
-                    </Tooltip>
-                  ),
-                }))}
-              />
-            </div>
+            {userRole !== 'TEACHER' && (
+              <div className="p-4">
+                <Text strong>{t('assessmentForm.form.assessement')} *</Text>
+                <Collapse
+                  activeKey={expandedPanels}
+                  onChange={handlePanelChange}
+                  ghost
+                  items={categories.map(category => ({
+                    key: category.id,
+                    label: renderAssessmentItemHeader(category),
+                    children: renderAssessmentItemContent(category),
+                    extra: (
+                      <Tooltip title={category.description}>
+                        <InfoCircleOutlined className="text-blue-500" />
+                      </Tooltip>
+                    ),
+                  }))}
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <Text strong>{t('assessmentForm.form.sessionNotes')} *</Text>
@@ -635,13 +650,15 @@ const AssessmentForm = memo(
                         />
                       </div>
                       <div>
-                        <Text
-                          strong
-                          className="text-gray-900 dark:text-gray-100"
-                        >
-                          {t('assessmentForm.notification.notifyTeachers') ||
-                            'Notify Teachers'}
-                        </Text>
+                        {userRole !== 'TEACHER' && (
+                          <Text
+                            strong
+                            className="text-gray-900 dark:text-gray-100"
+                          >
+                            {t('assessmentForm.notification.notifyTeachers') ||
+                              'Notify Teachers'}
+                          </Text>
+                        )}
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {t(
                             'assessmentForm.notification.teacherDescription'

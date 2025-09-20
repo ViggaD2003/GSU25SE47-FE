@@ -201,6 +201,33 @@ api.interceptors.response.use(
       })
     }
 
+    if (excludedPaths.some(path => originalRequest.url.includes(path))) {
+      if (error.response?.status === 500) {
+        controller.abort()
+
+        // Always logout on 500 - it usually means insufficient permissions or session issues
+        store.dispatch(forceLogout())
+        notificationService.error({
+          message: 'Tài khoản đã bị vô hiệu hóa',
+          description:
+            'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.',
+          duration: 6,
+        })
+      }
+      if (error.response?.status === 400 || error.response?.status === 401) {
+        controller.abort()
+
+        // Always logout on 400, 401 - it usually means insufficient permissions or session issues
+        store.dispatch(forceLogout())
+        notificationService.error({
+          message: 'Lỗi đăng nhập',
+          description:
+            'Email hoặc mật khẩu không hợp lệ. Vui lòng kiểm tra lại.',
+          duration: 6,
+        })
+      }
+    }
+
     // Handle server errors (502, 503, 504)
     if (error.response?.status >= 502 && error.response?.status <= 504) {
       const serverError = handleServerError(error, true)

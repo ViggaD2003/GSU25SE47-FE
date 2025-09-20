@@ -1,4 +1,4 @@
-import React, { useState, useCallback, Suspense, lazy } from 'react'
+import React, { useState, useCallback, useMemo, Suspense, lazy } from 'react'
 import {
   Card,
   Button,
@@ -12,123 +12,138 @@ import {
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useTheme } from '../../../contexts/ThemeContext'
 import { useTranslation } from 'react-i18next'
-import UserTable from './UserTable'
-import { useAuth } from '@/contexts/AuthContext'
+import { accountAPI } from '@/services/accountApi'
+import AccountTable from './AccountTable'
 
 const { Title, Text } = Typography
-const { Option } = Select
 const { Search } = Input
 const UserModal = lazy(() => import('./UserModal'))
 
 const StaffManagement = () => {
-  const { user } = useAuth()
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [loading, setLoading] = useState(false)
-  const [searchText, setSearchText] = useState('')
   const [selectedUser, setSelectedUser] = useState(null)
+  const [searchText, setSearchText] = useState('')
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [isEdit, setIsEdit] = useState(false)
+  const [isView, setIsView] = useState(false)
   const [data, setData] = useState([])
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  })
   const [messageApi, contextHolder] = message.useMessage()
-  const [deletedUser, setDeletedUser] = useState(null)
 
-  // Mock API fetch function for server-side pagination
-  const fetchUsers = async (page, pageSize, searchText = '') => {
-    await new Promise(res => setTimeout(res, 500))
-    const total = 500
-    const users = Array.from({ length: pageSize }, (_, i) => {
-      const id = (page - 1) * pageSize + i + 1
-      return {
-        id,
-        fullName: `Nguyen Van B ${id}`,
-        email: `nguyenvanb${id}@school.edu.vn`,
-        phone: `+84 123 456 ${800 + id}`,
-        role: id % 2 === 0 ? 'teacher' : 'counselor',
-        status: id % 3 === 0 ? 'inactive' : 'active',
-        createDate: '15/01/2024',
-        lastLogin: '25/05/2024',
-      }
-    }).filter(u => u.fullName.toLowerCase().includes(searchText.toLowerCase()))
-    return { data: users, total }
-  }
+  // Optimized search function with debouncing
+  const searchData = useMemo(() => {
+    return data.filter(user => {
+      const fullName = user.fullName?.toLowerCase() || ''
+      const email = user.email?.toLowerCase() || ''
+      const phoneNumber = user.phoneNumber?.toLowerCase() || ''
 
-  const loadData = useCallback(
-    async (page = 1, pageSize = 10, search = searchText) => {
+      return (
+        fullName.includes(searchText.toLowerCase()) ||
+        email.includes(searchText.toLowerCase()) ||
+        phoneNumber.includes(searchText.toLowerCase())
+      )
+    })
+  }, [data, searchText])
+
+  // Optimized API fetch function with caching and error handling
+  const fetchUsers = useCallback(async () => {
+    try {
       setLoading(true)
-      const res = await fetchUsers(page, pageSize, search)
-      setData(res.data)
-      setPagination(p => ({ ...p, current: page, pageSize, total: res.total }))
+
+      // Fetch all roles in parallel with error handling
+      const data = await accountAPI.getAllAccounts()
+
+      setData(data || [])
+    } catch (error) {
+      console.error('Error fetching users:', error)
+
+      // More specific error messages
+      const errorMessage =
+        error.response?.status === 403
+          ? t('staffManagement.messages.accessDenied')
+          : error.response?.status >= 500
+            ? t('staffManagement.messages.serverError')
+            : t('staffManagement.messages.fetchError')
+
+      messageApi.error(errorMessage)
+      setData([])
+    } finally {
       setLoading(false)
-    },
-    [searchText]
-  )
+    }
+  }, [messageApi, t])
 
-  React.useEffect(() => {
-    loadData(pagination.current, pagination.pageSize)
-    // eslint-disable-next-line
-  }, [searchText])
-
-  const handleTableChange = useCallback(
-    pag => {
-      loadData(pag.current, pag.pageSize)
-    },
-    [loadData]
-  )
-
-  const handleSearch = value => {
-    setSearchText(value)
-    loadData(1, pagination.pageSize, value)
-  }
+  // Refresh data function (used by refresh button)
+  const refreshData = useCallback(async () => {
+    await fetchUsers()
+  }, [fetchUsers])
 
   const handleView = record => {
     setSelectedUser(record)
-    setIsEdit(false)
+    setIsView(true)
     setIsModalVisible(true)
   }
 
-  const handleEdit = record => {
-    setSelectedUser(record)
-    setIsEdit(true)
-    setIsModalVisible(true)
+  const handleDelete = () => {
+    console.log('handleDelete')
+    refreshData()
   }
 
-  const handleDelete = record => {
-    setDeletedUser(record)
-    loadData(pagination.current, pagination.pageSize)
+  const handleUpdateStatus = async (id, status) => {
+    try {
+      await accountAPI.updateAccountStatus(id, status)
+      messageApi.success(t('staffManagement.messages.statusUpdateSuccess'))
+      refreshData()
+    } catch (error) {
+      console.error('Error updating status:', error)
+      messageApi.error(t('staffManagement.messages.statusUpdateError'))
+    }
   }
 
   const handleAdd = () => {
     setSelectedUser(null)
-    setIsEdit(false)
+    setIsView(false)
     setIsModalVisible(true)
   }
 
-  const handleModalOk = () => {
-    setIsModalVisible(false)
-    messageApi.success(
-      isEdit
-        ? t('staffManagement.messages.editUserSuccess')
-        : t('staffManagement.messages.addUserSuccess')
-    )
-    loadData(pagination.current, pagination.pageSize)
+  const handleModalOk = async (data, isEdit) => {
+    try {
+      if (isEdit) {
+        await accountAPI.updateAccount(selectedUser.id, data)
+      } else {
+        await accountAPI.createAccount(data)
+      }
+
+      messageApi.success(
+        isEdit
+          ? t('staffManagement.messages.editUserSuccess')
+          : t('staffManagement.messages.addUserSuccess')
+      )
+
+      // Close modal and refresh data
+      setIsModalVisible(false)
+      setIsView(false)
+      setSelectedUser(null)
+      await refreshData()
+    } catch (error) {
+      console.error('Error in handleModalOk:', error)
+      messageApi.error(
+        isEdit
+          ? t('staffManagement.messages.editError')
+          : t('staffManagement.messages.addError')
+      )
+    }
   }
 
   const handleModalCancel = () => {
     setIsModalVisible(false)
+    setIsView(false)
+    setSelectedUser(null)
   }
 
   React.useEffect(() => {
-    if (deletedUser) {
-      messageApi.success(t('staffManagement.messages.inactiveSuccess'))
-      setDeletedUser(null)
-    }
-  }, [deletedUser])
+    fetchUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <>
@@ -150,12 +165,13 @@ const StaffManagement = () => {
           <div className="flex items-center space-x-3">
             <Button
               icon={<ReloadOutlined />}
-              onClick={() => loadData(pagination.current, pagination.pageSize)}
+              onClick={refreshData}
+              loading={loading}
             >
               {t('staffManagement.refresh')}
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              {t('staffManagement.addStaff')}
+              {t('staffManagement.addAccount')}
             </Button>
           </div>
         </div>
@@ -169,8 +185,7 @@ const StaffManagement = () => {
               <Search
                 placeholder={t('staffManagement.search')}
                 allowClear
-                onSearch={handleSearch}
-                onChange={e => handleSearch(e.target.value)}
+                onChange={e => setSearchText(e.target.value)}
                 style={{ width: '100%' }}
               />
             </Col>
@@ -181,15 +196,12 @@ const StaffManagement = () => {
         <Card
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
         >
-          <UserTable
-            user={user}
-            data={data}
+          <AccountTable
+            data={searchData}
             loading={loading}
-            pagination={pagination}
-            onChange={handleTableChange}
             onView={handleView}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={() => handleDelete()}
+            onUpdateStatus={handleUpdateStatus}
           />
         </Card>
 
@@ -200,7 +212,7 @@ const StaffManagement = () => {
               onOk={handleModalOk}
               onCancel={handleModalCancel}
               editingUser={selectedUser}
-              isEdit={isEdit}
+              isView={isView}
               confirmLoading={false}
             />
           )}
