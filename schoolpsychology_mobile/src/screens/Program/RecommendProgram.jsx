@@ -43,9 +43,8 @@ const RecommendProgram = ({ navigation }) => {
     >
       {recommendedPrograms.map((item) => {
         return (
-          <View style={styles.programCard}>
+          <View key={item.id} style={styles.programCard}>
             <ProgramCard
-              key={item.id}
               program={item}
               onPress={() =>
                 navigation.navigate("Program", {

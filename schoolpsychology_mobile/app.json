@@ -18,7 +18,13 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.mindfulcare.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.READ_CALENDAR",
+        "android.permission.WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./src/assets/adaptive-icon.png"
@@ -30,7 +36,13 @@
         {
           "calendarPermission": "Allow MindfulCare to access your calendar."
         }
-      ]
-    ]
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "09345b12-72dd-481f-9a08-ecbc1f390238"
+      }
+    }
   }
 }

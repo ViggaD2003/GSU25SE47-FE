@@ -43,3 +43,6 @@ expo-ngrok.js
 expo-ngrok.bat
 expo-ngrok.log
 expo-qr.png
+
+.expo/
+*/.expo/

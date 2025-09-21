@@ -10,8 +10,8 @@
     "start:tunnel": "expo start --tunnel",
     "start:tunnel:reset": "expo start --tunnel -c",
     "expo-ngrok": "node expo-ngrok.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "dev-client": "expo start --dev-client",
     "eas-configure": "eas build:configure",
@@ -19,7 +19,7 @@
     "build-ios-dev": "eas build -p ios --profile development"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~6.1.1",
+    "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "8.4.4",
@@ -31,8 +31,8 @@
     "dayjs": "^1.11.13",
     "expo": "^54.0.0",
     "expo-calendar": "~15.0.7",
-    "expo-constants": "~18.0.8",
-    "expo-device": "~8.0.7",
+    "expo-constants": "~18.0.9",
+    "expo-device": "~8.0.8",
     "expo-linear-gradient": "~15.0.7",
     "expo-localization": "~17.0.7",
     "expo-notifications": "~0.32.11",
@@ -55,7 +55,10 @@
     "react-native-toast-message": "^2.3.1",
     "react-native-web": "^0.21.0",
     "react-native-websocket": "^1.0.2",
-    "text-encoding": "^0.7.0"
+    "text-encoding": "^0.7.0",
+    "expo-dev-client": "~6.0.12",
+    "expo-font": "~14.0.8",
+    "react-native-svg": "15.12.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
