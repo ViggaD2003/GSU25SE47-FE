@@ -34,7 +34,7 @@ const ChildSelector = ({
           <View style={styles.avatar}>
             <Icon name="account-child-circle" size={24} color="#FFFFFF" />
           </View>
-          <View style={styles.statusIndicator}>
+          {/* <View style={styles.statusIndicator}>
             <View
               style={[
                 styles.statusDot,
@@ -45,7 +45,7 @@ const ChildSelector = ({
                 },
               ]}
             />
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.childInfo}>
@@ -129,7 +129,7 @@ const ChildSelector = ({
           <View style={styles.avatar}>
             <Icon name="account-child-circle" size={24} color="#FFFFFF" />
           </View>
-          <View style={styles.statusIndicator}>
+          {/* <View style={styles.statusIndicator}>
             <View
               style={[
                 styles.statusDot,
@@ -140,7 +140,7 @@ const ChildSelector = ({
                 },
               ]}
             />
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.childInfo}>
@@ -152,7 +152,8 @@ const ChildSelector = ({
               <View style={styles.detailRow}>
                 <Icon name="school" size={12} color="#6B7280" />
                 <Text style={styles.detailText}>
-                  {selectedChild?.class || t("children.info.class")}
+                  {selectedChild?.classDto?.codeClass ||
+                    t("children.info.class")}
                 </Text>
               </View>
               <View style={styles.detailRow}>
@@ -198,12 +199,12 @@ const ChildSelector = ({
             >
               <View style={styles.childItemAvatar}>
                 <Icon name="account-child-circle" size={20} color="#10B981" />
-                <View
+                {/* <View
                   style={[
                     styles.childItemStatusDot,
                     { backgroundColor: child.isActive ? "#10B981" : "#EF4444" },
                   ]}
-                />
+                /> */}
               </View>
 
               <View style={styles.childItemInfo}>
@@ -217,7 +218,9 @@ const ChildSelector = ({
                   {child.fullName}
                 </Text>
                 <View style={styles.childItemDetails}>
-                  <Text style={styles.childItemClass}>{child.class}</Text>
+                  <Text style={styles.childItemClass}>
+                    {child.classDto?.codeClass}
+                  </Text>
                   <Text style={styles.childItemCode}>{child.studentCode}</Text>
                 </View>
               </View>

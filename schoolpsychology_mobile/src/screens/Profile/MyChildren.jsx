@@ -84,10 +84,10 @@ export default function MyChildren({ route }) {
   };
 
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
-        title={t("profile.myChildren")}
+        title={t("myChildren.title")}
         onBackPress={handleBackPress}
         rightComponent={
           <TouchableOpacity onPress={() => navigation.navigate("AddChild")}>
@@ -99,15 +99,13 @@ export default function MyChildren({ route }) {
       {refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>Đang tải thông tin...</Text>
+          <Text style={styles.loadingText}>{t("common.loading")}</Text>
         </View>
       ) : children.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Icon name="account-child-circle" size={80} color="#9CA3AF" />
-          <Text style={styles.emptyTitle}>Chưa có con nào</Text>
-          <Text style={styles.emptyText}>
-            Thông tin con sẽ hiển thị ở đây khi được thêm vào hệ thống
-          </Text>
+          <Text style={styles.emptyTitle}>{t("myChildren.emptyTitle")}</Text>
+          <Text style={styles.emptyText}>{t("myChildren.emptySubtitle")}</Text>
         </View>
       ) : (
         <ScrollView
@@ -121,20 +119,27 @@ export default function MyChildren({ route }) {
           <View style={styles.statsContainer}>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>{children.length}</Text>
-              <Text style={styles.statLabel}>Tổng số con</Text>
+              <Text style={styles.statLabel}>
+                {t("myChildren.totalChildren")}
+              </Text>
             </View>
             <View style={styles.statCard}>
               <Text style={styles.statNumber}>
                 {children.filter((child) => child.isEnableSurvey).length}
               </Text>
-              <Text style={styles.statLabel}>Đang hoạt động</Text>
+              <Text style={styles.statLabel}>
+                {t("myChildren.activeChildren")}
+              </Text>
             </View>
           </View>
 
-          <Text style={styles.sectionTitle}>Danh sách con</Text>
+          <Text style={styles.sectionTitle}>
+            {t("myChildren.listChildren")}
+          </Text>
 
           {children.map((child, index) => (
             <ChildCard
+              t={t}
               key={child.id}
               child={child}
               index={index}
@@ -152,6 +157,7 @@ export default function MyChildren({ route }) {
 }
 
 function ChildCard({
+  t,
   child,
   index,
   formatDate,
@@ -166,6 +172,8 @@ function ChildCard({
   if (!child) {
     return null;
   }
+
+  console.log("child", child.classDto);
 
   return (
     <View style={[styles.card, { marginTop: index === 0 ? 0 : 16 }]}>
@@ -193,7 +201,9 @@ function ChildCard({
                 { color: child.isEnableSurvey ? "#065F46" : "#DC2626" },
               ]}
             >
-              {child.isEnableSurvey ? "Hoạt động" : "Tạm dừng"}
+              {child.isEnableSurvey
+                ? t("myChildren.active")
+                : t("myChildren.inactive")}
             </Text>
           </View>
           <TouchableOpacity
@@ -221,7 +231,7 @@ function ChildCard({
           <View style={styles.infoRow}>
             <Ionicons name="call-outline" size={16} color="#6B7280" />
             <Text style={styles.infoText}>
-              {child.phoneNumber || "Chưa có"}
+              {child.phoneNumber || t("myChildren.noPhone")}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -248,7 +258,7 @@ function ChildCard({
                 { color: !child.isEnableSurvey ? "#10B981" : "#EF4444" },
               ]}
             >
-              {!child.isEnableSurvey ? "Bật" : "Tắt"}
+              {!child.isEnableSurvey ? t("myChildren.on") : t("myChildren.off")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -258,35 +268,41 @@ function ChildCard({
       {expanded && (
         <View style={styles.expandedDetails}>
           <View style={styles.detailSection}>
-            <Text style={styles.detailTitle}>Thông tin cá nhân</Text>
+            <Text style={styles.detailTitle}>
+              {t("myChildren.personalInfo")}
+            </Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Ngày sinh:</Text>
+              <Text style={styles.detailLabel}>{t("myChildren.dob")}</Text>
               <Text style={styles.detailValue}>{formatDate(child.dob)}</Text>
             </View>
           </View>
 
           <View style={styles.detailSection}>
-            <Text style={styles.detailTitle}>Thông tin lớp học</Text>
+            <Text style={styles.detailTitle}>{t("myChildren.classInfo")}</Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Lớp:</Text>
+              <Text style={styles.detailLabel}>{t("myChildren.class")}</Text>
               <Text style={styles.detailValue}>
                 {child.classDto?.codeClass || "N/A"}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Năm học:</Text>
+              <Text style={styles.detailLabel}>
+                {t("myChildren.classYear")}
+              </Text>
               <Text style={styles.detailValue}>
-                {child.classDto?.classYear || "N/A"}
+                {child.classDto?.schoolYear?.name || "N/A"}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Giáo viên:</Text>
+              <Text style={styles.detailLabel}>{t("myChildren.teacher")}</Text>
               <Text style={styles.detailValue}>
                 {child.classDto?.teacher?.fullName || "N/A"}
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Email GV:</Text>
+              <Text style={styles.detailLabel}>
+                {t("myChildren.teacherEmail")}
+              </Text>
               <Text style={styles.detailValue} numberOfLines={1}>
                 {child.classDto?.teacher?.email || "N/A"}
               </Text>
@@ -294,9 +310,9 @@ function ChildCard({
           </View>
 
           <View style={styles.detailSection}>
-            <Text style={styles.detailTitle}>Cài đặt khảo sát</Text>
+            <Text style={styles.detailTitle}>{t("myChildren.surveyInfo")}</Text>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Trạng thái:</Text>
+              <Text style={styles.detailLabel}>{t("myChildren.status")}</Text>
               <View style={styles.statusContainer}>
                 <View
                   style={[
@@ -314,7 +330,9 @@ function ChildCard({
                     { color: child.isEnableSurvey ? "#10B981" : "#EF4444" },
                   ]}
                 >
-                  {child.isEnableSurvey ? "Đang bật" : "Đã tắt"}
+                  {child.isEnableSurvey
+                    ? t("myChildren.on")
+                    : t("myChildren.off")}
                 </Text>
               </View>
             </View>

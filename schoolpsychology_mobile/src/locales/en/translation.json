@@ -1273,5 +1273,27 @@
     "placeholder": "Enter message...",
     "online": "Online",
     "offline": "Offline"
+  },
+  "myChildren": {
+    "title": "My Children",
+    "emptyTitle": "No children yet",
+    "emptySubtitle": "Add a child to get started",
+    "loading": "Loading...",
+    "totalChildren": "Total children",
+    "activeChildren": "Active children",
+    "listChildren": "List children",
+    "active": "Active",
+    "inactive": "Inactive",
+    "noPhone": "No phone",
+    "personalInfo": "Personal information",
+    "classInfo": "Class information",
+    "surveyInfo": "Survey information",
+    "dob": "Date of birth",
+    "class": "Class",
+    "classYear": "Class year",
+    "teacher": "Teacher",
+    "teacherEmail": "Teacher email",
+    "on": "On",
+    "off": "Off"
   }
 }

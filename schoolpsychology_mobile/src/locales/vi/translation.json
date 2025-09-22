@@ -1301,5 +1301,28 @@
     "placeholder": "Nhập tin nhắn...",
     "online": "Đang hoạt động",
     "offline": "Không hoạt động"
+  },
+  "myChildren": {
+    "title": "Con của tôi",
+    "emptyTitle": "Chưa có con nào",
+    "emptySubtitle": "Thêm con để bắt đầu",
+    "status": "Trạng thái",
+    "loading": "Đang tải...",
+    "totalChildren": "Tổng số con",
+    "activeChildren": "Con đang hoạt động",
+    "listChildren": "Danh sách con",
+    "active": "Hoạt động",
+    "inactive": "Không hoạt động",
+    "noPhone": "Không có số điện thoại",
+    "personalInfo": "Thông tin cá nhân",
+    "classInfo": "Thông tin lớp học",
+    "surveyInfo": "Thông tin khảo sát",
+    "dob": "Ngày sinh",
+    "class": "Lớp",
+    "classYear": "Năm học",
+    "teacher": "Giáo viên",
+    "teacherEmail": "Email giáo viên",
+    "on": "Bật",
+    "off": "Tắt"
   }
 }
