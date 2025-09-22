@@ -10,6 +10,8 @@ export const createAppointment = async (appointment) => {
 
     return response.data;
   } catch (err) {
+    console.log("message", err.response.data.message);
+
     console.warn("Lỗi khi tạo lịch hẹn:", err);
     throw err;
   }

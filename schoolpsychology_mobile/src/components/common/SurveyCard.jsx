@@ -12,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import ConfirmModal from "./ConfirmModal";
 import Toast from "./Toast";
 import { skipSurvey } from "@/services/api/SurveyService";
+import { useTranslation } from "react-i18next";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -24,6 +25,8 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
     message: "",
     type: "info",
   });
+
+  const { t } = useTranslation();
 
   // Helper function to get calming gradient colors based on survey type
   const getCalmingGradientColors = () => {
@@ -77,14 +80,18 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
       return (
         <View style={[styles.statusBadge, styles.requiredBadge]}>
           <Ionicons name="shield-checkmark" size={12} color="#059669" />
-          <Text style={styles.requiredBadgeText}>Quan trọng</Text>
+          <Text style={styles.requiredBadgeText}>
+            {t("survey.card.required")}
+          </Text>
         </View>
       );
     } else {
       return (
         <View style={[styles.statusBadge, styles.optionalBadge]}>
           <Ionicons name="heart-outline" size={12} color="#276FFF" />
-          <Text style={styles.optionalBadgeText}>Tùy chọn</Text>
+          <Text style={styles.optionalBadgeText}>
+            {t("survey.card.optional")}
+          </Text>
         </View>
       );
     }
@@ -198,12 +205,12 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
               <View style={styles.typeContainer}>
                 <Text style={styles.typeText}>
                   {survey.surveyType === "SCREENING"
-                    ? "Kiểm tra sức khỏe"
+                    ? t("survey.card.screening")
                     : survey.surveyType === "ASSESSMENT"
-                    ? "Đánh giá"
+                    ? t("survey.card.assessment")
                     : survey.surveyType === "EVALUATION"
-                    ? "Đánh giá chi tiết"
-                    : "Khảo sát"}
+                    ? t("survey.card.evaluation")
+                    : t("survey.card.survey")}
                 </Text>
               </View>
             </View>
@@ -221,8 +228,8 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
                   <Ionicons name="repeat-outline" size={16} color="#374151" />
                   <Text style={styles.recurringText}>
                     {survey.recurringCycle === "MONTHLY"
-                      ? "Hàng tháng"
-                      : "Định kỳ"}
+                      ? t("survey.card.monthly")
+                      : t("survey.card.weekly")}
                   </Text>
                 </View>
               )}
@@ -239,7 +246,8 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
                       color="#374151"
                     />
                     <Text style={styles.questionCount}>
-                      {survey.category.questionLength} câu hỏi
+                      {survey.category.questionLength}{" "}
+                      {t("survey.card.questions")}
                     </Text>
                   </View>
                 )}
@@ -247,8 +255,8 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
                   <Ionicons name="people-outline" size={14} color="#374151" />
                   <Text style={styles.targetScope}>
                     {survey.targetScope === "ALL"
-                      ? "Tất cả học sinh"
-                      : "Theo khối lớp"}
+                      ? t("survey.card.allStudents")
+                      : t("survey.card.byGrade")}
                   </Text>
                 </View>
               </View>
@@ -260,7 +268,9 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
                     onPress={onPressSkip}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.skipButtonText}>Bỏ qua</Text>
+                    <Text style={styles.skipButtonText}>
+                      {t("survey.card.skip")}
+                    </Text>
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -275,7 +285,9 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
                     end={{ x: 1, y: 0 }}
                   >
                     <Ionicons name="play-circle" size={20} color="#ffffff" />
-                    <Text style={styles.startButtonText}>Bắt đầu</Text>
+                    <Text style={styles.startButtonText}>
+                      {t("survey.card.start")}
+                    </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -286,14 +298,14 @@ export default function SurveyCard({ survey, navigation, onRefresh }) {
 
       <ConfirmModal
         visible={showConfirmModal}
-        title="Xác nhận bỏ qua"
-        message={`Bạn có chắc chắn muốn bỏ qua khảo sát "${
+        title={t("survey.card.confirmSkip")}
+        message={`${t("survey.card.confirmSkipMessage")} "${
           survey?.title || survey?.name
         }"?`}
         onConfirm={handleSkipConfirm}
         onCancel={() => setShowConfirmModal(false)}
-        confirmText="Bỏ qua"
-        cancelText="Tiếp tục"
+        confirmText={t("survey.card.skip")}
+        cancelText={t("survey.card.continue")}
       />
     </View>
   );

@@ -1,47 +1,13 @@
 import axios from "axios";
-import { Platform, Alert } from "react-native";
+import { Platform } from "react-native";
 import {
   getAccessToken,
-  performLogout,
   isLogoutInProgress,
-  isTokenExpired,
   clearTokens,
   isTokenActuallyExpired,
 } from "../auth/tokenManager";
 import { AUTH_CONFIG, AUTH_ERRORS, APP_CONFIG } from "../../constants";
-import {
-  refreshAccessToken,
-  logout,
-  forceLogout,
-  handleLogout,
-} from "../auth/authActions";
-
-/**
- * Axios API Configuration với Token Management thông minh
- *
- * Cách hoạt động:
- * 1. Kiểm tra token expiry trước mỗi request
- * 2. Chỉ refresh token khi thực sự hết hạn (không có buffer time)
- * 3. Khi refresh thất bại: clear token local + navigate ngay lập tức
- * 4. Hiển thị toast thông báo "Tài khoản hiện được đăng nhập nơi khác"
- *
- * Cách sử dụng Toast Callback:
- * 1. Import setToastCallback từ axios.js
- * 2. Gọi setToastCallback với function hiển thị toast của bạn
- * 3. Toast sẽ tự động hiển thị khi có lỗi token
- *
- * Ví dụ:
- * import { setToastCallback } from './services/api/axios';
- * import Toast from 'react-native-toast-message';
- *
- * setToastCallback((message, type) => {
- *   Toast.show({
- *     type: type,
- *     text1: message,
- *     position: 'top'
- *   });
- * });
- */
+import { refreshAccessToken } from "../auth/authActions";
 
 // Utility function to handle server errors for mobile
 const handleServerError = (error, showNotification = true) => {
@@ -175,7 +141,7 @@ api.interceptors.request.use(
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
       }
 
-      // Skip token validation for excluded paths and refresh endpoints      
+      // Skip token validation for excluded paths and refresh endpoints
       if (
         shouldSkipTokenValidation(config.url) ||
         isRefreshEndpoint(config.url)
@@ -189,7 +155,7 @@ api.interceptors.request.use(
       if (!token) {
         console.log("No token found, navigating to login immediately");
         // Show toast message
-        triggerToastCallback("Phiên đăng nhập đã kết thúc", "warning");
+        triggerToastCallback("Your session has expired", "warning");
         // Navigate to login immediately
         triggerLogoutCallback();
         return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
@@ -219,7 +185,7 @@ api.interceptors.request.use(
             await clearTokens();
             // Show toast message
             triggerToastCallback(
-              "Tài khoản hiện được đăng nhập nơi khác",
+              "Your session has expired. Please login again.",
               "warning"
             );
             // Navigate to login immediately
@@ -232,7 +198,7 @@ api.interceptors.request.use(
           await clearTokens();
           // Show toast message
           triggerToastCallback(
-            "Tài khoản hiện được đăng nhập nơi khác",
+            "Your session has expired. Please login again.",
             "warning"
           );
           // Navigate to login immediately
@@ -281,6 +247,19 @@ api.interceptors.response.use(
       return Promise.reject(serverError);
     }
 
+    // Handle 500 Internal Server Error
+    if (status === 500 && originalRequest.url.includes("/auth/login")) {
+      const serverError = handleServerError(error, true);
+      // Show toast message
+      triggerToastCallback(
+        "Your account has been disabled. Please contact support.",
+        "warning"
+      );
+      // Navigate to login immediately
+      triggerLogoutCallback();
+      return Promise.reject(new Error(AUTH_ERRORS.UNAUTHORIZED));
+    }
+
     // Handle 401 Unauthorized - try to refresh token
     if (
       status === 401 &&
@@ -294,7 +273,7 @@ api.interceptors.response.use(
       await clearTokens();
       // Show toast message
       triggerToastCallback(
-        "Tài khoản hiện đã bị vô hiệu hóa hoặc đã hết hạn",
+        "Your session has expired. Please login again.",
         "warning"
       );
       // Navigate to login immediately
@@ -343,7 +322,7 @@ api.interceptors.response.use(
           await clearTokens();
           // Show toast message
           triggerToastCallback(
-            "Tài khoản hiện được đăng nhập nơi khác",
+            "Your session has expired. Please login again.",
             "warning"
           );
           // Navigate to login immediately

@@ -83,7 +83,7 @@ const SurveyInfo = ({ route, navigation }) => {
 
   const handleStartSurvey = useCallback(() => {
     if (hasSavedProgress) {
-      showToast("Tiếp tục khảo sát với tiến độ đã lưu của bạn", "info");
+      showToast(t("survey.info.continueMessage"), "info");
       setTimeout(() => {
         navigation.navigate("SurveyTaking", { survey, programId });
       }, 1000);
@@ -138,7 +138,7 @@ const SurveyInfo = ({ route, navigation }) => {
   const getStatusText = (status) => {
     switch (status) {
       case "PUBLISHED":
-        return "Đã xuất bản";
+        return t("survey.info.published");
       default:
         return status;
     }
@@ -147,9 +147,9 @@ const SurveyInfo = ({ route, navigation }) => {
   const getTargetScopeText = (scope) => {
     switch (scope) {
       case "GRADE":
-        return "Theo khối lớp";
+        return t("survey.info.byGrade");
       case "ALL":
-        return "Toàn trường";
+        return t("survey.info.allStudents");
       default:
         return null;
     }
@@ -247,7 +247,7 @@ const SurveyInfo = ({ route, navigation }) => {
                 {t("survey.info.questions")}
               </Text>
               <Text style={styles.detailValue}>
-                {survey.questions?.length || 0} câu
+                {survey.questions?.length || 0} {t("survey.info.questions")}
               </Text>
             </View>
 
@@ -256,7 +256,9 @@ const SurveyInfo = ({ route, navigation }) => {
               <Text style={styles.detailLabel}>
                 {t("survey.info.estimatedTime")}
               </Text>
-              <Text style={styles.detailValue}>15-20 phút</Text>
+              <Text style={styles.detailValue}>
+                15-20 {t("survey.info.minutes")}
+              </Text>
             </View>
 
             <View style={styles.detailItem}>
@@ -307,7 +309,10 @@ const SurveyInfo = ({ route, navigation }) => {
               {survey.targetGrade.map((grade, index) => (
                 <View key={index} style={styles.gradeBadge}>
                   <Text style={styles.gradeText}>
-                    {grade.targetLevel.replace("GRADE_", "Khối ")}
+                    {grade.targetLevel.replace(
+                      "GRADE_",
+                      t("survey.info.grade")
+                    )}
                   </Text>
                 </View>
               ))}

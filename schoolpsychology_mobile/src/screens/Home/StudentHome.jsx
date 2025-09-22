@@ -335,7 +335,7 @@ export default function StudentHome({ user, navigation }) {
                   {/* Main content */}
                   <View style={styles.bannerMainContent}>
                     <Text style={styles.bannerTitle} numberOfLines={2}>
-                      {recommandedPrograms[0]?.title ||
+                      {recommandedPrograms[0]?.name ||
                         "Career Development Workshop"}
                     </Text>
                     <Text style={styles.bannerDescription} numberOfLines={3}>

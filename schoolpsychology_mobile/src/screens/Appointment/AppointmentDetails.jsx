@@ -10,7 +10,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Dimensions,
   Linking,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -601,9 +600,7 @@ const AppointmentDetails = ({ route, navigation }) => {
       <Container>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
-          <Text style={styles.errorText}>
-            {error || "An unexpected error occurred. Please try again."}
-          </Text>
+          <Text style={styles.errorText}>{t("appointment.details.error")}</Text>
           <TouchableOpacity
             style={styles.retryButton}
             onPress={() => {
@@ -865,7 +862,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                         onPress={() => openMeet(appointmentData?.location)}
                         disabled={disabledOpenMeet()}
                       >
-                        Join Meeting
+                        {t("appointment.labels.joinMeeting")}
                       </Button>
                     ) : (
                       <Text style={styles.detailValue}>
@@ -951,7 +948,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                   size={20}
                   color={GlobalStyles.colors.primary}
                 />
-                <Text style={styles.sectionTitle}>Thông tin đặt hẹn</Text>
+                <Text style={styles.sectionTitle}>
+                  {t("appointment.details.bookingInfo")}
+                </Text>
               </View>
 
               <View style={styles.detailsCard}>
@@ -960,7 +959,9 @@ const AppointmentDetails = ({ route, navigation }) => {
                     <Ionicons name="people-outline" size={20} color="#6B7280" />
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Đặt bởi</Text>
+                    <Text style={styles.detailLabel}>
+                      {t("appointment.labels.bookedBy")}
+                    </Text>
                     <Text style={styles.detailValue}>
                       {appointment.bookedBy?.fullName}
                     </Text>

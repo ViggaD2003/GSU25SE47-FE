@@ -72,10 +72,10 @@ export default function MainTabs() {
       <Tab.Navigator
         initialRouteName="Home"
         screenOptions={({ route }) => ({
-          headerShown: true,
-          header: (props) => <CustomHeader {...props} />,
-          headerStyle: styles.headerStyle,
-          headerStatusBarHeight: 0,
+          headerShown: false,
+          // header: (props) => <CustomHeader {...props} />,
+          // headerStyle: styles.headerStyle,
+          // headerStatusBarHeight: 0,
           tabBarIcon: ({ focused, color, size }) => {
             let iconName;
             let iconSize = route.name === "AppointmentMain" ? 32 : 24;

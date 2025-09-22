@@ -228,7 +228,7 @@ const EventScreen = ({ route, navigation }) => {
   }, [loadEvents]);
 
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       <HeaderWithoutTab
         title={t("events.title")}
         onBackPress={() => navigation.goBack()}

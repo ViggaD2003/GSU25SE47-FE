@@ -99,9 +99,21 @@ const AppointmentRecord = () => {
   // Prepare chart data - memoized for performance
   const chartData = useMemo(() => {
     return [
-      { label: "Hoàn thành", value: stats.completed, color: "#059669" },
-      { label: "Đã hủy", value: stats.canceled, color: "#DC2626" },
-      { label: "Vắng", value: stats.absent, color: "#F59E0B" },
+      {
+        label: t("appointment.record.status.completed"),
+        value: stats.completed,
+        color: "#059669",
+      },
+      {
+        label: t("appointment.record.status.canceled"),
+        value: stats.canceled,
+        color: "#DC2626",
+      },
+      {
+        label: t("appointment.record.status.absent"),
+        value: stats.absent,
+        color: "#F59E0B",
+      },
       // { label: "Hết hạn", value: stats.expired, color: "#6B7280" },
     ].filter((item) => item.value > 0);
   }, [stats]);
@@ -114,35 +126,35 @@ const AppointmentRecord = () => {
           color: "#059669",
           backgroundColor: "#D1FAE5",
           icon: "checkmark-circle",
-          text: "Hoàn thành",
+          text: t("appointment.record.status.completed"),
         };
       case "ABSENT":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "close-circle",
-          text: "Vắng",
+          text: t("appointment.record.status.absent"),
         };
       case "CANCELED":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
           icon: "close-circle",
-          text: "Đã hủy",
+          text: t("appointment.record.status.canceled"),
         };
       case "EXPIRED":
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
           icon: "time",
-          text: "Hết hạn",
+          text: t("appointment.record.status.expired"),
         };
       default:
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
           icon: "time",
-          text: "Chưa xác định",
+          text: t("appointment.record.status.notDetermined"),
         };
     }
   };
@@ -155,35 +167,35 @@ const AppointmentRecord = () => {
           color: "#059669",
           backgroundColor: "#D1FAE5",
           icon: "happy",
-          text: "Tốt",
+          text: t("appointment.record.sessionFlow.good"),
         };
       case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "remove",
-          text: "Trung bình",
+          text: t("appointment.record.sessionFlow.medium"),
         };
       case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "remove",
-          text: "Trung bình",
+          text: t("appointment.record.sessionFlow.medium"),
         };
       case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
           icon: "sad",
-          text: "Kém",
+          text: t("appointment.record.sessionFlow.low"),
         };
       default:
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
           icon: "help",
-          text: "Chưa đánh giá",
+          text: t("appointment.record.sessionFlow.notEvaluated"),
         };
     }
   };
@@ -195,31 +207,31 @@ const AppointmentRecord = () => {
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
-          text: "Tốt",
+          text: t("appointment.record.cooperationLevel.good"),
         };
       case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
-          text: "Trung bình",
+          text: t("appointment.record.cooperationLevel.medium"),
         };
       case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
-          text: "Trung bình",
+          text: t("appointment.record.cooperationLevel.medium"),
         };
       case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
-          text: "Thấp",
+          text: t("appointment.record.cooperationLevel.low"),
         };
       default:
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
-          text: "Chưa đánh giá",
+          text: t("appointment.record.cooperationLevel.notEvaluated"),
         };
     }
   };
@@ -277,9 +289,13 @@ const AppointmentRecord = () => {
               <View style={styles.infoIconContainer}>
                 <Ionicons name="person" size={16} color="#6B7280" />
               </View>
-              <Text style={styles.infoLabel}>Loại tư vấn:</Text>
+              <Text style={styles.infoLabel}>
+                {t("appointment.labels.hostType")}:
+              </Text>
               <Text style={styles.infoValue}>
-                {record.hostType === "COUNSELOR" ? "Tư vấn viên" : "Giáo viên"}
+                {record.hostType === "COUNSELOR"
+                  ? t("appointment.host.counselor")
+                  : t("appointment.host.teacher")}
               </Text>
             </View>
 
@@ -292,9 +308,13 @@ const AppointmentRecord = () => {
                   color="#6B7280"
                 />
               </View>
-              <Text style={styles.infoLabel}>Hình thức:</Text>
+              <Text style={styles.infoLabel}>
+                {t("appointment.labels.mode")}:
+              </Text>
               <Text style={styles.infoValue}>
-                {record.isOnline ? "Trực tuyến" : "Tại chỗ"}
+                {record.isOnline
+                  ? t("appointment.labels.online")
+                  : t("appointment.labels.offline")}
               </Text>
             </View>
 
@@ -308,7 +328,9 @@ const AppointmentRecord = () => {
                     color={sessionFlowConfig.color}
                   />
                 </View>
-                <Text style={styles.infoLabel}>Tiến trình:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.labels.sessionFlow")}:
+                </Text>
                 <View
                   style={[
                     styles.flowBadge,
@@ -333,7 +355,9 @@ const AppointmentRecord = () => {
                 <View style={styles.infoIconContainer}>
                   <Ionicons name="people" size={16} color="#6B7280" />
                 </View>
-                <Text style={styles.infoLabel}>Mức độ hợp tác:</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.labels.cooperationLevel")}:
+                </Text>
                 <View
                   style={[
                     styles.coopBadge,
@@ -364,22 +388,6 @@ const AppointmentRecord = () => {
                 </Text>
               </View>
             )}
-
-            {/* Booking Reason */}
-            {record.reasonBooking && (
-              <View style={styles.reasonContainer}>
-                <View style={styles.infoIconContainer}>
-                  <Ionicons
-                    name="information-circle"
-                    size={16}
-                    color="#6B7280"
-                  />
-                </View>
-                <Text style={styles.reasonText} numberOfLines={2}>
-                  {record.reasonBooking}
-                </Text>
-              </View>
-            )}
           </View>
 
           {/* Footer */}
@@ -387,7 +395,7 @@ const AppointmentRecord = () => {
             <View style={styles.footerLeft}>
               <Ionicons name="calendar" size={14} color="#9CA3AF" />
               <Text style={styles.footerText}>
-                Cập nhật:{" "}
+                {t("appointment.record.lastUpdated")}:{" "}
                 {dayjs(record.endDateTime || record.startDateTime).format(
                   "DD/MM/YYYY"
                 )}
@@ -446,8 +454,9 @@ const AppointmentRecord = () => {
                 </Text>
                 <View style={styles.recordsCount}>
                   <Text style={styles.recordsCountText}>
-                    vắng {records.filter((r) => r.status === "ABSENT").length} /{" "}
-                    {records.length} buổi
+                    {t("appointment.record.status.absent")}{" "}
+                    {records.filter((r) => r.status === "ABSENT").length} /{" "}
+                    {records.length} {t("appointment.record.buoi")}
                   </Text>
                 </View>
               </View>

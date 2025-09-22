@@ -8,16 +8,15 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./src/assets/adaptive-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#ffffff",
+      "resizeMode": "contain"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/adaptive-icon.png"
       },
       "package": "com.mindfulcare.app",
       "versionCode": 1,

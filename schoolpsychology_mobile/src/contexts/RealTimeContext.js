@@ -309,7 +309,7 @@ const RealTimeProvider = ({ children }) => {
   }, [subscribeToTopic]);
 
   const sendMessage = useCallback(
-    (msg) => {
+    ({ title, content, username, notificationType, relatedEntityId }) => {
       if (!isConnectionReady()) {
         console.warn("[WebSocket] Not connected");
         return;
@@ -318,7 +318,13 @@ const RealTimeProvider = ({ children }) => {
         stompClientRef.current.publish({
           destination: "/app/send",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(msg),
+          body: JSON.stringify({
+            title,
+            content,
+            username,
+            notificationType,
+            relatedEntityId,
+          }),
         });
       } catch (error) {
         console.warn("[WebSocket_sendMessage] Error sending message:", error);

@@ -435,16 +435,23 @@ const SurveyRecord = ({ navigation }) => {
           {/* Survey Records */}
           <View style={styles.recordsSection}>
             <View style={styles.recordsHeader}>
-              <Text style={styles.sectionTitle}>Danh sách khảo sát</Text>
+              <Text style={styles.sectionTitle}>
+                {t("survey.record.title")}
+              </Text>
               <View style={styles.recordsCountContainer}>
                 <View style={styles.recordsCountSkipped}>
                   <Text style={styles.recordsCountTextSkipped}>
-                    {numberOfSkipped} bài bỏ qua
+                    {t("survey.record.skippedCount", {
+                      count: numberOfSkipped,
+                    })}
                   </Text>
                 </View>
                 <View style={styles.recordsCount}>
                   <Text style={styles.recordsCountText}>
-                    {statistics.currentSurveys} / {totalElements} bài
+                    {t("survey.record.recordsCount", {
+                      count: statistics.currentSurveys,
+                      total: totalElements,
+                    })}
                   </Text>
                 </View>
               </View>

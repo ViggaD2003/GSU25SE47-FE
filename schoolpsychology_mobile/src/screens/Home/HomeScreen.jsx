@@ -90,10 +90,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "#F3F4F6",
     backgroundColor: "#FFFFFF",
     elevation: 0,
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.03,
     borderBottomWidth: 1,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 20 },
   },
   userSection: {
     flexDirection: "row",

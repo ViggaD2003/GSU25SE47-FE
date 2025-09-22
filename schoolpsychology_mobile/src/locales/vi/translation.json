@@ -135,6 +135,10 @@
     "empty": {
       "title": "Không có dữ liệu",
       "subtitle": "Không có dữ liệu dashboard để hiển thị cho khoảng thời gian đã chọn"
+    },
+    "error": {
+      "title": "Lỗi",
+      "subtitle": "Có lỗi xảy ra khi tải dữ liệu dashboard"
     }
   },
   "case": {
@@ -663,14 +667,74 @@
       "loading": "Đang tải hồ sơ...",
       "emptyTitle": "Chưa có hồ sơ tư vấn",
       "emptySubtitle": "Hồ sơ sẽ xuất hiện sau khi bạn hoàn thành buổi tư vấn",
-      "listTitle": "Danh sách hồ sơ ({{count}})"
+      "listTitle": "Danh sách hồ sơ ({{count}})",
+      "detailsTitle": "Chi tiết lịch hẹn",
+      "appointmentInfo": "Thông tin lịch hẹn",
+      "startTime": "Thời gian bắt đầu",
+      "endTime": "Thời gian kết thúc",
+      "status": {
+        "completed": "Hoàn thành",
+        "absent": "Vắng",
+        "canceled": "Đã hủy",
+        "expired": "Hết hạn",
+        "notDetermined": "Chưa xác định"
+      },
+      "sessionFlow": {
+        "good": "Tốt",
+        "medium": "Trung bình",
+        "average": "Trung bình",
+        "low": "Thấp",
+        "notEvaluated": "Chưa đánh giá"
+      },
+      "cooperationLevel": {
+        "good": "Tốt",
+        "average": "Trung bình",
+        "medium": "Trung bình",
+        "low": "Thấp",
+        "notEvaluated": "Chưa đánh giá"
+      },
+      "cooperationLevelDescription": {
+        "goodDescription": "Học sinh tích cực hợp tác",
+        "mediumDescription": "Học sinh hợp tác ở mức độ vừa phải",
+        "lowDescription": "Học sinh ít hợp tác",
+        "notEvaluatedDescription": "Chưa có đánh giá cho mức độ hợp tác"
+      },
+      "sessionFlowDescription": {
+        "goodDescription": "Buổi tư vấn diễn ra thuận lợi",
+        "mediumDescription": "Buổi tư vấn có một số khó khăn",
+        "lowDescription": "Buổi tư vấn có một số khó khăn",
+        "notEvaluatedDescription": "Chưa có đánh giá cho buổi tư vấn"
+      },
+      "errorTitle": "Hồ sơ không tồn tại",
+      "errorSubtitle": "Hồ sơ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa",
+      "recordId": "Mã hồ sơ",
+      "notes": "Ghi chú & Đề xuất",
+      "cancelReason": "Lý do hủy",
+      "sessionNotes": "Ghi chú buổi tư vấn",
+      "noteSummary": "Tóm tắt buổi tư vấn",
+      "noteSuggestion": "Gợi ý & Khuyến nghị",
+      "emptyNotes": "Chưa có ghi chú cho hồ sơ này",
+      "assessmentScores": "Kết quả đánh giá chi tiết",
+      "emptyAssessmentScores": "Chưa có dữ liệu đánh giá",
+      "getScoreLabel": {
+        "needToFollowUp": "Cần theo dõi",
+        "haveSymptoms": "Có dấu hiệu",
+        "noSymptoms": "Không có dấu hiệu",
+        "severity": "Mức độ nghiêm trọng",
+        "frequency": "Tần suất",
+        "impairment": "Mức độ suy giảm",
+        "chronicity": "Tính mãn tính"
+      },
+      "lastUpdated": "Cập nhật",
+      "buoi": "buổi"
     },
     "details": {
       "title": "Chi tiết lịch hẹn",
       "hostInfo": "Thông tin người hẹn",
       "appointmentInfo": "Thông tin lịch hẹn",
       "bookingInfo": "Thông tin đặt hẹn",
-      "appointmentWith": "Lịch hẹn với"
+      "appointmentWith": "Lịch hẹn với",
+      "error": "Đã xảy ra lỗi khi tải thông tin lịch hẹn"
     },
     "labels": {
       "date": "Ngày",
@@ -679,7 +743,36 @@
       "location": "Địa điểm",
       "bookedBy": "Đặt bởi",
       "bookedFor": "Đặt cho",
-      "reason": "Lý do hẹn"
+      "reason": "Lý do hẹn",
+      "hostType": "Loại tư vấn",
+      "mode": "Hình thức",
+      "online": "Trực tuyến",
+      "offline": "Tại chỗ",
+      "joinMeeting": "Tham gia cuộc hẹn",
+      "hostInfo": "Thông tin người hẹn",
+      "evaluation": "Đánh giá buổi tư vấn",
+      "sessionFlow": "Tiến trình buổi tư vấn",
+      "cooperationLevel": "Mức độ hợp tác",
+      "recordId": "Mã hồ sơ",
+      "notes": "Ghi chú & Đề xuất",
+      "cancelReason": "Lý do hủy",
+      "sessionNotes": "Ghi chú buổi tư vấn",
+      "noteSummary": "Tóm tắt buổi tư vấn",
+      "noteSuggestion": "Gợi ý & Khuyến nghị",
+      "emptyNotes": "Chưa có ghi chú cho hồ sơ này",
+      "assessmentScores": "Kết quả đánh giá chi tiết"
+    },
+    "sessionFlow": {
+      "good": "Tốt",
+      "medium": "Trung bình",
+      "low": "Thấp",
+      "notEvaluated": "Chưa đánh giá"
+    },
+    "cooperationLevel": {
+      "good": "Tốt",
+      "average": "Trung bình",
+      "low": "Thấp",
+      "notEvaluated": "Chưa đánh giá"
     },
     "host": {
       "teacher": "Giáo viên chủ nhiệm",
@@ -726,6 +819,7 @@
       "placeholder": "Nhập lý do hủy hẹn..."
     },
     "booking": {
+      "counselorDisabled": "Đặt lịch hẹn với tư vấn viên quản lý trường hợp này",
       "title": "Đặt lịch tư vấn",
       "selectHost": "Chọn người tư vấn",
       "selectCounselor": "Chọn tư vấn viên",
@@ -1007,7 +1101,47 @@
       "emptyTitle": "Chưa có kết quả khảo sát",
       "emptySubtitle": "Hoàn thành khảo sát đầu tiên để xem kết quả tại đây",
       "goToSurvey": "Đi đến khảo sát",
-      "loadMore": "Xem thêm ({{count}})"
+      "loadMore": "Xem thêm ({{count}})",
+      "skipped": "Bỏ qua",
+      "completed": "Hoàn thành",
+      "skippedAt": "Bỏ qua lúc",
+      "completedAt": "Hoàn thành lúc",
+      "screening": "Sàng lọc",
+      "followup": "Theo dõi",
+      "viewResult": "Xem chi tiết",
+      "recordsCount": "{{count}} / {{total}} khảo sát",
+      "skippedCount": "{{count}} bài bỏ qua"
+    },
+    "filterSortModal": {
+      "title": "Bộ lọc & Sắp xếp",
+      "all": "Tất cả",
+      "newest": "Mới nhất",
+      "oldest": "Cũ nhất",
+      "surveyType": "Loại khảo sát",
+      "screening": "Sàng lọc",
+      "followup": "Theo dõi",
+      "sortBy": "Sắp xếp theo",
+      "reset": "Đặt lại",
+      "apply": "Áp dụng",
+      "completedAt": "Ngày hoàn thành"
+    },
+    "card": {
+      "required": "Quan trọng",
+      "optional": "Tùy chọn",
+      "screening": "Sàng lọc",
+      "assessment": "Đánh giá",
+      "evaluation": "Đánh giá",
+      "survey": "Khảo sát",
+      "monthly": "Hàng tháng",
+      "weekly": "Định kỳ",
+      "allStudents": "Tất cả học sinh",
+      "byGrade": "Theo khối lớp",
+      "questions": "câu hỏi",
+      "skip": "Bỏ qua",
+      "start": "Bắt đầu",
+      "confirmSkip": "Xác nhận bỏ qua",
+      "confirmSkipMessage": "Bạn có chắc chắn muốn bỏ qua khảo sát \"{{title}}\"?",
+      "continue": "Tiếp tục"
     },
     "info": {
       "title": "Thông tin khảo sát",
@@ -1025,6 +1159,11 @@
       "startDate": "Bắt đầu",
       "endDate": "Kết thúc",
       "grades": "Khối lớp áp dụng",
+      "grade": "Khối",
+      "allStudents": "Tất cả học sinh",
+      "byGrade": "Theo khối lớp",
+      "minutes": "phút",
+      "published": "Đã xuất bản",
       "savedProgress": {
         "title": "Tiến độ đã lưu",
         "text": "Bạn có tiến độ đã lưu. Nhấn 'Tiếp tục' để tiếp tục."
@@ -1035,7 +1174,8 @@
         "step2": "Chọn câu trả lời phù hợp nhất",
         "step3": "Bạn có thể lưu tiến độ và tiếp tục sau",
         "step4": "Trả lời trung thực để có kết quả chính xác"
-      }
+      },
+      "continueMessage": "Tiếp tục khảo sát với tiến độ đã lưu của bạn"
     },
     "taking": {
       "title": "Làm khảo sát",

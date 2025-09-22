@@ -12,7 +12,8 @@ import {
 import { GlobalStyles } from "../../constants";
 import { useAuth } from "../../contexts";
 import { useTranslation } from "react-i18next";
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
+import { Container } from "@/components";
 
 const Login = () => {
   const navigation = useNavigation();
@@ -62,7 +63,7 @@ const Login = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <Container edges={["bottom"]}>
       <View style={styles.innerContainer}>
         <Image
           source={require("../../assets/logo.svg")}
@@ -116,7 +117,10 @@ const Login = () => {
           )}
         </View>
 
-        <TouchableOpacity style={styles.forgotPassword} onPress={() => navigation.navigate('VerifyEmail')}>
+        <TouchableOpacity
+          style={styles.forgotPassword}
+          onPress={() => navigation.navigate("VerifyEmail")}
+        >
           <Text style={styles.forgotPasswordText}>
             {t("auth.forgotPassword")}
           </Text>
@@ -137,7 +141,7 @@ const Login = () => {
           <ActivityIndicator size="large" color={"#059669"} />
         </View>
       </Modal>
-    </View>
+    </Container>
   );
 };
 

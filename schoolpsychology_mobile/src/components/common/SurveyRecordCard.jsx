@@ -2,12 +2,14 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { getLevelConfig, GlobalStyles } from "../../constants";
 import { formatDate } from "../../utils/helpers";
+import { useTranslation } from "react-i18next";
 
 const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
   const isSkipped = record?.isSkipped || false;
   const levelConfig = getLevelConfig(
     record?.level?.code || record?.level?.levelType
   );
+  const { t } = useTranslation();
 
   return (
     <TouchableOpacity
@@ -21,18 +23,20 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
         </View>
         <View style={styles.recordInfo}>
           <Text style={styles.recordTitle}>
-            {record?.survey?.title || "Khảo sát"}
+            {record?.survey?.title || t("survey.record.title")}
           </Text>
           <Text style={styles.recordDate}>
-            {isSkipped ? "Bỏ qua" : "Hoàn thành"}:{" "}
-            {formatDate(record?.completedAt)}
+            {isSkipped
+              ? t("survey.record.skippedAt")
+              : t("survey.record.completedAt")}
+            : {formatDate(record?.completedAt)}
           </Text>
           {record?.survey?.surveyType && (
             <Text style={styles.surveyType}>
               {record.survey.surveyType === "SCREENING"
-                ? "Sàng lọc"
+                ? t("survey.record.screening")
                 : record.survey.surveyType === "FOLLOWUP"
-                ? "Theo dõi"
+                ? t("survey.record.followup")
                 : record.survey.surveyType}
             </Text>
           )}
@@ -55,7 +59,7 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
                 },
               ]}
             >
-              {isSkipped ? "SKIP" : record?.totalScore}
+              {isSkipped ? t("survey.record.skipped") : record?.totalScore}
             </Text>
           </View>
         </View>
@@ -78,7 +82,7 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
         {isSkipped && (
           <View style={styles.skippedInfo}>
             <Ionicons name="close-circle" size={20} color="#6B7280" />
-            <Text style={styles.skippedText}>Đã bỏ qua</Text>
+            <Text style={styles.skippedText}>{t("survey.record.skipped")}</Text>
           </View>
         )}
 
@@ -95,7 +99,9 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
       </View>
 
       <View style={styles.recordFooter}>
-        <Text style={styles.viewResultText}>Xem chi tiết</Text>
+        <Text style={styles.viewResultText}>
+          {t("survey.record.viewResult")}
+        </Text>
         <Ionicons name="chevron-forward" size={16} color="#6B7280" />
       </View>
     </TouchableOpacity>

@@ -135,6 +135,10 @@
     "empty": {
       "title": "No Data Available",
       "subtitle": "There is no dashboard data to display for the selected time period"
+    },
+    "error": {
+      "title": "Error",
+      "subtitle": "An error occurred while loading the dashboard data"
     }
   },
   "case": {
@@ -412,7 +416,7 @@
       }
     },
     "supportPrograms": {
-      "title": "Chương trình hỗ trợ"
+      "title": "Support programs"
     },
     "planToday": {
       "title": "Plan for today",
@@ -668,13 +672,74 @@
       "loading": "Loading records...",
       "emptyTitle": "No records yet",
       "emptySubtitle": "Records will appear after you complete a session",
-      "listTitle": "Records ({{count}})"
+      "listTitle": "Records ({{count}})",
+      "detailsTitle": "Appointment Details",
+      "appointmentInfo": "Appointment Information",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "status": {
+        "completed": "Completed",
+        "absent": "Absent",
+        "canceled": "Canceled",
+        "expired": "Expired",
+        "notDetermined": "Not determined"
+      },
+      "sessionFlow": {
+        "good": "Good",
+        "medium": "Medium",
+        "average": "Average",
+        "low": "Low",
+        "notEvaluated": "Not evaluated"
+      },
+      "cooperationLevel": {
+        "good": "Good",
+        "medium": "Medium",
+        "average": "Average",
+        "low": "Low",
+        "notEvaluated": "Not evaluated"
+      },
+      "cooperationLevelDescription": {
+        "goodDescription": "Student actively cooperates",
+        "mediumDescription": "Student cooperates at a moderate level",
+        "lowDescription": "Student cooperates at a low level",
+        "notEvaluatedDescription": "No evaluation of cooperation level"
+      },
+      "sessionFlowDescription": {
+        "goodDescription": "The session flows smoothly",
+        "mediumDescription": "The session has some difficulties",
+        "lowDescription": "The session has many difficulties",
+        "notEvaluatedDescription": "No evaluation of session flow"
+      },
+      "errorTitle": "Record not found",
+      "errorSubtitle": "The record you are looking for does not exist or has been deleted",
+      "recordId": "Record ID",
+      "notes": "Notes & Suggestions",
+      "cancelReason": "Cancel Reason",
+      "sessionNotes": "Session Notes",
+      "noteSummary": "Note Summary",
+      "noteSuggestion": "Note Suggestion",
+      "emptyNotes": "No notes for this record",
+      "assessmentScores": "Assessment Scores",
+      "emptyAssessmentScores": "No assessment scores",
+      "getScoreLabel": {
+        "needToFollowUp": "Need to follow up",
+        "haveSymptoms": "Have symptoms",
+        "noSymptoms": "No symptoms",
+        "severity": "Severity",
+        "frequency": "Frequency",
+        "impairment": "Impairment",
+        "chronicity": "Chronicity"
+      },
+      "lastUpdated": "Last updated",
+      "buoi": "session"
     },
     "details": {
       "title": "Appointment Details",
       "hostInfo": "Host Information",
       "appointmentInfo": "Appointment Information",
-      "bookingInfo": "Booking Information"
+      "bookingInfo": "Booking Information",
+      "appointmentWith": "Appointment with",
+      "error": "An error occurred while loading appointment details"
     },
     "labels": {
       "date": "Date",
@@ -683,7 +748,24 @@
       "location": "Location",
       "bookedBy": "Booked by",
       "bookedFor": "Booked for",
-      "reason": "Reason"
+      "reason": "Reason",
+      "hostType": "Host Type",
+      "mode": "Mode",
+      "online": "Online",
+      "offline": "Offline",
+      "joinMeeting": "Join Meeting",
+      "hostInfo": "Host Information",
+      "evaluation": "Evaluation",
+      "sessionFlow": "Session Flow",
+      "cooperationLevel": "Cooperation Level",
+      "recordId": "Record ID",
+      "notes": "Notes & Suggestions",
+      "cancelReason": "Cancel Reason",
+      "sessionNotes": "Session Notes",
+      "noteSummary": "Note Summary",
+      "noteSuggestion": "Note Suggestion",
+      "emptyNotes": "No notes for this record",
+      "assessmentScores": "Assessment Scores"
     },
     "host": {
       "teacher": "Homeroom teacher",
@@ -729,6 +811,7 @@
       "placeholder": "Enter cancellation reason..."
     },
     "booking": {
+      "counselorDisabled": "Book an appointment with the counselor managing this case",
       "title": "Book a counseling session",
       "selectHost": "Select counselor",
       "selectCounselor": "Select counselor",
@@ -749,6 +832,7 @@
       "consultationFormat": "Consultation Format",
       "online": "Online",
       "offline": "Offline",
+      "inPerson": "Offline",
       "reason": "Consultation Reason",
       "optional": "Optional",
       "reasonPlaceholder": "Enter consultation reason (e.g., Academic counseling, Psychological counseling...)",
@@ -894,10 +978,14 @@
     },
     "common": {
       "notDetermined": "Not determined",
-      "exitConfirmation": "Exit Confirmation",
+      "exitConfirmation": "Notification",
       "exitMessage": "Are you sure you want to exit? All data will be lost.",
       "agree": "Agree",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "processing": "Processing request...",
+      "other": "Other",
+      "retry": "Retry",
+      "appointmentNotFound": "Appointment not found"
     },
     "records": {
       "statistics": {
@@ -984,13 +1072,54 @@
       "emptyTitle": "No survey results yet",
       "emptySubtitle": "Complete your first survey to see results here",
       "goToSurvey": "Go to surveys",
-      "loadMore": "Load more ({{count}})"
+      "loadMore": "Load more ({{count}})",
+      "skipped": "Skipped",
+      "completed": "Completed",
+      "skippedAt": "Skipped at",
+      "completedAt": "Completed at",
+      "screening": "Screening",
+      "followup": "Follow-up",
+      "viewResult": "View result",
+      "recordsCount": "{{count}} / {{total}} surveys",
+      "skippedCount": "{{count}} skipped surveys"
+    },
+    "filterSortModal": {
+      "title": "Filter & Sort",
+      "all": "All",
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "surveyType": "Survey type",
+      "screening": "Screening",
+      "followup": "Follow-up",
+      "sortBy": "Sort by",
+      "reset": "Reset",
+      "apply": "Apply",
+      "completedAt": "Completed at"
+    },
+    "card": {
+      "required": "Required",
+      "optional": "Optional",
+      "screening": "Screening",
+      "assessment": "Assessment",
+      "evaluation": "Evaluation",
+      "survey": "Survey",
+      "monthly": "Monthly",
+      "weekly": "Weekly",
+      "allStudents": "All students",
+      "byGrade": "By grade",
+      "questions": "questions",
+      "skip": "Skip",
+      "start": "Start",
+      "confirmSkip": "Confirm skip",
+      "confirmSkipMessage": "Are you sure you want to skip the survey \"{{title}}\"?",
+      "continue": "Continue"
     },
     "info": {
       "title": "Survey Information",
       "loadError": "Unable to load survey information",
       "progressSaved": "Progress saved successfully!",
       "continue": "Continue Survey",
+      "continueMessage": "Continue survey with your saved progress",
       "start": "Start Survey",
       "category": "Category",
       "details": "Detailed information",
@@ -1002,6 +1131,11 @@
       "startDate": "Start",
       "endDate": "End",
       "grades": "Applicable grades",
+      "grade": "Grade",
+      "allStudents": "All students",
+      "byGrade": "By grade",
+      "minutes": "minutes",
+      "published": "Published",
       "savedProgress": {
         "title": "Saved progress",
         "text": "You have saved progress. Tap Continue to proceed."

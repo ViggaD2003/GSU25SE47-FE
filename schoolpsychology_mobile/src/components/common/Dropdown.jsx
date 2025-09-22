@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 const isSmallDevice = width < 375;
@@ -56,7 +57,11 @@ const Dropdown = ({
         disabled={disabled || loading}
       >
         <Text
-          style={[styles.dropdownText, !selectedItem && styles.placeholderText]}
+          style={[
+            styles.dropdownText,
+            !selectedItem && styles.placeholderText,
+            disabled && styles.dropdownTextDisabled,
+          ]}
         >
           {loading
             ? "Đang tải..."
@@ -67,10 +72,9 @@ const Dropdown = ({
         <Ionicons
           name={isOpen ? "chevron-up" : "chevron-down"}
           size={20}
-          color="#6B7280"
+          color={disabled ? "#9CA3AF" : "#6B7280"}
         />
       </TouchableOpacity>
-
       <Modal
         visible={isOpen}
         transparent={true}
@@ -140,6 +144,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1A1A1A",
     flex: 1,
+  },
+  dropdownTextDisabled: {
+    color: "#9CA3AF",
   },
   placeholderText: {
     color: "#9CA3AF",

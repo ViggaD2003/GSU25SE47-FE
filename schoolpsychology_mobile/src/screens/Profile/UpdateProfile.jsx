@@ -183,7 +183,7 @@ export default function UpdateProfile({ route }) {
   };
 
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={"Cập nhật thông tin"}

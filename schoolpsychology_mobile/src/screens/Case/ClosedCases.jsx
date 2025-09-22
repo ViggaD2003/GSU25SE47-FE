@@ -1,4 +1,4 @@
-import { Container, Loading } from "@/components";
+import { Container, Loading, ChildSelector } from "@/components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { getClosedCases } from "@/services/api/caseApi";
 import React, { useEffect, useState } from "react";
@@ -23,7 +23,7 @@ const ClosedCases = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const { user } = useAuth();
-  const { selectedChild } = useChildren();
+  const { selectedChild, children } = useChildren();
 
   const fetchClosedCases = async () => {
     setLoading(true);
@@ -41,8 +41,10 @@ const ClosedCases = ({ navigation }) => {
       }
 
       const userId =
-        user?.role === "PARENTS" ? selectedChild?.id : user?.id || user?.userId;
-
+        user?.role === "PARENTS"
+          ? selectedChild?.id || selectedChild?.userId
+          : user?.id || user?.userId;
+      console.log("userId", userId);
       const cases = await getClosedCases(userId);
       setClosedCases(cases || []);
     } catch (error) {
@@ -61,7 +63,7 @@ const ClosedCases = ({ navigation }) => {
 
   useEffect(() => {
     fetchClosedCases();
-  }, []);
+  }, [user?.role, selectedChild?.id]);
 
   const handleCasePress = (caseId) => {
     navigation.navigate("Case", {
@@ -298,60 +300,50 @@ const ClosedCases = ({ navigation }) => {
     </View>
   );
 
-  if (loading && !refreshing) {
-    return (
-      <Container>
-        <HeaderWithoutTab
-          title={t("case.closedCases.title")}
-          onBackPress={() => navigation.goBack()}
-          showChildSelector
-          onChildSelect={() => console.log("Child selected for cases")}
-        />
-        <View style={styles.loadingContainer}>
-          <Loading />
-        </View>
-      </Container>
-    );
-  }
-
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       <HeaderWithoutTab
         title={t("case.closedCases.title")}
         onBackPress={() => navigation.goBack()}
-        showChildSelector
-        onChildSelect={() => console.log("Child selected for cases")}
       />
+      {user?.role === "PARENTS" && children.length > 0 && (
+        <View style={styles.childSelectorContainer}>
+          <ChildSelector />
+        </View>
+      )}
+      {loading ? (
+        <Loading />
+      ) : (
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {error ? (
+            renderErrorState()
+          ) : closedCases.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <>
+              <View style={styles.headerSection}>
+                <Text style={styles.sectionTitle}>
+                  {t("case.closedCases.title")} ({closedCases.length})
+                </Text>
+                <Text style={styles.sectionSubtitle}>
+                  {t("case.closedCases.description")}
+                </Text>
+              </View>
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        showsVerticalScrollIndicator={false}
-      >
-        {error ? (
-          renderErrorState()
-        ) : closedCases.length === 0 ? (
-          renderEmptyState()
-        ) : (
-          <>
-            <View style={styles.headerSection}>
-              <Text style={styles.sectionTitle}>
-                {t("case.closedCases.title")} ({closedCases.length})
-              </Text>
-              <Text style={styles.sectionSubtitle}>
-                {t("case.closedCases.description")}
-              </Text>
-            </View>
-
-            <View style={styles.casesContainer}>
-              {closedCases.map(renderCaseCard)}
-            </View>
-          </>
-        )}
-      </ScrollView>
+              <View style={styles.casesContainer}>
+                {closedCases.map(renderCaseCard)}
+              </View>
+            </>
+          )}
+        </ScrollView>
+      )}
     </Container>
   );
 };
@@ -583,6 +575,10 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "600",
+  },
+  childSelectorContainer: {
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
 });
 

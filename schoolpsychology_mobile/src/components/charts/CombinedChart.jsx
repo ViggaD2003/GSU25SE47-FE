@@ -515,7 +515,7 @@ const CombinedChart = ({
                 }
                 if (!isOnLeftHalf) {
                   // Nếu ở nửa trái màn hình, hiển thị tooltip bên phải điểm chạm
-                  return tooltipPosition.x - 130;
+                  return tooltipPosition.x - halfWidth + 30;
                 } else {
                   // Nếu ở nửa phải màn hình, hiển thị tooltip bên trái điểm chạm
                   return tooltipPosition.x - 30;

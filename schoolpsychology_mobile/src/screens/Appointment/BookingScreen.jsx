@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { ChildSelector, Container, Loading } from "../../components";
 import { Ionicons } from "@expo/vector-icons";
-import { useAuth, useChildren } from "../../contexts";
+import { useAuth, useChildren, useRealTime } from "../../contexts";
 import { Dropdown, SlotDayCard } from "../../components";
 import { getSlotsWithHostById } from "../../services/api/SlotService";
 import {
@@ -71,8 +71,7 @@ const useBookingState = (user) => {
   const [isOnline, setIsOnline] = useState(false);
   const [reason, setReason] = useState("");
   const [bookedForId, setBookedForId] = useState(userId);
-
-  console.log("userId", user.id);
+  const [caseProfile, setCaseProfile] = useState(null);
 
   // Add selectedChild state to the hook
   const [selectedBookedFor, setSelectedBookedFor] = useState({
@@ -81,7 +80,11 @@ const useBookingState = (user) => {
     gender: user?.gender,
     dob: user?.dob,
     teacherId: user?.classDto?.teacher?.id,
+    caseProfile: user?.caseProfile,
+    caseId: user?.caseId,
   });
+  console.log("user", user);
+  console.log("selectedBookedFor", selectedBookedFor);
 
   // Reset booking state
   const resetBookingState = useCallback(() => {
@@ -107,7 +110,10 @@ const useBookingState = (user) => {
           gender: child.gender,
           dob: child.dob,
           teacherId: child.classDto?.teacher?.id,
+          caseProfile: child?.caseProfile,
+          caseId: child?.caseId,
         });
+        setCaseProfile(child?.caseProfile);
       } else if (user?.role === "STUDENT") {
         console.log("Updating for STUDENT role");
         // For STUDENT: book for themselves
@@ -118,15 +124,20 @@ const useBookingState = (user) => {
           gender: user.gender,
           dob: user.dob,
           teacherId: user.classDto?.teacher?.id,
+          caseProfile: user?.caseProfile,
+          caseId: user?.caseId,
         });
+        setCaseProfile(user?.caseProfile);
       }
 
       // Only reset form-specific state, not the bookedForId
+
       setHostType(null);
       setSelectedCounselor(null);
       setSelectedSlot(null);
       setIsOnline(false);
       setReason("");
+      setCaseProfile(null);
     },
     [user?.role, user?.id]
   );
@@ -143,7 +154,11 @@ const useBookingState = (user) => {
         gender: userData?.gender,
         dob: userData?.dob,
         teacherId: userData.classDto?.teacher?.id,
+        caseProfile: userData?.caseProfile,
+        caseId: userData?.caseId,
       });
+
+      setCaseProfile(userData?.caseProfile);
 
       if (user?.role === "STUDENT") {
         // For STUDENT: use the user's id
@@ -152,8 +167,6 @@ const useBookingState = (user) => {
     },
     [user]
   );
-
-  console.log("BookForId", bookedForId);
 
   return {
     hostType,
@@ -172,6 +185,8 @@ const useBookingState = (user) => {
     setSelectedBookedFor: updateSelectedBookedFor,
     resetBookingState,
     updateSelectedChild,
+    caseProfile,
+    setCaseProfile,
   };
 };
 
@@ -269,7 +284,12 @@ const useSlotsManagement = (
 };
 
 // Custom hook for counselors management
-const useCounselorsManagement = (hostType, showToastMessage, t) => {
+const useCounselorsManagement = (
+  caseProfile,
+  hostType,
+  showToastMessage,
+  t
+) => {
   const [counselors, setCounselors] = useState([]);
   const [loadingCounselors, setLoadingCounselors] = useState(false);
 
@@ -292,7 +312,11 @@ const useCounselorsManagement = (hostType, showToastMessage, t) => {
       }));
 
       setCounselors(mappedCounselors);
-      return mappedCounselors[0]; // Return first counselor for auto-selection
+      return caseProfile
+        ? mappedCounselors.find(
+            (counselor) => counselor.id === caseProfile?.hostBy
+          )
+        : mappedCounselors[0]; // Return first counselor for auto-selection
     } catch (error) {
       console.warn("Lỗi khi tải danh sách tư vấn viên:", error);
       showToastMessage(t("common.errorLoadData"), "error");
@@ -300,7 +324,7 @@ const useCounselorsManagement = (hostType, showToastMessage, t) => {
     } finally {
       setLoadingCounselors(false);
     }
-  }, [hostType, showToastMessage, t]);
+  }, [hostType, showToastMessage, t, caseProfile]);
 
   return {
     counselors,
@@ -400,7 +424,10 @@ const createBookingData = (
     endDateTime: dayjs(selectedSlot.selectedEndTime).format(VN_FORMAT),
     reasonBooking: reason || t("appointment.booking.noReason"),
     hostType: hostType,
-    caseId: user.caseId || null,
+    caseId:
+      hostType?.value === "COUNSELOR"
+        ? user.caseId || user.caseProfile?.id || selectedChild?.caseId || null
+        : null,
   };
 };
 
@@ -470,6 +497,7 @@ const createConfirmationMessage = (
 const BookingScreen = ({ navigation }) => {
   const { user, loading: authLoading } = useAuth();
   const { selectedChild, children } = useChildren();
+  const { sendMessage } = useRealTime();
   const { t } = useTranslation();
 
   // Show loading state while auth is loading
@@ -495,6 +523,7 @@ const BookingScreen = ({ navigation }) => {
     t
   );
   const counselorsManagement = useCounselorsManagement(
+    bookingState.selectedBookedFor?.caseProfile,
     bookingState.hostType,
     toast.showToastMessage,
     t
@@ -598,17 +627,6 @@ const BookingScreen = ({ navigation }) => {
         onPress: async () => {
           setBookingLoading(true);
           try {
-            // Debug logging to see what data we have
-            console.log("Debug - user:", user);
-            console.log(
-              "Debug - bookingState.selectedBookedFor:",
-              bookingState.selectedBookedFor
-            );
-            console.log(
-              "Debug - bookingState.hostType:",
-              bookingState.hostType
-            );
-
             // Get the appropriate data for the selected person
             const selectedPerson =
               user?.role === "PARENTS" ? selectedChild : user;
@@ -639,6 +657,14 @@ const BookingScreen = ({ navigation }) => {
             console.log("bookingData", bookingData);
 
             const response = await createAppointment(bookingData);
+
+            sendMessage({
+              title: "Booking appointment successfully",
+              content: "You have a new appointment from " + user?.email,
+              notificationType: "APPOINTMENT_CREATE",
+              username: bookingState.selectedCounselor?.email,
+              relatedEntityId: response.id,
+            });
 
             // Handle calendar sync
             if (
@@ -671,8 +697,6 @@ const BookingScreen = ({ navigation }) => {
               });
             }, 1000);
           } catch (error) {
-            console.warn("Lỗi khi đặt lịch hẹn:", error);
-
             // Xử lý lỗi server
             if (
               error.response?.status >= 502 &&
@@ -680,10 +704,7 @@ const BookingScreen = ({ navigation }) => {
             ) {
               handleServerError(error, true);
             } else {
-              toast.showToastMessage(
-                t("appointment.errors.bookingError"),
-                "error"
-              );
+              toast.showToastMessage(error.response.data.message, "error");
             }
           } finally {
             setBookingLoading(false);
@@ -730,18 +751,16 @@ const BookingScreen = ({ navigation }) => {
 
   // Load child from global variable
   useEffect(() => {
-    if (global.selectedChildForAppointment) {
-      if (user?.role === "PARENTS") {
-        bookingState.updateSelectedChild(global.selectedChildForAppointment);
-      } else {
-        bookingState.updateSelectedBookedFor(user);
-      }
-      global.selectedChildForAppointment = null;
+    if (user?.role === "PARENTS") {
+      bookingState.setSelectedBookedFor(selectedChild);
+    } else {
+      bookingState.setSelectedBookedFor(user);
     }
+    global.selectedChildForAppointment = null;
   }, [
     user,
     bookingState.updateSelectedChild,
-    bookingState.updateSelectedBookedFor,
+    bookingState.setSelectedBookedFor,
   ]);
 
   // Auto-select counselor when teacherId is null
@@ -790,6 +809,7 @@ const BookingScreen = ({ navigation }) => {
     bookingState.hostType,
     bookingState.selectedCounselor?.id,
     bookingState.selectedBookedFor?.teacherId,
+    bookingState.selectedBookedFor?.caseProfile,
     slotsManagement.fetchSlots,
   ]);
 
@@ -820,6 +840,7 @@ const BookingScreen = ({ navigation }) => {
     user?.role,
     bookingState.hostType,
     bookingState.selectedBookedFor?.teacherId,
+    bookingState.selectedBookedFor?.caseProfile,
     hostTypeOptions,
     handleHostTypeSelect,
     slotsManagement.resetSlots,
@@ -923,6 +944,10 @@ const BookingScreen = ({ navigation }) => {
 
   const renderCounselorSelection = useCallback(() => {
     if (bookingState.hostType?.value !== "COUNSELOR") return null;
+    console.log(
+      "bookingState.selectedBookedFor",
+      bookingState.selectedBookedFor
+    );
 
     return (
       <View style={styles.section}>
@@ -934,7 +959,13 @@ const BookingScreen = ({ navigation }) => {
           key={bookingState.selectedCounselor?.id}
           onSelect={handleCounselorSelect}
           loading={counselorsManagement.loadingCounselors}
+          disabled={bookingState.selectedBookedFor?.caseProfile !== null}
         />
+        {bookingState.selectedBookedFor?.caseProfile !== null && (
+          <Text style={styles.counselorDisabledText}>
+            *{t("appointment.booking.counselorDisabled")}
+          </Text>
+        )}
       </View>
     );
   }, [
@@ -997,6 +1028,7 @@ const BookingScreen = ({ navigation }) => {
             multiline={true}
             numberOfLines={3}
             textAlignVertical="top"
+            placeholderTextColor="#9CA3AF"
           />
         </View>
       </View>
@@ -1250,7 +1282,7 @@ const BookingScreen = ({ navigation }) => {
   }, [calendarManagement.calendarSettings]);
 
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       <HeaderWithoutTab
         title={t("appointment.booking.title")}
         onBackPress={handleBackPress}
@@ -1377,6 +1409,11 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: 16,
+  },
+  counselorDisabledText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    fontWeight: "500",
   },
   slotsOverview: {
     backgroundColor: "#F8FAFC",

@@ -224,7 +224,7 @@ const EventList = ({ route, navigation }) => {
   );
 
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       <HeaderWithoutTab
         title={getTitle()}
         onBackPress={() => navigation?.goBack()}

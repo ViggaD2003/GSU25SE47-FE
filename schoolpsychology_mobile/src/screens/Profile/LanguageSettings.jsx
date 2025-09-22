@@ -11,10 +11,11 @@ import { Container } from "../../components";
 import { useLanguage } from "../../contexts";
 import { useTranslation } from "react-i18next";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import i18n from "@/i18n";
 
 export default function LanguageSettings({ navigation }) {
   const { t } = useTranslation();
-  const { language, changeLanguage } = useLanguage();
+  const { changeLanguage } = useLanguage();
 
   const languages = [
     {
@@ -35,8 +36,10 @@ export default function LanguageSettings({ navigation }) {
     await changeLanguage(langCode);
   };
 
+  console.log("i18n.language", i18n.language);
+
   return (
-    <Container>
+    <Container edges={["bottom"]}>
       <HeaderWithoutTab
         title={t("profile.languageSettings")}
         subtitle={t("profile.languageSettingsSubtitle")}
@@ -57,7 +60,7 @@ export default function LanguageSettings({ navigation }) {
               key={lang.code}
               style={[
                 styles.languageItem,
-                language === lang.code && styles.languageItemActive,
+                i18n.language === lang.code && styles.languageItemActive,
               ]}
               onPress={() => handleLanguageChange(lang.code)}
             >
@@ -67,7 +70,7 @@ export default function LanguageSettings({ navigation }) {
                   <Text
                     style={[
                       styles.languageName,
-                      language === lang.code && styles.languageNameActive,
+                      i18n.language === lang.code && styles.languageNameActive,
                     ]}
                   >
                     {lang.name}
@@ -75,7 +78,8 @@ export default function LanguageSettings({ navigation }) {
                   <Text
                     style={[
                       styles.languageNative,
-                      language === lang.code && styles.languageNativeActive,
+                      i18n.language === lang.code &&
+                        styles.languageNativeActive,
                     ]}
                   >
                     {lang.nativeName}
@@ -83,7 +87,7 @@ export default function LanguageSettings({ navigation }) {
                 </View>
               </View>
 
-              {language === lang.code && (
+              {i18n.language === lang.code && (
                 <View style={styles.checkIcon}>
                   <Icon name="check-circle" size={24} color="#0f766e" />
                 </View>

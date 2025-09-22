@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-  Share,
-  Alert,
-} from "react-native";
+import { StyleSheet, View, Text, ScrollView, Alert } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,12 +9,13 @@ import { getAppointmentById } from "@/services/api/AppointmentService";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
 dayjs.locale("vi");
 
-const { width } = Dimensions.get("window");
-
 const AppointmentRecordDetail = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const { recordId } = route.params;
@@ -60,7 +52,7 @@ const AppointmentRecordDetail = () => {
           backgroundColor: "#D1FAE5",
           borderColor: "#059669",
           icon: "checkmark-circle",
-          text: "Hoàn thành",
+          text: t("appointment.record.status.completed"),
           gradient: ["#059669", "#047857"],
         };
       case "ABSENT":
@@ -69,7 +61,7 @@ const AppointmentRecordDetail = () => {
           backgroundColor: "#FEF3C7",
           borderColor: "#F59E0B",
           icon: "close-circle",
-          text: "Vắng",
+          text: t("appointment.record.status.absent"),
           gradient: ["#F59E0B", "#D97706"],
         };
       case "CANCELED":
@@ -78,7 +70,7 @@ const AppointmentRecordDetail = () => {
           backgroundColor: "#FEE2E2",
           borderColor: "#DC2626",
           icon: "close-circle",
-          text: "Đã hủy",
+          text: t("appointment.record.status.canceled"),
           gradient: ["#DC2626", "#B91C1C"],
         };
       case "EXPIRED":
@@ -87,7 +79,7 @@ const AppointmentRecordDetail = () => {
           backgroundColor: "#F3F4F6",
           borderColor: "#6B7280",
           icon: "time",
-          text: "Hết hạn",
+          text: t("appointment.record.status.expired"),
           gradient: ["#6B7280", "#4B5563"],
         };
       default:
@@ -96,7 +88,7 @@ const AppointmentRecordDetail = () => {
           backgroundColor: "#F3F4F6",
           borderColor: "#6B7280",
           icon: "help",
-          text: "Chưa xác định",
+          text: t("appointment.record.status.notDetermined"),
           gradient: ["#6B7280", "#4B5563"],
         };
     }
@@ -110,40 +102,50 @@ const AppointmentRecordDetail = () => {
           color: "#059669",
           backgroundColor: "#D1FAE5",
           icon: "happy",
-          text: "Tốt",
-          description: "Buổi tư vấn diễn ra thuận lợi",
+          text: t("appointment.record.sessionFlow.good"),
+          description: t(
+            "appointment.record.sessionFlowDescription.goodDescription"
+          ),
         };
       case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "remove",
-          text: "Trung bình",
-          description: "Buổi tư vấn có một số khó khăn",
+          text: t("appointment.record.sessionFlow.medium"),
+          description: t(
+            "appointment.record.sessionFlowDescription.mediumDescription"
+          ),
         };
       case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
           icon: "remove",
-          text: "Trung bình",
-          description: "Buổi tư vấn có một số khó khăn",
+          text: t("appointment.record.sessionFlow.medium"),
+          description: t(
+            "appointment.record.sessionFlowDescription.mediumDescription"
+          ),
         };
       case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
           icon: "sad",
-          text: "Kém",
-          description: "Buổi tư vấn gặp nhiều khó khăn",
+          text: t("appointment.record.sessionFlow.low"),
+          description: t(
+            "appointment.record.sessionFlowDescription.lowDescription"
+          ),
         };
       default:
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
           icon: "help",
-          text: "Chưa đánh giá",
-          description: "Chưa có đánh giá cho buổi tư vấn",
+          text: t("appointment.record.sessionFlow.notEvaluated"),
+          description: t(
+            "appointment.record.sessionFlowDescription.notEvaluatedDescription"
+          ),
         };
     }
   };
@@ -155,36 +157,46 @@ const AppointmentRecordDetail = () => {
         return {
           color: "#059669",
           backgroundColor: "#D1FAE5",
-          text: "Tốt",
-          description: "Học sinh tích cực hợp tác",
+          text: t("appointment.record.cooperationLevel.good"),
+          description: t(
+            "appointment.record.cooperationLevelDescription.goodDescription"
+          ),
         };
       case "MEDIUM":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
-          text: "Trung bình",
-          description: "Học sinh hợp tác ở mức độ vừa phải",
+          text: t("appointment.record.cooperationLevel.medium"),
+          description: t(
+            "appointment.record.cooperationLevelDescription.mediumDescription"
+          ),
         };
       case "AVERAGE":
         return {
           color: "#F59E0B",
           backgroundColor: "#FEF3C7",
-          text: "Trung bình",
-          description: "Học sinh hợp tác ở mức độ vừa phải",
+          text: t("appointment.record.cooperationLevel.medium"),
+          description: t(
+            "appointment.record.cooperationLevelDescription.mediumDescription"
+          ),
         };
       case "LOW":
         return {
           color: "#DC2626",
           backgroundColor: "#FEE2E2",
-          text: "Thấp",
-          description: "Học sinh ít hợp tác",
+          text: t("appointment.record.cooperationLevel.low"),
+          description: t(
+            "appointment.record.cooperationLevelDescription.lowDescription"
+          ),
         };
       default:
         return {
           color: "#6B7280",
           backgroundColor: "#F3F4F6",
-          text: "Chưa đánh giá",
-          description: "Chưa có đánh giá mức độ hợp tác",
+          text: t("appointment.record.cooperationLevel.notEvaluated"),
+          description: t(
+            "appointment.record.cooperationLevelDescription.notEvaluatedDescription"
+          ),
         };
     }
   };
@@ -192,7 +204,7 @@ const AppointmentRecordDetail = () => {
   if (loading) {
     return (
       <Container>
-        <Loading text="Đang tải chi tiết hồ sơ..." />
+        <Loading text={t("appointment.record.loading")} />
       </Container>
     );
   }
@@ -202,9 +214,11 @@ const AppointmentRecordDetail = () => {
       <Container>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color="#DC2626" />
-          <Text style={styles.errorTitle}>Không tìm thấy hồ sơ</Text>
+          <Text style={styles.errorTitle}>
+            {t("appointment.record.errorTitle")}
+          </Text>
           <Text style={styles.errorSubtitle}>
-            Hồ sơ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa
+            {t("appointment.record.errorSubtitle")}
           </Text>
         </View>
       </Container>
@@ -219,7 +233,7 @@ const AppointmentRecordDetail = () => {
     <Container>
       {/* Header */}
       <HeaderWithoutTab
-        title={"Chi tiết hồ sơ"}
+        title={t("appointment.record.detailsTitle")}
         onBackPress={() => navigation.goBack()}
       />
 
@@ -246,7 +260,9 @@ const AppointmentRecordDetail = () => {
                   />
                 </View>
                 <View style={styles.statusInfo}>
-                  <Text style={styles.recordId}>Hồ sơ #{record.id}</Text>
+                  <Text style={styles.recordId}>
+                    {t("appointment.record.recordId")} #{record.id}
+                  </Text>
                   <Text style={styles.statusText}>{statusConfig.text}</Text>
                 </View>
               </View>
@@ -256,16 +272,22 @@ const AppointmentRecordDetail = () => {
 
         {/* Appointment Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Thông tin lịch hẹn</Text>
+          <Text style={styles.sectionTitle}>
+            {t("appointment.record.appointmentInfo")}
+          </Text>
           <View style={styles.sectionContent}>
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Ionicons name="calendar" size={20} color="#3B82F6" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Thời gian bắt đầu</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.record.startTime")}
+                </Text>
                 <Text style={styles.infoValue}>
-                  {dayjs(record.startDateTime).format("dddd, DD/MM/YYYY HH:mm")}
+                  {dayjs(record.startDateTime)
+                    .locale(i18n.language)
+                    .format("dddd, DD/MM/YYYY HH:mm")}
                 </Text>
               </View>
             </View>
@@ -274,9 +296,13 @@ const AppointmentRecordDetail = () => {
                 <Ionicons name="time" size={20} color="#6B7280" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Thời gian kết thúc</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.record.endTime")}
+                </Text>
                 <Text style={styles.infoValue}>
-                  {dayjs(record.endDateTime).format("dddd, DD/MM/YYYY HH:mm")}
+                  {dayjs(record.endDateTime)
+                    .locale(i18n.language)
+                    .format("dddd, DD/MM/YYYY HH:mm")}
                 </Text>
               </View>
             </View>
@@ -285,11 +311,13 @@ const AppointmentRecordDetail = () => {
                 <Ionicons name="person" size={20} color="#8B5CF6" />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Loại tư vấn</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.labels.hostType")}
+                </Text>
                 <Text style={styles.infoValue}>
                   {record.hostType === "COUNSELOR"
-                    ? "Tư vấn viên"
-                    : "Giáo viên"}
+                    ? t("appointment.host.counselor")
+                    : t("appointment.host.teacher")}
                 </Text>
               </View>
             </View>
@@ -302,9 +330,13 @@ const AppointmentRecordDetail = () => {
                 />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Hình thức</Text>
+                <Text style={styles.infoLabel}>
+                  {t("appointment.labels.mode")}
+                </Text>
                 <Text style={styles.infoValue}>
-                  {record.isOnline ? "Trực tuyến" : "Tại chỗ"}
+                  {record.isOnline
+                    ? t("appointment.labels.online")
+                    : t("appointment.labels.offline")}
                 </Text>
               </View>
             </View>
@@ -314,7 +346,9 @@ const AppointmentRecordDetail = () => {
                   <Ionicons name="location" size={20} color="#F59E0B" />
                 </View>
                 <View style={styles.infoContent}>
-                  <Text style={styles.infoLabel}>Địa điểm</Text>
+                  <Text style={styles.infoLabel}>
+                    {t("appointment.labels.location")}
+                  </Text>
                   <Text style={styles.infoValue}>{record.location}</Text>
                 </View>
               </View>
@@ -324,12 +358,16 @@ const AppointmentRecordDetail = () => {
 
         {/* User Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Thông tin người dùng</Text>
+          <Text style={styles.sectionTitle}>
+            {t("appointment.labels.hostInfo")}
+          </Text>
           <View style={styles.sectionContent}>
             <View style={styles.userCard}>
               <View style={styles.userHeader}>
                 <Ionicons name="person-circle" size={24} color="#3B82F6" />
-                <Text style={styles.userTitle}>Người được tư vấn</Text>
+                <Text style={styles.userTitle}>
+                  {t("appointment.labels.bookedFor")}
+                </Text>
               </View>
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{record.bookedFor.fullName}</Text>
@@ -343,7 +381,9 @@ const AppointmentRecordDetail = () => {
             <View style={styles.userCard}>
               <View style={styles.userHeader}>
                 <Ionicons name="person" size={24} color="#10B981" />
-                <Text style={styles.userTitle}>Người đặt lịch</Text>
+                <Text style={styles.userTitle}>
+                  {t("appointment.labels.bookedBy")}
+                </Text>
               </View>
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>{record.bookedBy.fullName}</Text>
@@ -359,7 +399,9 @@ const AppointmentRecordDetail = () => {
         {/* Evaluation Section - Only for COMPLETED */}
         {record.status === "COMPLETED" && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Đánh giá buổi tư vấn</Text>
+            <Text style={styles.sectionTitle}>
+              {t("appointment.labels.evaluation")}
+            </Text>
             <View style={styles.sectionContent}>
               {/* Session Flow */}
               {record.sessionFlow && (
@@ -379,7 +421,7 @@ const AppointmentRecordDetail = () => {
                     </View>
                     <View style={styles.evaluationInfo}>
                       <Text style={styles.evaluationTitle}>
-                        Tiến trình buổi tư vấn
+                        {t("appointment.labels.sessionFlow")}
                       </Text>
                       <View
                         style={[
@@ -428,7 +470,9 @@ const AppointmentRecordDetail = () => {
                       />
                     </View>
                     <View style={styles.evaluationInfo}>
-                      <Text style={styles.evaluationTitle}>Mức độ hợp tác</Text>
+                      <Text style={styles.evaluationTitle}>
+                        {t("appointment.labels.cooperationLevel")}
+                      </Text>
                       <View
                         style={[
                           styles.evaluationBadge,
@@ -457,7 +501,9 @@ const AppointmentRecordDetail = () => {
 
         {/* Notes Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ghi chú & Đề xuất</Text>
+          <Text style={styles.sectionTitle}>
+            {t("appointment.labels.notes")}
+          </Text>
           <View style={styles.sectionContent}>
             {/* Cancel Reason - Only for CANCELED */}
             {record.status === "CANCELED" && record.cancelReason && (
@@ -468,7 +514,9 @@ const AppointmentRecordDetail = () => {
                     size={20}
                     color="#DC2626"
                   />
-                  <Text style={styles.noteTitle}>Lý do hủy buổi tư vấn</Text>
+                  <Text style={styles.noteTitle}>
+                    {t("appointment.labels.cancelReason")}
+                  </Text>
                 </View>
                 <Text style={styles.noteContent}>{record.cancelReason}</Text>
               </View>
@@ -479,7 +527,9 @@ const AppointmentRecordDetail = () => {
               <View style={styles.noteCard}>
                 <View style={styles.noteHeader}>
                   <Ionicons name="document-text" size={20} color="#3B82F6" />
-                  <Text style={styles.noteTitle}>Ghi chú buổi tư vấn</Text>
+                  <Text style={styles.noteTitle}>
+                    {t("appointment.labels.sessionNotes")}
+                  </Text>
                 </View>
                 <Text style={styles.noteContent}>{record.sessionNotes}</Text>
               </View>
@@ -490,7 +540,9 @@ const AppointmentRecordDetail = () => {
               <View style={styles.noteCard}>
                 <View style={styles.noteHeader}>
                   <Ionicons name="document-text" size={20} color="#059669" />
-                  <Text style={styles.noteTitle}>Tóm tắt buổi tư vấn</Text>
+                  <Text style={styles.noteTitle}>
+                    {t("appointment.labels.noteSummary")}
+                  </Text>
                 </View>
                 <Text style={styles.noteContent}>{record.noteSummary}</Text>
               </View>
@@ -506,7 +558,9 @@ const AppointmentRecordDetail = () => {
               >
                 <View style={styles.noteHeader}>
                   <Ionicons name="bulb" size={20} color="#F59E0B" />
-                  <Text style={styles.noteTitle}>Gợi ý & Khuyến nghị</Text>
+                  <Text style={styles.noteTitle}>
+                    {t("appointment.labels.noteSuggestion")}
+                  </Text>
                 </View>
                 <Text style={styles.noteContent}>{record.noteSuggestion}</Text>
               </View>
@@ -519,7 +573,7 @@ const AppointmentRecordDetail = () => {
                 <View style={styles.emptyNotesContainer}>
                   <Ionicons name="document-outline" size={48} color="#9CA3AF" />
                   <Text style={styles.emptyNotesText}>
-                    Chưa có ghi chú cho hồ sơ này
+                    {t("appointment.labels.emptyNotes")}
                   </Text>
                 </View>
               )}
@@ -531,7 +585,7 @@ const AppointmentRecordDetail = () => {
           <View style={styles.section}>
             <AssessmentScoreChart
               scores={record.assessmentScores}
-              title="Kết quả đánh giá chi tiết"
+              title={t("appointment.labels.assessmentScores")}
             />
           </View>
         )}

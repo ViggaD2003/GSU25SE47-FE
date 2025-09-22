@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { GlobalStyles } from "../../constants";
+import { useTranslation } from "react-i18next";
 
 const FilterSortModal = ({
   visible,
@@ -19,17 +20,26 @@ const FilterSortModal = ({
 }) => {
   const [selectedFilters, setSelectedFilters] = useState(currentFilters || {});
   const [selectedSort, setSelectedSort] = useState(currentSort || {});
+  const { t } = useTranslation();
   // console.log("currentFilters:", currentFilters);
   const surveyTypes = [
-    { label: "Tất cả", value: "" },
-    { label: "Sàng lọc", value: "SCREENING" },
-    { label: "Theo dõi", value: "FOLLOWUP" },
+    { label: t("survey.filterSortModal.all"), value: "" },
+    { label: t("survey.filterSortModal.screening"), value: "SCREENING" },
+    { label: t("survey.filterSortModal.followup"), value: "FOLLOWUP" },
     // { label: "Chương trình", value: "PROGRAM" },
   ];
 
   const sortOptions = [
-    { label: "Mới nhất", value: "completedAt", direction: "desc" },
-    { label: "Cũ nhất", value: "completedAt", direction: "asc" },
+    {
+      label: t("survey.filterSortModal.newest"),
+      value: "completedAt",
+      direction: "desc",
+    },
+    {
+      label: t("survey.filterSortModal.oldest"),
+      value: "completedAt",
+      direction: "asc",
+    },
   ];
 
   const handleFilterChange = useCallback((key, value) => {
@@ -54,7 +64,7 @@ const FilterSortModal = ({
   const handleReset = useCallback(() => {
     setSelectedFilters({});
     setSelectedSort({
-      label: "Mới nhất",
+      label: t("survey.filterSortModal.completedAt"),
       value: "completedAt",
       direction: "desc",
     });
@@ -71,7 +81,9 @@ const FilterSortModal = ({
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Bộ lọc & Sắp xếp</Text>
+            <Text style={styles.headerTitle}>
+              {t("survey.filterSortModal.title")}
+            </Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Ionicons name="close" size={24} color="#6B7280" />
             </TouchableOpacity>
@@ -83,7 +95,9 @@ const FilterSortModal = ({
           >
             {/* Survey Type Filter */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Loại khảo sát</Text>
+              <Text style={styles.sectionTitle}>
+                {t("survey.filterSortModal.surveyType")}
+              </Text>
               <View style={styles.optionsContainer}>
                 {surveyTypes.map((type) => (
                   <TouchableOpacity
@@ -111,7 +125,9 @@ const FilterSortModal = ({
 
             {/* Sort Options */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Sắp xếp theo</Text>
+              <Text style={styles.sectionTitle}>
+                {t("survey.filterSortModal.sortBy")}
+              </Text>
               <View style={styles.optionsContainer}>
                 {sortOptions.map((option) => (
                   <TouchableOpacity
@@ -151,10 +167,14 @@ const FilterSortModal = ({
           {/* Footer */}
           <View style={styles.footer}>
             <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-              <Text style={styles.resetButtonText}>Đặt lại</Text>
+              <Text style={styles.resetButtonText}>
+                {t("survey.filterSortModal.reset")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-              <Text style={styles.applyButtonText}>Áp dụng</Text>
+              <Text style={styles.applyButtonText}>
+                {t("survey.filterSortModal.apply")}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

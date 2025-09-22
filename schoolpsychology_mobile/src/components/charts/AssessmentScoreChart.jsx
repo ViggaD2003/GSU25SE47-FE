@@ -1,17 +1,24 @@
 import React from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-const { width } = Dimensions.get("window");
+import { useTranslation } from "react-i18next";
 
 const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" }) => {
-  if (!scores || scores.length === 0) {
+  const { t } = useTranslation();
+  if (
+    !scores ||
+    scores.length === 0 ||
+    scores.filter((score) => score.compositeScore === 0).length ===
+      scores.length
+  ) {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.emptyContainer}>
           <Ionicons name="analytics-outline" size={48} color="#9CA3AF" />
-          <Text style={styles.emptyText}>Chưa có dữ liệu đánh giá</Text>
+          <Text style={styles.emptyText}>
+            {t("appointment.record.emptyAssessmentScores")}
+          </Text>
         </View>
       </View>
     );
@@ -25,10 +32,10 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
   };
 
   const getScoreLabel = (score) => {
-    if (score >= 4) return "Cần theo dõi";
-    if (score >= 2) return "Có dấu hiệu";
-    if (score >= 0) return "Không có dấu hiệu";
-    return "Cần theo dõi";
+    if (score >= 4) return t("appointment.record.getScoreLabel.needToFollowUp");
+    if (score >= 2) return t("appointment.record.getScoreLabel.haveSymptoms");
+    if (score >= 0) return t("appointment.record.getScoreLabel.noSymptoms");
+    return t("appointment.record.getScoreLabel.needToFollowUp");
   };
 
   const formatScore = (score) => {
@@ -40,6 +47,7 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
       <Text style={styles.title}>{title}</Text>
       <View style={styles.scoresContainer}>
         {scores.map((score, index) => {
+          if (score.compositeScore === 0) return null;
           const scoreValue = formatScore(score.compositeScore);
           const scoreColor = getScoreColor(score.compositeScore);
           const scoreLabel = getScoreLabel(score.compositeScore);
@@ -64,26 +72,32 @@ const AssessmentScoreChart = ({ scores = [], title = "Đánh giá chi tiết" })
               <View style={styles.scoreDetails}>
                 <View style={styles.scoreRow}>
                   <Text style={styles.scoreDetailLabel}>
-                    Mức độ nghiêm trọng:
+                    {t("appointment.record.getScoreLabel.severity")}
                   </Text>
                   <Text style={styles.scoreDetailValue}>
                     {formatScore(score.severityScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreDetailLabel}>Tần suất:</Text>
+                  <Text style={styles.scoreDetailLabel}>
+                    {t("appointment.record.getScoreLabel.frequency")}
+                  </Text>
                   <Text style={styles.scoreDetailValue}>
                     {formatScore(score.frequencyScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreDetailLabel}>Mức độ suy giảm:</Text>
+                  <Text style={styles.scoreDetailLabel}>
+                    {t("appointment.record.getScoreLabel.impairment")}
+                  </Text>
                   <Text style={styles.scoreDetailValue}>
                     {formatScore(score.impairmentScore)}
                   </Text>
                 </View>
                 <View style={styles.scoreRow}>
-                  <Text style={styles.scoreDetailLabel}>Tính mãn tính:</Text>
+                  <Text style={styles.scoreDetailLabel}>
+                    {t("appointment.record.getScoreLabel.chronicity")}
+                  </Text>
                   <Text style={styles.scoreDetailValue}>
                     {formatScore(score.chronicityScore)}
                   </Text>
