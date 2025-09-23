@@ -128,9 +128,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginVertical: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 12,
     elevation: 8,
     overflow: "hidden",
   },
@@ -173,8 +173,8 @@ const styles = StyleSheet.create({
     // maxHeight: 100,
   },
   statsContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
     gap: 16,
   },
   statWrapper: {

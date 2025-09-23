@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     // backgroundColor: "#F8FAFC",
     paddingVertical: 20,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },

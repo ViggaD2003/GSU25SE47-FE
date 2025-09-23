@@ -29,7 +29,7 @@
     "@stomp/stompjs": "^7.1.1",
     "axios": "^1.10.0",
     "dayjs": "^1.11.13",
-    "expo": "^54.0.0",
+    "expo": "~54.0.10",
     "expo-calendar": "~15.0.7",
     "expo-constants": "~18.0.9",
     "expo-dev-client": "~6.0.12",

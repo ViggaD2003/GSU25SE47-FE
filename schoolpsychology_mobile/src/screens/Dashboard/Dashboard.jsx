@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     // backgroundColor: "#F8FAFC",
   },
   contentContainer: {
-    paddingBottom: 24,
+    // paddingBottom: 24,
   },
   loadingContainer: {
     flex: 1,

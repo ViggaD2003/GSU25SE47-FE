@@ -570,15 +570,15 @@ const CombinedChart = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+    // backgroundColor: "#FFFFFF",
+    // borderRadius: 20,
     paddingVertical: 30,
     marginVertical: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 4 },
+    // shadowOpacity: 0.1,
+    // shadowRadius: 12,
+    // elevation: 8,
   },
   scrollContainer: {
     alignItems: "center",
