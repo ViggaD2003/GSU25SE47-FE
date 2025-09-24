@@ -224,7 +224,7 @@ const CaseDetails = () => {
   }, [caseData])
 
   const handleGoBack = useCallback(() => {
-    navigate(-1)
+    navigate('/case-management')
   }, [navigate])
 
   const handleUpdate = useCallback(() => {

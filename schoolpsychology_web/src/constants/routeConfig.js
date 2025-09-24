@@ -45,7 +45,7 @@ export const ROUTE_CONFIG = [
       {
         key: '/appointment-management/details/:id',
         element: 'AppointmentDetails',
-        allowedRoles: ['teacher', 'counselor'],
+        allowedRoles: ['teacher', 'counselor', 'manager'],
         hidden: true,
       },
       {

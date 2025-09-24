@@ -1383,6 +1383,7 @@
     "error": "Lỗi",
     "success": "Thành công",
     "warning": "Cảnh báo",
+    "danger": "Nguy hiểm",
     "info": "Thông tin",
     "selectAll": "Chọn tất cả",
     "add": "Thêm",
@@ -2319,7 +2320,9 @@
       "notifyAdministrators": "Thông Báo Ban Giám Hiệu",
       "teacherDescription": "Gửi kết quả đánh giá đến giáo viên liên quan",
       "parentDescription": "Sắp ra mắt - thông báo phụ huynh về đánh giá",
-      "adminDescription": "Sắp ra mắt - thông báo ban giám hiệu nhà trường"
+      "adminDescription": "Sắp ra mắt - thông báo ban giám hiệu nhà trường",
+      "type": "Loại thông báo",
+      "typeDescription": "Chọn mức độ nghiêm trọng để thông báo giáo viên"
     },
     "steps": {
       "basic": "Thông Tin Cơ Bản",

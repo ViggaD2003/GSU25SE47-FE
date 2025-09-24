@@ -30,3 +30,14 @@ export const getRecentNotifications = async (accountId, limit = 10) => {
     return []
   }
 }
+
+export const markNotificationAsRead = async notiId => {
+  if (!notiId) return null
+  try {
+    const response = await api.patch(`/api/v1/noti/read/${notiId}`)
+    return response.data
+  } catch (error) {
+    console.error('Error marking notification as read:', error)
+    throw error
+  }
+}

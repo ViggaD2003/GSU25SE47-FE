@@ -4,14 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { selectUserRole } from '../../store/slices/authSlice'
 import { useTranslation } from 'react-i18next'
-import {
-  AlertOutlined,
-  AppstoreOutlined,
-  CalendarOutlined,
-  DashboardOutlined,
-  FileTextOutlined,
-  UserOutlined,
-} from '@ant-design/icons'
+
 import { ROUTE_CONFIG } from '@/constants/routeConfig'
 
 const Navigation = memo(({ collapsed }) => {
@@ -46,7 +39,29 @@ const Navigation = memo(({ collapsed }) => {
     return filterMenu(ROUTE_CONFIG)
   }, [userRole, t, handleNavigate])
 
-  const selectedKeys = useMemo(() => [location.pathname], [location.pathname])
+  // Build visible menu keys for current role to support prefix matching
+  const visibleMenuKeys = useMemo(() => {
+    const collect = items =>
+      items
+        .filter(
+          item => !item.allowedRoles || item.allowedRoles.includes(userRole)
+        )
+        .flatMap(item => {
+          const childrenKeys = item.children ? collect(item.children) : []
+          const selfKeys = item.labelKey && !item.hidden ? [item.key] : []
+          return [...selfKeys, ...childrenKeys]
+        })
+    return collect(ROUTE_CONFIG)
+  }, [userRole])
+
+  // Select the longest matching visible key that prefixes the current path
+  const selectedKeys = useMemo(() => {
+    const match = visibleMenuKeys
+      .filter(key => typeof key === 'string')
+      .sort((a, b) => b.length - a.length)
+      .find(key => location.pathname.startsWith(key))
+    return match ? [match] : []
+  }, [location.pathname, visibleMenuKeys])
 
   return (
     <Menu

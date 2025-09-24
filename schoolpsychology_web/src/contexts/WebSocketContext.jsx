@@ -296,6 +296,48 @@ export const WebSocketProvider = ({ children }) => {
     [isConnectionReady]
   )
 
+  const sendRequestNotification = useCallback(
+    (
+      body = {
+        title: 'Hello from client!',
+        content: `${userRef.current?.fullName || 'User'} sent you a message`,
+        // username: userRef.current?.email,
+        username: 'unguyen8666@gmail.com',
+        notificationType: 'APPOINTMENT_WARNING',
+        relatedEntityId: '0',
+        notifyTeacher: false,
+        notifyParent: false,
+        notifyCounselor: false,
+      }
+    ) => {
+      if (!isConnectionReady()) {
+        console.log('[WebSocket] Not connected, connecting...')
+        connectWebSocket()
+      }
+      // console.log('🔍 sendRequestNotification', body)
+
+      try {
+        // console.log('🔍 sendMessage', body)
+        const destination = '/app/noti-setting'
+        const bodyData = {
+          title: body.title,
+          content: body.content,
+          notificationType: body.notificationType,
+          notifyTeacher: body.notifyTeacher,
+          notifyParent: body.notifyParent,
+          notifyCounselor: body.notifyCounselor,
+          entityId: body.relatedEntityId,
+        }
+        stompClientRef?.current?.send(destination, {}, JSON.stringify(bodyData))
+        // console.log('[WebSocket] Message sent to:', destination)
+      } catch (error) {
+        console.error('[WebSocket] Error sending message:', error)
+        throw new Error('Failed to send message')
+      }
+    },
+    [isConnectionReady]
+  )
+
   const sendMessage2 = useCallback(
     (type = 'CHAT', roomId = '', body = { sender: user?.email }) => {
       if (!isConnectionReady()) {
@@ -416,14 +458,15 @@ export const WebSocketProvider = ({ children }) => {
     setNotifications(prev =>
       prev.map(notification =>
         notification.id === notificationId
-          ? { ...notification, read: true }
+          ? { ...notification, isRead: true }
           : notification
       )
     )
   }, [])
 
   const getUnreadCount = useCallback(() => {
-    return notifications.filter(notification => !notification.read).length
+    console.log('notifications', notifications)
+    return notifications.filter(notification => !notification.isRead).length
   }, [notifications])
 
   const getRecentNotifications = useCallback(
@@ -458,6 +501,7 @@ export const WebSocketProvider = ({ children }) => {
       safeCleanup,
       onlineUsers,
       isConnectionReady,
+      sendRequestNotification,
     }),
     [
       isConnectionReady,
@@ -473,6 +517,7 @@ export const WebSocketProvider = ({ children }) => {
       getRecentNotifications,
       safeCleanup,
       onlineUsers,
+      sendRequestNotification,
     ]
   )
 

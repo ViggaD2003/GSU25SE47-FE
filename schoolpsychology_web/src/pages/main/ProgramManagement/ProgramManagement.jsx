@@ -281,7 +281,7 @@ const ProgramManagement = () => {
             relatedEntityId: data.id,
             title: 'New Program Created',
             username: email,
-            notificationType: 'PROGRAM',
+            notificationType: 'PROGRAM_INFO',
             content: `A new program has been created: ${data.name}`,
           }
           sendMessage(body)

@@ -23,4 +23,21 @@ export const categoriesAPI = {
     )
     return response.data
   },
+
+  updateCategories: async (id, categoryData) => {
+    if (!id || !categoryData) return
+    const requestBody = {
+      name: categoryData.name,
+      code: categoryData.code,
+      description: categoryData.description,
+      isSum: categoryData.isSum,
+      isLimited: categoryData.isLimited,
+      questionLength: categoryData.questionLength,
+      severityWeight: categoryData.severityWeight,
+      maxScore: categoryData.maxScore,
+      minScore: categoryData.minScore,
+    }
+    const response = await api.put(`/api/v1/categories/${id}`, requestBody)
+    return response.data
+  },
 }

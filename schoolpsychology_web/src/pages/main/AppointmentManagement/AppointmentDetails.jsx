@@ -66,6 +66,7 @@ import {
   STUDENT_COOP_LEVEL,
 } from '../../../constants/enums'
 import { categoriesAPI } from '@/services/categoryApi'
+import { useWebSocket } from '@/contexts/WebSocketContext'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -340,6 +341,7 @@ const AppointmentDetails = () => {
   const { isDarkMode } = useTheme()
   const [messageApi, contextHolder] = message.useMessage()
   const dispatch = useDispatch()
+  const { sendRequestNotification } = useWebSocket()
   const [categories, setCategories] = useState([])
 
   // Redux selectors
@@ -480,7 +482,7 @@ const AppointmentDetails = () => {
 
   // Navigation handlers
   const handleBack = useCallback(() => {
-    navigate(-1)
+    navigate('/appointment-management')
   }, [navigate])
 
   // Enhanced assessment form handlers with improved scoring
@@ -493,6 +495,15 @@ const AppointmentDetails = () => {
         // First update status to IN_PROGRESS if not already
         if (appointment.status !== APPOINTMENT_STATUS.IN_PROGRESS) return
 
+        const filteredAssessmentScores = data.assessmentScores.filter(score => {
+          const totalScore =
+            score.severityScore +
+            score.frequencyScore +
+            score.impairmentScore +
+            score.chronicityScore
+          return score.categoryId !== null && totalScore > 0
+        })
+
         // Enhanced assessment data with improved scoring and notification settings
         const assessmentData = {
           appointmentId: appointment.id,
@@ -502,9 +513,8 @@ const AppointmentDetails = () => {
           noteSuggestion: data.noteSuggestion || '',
           sessionFlow: data.sessionFlow || SESSION_FLOW.GOOD,
           studentCoopLevel: data.studentCoopLevel || STUDENT_COOP_LEVEL.HIGH,
-          assessmentScores: data.assessmentScores || [],
+          assessmentScores: filteredAssessmentScores || [],
           notificationSettings: data.notificationSettings || {
-            sendNotification: false,
             notifyTeachers: true,
             notifyParents: false,
             // notifyAdministrators: false,
@@ -516,10 +526,34 @@ const AppointmentDetails = () => {
         await dispatch(updateAppointmentWithAssessment(assessmentData)).unwrap()
 
         // Show success message with notification info if enabled
-        const notificationEnabled = data.notificationSettings?.sendNotification
+        let notificationType =
+          data.notificationSettings?.notiType || 'APPOINTMENT_DANGER'
         const notifyTeachers = data.notificationSettings?.notifyTeachers
 
-        if (notificationEnabled && notifyTeachers) {
+        const title =
+          notificationType === 'APPOINTMENT_WARNING'
+            ? 'Lưu ý khẩn: Học sinh cần theo dõi sát'
+            : 'Lưu ý khẩn cấp: Học sinh cần can thiệp ngay lập tức'
+        const content =
+          notificationType === 'APPOINTMENT_WARNING'
+            ? 'Học sinh' +
+              appointment.bookedFor.fullName +
+              'vừa có buổi hẹn tư vấn và thể hiện dấu hiệu chưa ổn định. Thầy/Cô nên theo dõi chặt chẽ trong thời gian tới và báo lại nếu phát hiện bất thường.'
+            : 'Học sinh' +
+              appointment.bookedFor.fullName +
+              'vừa có buổi hẹn tư vấn và thể hiện dấu hiệu nguy hiểm. Thầy/Cô nên theo dõi chặt chẽ trong thời gian tới và báo lại nếu phát hiện bất thường.'
+
+        sendRequestNotification({
+          title: title,
+          content: content,
+          notificationType: notificationType,
+          notifyTeacher: notifyTeachers,
+          notifyParent: false,
+          notifyCounselor: false,
+          relatedEntityId: appointment.id,
+        })
+
+        if (notifyTeachers) {
           messageApi.success(
             t(
               'appointmentRecord.messages.saveSuccessWithNotification',
@@ -722,6 +756,25 @@ const AppointmentDetails = () => {
             )}
           </>
         )}
+
+        {/* <Button
+          onClick={() =>
+            sendRequestNotification({
+              title: 'Lưu ý khẩn: Học sinh cần theo dõi sát',
+              content:
+                'Học sinh ' +
+                appointment.bookedFor.fullName +
+                ' vừa có buổi hẹn tư vấn và thể hiện dấu hiệu chưa ổn định. Thầy/Cô nên theo dõi chặt chẽ trong thời gian tới và báo lại nếu phát hiện bất thường.',
+              notificationType: 'APPOINTMENT_WARNING',
+              notifyTeacher: true,
+              notifyParent: false,
+              notifyCounselor: true,
+              relatedEntityId: appointment.id,
+            })
+          }
+        >
+          test notify
+        </Button> */}
 
         {canEdit && !isEditing && (
           <Tooltip title={t('appointmentDetails.editTooltip')}>

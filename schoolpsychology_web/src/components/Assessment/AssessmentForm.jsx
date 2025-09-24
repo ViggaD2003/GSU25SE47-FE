@@ -3,14 +3,11 @@ import {
   Card,
   Button,
   Typography,
-  Tabs,
   Collapse,
   Select,
   Input,
-  Progress,
   Alert,
   Space,
-  Divider,
   Tooltip,
   Badge,
   Row,
@@ -24,7 +21,6 @@ import {
   ExclamationCircleOutlined,
   UserOutlined,
   FileTextOutlined,
-  BarChartOutlined,
   SafetyOutlined,
   BellOutlined,
 } from '@ant-design/icons'
@@ -54,9 +50,9 @@ const AssessmentForm = memo(
       studentCoopLevel: 'MEDIUM',
       assessmentScores: [],
       notificationSettings: {
-        sendNotification: false,
-        notifyTeachers: true,
+        notifyTeachers: false,
         notifyParents: false,
+        notiType: 'APPOINTMENT_WARNING',
         // notifyAdministrators: false,
       },
     })
@@ -88,6 +84,7 @@ const AssessmentForm = memo(
         assessmentScores: initialScores,
       }))
     }, [categories, userRole])
+
     // console.log('formData', formData)
 
     // Calculate progress
@@ -106,12 +103,10 @@ const AssessmentForm = memo(
         if (score && score.chronicityScore > 0) completedFields++
       })
 
-      if (formData.notificationSettings?.sendNotification) {
-        if (formData.notificationSettings.notifyTeachers) completedFields++
-        if (formData.notificationSettings.notifyParents) completedFields++
-        if (formData.notificationSettings.notifyAdministrators)
-          completedFields++
-      }
+      if (formData.notificationSettings.notifyTeachers) completedFields++
+      if (formData.notificationSettings.notifyParents) completedFields++
+      // if (formData.notificationSettings.notifyAdministrators)
+      //   completedFields++
 
       setProgress(Math.round((completedFields / totalFields) * 100))
     }, [formData, categories, userRole])
@@ -265,10 +260,9 @@ const AssessmentForm = memo(
                 chronicityScore: 0,
               })),
         notificationSettings: {
-          sendNotification: false,
           notifyTeachers: false,
           notifyParents: false,
-          notifyAdministrators: false,
+          notiType: 'APPOINTMENT_WARNING',
         },
       })
       setProgress(0)
@@ -624,8 +618,8 @@ const AssessmentForm = memo(
             <div
               className={`${isDarkMode ? 'bg-blue-900/20' : 'bg-blue-50'} p-4 rounded-lg`}
             >
-              <Checkbox
-                checked={formData.notificationSettings?.sendNotification}
+              {/* <Checkbox
+                checked={formData.notificationSettings?.notifyTeachers}
                 onChange={e =>
                   handleNotificationChange('sendNotification', e.target.checked)
                 }
@@ -633,55 +627,50 @@ const AssessmentForm = memo(
               >
                 {t('assessmentForm.notification.enableNotifications') ||
                   'Send notifications about this assessment'}
-              </Checkbox>
+              </Checkbox> */}
 
-              {formData.notificationSettings?.sendNotification && (
-                //notifyTeachers
-                <div className="mt-4 ml-6 space-y-3">
-                  <div
-                    className={`flex items-center justify-between p-3 ${isDarkMode ? 'bg-gray-700 ' : 'bg-white'} rounded-lg`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-8 h-8 ${isDarkMode ? 'bg-green-900/30' : 'bg-green-100'} rounded-full flex items-center justify-center`}
-                      >
-                        <UserOutlined
-                          className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`}
-                        />
-                      </div>
-                      <div>
-                        {userRole !== 'TEACHER' && (
-                          <Text
-                            strong
-                            className="text-gray-900 dark:text-gray-100"
-                          >
-                            {t('assessmentForm.notification.notifyTeachers') ||
-                              'Notify Teachers'}
-                          </Text>
-                        )}
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {t(
-                            'assessmentForm.notification.teacherDescription'
-                          ) || 'Send assessment results to relevant teachers'}
-                        </div>
+              {/* notifyTeachers */}
+              <div className="space-y-3">
+                <div
+                  className={`flex items-center justify-between p-3 ${isDarkMode ? 'bg-gray-700 ' : 'bg-white'} rounded-lg`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 ${isDarkMode ? 'bg-green-900/30' : 'bg-green-100'} rounded-full flex items-center justify-center`}
+                    >
+                      <UserOutlined
+                        className={`${isDarkMode ? 'text-green-400' : 'text-green-600'}`}
+                      />
+                    </div>
+                    <div>
+                      {userRole !== 'TEACHER' && (
+                        <Text
+                          strong
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {t('assessmentForm.notification.notifyTeachers') ||
+                            'Notify Teachers'}
+                        </Text>
+                      )}
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {t('assessmentForm.notification.teacherDescription') ||
+                          'Send assessment results to relevant teachers'}
                       </div>
                     </div>
-                    <Checkbox
-                      checked={formData.notificationSettings?.notifyTeachers}
-                      onChange={e =>
-                        handleNotificationChange(
-                          'notifyTeachers',
-                          e.target.checked
-                        )
-                      }
-                      disabled={
-                        !formData.notificationSettings?.sendNotification
-                      }
-                    />
                   </div>
+                  <Checkbox
+                    checked={formData.notificationSettings?.notifyTeachers}
+                    onChange={e =>
+                      handleNotificationChange(
+                        'notifyTeachers',
+                        e.target.checked
+                      )
+                    }
+                  />
+                </div>
 
-                  {/* //notifyParents */}
-                  <div
+                {/* //notifyParents */}
+                {/* <div
                     className={`flex items-center justify-between p-3 ${isDarkMode ? 'bg-gray-700' : 'bg-white'} rounded-lg`}
                   >
                     <div className="flex items-center gap-3">
@@ -718,9 +707,57 @@ const AssessmentForm = memo(
                         !formData.notificationSettings?.sendNotification
                       }
                     />
+                  </div> */}
+                {formData.notificationSettings?.notifyTeachers && (
+                  <div
+                    className={`flex items-center justify-between p-3 ${
+                      isDarkMode ? 'bg-gray-700' : 'bg-white'
+                    } rounded-lg`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-8 h-8 ${
+                          isDarkMode ? 'bg-amber-900/30' : 'bg-amber-100'
+                        } rounded-full flex items-center justify-center`}
+                      >
+                        <BellOutlined
+                          className={`${
+                            isDarkMode ? 'text-amber-400' : 'text-amber-600'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <Text
+                          strong
+                          className="text-gray-900 dark:text-gray-100"
+                        >
+                          {t('assessmentForm.notification.type') ||
+                            'Notification Type'}
+                        </Text>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                          {t('assessmentForm.notification.typeDescription') ||
+                            'Choose severity level to notify teachers'}
+                        </div>
+                      </div>
+                    </div>
+                    <Select
+                      value={formData.notificationSettings?.notiType}
+                      onChange={value =>
+                        handleNotificationChange('notiType', value)
+                      }
+                      style={{ width: 220 }}
+                    >
+                      <Select.Option value="APPOINTMENT_WARNING">
+                        {t('common.warning') || 'Warning'}
+                      </Select.Option>
+                      <Select.Option value="APPOINTMENT_DANGER">
+                        {t('common.danger') || 'Danger'}
+                      </Select.Option>
+                    </Select>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+              {/* )} */}
             </div>
           </div>
         </Card>

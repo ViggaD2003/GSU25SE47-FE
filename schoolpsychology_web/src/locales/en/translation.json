@@ -1640,6 +1640,7 @@
     "error": "Error",
     "success": "Success",
     "warning": "Warning",
+    "danger": "Danger",
     "info": "Information",
     "selectAll": "Select All",
     "add": "Add",
@@ -2278,7 +2279,9 @@
       "notifyAdministrators": "Notify Administrators",
       "teacherDescription": "Send assessment results to relevant teachers",
       "parentDescription": "Coming soon - notify parents about assessment",
-      "adminDescription": "Coming soon - notify school administrators"
+      "adminDescription": "Coming soon - notify school administrators",
+      "type": "Notification Type",
+      "typeDescription": "Choose severity level to notify teachers"
     },
     "steps": {
       "basic": "Basic Info",

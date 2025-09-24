@@ -1,43 +1,172 @@
 import React, { useState, useCallback } from 'react'
 import { Badge, Button, Dropdown, List, Typography, Space, Switch } from 'antd'
-import { BellOutlined, SoundOutlined, DeleteOutlined } from '@ant-design/icons'
+import { BellOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import {
+  markNotificationAsRead as markNotiRead,
+  getNotifications as fetchNotifications,
+} from '@/services/notiApi'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useAuth } from '@/hooks'
+import { useNavigate } from 'react-router-dom'
 
 const { Text } = Typography
+
+const NAVIGATION_PATHS = {
+  TEACHER: {
+    APPOINTMENT: '/appointment-management/details/:id',
+    CASE: '/case-management/details/:id',
+    CLASS: '/student-management',
+  },
+  COUNSELOR: {
+    APPOINTMENT: '/appointment-management/details/:id',
+    CASE: '/case-management/details/:id',
+    PROGRAM: '/program-management/details/:id',
+  },
+  MANAGER: {
+    APPOINTMENT: '/appointment-management/details/:id',
+    CASE: '/case-management/details/:id',
+    PROGRAM: '/program-management/details/:id',
+  },
+}
 
 const NotificationBell = () => {
   const { t } = useTranslation()
   const { isDarkMode } = useTheme()
   const [dropdownVisible, setDropdownVisible] = useState(false)
+  const { user } = useAuth()
+  const navigate = useNavigate()
 
-  const { getUnreadCount, getRecentNotifications } = useWebSocket()
+  const {
+    getUnreadCount,
+    getRecentNotifications,
+    markNotificationAsRead,
+    setNotifications,
+  } = useWebSocket()
 
   const unreadCount = getUnreadCount()
   const recentNotifications = getRecentNotifications(10) // Lấy 10 thông báo gần nhất
 
-  const handleNotificationClick = useCallback(notification => {
-    // Xử lý click vào thông báo (có thể navigate đến trang liên quan)
-    console.log('Clicked notification:', notification)
-  }, [])
+  const handleNotificationClick = useCallback(
+    async notification => {
+      try {
+        if (!notification.isRead && notification.id) {
+          await markNotiRead(notification.id)
+          markNotificationAsRead(notification.id)
+        }
+        if (!notification.notificationType) return
+        const notificationType = notification.notificationType.includes('_')
+          ? notification.notificationType.split('_')[0]
+          : notification.notificationType
+        if (!notificationType || !notificationType.trim()) return
+
+        // Xử lý điều hướng nếu cần
+        if (user.role === 'teacher') {
+          navigate(
+            NAVIGATION_PATHS.TEACHER[notificationType].replace(
+              ':id',
+              notification.relatedEntityId
+            )
+          )
+        } else if (user.role === 'counselor') {
+          navigate(
+            NAVIGATION_PATHS.COUNSELOR[notificationType].replace(
+              ':id',
+              notification.relatedEntityId
+            )
+          )
+        } else if (user.role === 'manager') {
+          navigate(
+            NAVIGATION_PATHS.MANAGER[notificationType].replace(
+              ':id',
+              notification.relatedEntityId
+            )
+          )
+        }
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error)
+      }
+    },
+    [markNotificationAsRead]
+  )
+
+  const handleRefresh = useCallback(async () => {
+    try {
+      const accountId = user?.id || user?.userId
+      if (!accountId) return
+      const list = await fetchNotifications(accountId)
+      const normalized = Array.isArray(list)
+        ? list.map(n => ({ ...n, isRead: n.isRead ?? n.read ?? false }))
+        : []
+      if (typeof setNotifications === 'function') {
+        setNotifications(normalized)
+      }
+    } catch (e) {
+      console.error('Failed to refresh notifications', e)
+    }
+  }, [user, setNotifications])
 
   // const handleClearAll = useCallback(() => {
   //   setDropdownVisible(false)
   // }, [])
+
+  const getNotificationType = useCallback(
+    notification => {
+      const type = (notification?.notificationType || '')
+        .toString()
+        .toUpperCase()
+      let variant = 'INFO'
+      if (
+        type.includes('DANGER') ||
+        type.includes('ERROR') ||
+        type.includes('CRITICAL')
+      ) {
+        variant = 'DANGER'
+      } else if (type.includes('WARNING') || type.includes('WARN')) {
+        variant = 'WARNING'
+      } else if (type.includes('INFO')) {
+        variant = 'INFO'
+      }
+
+      const styles = {
+        INFO: {
+          unreadContainer: isDarkMode
+            ? 'bg-blue-900/20 border-l-4 border-blue-500'
+            : 'bg-blue-50 border-l-4 border-blue-500',
+          titleUnread: 'text-blue-600 dark:text-blue-400',
+        },
+        WARNING: {
+          unreadContainer: isDarkMode
+            ? 'bg-amber-900/20 border-l-4 border-amber-500'
+            : 'bg-amber-50 border-l-4 border-amber-500',
+          titleUnread: 'text-amber-600 dark:text-amber-400',
+        },
+        DANGER: {
+          unreadContainer: isDarkMode
+            ? 'bg-red-900/20 border-l-4 border-red-500'
+            : 'bg-red-50 border-l-4 border-red-500',
+          titleUnread: 'text-red-600 dark:text-red-400',
+        },
+      }
+
+      return {
+        variant,
+        ...styles[variant],
+        readHover: isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50',
+      }
+    },
+    [isDarkMode]
+  )
 
   const notificationItems = recentNotifications.map((notification, index) => ({
     key: notification.id || index,
     label: (
       <div
         className={`p-3 cursor-pointer transition-colors ${
-          !notification.read
-            ? isDarkMode
-              ? 'bg-blue-900/20 border-l-4 border-blue-500'
-              : 'bg-blue-50 border-l-4 border-blue-500'
-            : isDarkMode
-              ? 'hover:bg-gray-700'
-              : 'hover:bg-gray-50'
+          !notification.isRead
+            ? getNotificationType(notification).unreadContainer
+            : getNotificationType(notification).readHover
         }`}
         onClick={() => handleNotificationClick(notification)}
       >
@@ -45,8 +174,8 @@ const NotificationBell = () => {
           <Text
             strong
             className={`${
-              !notification.read
-                ? 'text-blue-600 dark:text-blue-400'
+              !notification.isRead
+                ? getNotificationType(notification).titleUnread
                 : isDarkMode
                   ? 'text-white'
                   : 'text-gray-900'
@@ -91,15 +220,15 @@ const NotificationBell = () => {
               >
                 {t('notification.title')} ({recentNotifications.length})
               </Text>
-              {/* <Space>
+              <Space>
                 <Button
                   size="small"
                   type="text"
-                  icon={<DeleteOutlined />}
-                  onClick={handleClearAll}
+                  icon={<ReloadOutlined />}
+                  onClick={handleRefresh}
                   className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}
-                />
-              </Space> */}
+                ></Button>
+              </Space>
             </div>
           </div>
         ),

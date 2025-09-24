@@ -152,7 +152,7 @@ const ProgramDetails = () => {
 
   // Handle back to list
   const handleBack = () => {
-    navigate(-1)
+    navigate('/program-management')
   }
 
   // Modal handlers

@@ -193,10 +193,12 @@ const CategoryManagement = () => {
 
   // Handle modal OK
   const handleModalOk = useCallback(
-    async categoryData => {
+    async (categoryId, categoryData) => {
       try {
         if (isEdit) {
+          console.log('categoryId', categoryId)
           // Note: API doesn't have update endpoint, so this is placeholder
+          await categoriesAPI.updateCategories(categoryId, categoryData)
           messageApi.success(t('categoryManagement.messages.editSuccess'))
         } else {
           await categoriesAPI.createCategories(categoryData)

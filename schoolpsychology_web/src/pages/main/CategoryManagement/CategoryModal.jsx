@@ -25,9 +25,6 @@ import {
   InfoCircleOutlined,
   TrophyOutlined,
   AlertOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  ExclamationCircleOutlined,
 } from '@ant-design/icons'
 import { categoriesAPI } from '@/services/categoryApi'
 
@@ -584,7 +581,9 @@ const CategoryModal = ({
     let isMounted = true
 
     const fetchCategoryDetails = async () => {
-      if (visible && isView && selectedCategory?.id) {
+      const isViewOrEdit = isView || isEdit
+
+      if (visible && isViewOrEdit && selectedCategory?.id) {
         try {
           updateState({ detailLoading: true })
           const response = await categoriesAPI.getCategoryLevels(
@@ -618,16 +617,25 @@ const CategoryModal = ({
     return () => {
       isMounted = false
     }
-  }, [visible, isView, selectedCategory?.id, t, updateState, resetAllForms])
+  }, [
+    visible,
+    isView,
+    isEdit,
+    selectedCategory?.id,
+    t,
+    updateState,
+    resetAllForms,
+  ])
 
   // Form initialization - CẢI THIỆN CÁCH SET FORM VALUES
   useEffect(() => {
     if (!visible) return
 
     if (selectedCategory) {
-      const categoryData = isView
-        ? state.detailedCategory || selectedCategory
-        : selectedCategory
+      const categoryData =
+        isView || isEdit
+          ? state.detailedCategory || selectedCategory
+          : selectedCategory
 
       const formData = {
         name: categoryData.name || '',
@@ -807,7 +815,7 @@ const CategoryModal = ({
           interventionRequired: level.interventionRequired?.trim() || null,
         })),
       }
-      await onOk(categoryData)
+      await onOk(selectedCategory?.id, categoryData)
 
       resetAllForms()
     } catch (error) {
@@ -1474,7 +1482,8 @@ const CategoryModal = ({
                 size="small"
                 className={`mb-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
                 extra={
-                  !isView && (
+                  !isView &&
+                  !isEdit && (
                     <Space>
                       <Button
                         type="dashed"
@@ -1532,7 +1541,7 @@ const CategoryModal = ({
 
                     {/* Level Cards */}
                     <div>
-                      {!isView && state.levels?.length > 0 && (
+                      {(!isView || !isEdit) && state.levels?.length > 0 && (
                         <div
                           className={`mb-3 p-2 text-center ${isDarkMode ? 'bg-gray-600 text-gray-300' : 'bg-blue-50 text-blue-600'} rounded text-xs`}
                         >
@@ -1546,7 +1555,7 @@ const CategoryModal = ({
                           key={`${level?.code || 'unknown'}-${index}`}
                           level={level || {}}
                           index={index}
-                          isView={isView}
+                          isView={isView || isEdit}
                           isDarkMode={isDarkMode}
                           onEdit={editLevel}
                           onDelete={removeLevel}

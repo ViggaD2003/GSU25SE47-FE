@@ -7,7 +7,7 @@ export const surveyAPI = {
   },
 
   getSurveyById: async id => {
-    const response = await api.get(`/api/v1/survey/${id}?flag=fasle`)
+    const response = await api.get(`/api/v1/survey/${id}?flag=false`)
     return response.data
   },
 
