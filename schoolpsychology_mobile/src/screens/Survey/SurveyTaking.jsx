@@ -39,6 +39,8 @@ const SurveyTaking = ({ route, navigation }) => {
   });
   const { user } = useAuth();
 
+  console.log("survey", survey);
+
   // Note: Removed automatic answer cleaning to prevent useInsertionEffect warnings
   // Answers are now only cleaned when loading saved progress
 

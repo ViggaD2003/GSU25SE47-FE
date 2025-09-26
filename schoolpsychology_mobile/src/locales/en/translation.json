@@ -790,6 +790,13 @@
       "confirmed": "The appointment is near the start time, cannot cancel.",
       "default": "The appointment has occurred or is too close to start time to cancel."
     },
+    "cancelSuccess": {
+      "title": "Success",
+      "message": "Appointment cancelled successfully",
+      "calendarEventDeleted": "📅 The event has been removed from your calendar.",
+      "notSynced": "📅 The appointment has not been synced to your calendar, please sync to your calendar to remove the event.",
+      "calendarDeletionNote": "⚠️ Note: Cannot delete event from calendar. You can delete manually."
+    },
     "actions": {
       "cancel": "Cancel appointment",
       "reject": "Reject",
