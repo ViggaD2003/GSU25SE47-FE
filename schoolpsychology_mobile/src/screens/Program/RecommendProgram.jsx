@@ -1,62 +1,117 @@
-import { ProgramCard } from "@/components";
+import { ProgramCard, Loading } from "@/components";
 import { useAuth } from "@/contexts";
 import { fetchAllRecommendedPrograms } from "@/services/api/ProgramService";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const RecommendProgram = ({ navigation }) => {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [recommendedPrograms, setRecommandedPrograms] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const loadRecommended = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchAllRecommendedPrograms(user.id);
+      setRecommandedPrograms(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.warn(`Error loading recommended programs:`, err);
+      setError(err);
+      setRecommandedPrograms([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
 
   useFocusEffect(
     React.useCallback(() => {
-      Promise.all([fetchAllRecommendedPrograms(user.id)])
-        .then((data) => setRecommandedPrograms(data[0] || []))
-        .catch((error) => {
-          console.warn(`Error loading recommended programs:`, error);
-          setRecommandedPrograms([]);
-        });
-    }, [])
+      loadRecommended();
+    }, [loadRecommended])
   );
 
-  return recommendedPrograms.length === 0 ? (
-    <View style={styles.programEmptyContainer}>
-      <View style={styles.programEmptyIconContainer}>
-        <MaterialIcons name="school" size={48} color="#9CA3AF" />
+  if (isLoading) {
+    return <Loading text={t("common.loading") || "Đang tải..."} />;
+  }
+
+  if (error) {
+    return (
+      <View style={styles.programEmptyContainer}>
+        <View style={styles.programEmptyIconContainer}>
+          <MaterialIcons name="error-outline" size={48} color="#F59E0B" />
+        </View>
+        <Text style={styles.programEmptyText}>
+          {t("common.error") || "Đã xảy ra lỗi"}
+        </Text>
+        <Text style={styles.programEmptySubText}>
+          {t("home.recommendedPrograms.empty.description")}
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={loadRecommended}
+          style={styles.programRetryButton}
+        >
+          <Text style={styles.programEmptyButtonText}>
+            {t("common.retry") || "Thử lại"}
+          </Text>
+        </TouchableOpacity>
       </View>
-      <Text style={styles.programEmptyText}>
-        {t("home.recommendedPrograms.empty.title")}
-      </Text>
-      <Text style={styles.programEmptySubText}>
-        {t("home.recommendedPrograms.empty.description")}
-      </Text>
-    </View>
-  ) : (
-    <ScrollView
+    );
+  }
+
+  if (recommendedPrograms.length === 0) {
+    return (
+      <View style={styles.programEmptyContainer}>
+        <View style={styles.programEmptyIconContainer}>
+          <MaterialIcons name="school" size={48} color="#9CA3AF" />
+        </View>
+        <Text style={styles.programEmptyText}>
+          {t("home.recommendedPrograms.empty.title")}
+        </Text>
+        <Text style={styles.programEmptySubText}>
+          {t("home.recommendedPrograms.empty.description")}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <FlatList
+      data={recommendedPrograms}
+      keyExtractor={(item) => String(item.id)}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.programScrollContainer}
-    >
-      {recommendedPrograms.map((item) => {
-        return (
-          <View key={item.id} style={styles.programCard}>
-            <ProgramCard
-              program={item}
-              onPress={() =>
-                navigation.navigate("Program", {
-                  screen: "ProgramDetail",
-                  params: { programId: item.id },
-                })
-              }
-            />
-          </View>
-        );
-      })}
-    </ScrollView>
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
+      renderItem={({ item }) => (
+        <View style={styles.programCard}>
+          <ProgramCard
+            program={item}
+            numberOfLines={1}
+            onPress={() =>
+              navigation.navigate("Program", {
+                screen: "ProgramDetail",
+                params: { programId: item.id },
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel={item?.name || "Program"}
+          />
+        </View>
+      )}
+    />
   );
 };
 
@@ -64,10 +119,14 @@ const styles = StyleSheet.create({
   // Program Styles
   programScrollContainer: {
     // paddingRight: 24,
-    width: "100%",
+    // width: "100%",
+    paddingHorizontal: 4,
   },
   programCard: {
-    // width: 30,
+    width: 300,
+  },
+  separator: {
+    width: 12,
   },
   programEmptyContainer: {
     backgroundColor: "#F8FAFC",
@@ -97,6 +156,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   programEmptyButton: {
+    backgroundColor: "#F59E0B",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  programRetryButton: {
     backgroundColor: "#F59E0B",
     paddingHorizontal: 24,
     paddingVertical: 12,

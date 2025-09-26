@@ -1662,7 +1662,7 @@ const SurveyDetailModal = ({
                 label={
                   <Space>
                     <FileTextOutlined />
-                    {t('surveyManagement.detail.title')}
+                    {t('surveyManagement.form.title')}
                   </Space>
                 }
                 rules={[
@@ -1685,7 +1685,7 @@ const SurveyDetailModal = ({
                 label={
                   <Space>
                     <BookOutlined />
-                    {t('surveyManagement.detail.description')}
+                    {t('surveyManagement.form.description')}
                   </Space>
                 }
                 style={{ marginBottom: 0 }}

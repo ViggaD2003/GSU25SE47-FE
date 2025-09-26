@@ -263,6 +263,28 @@
     "editTitle": "Sửa thông tin người dùng",
     "addTitle": "Thêm thông tin người dùng",
     "viewTitle": "Xem thông tin người dùng",
+    "relations": {
+      "title": "Con (tối đa {{max}})",
+      "linked": "Đang liên kết",
+      "noChildren": "Không có con",
+      "selectChildren": "Chọn con",
+      "selectRelation": "Chọn quan hệ",
+      "link": "Liên kết",
+      "unlink": "Hủy liên kết",
+      "selectMax": "Chọn tối đa {{max}} con",
+      "relation": "Quan hệ",
+      "parent": "Phụ huynh",
+      "guardian": "Người giám hộ",
+      "message": {
+        "linkRequired": "Vui lòng chọn con để liên kết",
+        "linkMax": "Mỗi phụ huynh chỉ có tối đa {{max}} con",
+        "unlinkRequired": "Vui lòng chọn con để hủy liên kết",
+        "linkSuccess": "Liên kết thành công",
+        "linkError": "Liên kết thất bại",
+        "unlinkSuccess": "Hủy liên kết thành công",
+        "unlinkError": "Hủy liên kết thất bại"
+      }
+    },
     "form": {
       "fullName": "Họ và tên",
       "email": "Email",
@@ -797,7 +819,9 @@
       "levelRequired": "Vui lòng chọn mức độ",
       "levelPlaceholder": "Chọn mức độ",
       "save": "Lưu",
-      "cancel": "Hủy"
+      "cancel": "Hủy",
+      "notify": "Thông báo",
+      "notifyParents": "Thông báo phụ huynh"
     },
     "priorityOptions": {
       "HIGH": "Cao",

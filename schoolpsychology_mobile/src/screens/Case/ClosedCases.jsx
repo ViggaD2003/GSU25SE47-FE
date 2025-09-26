@@ -46,7 +46,15 @@ const ClosedCases = ({ navigation }) => {
           : user?.id || user?.userId;
       console.log("userId", userId);
       const cases = await getClosedCases(userId);
-      setClosedCases(cases || []);
+      console.log("cases", cases);
+      if (user?.role === "PARENTS") {
+        const notifyCases = cases.filter(
+          (caseItem) => caseItem.notify === true
+        );
+        setClosedCases(notifyCases || []);
+      } else {
+        setClosedCases(cases || []);
+      }
     } catch (error) {
       console.warn("Error fetching closed cases:", error);
       setError(error.message || "Failed to load closed cases");
@@ -66,6 +74,8 @@ const ClosedCases = ({ navigation }) => {
   }, [user?.role, selectedChild?.id]);
 
   const handleCasePress = (caseId) => {
+    console.log("caseId", caseId);
+
     navigation.navigate("Case", {
       screen: "CaseDetails",
       params: {
@@ -261,6 +271,16 @@ const ClosedCases = ({ navigation }) => {
             </Text>
             <Text style={styles.infoSubtext}>
               {t("case.studentInfo.teacher")}
+            </Text>
+          </View>
+
+          <View style={styles.infoRow}>
+            <Ionicons name="notifications" size={16} color="#6B7280" />
+            <Text style={styles.infoText} numberOfLines={1}>
+              {t("case.notify")}
+            </Text>
+            <Text style={styles.infoSubtext}>
+              {caseItem.notify ? t("common.yes") : t("common.no")}
             </Text>
           </View>
         </View>

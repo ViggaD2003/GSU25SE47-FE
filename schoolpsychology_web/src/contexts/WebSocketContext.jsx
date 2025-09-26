@@ -465,7 +465,7 @@ export const WebSocketProvider = ({ children }) => {
   }, [])
 
   const getUnreadCount = useCallback(() => {
-    console.log('notifications', notifications)
+    // console.log('notifications', notifications)
     return notifications.filter(notification => !notification.isRead).length
   }, [notifications])
 

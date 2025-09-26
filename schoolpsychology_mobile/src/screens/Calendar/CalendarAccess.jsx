@@ -310,7 +310,7 @@ export default function CalendarAccess() {
 
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading...</Text>
         </View>
@@ -319,7 +319,7 @@ export default function CalendarAccess() {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={"Quản lý lịch hẹn"}

@@ -32,7 +32,10 @@ export default function VerifyEmailScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: "#FFFFFF" }}
+    >
       <StatusBar barStyle="dark-content" />
       <View
         style={{

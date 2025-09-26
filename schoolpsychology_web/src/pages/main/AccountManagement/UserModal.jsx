@@ -1,9 +1,24 @@
-import React, { useEffect, useState } from 'react'
-import { Modal, Form, Input, Select, DatePicker, Radio, Button } from 'antd'
+import React, { useEffect, useMemo, useState } from 'react'
+import {
+  Modal,
+  Form,
+  Input,
+  Select,
+  DatePicker,
+  Radio,
+  Button,
+  Divider,
+  Tag,
+  Space,
+  message,
+} from 'antd'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { accountAPI } from '../../../services/accountApi'
 
 const { Option } = Select
+
+const MAX_CHILDREN = 2
 
 const UserModal = ({
   visible,
@@ -14,10 +29,17 @@ const UserModal = ({
   confirmLoading,
   title,
   statusOptions,
+  students = [],
+  updateAccounts,
 }) => {
   const { t } = useTranslation()
   const [isEdit, setIsEdit] = useState(false)
   const [form] = Form.useForm()
+  const [linkChildIds, setLinkChildIds] = useState([])
+  const [unlinkChildIds, setUnlinkChildIds] = useState([])
+  const [relationType, setRelationType] = useState('PARENT')
+  const [relLoading, setRelLoading] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
 
   useEffect(() => {
     if (visible) {
@@ -27,10 +49,109 @@ const UserModal = ({
         dob: editingUser?.dob ? dayjs(editingUser.dob) : null,
       }
       form.setFieldsValue(formData)
+      // Prefill relation type default
+      setRelationType('PARENT')
     } else {
       form.resetFields()
+      setLinkChildIds([])
+      setUnlinkChildIds([])
     }
   }, [visible, editingUser, form])
+
+  const currentChildren = useMemo(
+    () => editingUser?.student || [],
+    [editingUser]
+  )
+  const currentChildrenCount = currentChildren?.length || 0
+  const canAddCount = Math.max(0, MAX_CHILDREN - currentChildrenCount)
+
+  const studentOptions = useMemo(
+    () =>
+      (students || []).map(s => ({
+        label: s.fullName
+          ? `${s.studentCode} - ${s.fullName} (${s.email})`
+          : s.email,
+        value: s.id,
+        disabled: currentChildren?.some(c => c?.id === s.id),
+      })),
+    [students, currentChildren]
+  )
+
+  const filteredStudentOptions = useMemo(() => {
+    return (studentOptions || []).filter(opt =>
+      String(opt.label || '')
+        .toLowerCase()
+        .includes(String(searchValue || '').toLowerCase())
+    )
+  }, [studentOptions, searchValue])
+
+  const currentChildOptions = useMemo(
+    () =>
+      (currentChildren || []).map(c => ({
+        label: c.fullName
+          ? `${c.studentCode} - ${c.fullName} (${c.email})`
+          : c.email,
+        value: c.id,
+      })),
+    [currentChildren]
+  )
+
+  const handleLink = async () => {
+    if (!editingUser?.id) return
+    if (!linkChildIds?.length) {
+      message.warning(t('userModal.relations.message.linkRequired'))
+      return
+    }
+    if (linkChildIds.length > canAddCount) {
+      message.warning(
+        t('userModal.relations.message.linkMax', { max: canAddCount })
+      )
+      return
+    }
+    setRelLoading(true)
+    try {
+      await accountAPI.linkRelationship({
+        parentId: editingUser.id,
+        childIds: linkChildIds,
+        type: relationType,
+      })
+      message.success(t('userModal.relations.message.linkSuccess'))
+      setLinkChildIds([])
+      // Find the student objects corresponding to the linked IDs
+      const linkedStudents = students.filter(s => linkChildIds.includes(s.id))
+      updateAccounts(editingUser.id, {
+        student: [...currentChildren, ...linkedStudents],
+      })
+    } catch {
+      message.error(t('userModal.relations.message.linkError'))
+    } finally {
+      setRelLoading(false)
+    }
+  }
+
+  const handleUnlink = async () => {
+    if (!editingUser?.id) return
+    if (!unlinkChildIds?.length) {
+      message.warning(t('userModal.relations.message.unlinkRequired'))
+      return
+    }
+    setRelLoading(true)
+    try {
+      await accountAPI.removeRelationship({
+        parentId: editingUser.id,
+        childIds: unlinkChildIds,
+      })
+      message.success(t('userModal.relations.message.unlinkSuccess'))
+      setUnlinkChildIds([])
+      updateAccounts(editingUser.id, {
+        student: currentChildren.filter(c => !unlinkChildIds.includes(c.id)),
+      })
+    } catch {
+      message.error(t('userModal.relations.message.unlinkError'))
+    } finally {
+      setRelLoading(false)
+    }
+  }
 
   return (
     <Modal
@@ -43,6 +164,9 @@ const UserModal = ({
             : t('userModal.viewTitle')
           : t('userModal.addTitle'))
       }
+      okButtonProps={{
+        hidden: isView || isEdit,
+      }}
       onOk={() => {
         form
           .validateFields()
@@ -57,9 +181,6 @@ const UserModal = ({
             console.error('Form validation failed:', error)
           })
       }}
-      okButtonProps={{
-        hidden: isView && !isEdit,
-      }}
       onCancel={onCancel}
       cancelButtonProps={{
         hidden: isView && !isEdit,
@@ -67,8 +188,17 @@ const UserModal = ({
       }}
       confirmLoading={confirmLoading}
       centered
+      width={1200}
+      styles={{
+        body: {
+          maxHeight: '75vh',
+          overflowY: 'auto',
+          position: 'relative',
+          padding: '16px 24px',
+        },
+      }}
     >
-      <Form form={form} layout="vertical" disabled={isView && !isEdit}>
+      <Form form={form} layout="vertical" disabled={isView}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Form.Item
             name="fullName"
@@ -225,15 +355,133 @@ const UserModal = ({
           </Select>
         </Form.Item>
 
-        {isView && (
+        {(form.getFieldValue('role') === 'PARENTS' ||
+          editingUser?.roleName === 'PARENTS') && (
+          <div className="mt-2">
+            <Divider orientation="left">
+              {t('userModal.relations.title', { max: MAX_CHILDREN })}
+            </Divider>
+            <div className="flex flex-col gap-3">
+              <div>
+                <div className="text-sm mb-1">
+                  {t('userModal.relations.linked')}
+                </div>
+                <Space size={[8, 8]} wrap>
+                  {(currentChildren || []).length === 0 && (
+                    <span className="text-gray-400">
+                      {t('userModal.relations.noChildren')}
+                    </span>
+                  )}
+                  {(currentChildren || []).map(child => (
+                    <Tag key={child.id}>{child.fullName || child.email}</Tag>
+                  ))}
+                </Space>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm">
+                    {t('userModal.relations.selectChildren')}
+                  </div>
+                  <Select
+                    mode="multiple"
+                    placeholder={t('userModal.relations.selectMax', {
+                      max: canAddCount,
+                    })}
+                    value={linkChildIds}
+                    onChange={setLinkChildIds}
+                    options={filteredStudentOptions}
+                    showSearch
+                    filterOption={false}
+                    allowClear
+                    searchValue={searchValue}
+                    onSearch={setSearchValue}
+                    maxCount={canAddCount}
+                    disabled={
+                      (isView && !isEdit) ||
+                      currentChildrenCount >= MAX_CHILDREN
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm">
+                    {t('userModal.relations.relation')}
+                  </div>
+                  <Radio.Group
+                    value={relationType}
+                    onChange={e => setRelationType(e.target.value)}
+                    disabled={isView && !isEdit}
+                  >
+                    <Radio value="PARENT">
+                      {t('userModal.relations.parent')}
+                    </Radio>
+                    <Radio value="GUARDIAN">
+                      {t('userModal.relations.guardian')}
+                    </Radio>
+                  </Radio.Group>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="primary"
+                  onClick={handleLink}
+                  loading={relLoading}
+                  disabled={
+                    (isView && !isEdit) || currentChildrenCount >= MAX_CHILDREN
+                  }
+                >
+                  {t('userModal.relations.link')}
+                </Button>
+              </div>
+
+              <Divider className="my-2" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div className="flex flex-col gap-2">
+                  <div className="text-sm">
+                    {t('userModal.relations.selectChildren')}
+                  </div>
+                  <Select
+                    mode="multiple"
+                    placeholder={t('userModal.relations.selectChildren')}
+                    value={unlinkChildIds}
+                    onChange={setUnlinkChildIds}
+                    options={currentChildOptions}
+                    maxTagCount={2}
+                    disabled={isView && !isEdit}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    danger
+                    onClick={handleUnlink}
+                    loading={relLoading}
+                    disabled={isView && !isEdit}
+                  >
+                    {t('userModal.relations.unlink')}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* {isView && (
           <div className="flex justify-end gap-2 mt-4">
             <Button onClick={onCancel}>{t('common.close')}</Button>
             <Button type="primary" onClick={() => setIsEdit(true)}>
               {t('common.edit')}
             </Button>
           </div>
-        )}
+        )} */}
       </Form>
+      {isView && !isEdit && (
+        <div className="flex justify-end gap-2 mt-4">
+          <Button onClick={onCancel}>{t('common.close')}</Button>
+          <Button type="primary" onClick={() => setIsEdit(true)}>
+            {t('common.edit')}
+          </Button>
+        </div>
+      )}
     </Modal>
   )
 }

@@ -6,7 +6,11 @@ import {
   TouchableOpacity,
   StatusBar,
 } from "react-native";
-import { apiResetPassword, getPasswordScore, maskEmail } from "../../utils/helpers";
+import {
+  apiResetPassword,
+  getPasswordScore,
+  maskEmail,
+} from "../../utils/helpers";
 import StrengthBar from "../../components/common/StrengthBar";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -65,7 +69,10 @@ export default function ChangePasswordScreen({ route, navigation }) {
   const MUTED = "#6B7280";
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: BG }}
+    >
       <StatusBar barStyle="dark-content" />
       <View
         style={{
@@ -104,7 +111,7 @@ export default function ChangePasswordScreen({ route, navigation }) {
             }}
           >
             <Text style={{ fontSize: 14, color: FG }}>New password</Text>
-            <View >
+            <View>
               <TextInput
                 value={pw}
                 onChangeText={setPw}
@@ -121,9 +128,7 @@ export default function ChangePasswordScreen({ route, navigation }) {
                   backgroundColor: BG,
                 }}
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-              >
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Text style={{ fontSize: 20, color: "#888" }}>
                   {showPassword ? "🙈" : "👁️"}
                 </Text>
@@ -132,25 +137,43 @@ export default function ChangePasswordScreen({ route, navigation }) {
             <StrengthBar score={score} color="#2563EB" />
 
             <View style={{ marginTop: 10, gap: 6 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Check ok={pw.length >= 8} />
-                <Text style={{ color: FG, fontSize: 12 }}>At least 8 characters</Text>
+                <Text style={{ color: FG, fontSize: 12 }}>
+                  At least 8 characters
+                </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Check ok={/[A-Z]/.test(pw)} />
-                <Text style={{ color: FG, fontSize: 12 }}>One uppercase letter</Text>
+                <Text style={{ color: FG, fontSize: 12 }}>
+                  One uppercase letter
+                </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Check ok={/[a-z]/.test(pw)} />
-                <Text style={{ color: FG, fontSize: 12 }}>One lowercase letter</Text>
+                <Text style={{ color: FG, fontSize: 12 }}>
+                  One lowercase letter
+                </Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Check ok={/[0-9]/.test(pw)} />
                 <Text style={{ color: FG, fontSize: 12 }}>One number</Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+              >
                 <Check ok={/[^A-Za-z0-9]/.test(pw)} />
-                <Text style={{ color: FG, fontSize: 12 }}>One special character</Text>
+                <Text style={{ color: FG, fontSize: 12 }}>
+                  One special character
+                </Text>
               </View>
             </View>
 
@@ -174,7 +197,6 @@ export default function ChangePasswordScreen({ route, navigation }) {
               }}
             />
 
-
             {confirm !== "" && confirm !== pw && (
               <Text style={{ marginTop: 6, fontSize: 12, color: "#DC2626" }}>
                 Passwords do not match.
@@ -195,7 +217,7 @@ export default function ChangePasswordScreen({ route, navigation }) {
                 backgroundColor: "#004B48",
                 paddingVertical: 12,
                 borderRadius: 16,
-                alignItems: "center"
+                alignItems: "center",
               }}
             >
               <Text style={{ color: "white", fontWeight: "600" }}>
@@ -207,5 +229,4 @@ export default function ChangePasswordScreen({ route, navigation }) {
       </View>
     </SafeAreaView>
   );
-
 }

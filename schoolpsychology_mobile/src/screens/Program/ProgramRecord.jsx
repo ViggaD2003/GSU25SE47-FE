@@ -100,7 +100,7 @@ export default function ProgramRecord() {
   );
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
         title={t("program.record.title")}
         onBackPress={handleBackPress}

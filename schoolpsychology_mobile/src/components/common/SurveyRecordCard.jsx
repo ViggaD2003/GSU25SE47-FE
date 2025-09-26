@@ -74,7 +74,7 @@ const SurveyRecordCard = ({ record, onPress, showIntervention = true }) => {
               color={levelConfig?.color}
             />
             <Text style={[styles.scoreLevel, { color: levelConfig?.color }]}>
-              {levelConfig?.label}
+              {t(`survey.level.${record?.level?.code}`)}
             </Text>
           </View>
         )}

@@ -589,7 +589,7 @@ const AppointmentDetails = ({ route, navigation }) => {
   // Loading and error states
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <Loading text={t("appointment.common.processing")} />
       </Container>
     );
@@ -597,7 +597,7 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   if (error) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#EF4444" />
           <Text style={styles.errorText}>{t("appointment.details.error")}</Text>
@@ -619,7 +619,7 @@ const AppointmentDetails = ({ route, navigation }) => {
 
   if (!appointmentData) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons
             name="information-circle-outline"
@@ -690,7 +690,7 @@ const AppointmentDetails = ({ route, navigation }) => {
   };
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("appointment.details.title")}

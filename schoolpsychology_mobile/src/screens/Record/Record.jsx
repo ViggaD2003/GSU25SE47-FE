@@ -27,7 +27,7 @@ const Record = () => {
   };
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("record.title")}

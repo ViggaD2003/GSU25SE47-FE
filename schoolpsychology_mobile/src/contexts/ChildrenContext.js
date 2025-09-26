@@ -46,6 +46,12 @@ export const ChildrenProvider = ({ children }) => {
         id: child.id || child.userId || child.studentId,
         fullName: child.fullName || child.name,
         role: child.roleName || "STUDENT",
+        ...(child?.caseProfile?.notify
+          ? {
+              caseId: child.caseId || child.caseProfile?.id,
+              caseProfile: child.caseProfile,
+            }
+          : { caseId: null, caseProfile: null }),
       }));
 
       setChildrenList(childrenData);

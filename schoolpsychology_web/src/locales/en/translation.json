@@ -263,6 +263,28 @@
     "editTitle": "Edit user information",
     "addTitle": "Add user information",
     "viewTitle": "View user information",
+    "relations": {
+      "title": "Children (max {{max}})",
+      "linked": "Linked",
+      "noChildren": "No children",
+      "selectChildren": "Select children",
+      "selectRelation": "Select relation",
+      "link": "Link",
+      "unlink": "Unlink",
+      "selectMax": "Select maximum {{max}} children",
+      "relation": "Relation",
+      "parent": "Parent",
+      "guardian": "Guardian",
+      "message": {
+        "linkRequired": "Please select children to link",
+        "linkMax": "Each parent can only have a maximum of {{max}} children",
+        "unlinkRequired": "Please select children to unlink",
+        "linkSuccess": "Link successfully",
+        "linkError": "Link failed",
+        "unlinkSuccess": "Unlink successfully",
+        "unlinkError": "Unlink failed"
+      }
+    },
     "form": {
       "fullName": "Full Name",
       "email": "Email",
@@ -802,7 +824,9 @@
       "levelRequired": "Please select level",
       "levelPlaceholder": "Select level",
       "save": "Save",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "notify": "Notify",
+      "notifyParents": "Notify Parents"
     },
     "priorityOptions": {
       "HIGH": "High",
@@ -1282,6 +1306,7 @@
       "answerTextRequired": "Please enter answer text"
     },
     "form": {
+      "surveyInformation": "Survey Information",
       "title": "Survey Title",
       "titlePlaceholder": "Enter survey title",
       "titleRequired": "Please enter survey title",

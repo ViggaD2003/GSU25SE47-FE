@@ -27,6 +27,7 @@ export const caseAPI = {
   createCase: async caseData => {
     if (!caseData) return
     const requestBody = {
+      ...caseData,
       title: caseData.title,
       description: caseData.description,
       priority: caseData.priority,

@@ -32,4 +32,26 @@ export const accountAPI = {
     )
     return response.data
   },
+  // Relationship management
+  linkRelationship: async ({ parentId, childIds, type }) => {
+    if (!parentId || !Array.isArray(childIds)) return
+    const params = new URLSearchParams()
+    params.append('parentId', parentId)
+    childIds.forEach(id => params.append('childIds', id))
+    if (type) params.append('type', type)
+    const response = await api.post(
+      `/api/v1/account/link-relationship?${params.toString()}`
+    )
+    return response.data
+  },
+  removeRelationship: async ({ parentId, childIds }) => {
+    if (!parentId || !Array.isArray(childIds)) return
+    const params = new URLSearchParams()
+    params.append('parentId', parentId)
+    childIds.forEach(id => params.append('childIds', id))
+    const response = await api.delete(
+      `/api/v1/account/remove-relationship?${params.toString()}`
+    )
+    return response.data
+  },
 }

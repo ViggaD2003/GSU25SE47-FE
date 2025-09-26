@@ -207,24 +207,24 @@ api.interceptors.response.use(
 
         // Always logout on 500 - it usually means insufficient permissions or session issues
         store.dispatch(forceLogout())
-        notificationService.error({
-          message: 'Tài khoản đã bị vô hiệu hóa',
-          description:
-            'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.',
-          duration: 6,
-        })
+        // notificationService.error({
+        //   message: 'Tài khoản đã bị vô hiệu hóa',
+        //   description:
+        //     'Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ hỗ trợ.',
+        //   duration: 6,
+        // })
       }
       if (error.response?.status === 400 || error.response?.status === 401) {
         controller.abort()
 
         // Always logout on 400, 401 - it usually means insufficient permissions or session issues
         store.dispatch(forceLogout())
-        notificationService.error({
-          message: 'Lỗi đăng nhập',
-          description:
-            'Email hoặc mật khẩu không hợp lệ. Vui lòng kiểm tra lại.',
-          duration: 6,
-        })
+        // notificationService.error({
+        //   message: 'Lỗi đăng nhập',
+        //   description:
+        //     'Email hoặc mật khẩu không hợp lệ. Vui lòng kiểm tra lại.',
+        //   duration: 6,
+        // })
       }
     }
 
@@ -258,9 +258,9 @@ api.interceptors.response.use(
 
       // Show appropriate notification
       notificationService.error({
-        message: 'Quyền truy cập bị từ chối',
+        message: 'Access Denied',
         description:
-          'Bạn không có quyền thực hiện hành động này hoặc tài khoản đang đăng nhập ở nơi khác.',
+          'You do not have permission to perform this action or the account is logged in at another location.',
         duration: 6,
       })
     }

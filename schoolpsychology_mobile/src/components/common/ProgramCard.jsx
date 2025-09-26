@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 
-const ProgramCard = ({ program, onPress }) => {
+const ProgramCard = ({ program, onPress, numberOfLines = 2 }) => {
   const { t } = useTranslation();
   const formatDateTime = (dateTimeString) => {
     const date = new Date(dateTimeString);
@@ -55,16 +55,17 @@ const ProgramCard = ({ program, onPress }) => {
     }
   };
 
+  const getSecureUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/400x200?text=No+Image";
+    return url.startsWith("http://") ? url.replace("http://", "https://") : url;
+  };
+
   return (
     <TouchableOpacity style={styles.container} onPress={() => onPress(program)}>
       {/* Program Image */}
       <View style={styles.imageContainer}>
         <Image
-          source={{
-            uri:
-              program.thumbnail.url ||
-              "https://via.placeholder.com/400x200?text=No+Image",
-          }}
+          source={{ uri: getSecureUrl(program?.thumbnail?.url) }}
           style={styles.programImage}
           resizeMode="cover"
         />
@@ -110,7 +111,7 @@ const ProgramCard = ({ program, onPress }) => {
       <View style={styles.content}>
         {/* Title and Category */}
         <View style={styles.header}>
-          <Text style={styles.programTitle} numberOfLines={2}>
+          <Text style={styles.programTitle} numberOfLines={numberOfLines}>
             {program.name || "Untitled Program"}
           </Text>
           <View style={styles.categoryContainer}>
@@ -122,7 +123,7 @@ const ProgramCard = ({ program, onPress }) => {
         </View>
 
         {/* Description */}
-        <Text style={styles.description} numberOfLines={2}>
+        <Text style={styles.description} numberOfLines={numberOfLines}>
           {program.description || "No description available"}
         </Text>
 

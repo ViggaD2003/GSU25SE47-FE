@@ -249,7 +249,7 @@ const NotificationSettings = ({ navigation }) => {
   );
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
         title={t("profile.notificationSettings")}
         onBackPress={() => navigation.goBack()}

@@ -1,6 +1,6 @@
 // Using centralized api instance from api.js
 import api from './api'
-import { getToken } from '@/utils'
+import { decodeJWT, getToken, isAuthorizedRole } from '@/utils'
 
 // Auth API methods
 export const authAPI = {
@@ -10,6 +10,10 @@ export const authAPI = {
         email,
         password,
       })
+      console.log('Response', response)
+
+      const decodedToken = decodeJWT(response.data.data.token)
+      console.log('Decoded token', decodedToken)
 
       // Handle 308 PERMANENT_REDIRECT for Google OAuth (Manager role)
       if (response.status === 308) {
@@ -25,8 +29,16 @@ export const authAPI = {
 
       // Normal successful response (Counselor/Teacher role)
       if (response.status === 200) {
-        console.log('✅ Normal login successful - Counselor/Teacher role')
-        return response.data
+        if (isAuthorizedRole(decodedToken.role)) {
+          console.log('✅ Normal login successful - Counselor/Teacher role')
+          return response.data
+        } else {
+          return {
+            success: false,
+            message: 'Unauthorized role',
+            data: null,
+          }
+        }
       }
 
       // Handle other status codes

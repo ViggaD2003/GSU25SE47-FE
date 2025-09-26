@@ -26,7 +26,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.userSection}>

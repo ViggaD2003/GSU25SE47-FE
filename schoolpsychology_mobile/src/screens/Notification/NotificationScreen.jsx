@@ -84,45 +84,40 @@ const NotificationScreen = ({ navigation }) => {
           await handleMarkAsRead(notification.id);
         }
 
-        // Navigate based on type
-        switch (notification.type) {
-          case "case":
-            navigation.navigate("CaseDetails", {
-              caseId: notification.relatedEntityId || notification.caseId,
-            });
-            break;
-          case "appointment":
-            navigation.navigate("AppointmentDetails", {
-              appointmentId:
-                notification.relatedEntityId || notification.appointmentId,
-            });
-            break;
-          case "survey":
-            navigation.navigate("SurveyTaking", {
-              surveyId: notification.relatedEntityId || notification.surveyId,
-            });
-            break;
-          case "program":
-            navigation.navigate("ProgramDetails", {
-              programId: notification.relatedEntityId || notification.programId,
-            });
-            break;
-          case "message":
-            console.log("💬 Message notification:", notification);
-            Alert.alert(
-              t("notifications.messageTitle"),
-              notification.content || notification.body
-            );
-            break;
-          case "general":
-            console.log("📢 General notification:", notification);
-            Alert.alert(
-              t("notifications.generalTitle"),
-              notification.content || notification.body
-            );
-            break;
+        console.log(notification);
+
+        let source = notification.notificationType.split("_")[0];
+        // // Navigate based on type
+        switch (source.toLowerCase()) {
+          // case "case":
+          //   navigation.navigate("Case", {
+          //     screen: "CaseDetails",
+          //     caseId: notification.relatedEntityId,
+          //   });
+          //   break;
+          // case "appointment":
+          //   navigation.navigate("Appointment", {
+          //     screen: "AppointmentDetails",
+          //     appointmentId: notification.relatedEntityId,
+          //   });
+          //   break;
+          // case "survey":
+          //   navigation.navigate("Survey", {
+          //     screen: "SurveyInfo",
+          //     surveyId: notification.relatedEntityId,
+          //   });
+          //   break;
+          // case "program":
+          //   navigation.navigate("Program", {
+          //     screen: "ProgramDetail",
+          //     programId: notification.relatedEntityId,
+          //   });
+          //   break;
           default:
-            console.log("❓ Unknown notification type:", notification.type);
+            console.log(
+              "❓ Unknown notification type:",
+              notification.notificationType
+            );
             Alert.alert(
               t("notifications.generalTitle"),
               notification.content || notification.body
@@ -142,42 +137,73 @@ const NotificationScreen = ({ navigation }) => {
 
   // Render notification item
   const renderNotificationItem = useCallback(
-    ({ item }) => (
-      <TouchableOpacity
-        style={[styles.notificationItem, !item.isRead && styles.unreadItem]}
-        onPress={() => handleNotificationPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={styles.notificationContent}>
-          <View style={styles.notificationHeader}>
-            <Text style={[styles.title, !item.isRead && styles.unreadTitle]}>
-              {item.title}
-            </Text>
-            {!item.isRead && <View style={styles.unreadDot} />}
-          </View>
+    ({ item }) => {
+      let type = item.notificationType.split("_")[1];
+      console.log(type);
 
-          <Text style={styles.content} numberOfLines={2}>
-            {item.body || item.content}
-          </Text>
+      let color;
+      switch (type) {
+        case "INFO":
+          color = "#007AFF";
+          break;
+        case "WARNING":
+          color = "#F59E0B";
+          break;
+        case "ERROR":
+          color = "#EF4444";
+          break;
+        case "DANGER":
+          color = "#DC2626";
+          break;
+        case "CRITICAL":
+          color = "#7C2D12";
+          break;
+        default:
+          color = "#007AFF";
+          break;
+      }
 
-          <View style={styles.notificationFooter}>
-            <Text style={styles.timeAgo}>
-              {new Date(item.createdAt).toLocaleString()}
-            </Text>
-            <View style={styles.typeContainer}>
-              <MaterialIcons
-                name={item.typeIcon || getNotificationIcon(item.type)}
-                size={16}
-                color="#666"
-              />
-              <Text style={styles.typeText}>
-                {getNotificationTypeLabel(item.type)}
+      return (
+        <TouchableOpacity
+          style={[
+            styles.notificationItem,
+            !item.isRead && styles.unreadItem,
+            { borderLeftColor: color },
+          ]}
+          onPress={() => handleNotificationPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={styles.notificationContent}>
+            <View style={styles.notificationHeader}>
+              <Text style={[styles.title, !item.isRead && styles.unreadTitle]}>
+                {item.title}
               </Text>
+              {!item.isRead && <View style={styles.unreadDot} />}
+            </View>
+
+            <Text style={styles.content} numberOfLines={2}>
+              {item.body || item.content}
+            </Text>
+
+            <View style={styles.notificationFooter}>
+              <Text style={styles.timeAgo}>
+                {new Date(item.createdAt).toLocaleString()}
+              </Text>
+              <View style={styles.typeContainer}>
+                <MaterialIcons
+                  name={item.typeIcon || getNotificationIcon(item.type)}
+                  size={16}
+                  color="#666"
+                />
+                <Text style={styles.typeText}>
+                  {getNotificationTypeLabel(item.type)}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    ),
+        </TouchableOpacity>
+      );
+    },
     [handleNotificationPress]
   );
 
@@ -226,9 +252,9 @@ const NotificationScreen = ({ navigation }) => {
     () => (
       <View style={styles.emptyContainer}>
         <MaterialIcons name="notifications-none" size={64} color="#ccc" />
-        <Text style={styles.emptyTitle}>Không có thông báo</Text>
+        <Text style={styles.emptyTitle}>{t("notifications.emptyTitle")}</Text>
         <Text style={styles.emptySubtitle}>
-          Bạn sẽ nhận được thông báo khi có hoạt động mới
+          {t("notifications.emptySubtitle")}
         </Text>
       </View>
     ),
@@ -240,12 +266,12 @@ const NotificationScreen = ({ navigation }) => {
     () => (
       <View style={styles.errorContainer}>
         <MaterialIcons name="error-outline" size={64} color="#ff6b6b" />
-        <Text style={styles.errorTitle}>Lỗi tải thông báo</Text>
+        <Text style={styles.errorTitle}>{t("notifications.errorTitle")}</Text>
         <Text style={styles.errorSubtitle}>
-          {error || "Đã xảy ra lỗi khi tải thông báo"}
+          {error || t("notifications.errorSubtitle")}
         </Text>
         <TouchableOpacity style={styles.retryButton} onPress={handleRefresh}>
-          <Text style={styles.retryButtonText}>Thử lại</Text>
+          <Text style={styles.retryButtonText}>{t("common.retry")}</Text>
         </TouchableOpacity>
       </View>
     ),
@@ -298,16 +324,20 @@ const NotificationScreen = ({ navigation }) => {
   // Show loading screen only for initial load
   if (isLoading && notifications.length === 0) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
-          title="Thông báo"
+          title={t("notifications.title")}
           onBackPress={() => navigation.goBack()}
           showRefreshButton={false}
         />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={styles.loadingText}>Đang tải thông báo...</Text>
-          <Text style={styles.loadingSubtext}>Vui lòng chờ trong giây lát</Text>
+          <Text style={styles.loadingText}>
+            {t("notifications.loadingHint")}
+          </Text>
+          <Text style={styles.loadingSubtext}>
+            {t("notifications.loadingSubtitle")}
+          </Text>
         </View>
       </Container>
     );
@@ -316,9 +346,9 @@ const NotificationScreen = ({ navigation }) => {
   // Show error state
   if (error && notifications.length === 0) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
-          title="Thông báo"
+          title={t("notifications.title")}
           onBackPress={() => navigation.goBack()}
           showRefreshButton={true}
           onRefresh={handleManualRefresh}
@@ -330,9 +360,11 @@ const NotificationScreen = ({ navigation }) => {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
-        title={`Thông báo ${unreadCount > 0 ? `(${unreadCount})` : ""}`}
+        title={`${t("notifications.title")} ${
+          unreadCount > 0 ? `(${unreadCount})` : ""
+        }`}
         onBackPress={() => navigation.goBack()}
         showRefreshButton={true}
         onRefresh={handleManualRefresh}

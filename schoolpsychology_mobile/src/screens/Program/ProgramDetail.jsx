@@ -26,9 +26,10 @@ import {
   leaveProgram,
 } from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
-import { useAuth, useChildren } from "@/contexts";
+import { useAuth, useChildren, useLanguage } from "@/contexts";
 import dayjs from "dayjs";
 import { surveyRecords } from "@/constants";
+import i18n from "@/i18n";
 
 const { width } = Dimensions.get("window");
 
@@ -52,7 +53,7 @@ export default function ProgramDetail() {
   // Show loading state while auth is loading
   if (authLoading || !user) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <Loading />
       </Container>
     );
@@ -180,7 +181,11 @@ export default function ProgramDetail() {
     if (!dateTimeString) return "";
     const date = new Date(dateTimeString);
     if (isNaN(date.getTime())) return "";
-    return date.toLocaleString("vi-VN", {
+    let locale = "vi-VN";
+    if (i18n.language === "en") {
+      locale = "en-US";
+    }
+    return date.toLocaleString(locale, {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -683,9 +688,14 @@ export default function ProgramDetail() {
     );
   };
 
+  const getSecureUrl = (url) => {
+    if (!url) return "https://via.placeholder.com/400x200?text=No+Image";
+    return url.startsWith("http://") ? url.replace("http://", "https://") : url;
+  };
+
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
           title={t("program.detail.title")}
           onBackPress={handleBackPress}
@@ -697,7 +707,7 @@ export default function ProgramDetail() {
 
   if (!program) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
           title={t("program.detail.title")}
           onBackPress={handleBackPress}
@@ -713,7 +723,7 @@ export default function ProgramDetail() {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
         title={t("program.detail.title")}
         onBackPress={handleBackPress}
@@ -734,11 +744,7 @@ export default function ProgramDetail() {
           <View style={styles.heroSection}>
             <View style={styles.imageContainer}>
               <Image
-                source={{
-                  uri:
-                    program.thumbnail.url ||
-                    "https://via.placeholder.com/400x200?text=No+Image",
-                }}
+                source={{ uri: getSecureUrl(program?.thumbnail?.url) }}
                 style={styles.programImage}
                 resizeMode="cover"
               />

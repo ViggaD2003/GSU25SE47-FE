@@ -13,8 +13,22 @@ export default function AuthStack() {
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="VerifyEmail" component={VerifyEmail} />
       <Stack.Screen name="VerifyOtp" component={VerifyOtp} />
-      <Stack.Screen name="ChangePassword" component={ChangePassword} />
-      <Stack.Screen name="Done" component={require("../screens/Authentication/DoneScreen").default} />
+      <Stack.Screen
+        name="ChangePassword"
+        options={{
+          gestureEnabled: false,
+          headerBackVisible: false,
+        }}
+        component={ChangePassword}
+      />
+      <Stack.Screen
+        name="Done"
+        options={{
+          gestureEnabled: false,
+          headerBackVisible: false,
+        }}
+        component={require("../screens/Authentication/DoneScreen").default}
+      />
       {/* <Stack.Screen name="Register" component={Register} /> */}
     </Stack.Navigator>
   );

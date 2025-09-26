@@ -7,7 +7,6 @@ import {
   Modal,
   TouchableWithoutFeedback,
   ScrollView,
-  SafeAreaView,
   ActivityIndicator,
   BackHandler,
 } from "react-native";
@@ -23,6 +22,7 @@ import {
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SurveyTaking = ({ route, navigation }) => {
   const { survey, programId } = route.params || {};
@@ -509,7 +509,7 @@ const SurveyTaking = ({ route, navigation }) => {
   const progress = ((currentQuestionIndex + 1) / survey.questions.length) * 100;
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {isSubmitting && (
         <ActivityIndicator
           style={styles.loadingIndicator}

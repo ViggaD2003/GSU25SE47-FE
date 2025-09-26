@@ -5,7 +5,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -157,7 +156,7 @@ const SurveyInfo = ({ route, navigation }) => {
 
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.loadingContainer}>
           <Ionicons
             name="refresh"
@@ -172,7 +171,7 @@ const SurveyInfo = ({ route, navigation }) => {
 
   if (!survey) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={32} color="#EF4444" />
           <Text style={styles.errorText}>{t("survey.info.loadError")}</Text>
@@ -185,7 +184,7 @@ const SurveyInfo = ({ route, navigation }) => {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("survey.info.title")}

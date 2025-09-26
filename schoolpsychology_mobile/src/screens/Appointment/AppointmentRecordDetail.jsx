@@ -203,7 +203,7 @@ const AppointmentRecordDetail = () => {
 
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <Loading text={t("appointment.record.loading")} />
       </Container>
     );
@@ -211,7 +211,7 @@ const AppointmentRecordDetail = () => {
 
   if (!record) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={64} color="#DC2626" />
           <Text style={styles.errorTitle}>
@@ -230,7 +230,7 @@ const AppointmentRecordDetail = () => {
   const coopLevelConfig = getCoopLevelConfig(record.studentCoopLevel);
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("appointment.record.detailsTitle")}

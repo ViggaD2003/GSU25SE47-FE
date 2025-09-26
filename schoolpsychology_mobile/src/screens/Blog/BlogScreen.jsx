@@ -51,7 +51,7 @@ export default function BlogScreen() {
   );
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab title={t("blog.title")} onBackPress={handleBackPress} />
 

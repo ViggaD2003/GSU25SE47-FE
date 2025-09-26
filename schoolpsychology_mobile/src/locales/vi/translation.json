@@ -142,6 +142,7 @@
     }
   },
   "case": {
+    "notify": "Thông báo tới phụ huynh",
     "followUp": "Theo dõi",
     "emptyTitle": "Không tìm thấy trường hợp",
     "status": {
@@ -181,7 +182,13 @@
       "waitingForConfirmation": "Đang chờ xác nhận",
       "waitingForConfirmationSubtitle": "Bạn đang chờ xác nhận trường hợp từ phụ huynh của bạn.",
       "confirmedTitle": "Trường hợp đã được xác nhận",
-      "confirmedSubtitle": "Trường hợp đã được xác nhận thành công. Vui lòng chờ phân tư vấn viên phụ trách."
+      "confirmedSubtitle": "Trường hợp đã được xác nhận thành công. Vui lòng chờ phân tư vấn viên phụ trách.",
+      "requestToCreate": "Yêu cầu tạo case",
+      "requestToCreateConfirm": "Nếu bạn yêu cầu thì case được tạo sẽ không được gởi thông báo tới phụ huynh."
+    },
+    "requestSent": {
+      "success": "Yêu cầu tạo case đã được gửi thành công",
+      "error": "Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại."
     },
     "closedCases": {
       "title": "Trường hợp đã đóng",
@@ -1096,6 +1103,14 @@
     "reasonModal": {}
   },
   "survey": {
+    "level": {
+      "LOW": "Thấp",
+      "MEDIUM": "Trung bình",
+      "HIGH": "Cao",
+      "MODERATE": "Vừa phải",
+      "SEVERE": "Nghiêm trọng",
+      "CRITICAL": "Nguy hiểm"
+    },
     "record": {
       "title": "Lịch sử khảo sát",
       "emptyTitle": "Chưa có kết quả khảo sát",
@@ -1144,6 +1159,7 @@
       "continue": "Tiếp tục"
     },
     "info": {
+      "retry": "Thử lại",
       "title": "Thông tin khảo sát",
       "loadError": "Không thể tải thông tin khảo sát",
       "progressSaved": "Tiến độ đã được lưu thành công!",
@@ -1216,6 +1232,14 @@
       "scoreUnit": "điểm",
       "completed": "Hoàn thành",
       "skipped": "Bỏ qua",
+      "loading": "Đang tải thông tin khảo sát...",
+      "savedToRecord": "Đã lưu kết quả vào hồ sơ",
+      "infoTitle": "Thông tin khảo sát",
+      "statusLabel": "Trạng thái:",
+      "skippedStatus": "Đã bỏ qua khảo sát",
+      "reasonLabel": "Lý do:",
+      "surveyDescriptionLabel": "Mô tả khảo sát:",
+      "categoryDescriptionLabel": "Mô tả danh mục:",
       "noResultData": "Không có dữ liệu kết quả để hiển thị",
       "levelInfo": "Thông tin mức độ",
       "description": "Mô tả:",
@@ -1227,6 +1251,12 @@
       "skippedCount": "{{count}} câu bỏ qua",
       "toggleShow": "Xem tất cả câu trả lời",
       "toggleHide": "Thu gọn",
+      "questionNumber": "Câu {{index}}",
+      "questionPlaceholder": "Câu hỏi",
+      "answerLabelText": "Trả lời:",
+      "unanswered": "Chưa trả lời",
+      "scoreLabel": "(Điểm: {{score}})",
+      "skippedBadge": "Bỏ qua",
       "noAnswersTitle": "Không có dữ liệu câu trả lời",
       "noAnswersText": "Khảo sát này đã hoàn thành nhưng không có dữ liệu câu trả lời để hiển thị.",
       "viewAllRecords": "Xem tất cả kết quả"

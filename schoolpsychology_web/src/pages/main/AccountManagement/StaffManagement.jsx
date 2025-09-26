@@ -140,6 +140,19 @@ const StaffManagement = () => {
     setSelectedUser(null)
   }
 
+  const updateAccounts = async (userId, data) => {
+    setData(prevData =>
+      prevData.find(user => user.id === userId)
+        ? prevData.map(user =>
+            user.id === userId ? { ...user, ...data } : user
+          )
+        : prevData
+    )
+    setSelectedUser(prevUser =>
+      prevUser?.id === userId ? { ...prevUser, ...data } : prevUser
+    )
+  }
+
   React.useEffect(() => {
     fetchUsers()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -197,6 +210,7 @@ const StaffManagement = () => {
           className={isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}
         >
           <AccountTable
+            students={data.filter(user => user.roleName === 'STUDENT')}
             data={searchData}
             loading={loading}
             onView={handleView}
@@ -214,6 +228,8 @@ const StaffManagement = () => {
               editingUser={selectedUser}
               isView={isView}
               confirmLoading={false}
+              students={data.filter(user => user.roleName === 'STUDENT')}
+              updateAccounts={updateAccounts}
             />
           )}
         </Suspense>

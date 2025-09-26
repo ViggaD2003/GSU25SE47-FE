@@ -1541,7 +1541,7 @@ const CategoryModal = ({
 
                     {/* Level Cards */}
                     <div>
-                      {(!isView || !isEdit) && state.levels?.length > 0 && (
+                      {!isView && !isEdit && state.levels?.length > 0 && (
                         <div
                           className={`mb-3 p-2 text-center ${isDarkMode ? 'bg-gray-600 text-gray-300' : 'bg-blue-50 text-blue-600'} rounded text-xs`}
                         >

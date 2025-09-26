@@ -410,7 +410,7 @@ const AppointmentRecord = () => {
   );
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("appointment.record.title")}

@@ -125,13 +125,13 @@ export const ROUTE_CONFIG = [
   },
 
   // System Config (System Config) - Manager
-  {
-    key: '/system-config',
-    icon: SettingOutlined,
-    labelKey: 'navigation.systemConfig',
-    allowedRoles: ['manager'],
-    element: 'SystemConfigManagement',
-  },
+  // {
+  //   key: '/system-config',
+  //   icon: SettingOutlined,
+  //   labelKey: 'navigation.systemConfig',
+  //   allowedRoles: ['manager'],
+  //   element: 'SystemConfigManagement',
+  // },
 
   {
     key: '/case-management/details/:id',

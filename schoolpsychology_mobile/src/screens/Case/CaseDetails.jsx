@@ -38,6 +38,7 @@ const CaseDetails = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { user, refreshUser } = useAuth();
   const {
+    sendMessage,
     chatMessages,
     setChatMessages,
     sendMessageToCounselor,
@@ -51,6 +52,7 @@ const CaseDetails = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [buttonScale] = useState(new Animated.Value(1));
   const { children, selectedChild } = useChildren();
   const isNewCase = caseDetails?.caseInfo?.status === "NEW";
   const [toast, setToast] = useState({
@@ -98,28 +100,17 @@ const CaseDetails = ({ route, navigation }) => {
 
   const fetchCaseDetails = async () => {
     try {
-      if (from !== "tab" && !caseId) {
-        setCaseDetails(null);
-        return;
-      }
-
-      if (user?.role === "PARENTS" && !selectedChild?.caseId) {
-        setCaseDetails(null);
-        return;
-      }
-
-      if (user?.role === "STUDENT" && !user?.caseId) {
-        setCaseDetails(null);
-        return;
-      }
       setLoading(true);
+      console.log("[CaseDetails] caseId", caseId);
 
       const id =
         user?.role === "PARENTS" && selectedChild
           ? selectedChild.caseId
-          : caseId || user?.caseId;
+          : user?.caseId;
+      console.log("[CaseDetails] id", id);
 
-      const data = await getCaseByCaseId(id);
+      const data = await getCaseByCaseId(caseId || id);
+      console.log("[CaseDetails] data", data);
 
       setCaseDetails(data);
 
@@ -166,6 +157,61 @@ const CaseDetails = ({ route, navigation }) => {
       }, 500);
     }
   }, [chatMessages]);
+
+  const handleRequestToCreate = () => {
+    // Button press animation
+    Animated.sequence([
+      Animated.timing(buttonScale, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScale, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Show confirmation alert after animation
+    setTimeout(() => {
+      Alert.alert(
+        t("case.emptyState.requestToCreate"),
+        t("case.emptyState.requestToCreateConfirm"),
+        [
+          {
+            text: t("common.cancel"),
+            style: "cancel",
+            onPress: () => {
+              console.log("Request cancelled by user");
+            },
+          },
+          {
+            text: t("common.confirm"),
+            style: "default",
+            onPress: () => {
+              console.log(user);
+              console.log({
+                title: "Request to create case",
+                content: user.fullName + " request to create case",
+                username: user.classDto?.teacher?.email,
+                notificationType: "CASE_DANGER",
+              });
+
+              // Send request message
+              sendMessage({
+                title: "Request to create case",
+                content: user.fullName + " request to create case",
+                username: user.classDto?.teacher?.email,
+                notificationType: "CASE_DANGER",
+              });
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    }, 200);
+  };
 
   const handleConfirmCase = async (status) => {
     try {
@@ -250,7 +296,7 @@ const CaseDetails = ({ route, navigation }) => {
     }
   };
 
-  const sendMessage = () => {
+  const sendMesg = () => {
     if (currentMessage.trim()) {
       const newMessage = {
         message: currentMessage,
@@ -429,6 +475,39 @@ const CaseDetails = ({ route, navigation }) => {
             ? t("case.emptyState.confirmedSubtitle")
             : t("case.emptyState.noCaseAssignedSubtitle")}
         </Text>
+        {user.role === "STUDENT" && !caseId && !hasActiveCase && (
+          <View style={styles.requestButtonContainer}>
+            <Animated.View style={{ transform: [{ scale: buttonScale }] }}>
+              <TouchableOpacity
+                onPress={handleRequestToCreate}
+                style={styles.requestButton}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={["#3B82F6", "#1D4ED8"]}
+                  style={styles.requestButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <View style={styles.requestButtonContent}>
+                    <Ionicons
+                      name="add-circle-outline"
+                      size={20}
+                      color="#FFFFFF"
+                      style={styles.requestButtonIcon}
+                    />
+                    <Text style={styles.requestButtonText}>
+                      {t("case.emptyState.requestToCreate")}
+                    </Text>
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+            <Text style={styles.requestButtonSubtext}>
+              {t("case.emptyState.requestToCreateConfirm")}
+            </Text>
+          </View>
+        )}
       </View>
     );
   };
@@ -576,7 +655,7 @@ const CaseDetails = ({ route, navigation }) => {
                           color="#FFFFFF"
                         />
                         <Text style={styles.levelText}>
-                          {currentLevelConfig?.label}
+                          {t(`survey.level.${caseInfo.currentLevel?.code}`)}
                         </Text>
                       </View>
                     </LinearGradient>
@@ -599,7 +678,7 @@ const CaseDetails = ({ route, navigation }) => {
                           color="#FFFFFF"
                         />
                         <Text style={styles.levelText}>
-                          {initialLevelConfig?.label}
+                          {t(`survey.level.${caseInfo.initialLevel?.code}`)}
                         </Text>
                       </View>
                     </LinearGradient>
@@ -867,7 +946,7 @@ const CaseDetails = ({ route, navigation }) => {
               placeholderTextColor="#6B7280"
             />
             <TouchableOpacity
-              onPress={sendMessage}
+              onPress={sendMesg}
               style={[
                 styles.sendButton,
                 !currentMessage.trim() && { opacity: 0.5 },
@@ -933,7 +1012,7 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <Toast
         visible={toast.visible}
         message={toast.message}
@@ -976,8 +1055,8 @@ const CaseDetails = ({ route, navigation }) => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {!caseDetails ? (
-              renderEmptyState(hasActiveCase ? "IN_PROGRESS" : "CLOSED")
+            {!hasActiveCase && !caseId ? (
+              renderEmptyState("CLOSED")
             ) : user.role === "STUDENT" && isNewCase ? (
               renderEmptyState("NEW")
             ) : caseDetails.caseInfo.status === "CONFIRMED" ? (
@@ -1154,6 +1233,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 32,
     paddingVertical: 64,
+    backgroundColor: "#FAFBFC",
+    borderRadius: 20,
+    margin: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
   },
   emptyIconContainer: {
     width: 100,
@@ -1172,17 +1262,20 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
     color: "#1F2937",
     textAlign: "center",
-    marginBottom: 12,
+    marginBottom: 16,
+    lineHeight: 28,
   },
   emptySubtitle: {
     fontSize: 16,
     color: "#6B7280",
     textAlign: "center",
     lineHeight: 24,
+    marginBottom: 8,
+    paddingHorizontal: 8,
   },
   caseInfoCard: {
     marginBottom: 24,
@@ -1473,6 +1566,54 @@ const styles = StyleSheet.create({
     color: "#EF4444",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Request Button Styles
+  requestButtonContainer: {
+    marginTop: 32,
+    alignItems: "center",
+    width: "100%",
+  },
+  requestButton: {
+    width: "100%",
+    maxWidth: 280,
+    borderRadius: 16,
+    shadowColor: "#3B82F6",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  requestButtonGradient: {
+    borderRadius: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  requestButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  requestButtonIcon: {
+    marginRight: 4,
+  },
+  requestButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  requestButtonSubtext: {
+    marginTop: 12,
+    fontSize: 12,
+    color: "#6B7280",
+    textAlign: "center",
+    lineHeight: 18,
+    paddingHorizontal: 16,
+    fontStyle: "italic",
   },
 });
 

@@ -84,7 +84,7 @@ export default function ChangePassword({ navigation }) {
   }, [navigation]);
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
           <Ionicons name="arrow-back" size={24} color="#1A1A1A" />

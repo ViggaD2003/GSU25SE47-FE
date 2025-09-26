@@ -142,6 +142,7 @@
     }
   },
   "case": {
+    "notify": "Notify to parent",
     "followUp": "Follow Up",
     "emptyTitle": "No Case Found",
     "status": {
@@ -181,7 +182,13 @@
       "waitingForConfirmation": "Waiting for Confirmation",
       "waitingForConfirmationSubtitle": "You are waiting for confirmation from your parent.",
       "confirmedTitle": "Case Confirmed",
-      "confirmedSubtitle": "The case has been confirmed successfully. Please wait for the counselor to be assigned."
+      "confirmedSubtitle": "The case has been confirmed successfully. Please wait for the counselor to be assigned.",
+      "requestToCreate": "Request to Create Case",
+      "requestToCreateConfirm": "If you request, the created case will not notify your parent."
+    },
+    "requestSent": {
+      "success": "Case creation request sent successfully",
+      "error": "An error occurred while sending the request. Please try again."
     },
     "closedCases": {
       "title": "Closed Cases",
@@ -1067,6 +1074,14 @@
     "reasonModal": {}
   },
   "survey": {
+    "level": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "MODERATE": "Moderate",
+      "SEVERE": "Severe",
+      "CRITICAL": "Critical"
+    },
     "record": {
       "title": "Survey Records",
       "emptyTitle": "No survey results yet",
@@ -1115,6 +1130,7 @@
       "continue": "Continue"
     },
     "info": {
+      "retry": "Retry",
       "title": "Survey Information",
       "loadError": "Unable to load survey information",
       "progressSaved": "Progress saved successfully!",
@@ -1188,6 +1204,14 @@
       "scoreUnit": "points",
       "completed": "Completed",
       "skipped": "Skipped",
+      "loading": "Loading survey information...",
+      "savedToRecord": "Saved result to record",
+      "infoTitle": "Survey information",
+      "statusLabel": "Status:",
+      "skippedStatus": "Survey skipped",
+      "reasonLabel": "Reason:",
+      "surveyDescriptionLabel": "Survey description:",
+      "categoryDescriptionLabel": "Category description:",
       "noResultData": "No result data to display",
       "levelInfo": "Level information",
       "description": "Description:",
@@ -1199,6 +1223,12 @@
       "skippedCount": "{{count}} skipped",
       "toggleShow": "Show all answers",
       "toggleHide": "Hide",
+      "questionNumber": "Question {{index}}",
+      "questionPlaceholder": "Question",
+      "answerLabelText": "Answer:",
+      "unanswered": "Unanswered",
+      "scoreLabel": "(Score: {{score}})",
+      "skippedBadge": "Skipped",
       "noAnswersTitle": "No answer data",
       "noAnswersText": "This survey was completed but there is no answer data to display.",
       "viewAllRecords": "View all results"

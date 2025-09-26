@@ -29,56 +29,95 @@ export default function VerifyOtpScreen({ route, navigation }) {
 
   async function handleVerify() {
     setError("");
-    if (code.length !== 6) { setError("Enter the 6-digit code."); return; }
+    if (code.length !== 6) {
+      setError("Enter the 6-digit code.");
+      return;
+    }
     setLoading(true);
     const res = await apiVerifyOtp(email, code);
     setLoading(false);
-    if (res.status !== 200) { setError(res.message || "Invalid code."); return; }
+    if (res.status !== 200) {
+      setError(res.message || "Invalid code.");
+      return;
+    }
     navigation.navigate("ChangePassword", { email });
   }
 
   async function handleResendToken() {
-      const res = await apiSendOtp(email);
-      setLoading(false);
-      if (res.status !== 200) {
-        setError(res.message || "Something went wrong.");
-        return;
-      }
+    const res = await apiSendOtp(email);
+    setLoading(false);
+    if (res.status !== 200) {
+      setError(res.message || "Something went wrong.");
+      return;
     }
+  }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{ flex: 1, backgroundColor: BG }}
+    >
       <StatusBar barStyle="dark-content" />
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 16, backgroundColor: BG }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          paddingHorizontal: 16,
+          backgroundColor: BG,
+        }}
+      >
         <View style={{ width: "100%", maxWidth: 420 }}>
           {/* Header */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              marginBottom: 16,
+            }}
+          >
             <Text style={{ fontSize: 12, color: MUTED }}>
-              Code sent to <Text style={{ fontWeight: "600", color: FG }}>{maskEmail(email)}</Text>
+              Code sent to{" "}
+              <Text style={{ fontWeight: "600", color: FG }}>
+                {maskEmail(email)}
+              </Text>
             </Text>
           </View>
 
           {/* OTP cells */}
-          <View style={{ flexDirection: "row", justifyContent: "center", gap: 8 }}>
+          <View
+            style={{ flexDirection: "row", justifyContent: "center", gap: 8 }}
+          >
             {digits.map((d, i) => (
               <OtpCell
                 key={i}
                 value={d}
-                scheme="light"                 // ép style sáng cho OtpCell
+                scheme="light" // ép style sáng cho OtpCell
                 inputRef={refs[i]}
                 onChange={(v) => {
                   const next = [...digits];
                   next[i] = v;
                   setDigits(next);
-                  if (v && i < 5) refs[i + 1].current && refs[i + 1].current.focus();
+                  if (v && i < 5)
+                    refs[i + 1].current && refs[i + 1].current.focus();
                 }}
-                onBackspace={() => { if (i > 0) refs[i - 1].current && refs[i - 1].current.focus(); }}
+                onBackspace={() => {
+                  if (i > 0) refs[i - 1].current && refs[i - 1].current.focus();
+                }}
               />
             ))}
           </View>
 
           {!!error && (
-            <Text style={{ color: "#DC2626", marginTop: 8, fontSize: 12, textAlign: "center" }}>
+            <Text
+              style={{
+                color: "#DC2626",
+                marginTop: 8,
+                fontSize: 12,
+                textAlign: "center",
+              }}
+            >
               {error}
             </Text>
           )}
@@ -86,17 +125,36 @@ export default function VerifyOtpScreen({ route, navigation }) {
           <TouchableOpacity
             onPress={handleVerify}
             disabled={loading}
-            style={{ marginTop: 16, backgroundColor: "#004B48", paddingVertical: 12, borderRadius: 16, alignItems: "center" }}
+            style={{
+              marginTop: 16,
+              backgroundColor: "#004B48",
+              paddingVertical: 12,
+              borderRadius: 16,
+              alignItems: "center",
+            }}
           >
             <Text style={{ color: "white", fontWeight: "600" }}>
               {loading ? "Verifying…" : "Verify code"}
             </Text>
           </TouchableOpacity>
 
-          <View style={{ marginTop: 12, flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-            <Text style={{ fontSize: 12, color: MUTED }}>Didn't receive the code? </Text>
+          <View
+            style={{
+              marginTop: 12,
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 12, color: MUTED }}>
+              Didn't receive the code?{" "}
+            </Text>
             <TouchableOpacity
-              onPress={async () => { if (counter > 0) return; setCounter(60); await handleResendToken(); }}
+              onPress={async () => {
+                if (counter > 0) return;
+                setCounter(60);
+                await handleResendToken();
+              }}
             >
               <Text
                 style={{

@@ -404,7 +404,7 @@ const SurveyRecord = ({ navigation }) => {
   );
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
         title={t("survey.record.title")}

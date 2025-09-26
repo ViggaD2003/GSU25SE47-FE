@@ -94,7 +94,7 @@ export default function ProgramList() {
 
   if (loading) {
     return (
-      <Container>
+      <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
           title={t("program.list.title")}
           onBackPress={handleBackPress}
@@ -105,7 +105,7 @@ export default function ProgramList() {
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
         title={t("program.list.title")}
         onBackPress={handleBackPress}

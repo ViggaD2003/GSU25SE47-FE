@@ -20,6 +20,8 @@ import { getSurveyRecordById } from "@/services/api/SurveyService";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import RecommendProgram from "../Program/RecommendProgram";
 import { useTranslation } from "react-i18next";
+import { useAuth, useRealTime } from "@/contexts";
+import dayjs from "dayjs";
 
 const SurveyResult = ({ route, navigation }) => {
   const { t } = useTranslation();
@@ -33,6 +35,8 @@ const SurveyResult = ({ route, navigation }) => {
   });
   const [showAllAnswers, setShowAllAnswers] = useState(false);
   const [animation] = useState(new Animated.Value(0));
+  const { sendMessage } = useRealTime();
+  const { user } = useAuth();
 
   // console.log("result", surveyRecord);
 
@@ -66,10 +70,29 @@ const SurveyResult = ({ route, navigation }) => {
   };
 
   useEffect(() => {
-    console.log("type", type);
+    // console.log("type", type);
     if (type === "submit") {
+      // console.log("result", result);
+      if (user?.classDto?.teacher?.email && !programId) {
+        let body = {
+          title: "Survey Result",
+          content: "Survey result is " + result.level?.code,
+          username: user?.classDto?.teacher?.email,
+          notificationType: "SURVEY_WARNING",
+          entityId: result.id,
+        };
+        if (["MODERATE", "HIGH"].includes(result.level?.code)) {
+          body.content =
+            "Your student has a moderate or high risk of mental health issues. Please follow up with the student.";
+        } else if (["SEVERE", "CRITICAL"].includes(result.level?.code)) {
+          body.content =
+            "Your student has a severe or critical risk of mental health issues. Please follow up with the student.";
+          body.notificationType = "SURVEY_DANGER";
+        }
+        sendMessage(body);
+      }
       setSurveyRecord(result);
-      showToast("Đã lưu kết quả vào hồ sơ", "success");
+      showToast(t("survey.result.savedToRecord"), "success");
     } else {
       fetchSurveyRecord();
     }
@@ -120,24 +143,26 @@ const SurveyResult = ({ route, navigation }) => {
 
   if (loading) {
     return (
-      <Container>
+      <Container edges={["bottom"]}>
         <View style={styles.loadingContainer}>
           <Ionicons
             name="refresh"
             size={32}
             color={GlobalStyles.colors.primary}
           />
-          <Text style={styles.loadingText}>Đang tải thông tin khảo sát...</Text>
+          <Text style={styles.loadingText}>{t("survey.result.loading")}</Text>
         </View>
       </Container>
     );
   }
 
   return (
-    <Container>
+    <Container edges={["top", "bottom"]}>
       {/* Header */}
       <HeaderWithoutTab
-        title={isSkipped ? "Khảo sát đã bỏ qua" : "Kết quả khảo sát"}
+        title={
+          isSkipped ? t("survey.result.skippedTitle") : t("survey.result.title")
+        }
         onBackPress={handleBackPress}
       />
 
@@ -162,17 +187,19 @@ const SurveyResult = ({ route, navigation }) => {
             </View>
             <View style={styles.resultInfo}>
               <Text style={styles.resultTitle}>
-                {isSkipped ? "Khảo sát đã bỏ qua" : "Kết quả khảo sát"}
+                {isSkipped
+                  ? t("survey.result.skippedTitle")
+                  : t("survey.result.title")}
               </Text>
               <Text style={styles.resultSubtitle}>
-                {surveyRecord?.survey?.title || "Khảo sát tâm lý"}
+                {surveyRecord?.survey?.title || t("survey.info.title")}
               </Text>
               {surveyRecord?.survey?.surveyType && (
                 <Text style={styles.surveyType}>
                   {surveyRecord.survey.surveyType === "SCREENING"
-                    ? "Sàng lọc"
+                    ? t("survey.record.screening")
                     : surveyRecord.survey.surveyType === "FOLLOWUP"
-                    ? "Theo dõi"
+                    ? t("survey.record.followup")
                     : surveyRecord.survey.surveyType}
                 </Text>
               )}
@@ -196,7 +223,9 @@ const SurveyResult = ({ route, navigation }) => {
                 <Text style={[styles.scoreText, { color: levelConfig?.color }]}>
                   {currentScore}
                 </Text>
-                <Text style={styles.scoreLabel}>điểm</Text>
+                <Text style={styles.scoreLabel}>
+                  {t("survey.result.scoreUnit")}
+                </Text>
               </View>
               <View style={styles.scoreInfo}>
                 <View style={styles.scoreInfoHeader}>
@@ -210,7 +239,7 @@ const SurveyResult = ({ route, navigation }) => {
                   <Text
                     style={[styles.scoreLevel, { color: levelConfig?.color }]}
                   >
-                    {level?.label || levelConfig?.label}
+                    {t(`survey.level.${level?.code}`)}
                   </Text>
                 </View>
 
@@ -229,9 +258,11 @@ const SurveyResult = ({ route, navigation }) => {
               <View style={styles.skippedIcon}>
                 <Ionicons name="close-circle" size={48} color="#6B7280" />
               </View>
-              <Text style={styles.skippedTitle}>Khảo sát đã bỏ qua</Text>
+              <Text style={styles.skippedTitle}>
+                {t("survey.result.skippedTitle")}
+              </Text>
               <Text style={styles.skippedSubtitle}>
-                Bạn đã chọn bỏ qua khảo sát này
+                {t("survey.result.skippedStatus")}
               </Text>
             </View>
           )}
@@ -245,15 +276,20 @@ const SurveyResult = ({ route, navigation }) => {
                 color={isSkipped ? "#6B7280" : "#10B981"}
               />
               <Text style={styles.completionText}>
-                {isSkipped ? "Bỏ qua" : "Hoàn thành"}:{" "}
-                {formatDate(surveyRecord?.completedAt || new Date())}
+                {isSkipped
+                  ? t("survey.result.skipped")
+                  : t("survey.result.completed")}
+                :{" "}
+                {dayjs(surveyRecord?.completedAt || new Date()).format(
+                  "DD/MM/YYYY"
+                )}
               </Text>
             </View>
             {isSkipped && (
               <View style={styles.completionItem}>
                 <Ionicons name="information-circle" size={20} color="#6B7280" />
                 <Text style={styles.completionText}>
-                  Không có dữ liệu kết quả để hiển thị
+                  {t("survey.result.noResultData")}
                 </Text>
               </View>
             )}
@@ -265,12 +301,16 @@ const SurveyResult = ({ route, navigation }) => {
           <View style={styles.levelInfoCard}>
             <View style={styles.levelInfoHeader}>
               <Ionicons name="information-circle" size={24} color="#3B82F6" />
-              <Text style={styles.levelInfoTitle}>Thông tin mức độ</Text>
+              <Text style={styles.levelInfoTitle}>
+                {t("survey.result.levelInfo")}
+              </Text>
             </View>
 
             {(level?.description || getLevelDescription(levelConfig)) && (
               <View style={styles.levelInfoItem}>
-                <Text style={styles.levelInfoLabel}>Mô tả:</Text>
+                <Text style={styles.levelInfoLabel}>
+                  {t("survey.result.description")}
+                </Text>
                 <Text style={styles.levelInfoText}>
                   {level?.description || getLevelDescription(levelConfig)}
                 </Text>
@@ -280,7 +320,9 @@ const SurveyResult = ({ route, navigation }) => {
             {(level?.symptomsDescription ||
               getSymptomsDescription(levelConfig)) && (
               <View style={styles.levelInfoItem}>
-                <Text style={styles.levelInfoLabel}>Triệu chứng:</Text>
+                <Text style={styles.levelInfoLabel}>
+                  {t("survey.result.symptoms")}
+                </Text>
                 <Text style={styles.levelInfoText}>
                   {level?.symptomsDescription ||
                     getSymptomsDescription(levelConfig)}
@@ -290,9 +332,12 @@ const SurveyResult = ({ route, navigation }) => {
 
             {level?.minScore !== undefined && level?.maxScore !== undefined && (
               <View style={styles.levelInfoItem}>
-                <Text style={styles.levelInfoLabel}>Khoảng điểm:</Text>
+                <Text style={styles.levelInfoLabel}>
+                  {t("survey.result.scoreRange")}
+                </Text>
                 <Text style={styles.levelInfoText}>
-                  {level.minScore} - {level.maxScore} điểm
+                  {level.minScore} - {level.maxScore}{" "}
+                  {t("survey.result.scoreUnit")}
                 </Text>
               </View>
             )}
@@ -304,22 +349,31 @@ const SurveyResult = ({ route, navigation }) => {
           <View style={styles.skippedInfoCard}>
             <View style={styles.skippedInfoHeader}>
               <Ionicons name="information-circle" size={24} color="#6B7280" />
-              <Text style={styles.skippedInfoTitle}>Thông tin khảo sát</Text>
+              <Text style={styles.skippedInfoTitle}>
+                {t("survey.result.infoTitle")}
+              </Text>
             </View>
             <View style={styles.skippedInfoItem}>
-              <Text style={styles.skippedInfoLabel}>Trạng thái:</Text>
-              <Text style={styles.skippedInfoText}>Đã bỏ qua khảo sát</Text>
-            </View>
-            <View style={styles.skippedInfoItem}>
-              <Text style={styles.skippedInfoLabel}>Lý do:</Text>
+              <Text style={styles.skippedInfoLabel}>
+                {t("survey.result.statusLabel")}
+              </Text>
               <Text style={styles.skippedInfoText}>
-                Bạn đã chọn bỏ qua khảo sát này. Không có dữ liệu kết quả để
-                hiển thị.
+                {t("survey.result.skippedStatus")}
+              </Text>
+            </View>
+            <View style={styles.skippedInfoItem}>
+              <Text style={styles.skippedInfoLabel}>
+                {t("survey.result.reasonLabel")}
+              </Text>
+              <Text style={styles.skippedInfoText}>
+                {t("survey.result.noResultData")}
               </Text>
             </View>
             {surveyRecord?.survey?.description && (
               <View style={styles.skippedInfoItem}>
-                <Text style={styles.skippedInfoLabel}>Mô tả khảo sát:</Text>
+                <Text style={styles.skippedInfoLabel}>
+                  {t("survey.result.surveyDescriptionLabel")}
+                </Text>
                 <Text style={styles.skippedInfoText}>
                   {surveyRecord.survey.description}
                 </Text>
@@ -327,7 +381,9 @@ const SurveyResult = ({ route, navigation }) => {
             )}
             {surveyRecord?.survey?.category?.description && (
               <View style={styles.skippedInfoItem}>
-                <Text style={styles.skippedInfoLabel}>Mô tả danh mục:</Text>
+                <Text style={styles.skippedInfoLabel}>
+                  {t("survey.result.categoryDescriptionLabel")}
+                </Text>
                 <Text style={styles.skippedInfoText}>
                   {surveyRecord.survey.category.description}
                 </Text>
@@ -343,7 +399,9 @@ const SurveyResult = ({ route, navigation }) => {
             <View style={styles.suggestionsCard}>
               <View style={styles.suggestionsHeader}>
                 <Ionicons name="bulb" size={24} color="#F59E0B" />
-                <Text style={styles.suggestionsTitle}>Gợi ý can thiệp</Text>
+                <Text style={styles.suggestionsTitle}>
+                  {t("survey.result.suggestions")}
+                </Text>
               </View>
               <Text style={styles.suggestionsText}>
                 {level?.interventionRequired ||
@@ -369,7 +427,9 @@ const SurveyResult = ({ route, navigation }) => {
           <View style={styles.summaryCard}>
             <View style={styles.summaryHeader}>
               <Ionicons name="list" size={24} color="#3B82F6" />
-              <Text style={styles.summaryTitle}>Tóm tắt câu trả lời</Text>
+              <Text style={styles.summaryTitle}>
+                {t("survey.result.summary")}
+              </Text>
             </View>
 
             {/* Summary Stats */}
@@ -379,7 +439,7 @@ const SurveyResult = ({ route, navigation }) => {
                   <Ionicons name="checkmark-circle" size={16} color="#10B981" />
                 </View>
                 <Text style={styles.statText}>
-                  {answeredCount} câu đã trả lời
+                  {t("survey.result.answered", { count: answeredCount })}
                 </Text>
               </View>
               {skippedCount > 0 && (
@@ -387,7 +447,9 @@ const SurveyResult = ({ route, navigation }) => {
                   <View style={styles.statIcon}>
                     <Ionicons name="close-circle" size={16} color="#EF4444" />
                   </View>
-                  <Text style={styles.statText}>{skippedCount} câu bỏ qua</Text>
+                  <Text style={styles.statText}>
+                    {t("survey.result.skippedCount", { count: skippedCount })}
+                  </Text>
                 </View>
               )}
             </View>
@@ -405,7 +467,9 @@ const SurveyResult = ({ route, navigation }) => {
                   color={GlobalStyles.colors.primary}
                 />
                 <Text style={styles.toggleButtonText}>
-                  {showAllAnswers ? "Thu gọn" : "Xem tất cả câu trả lời"}
+                  {showAllAnswers
+                    ? t("survey.result.toggleHide")
+                    : t("survey.result.toggleShow")}
                 </Text>
               </View>
               <View style={styles.toggleButtonBadge}>
@@ -431,28 +495,36 @@ const SurveyResult = ({ route, navigation }) => {
               {answerRecords?.map((record, index) => (
                 <View key={index} style={styles.answerItem}>
                   <View style={styles.questionInfo}>
-                    <Text style={styles.questionNumber}>Câu {index + 1}</Text>
+                    <Text style={styles.questionNumber}>
+                      {t("survey.result.questionNumber", { index: index + 1 })}
+                    </Text>
                     <Text style={styles.questionText}>
                       {record.answerResponse?.questionResponse?.text ||
-                        "Câu hỏi"}
+                        t("survey.result.questionPlaceholder")}
                     </Text>
                   </View>
                   <View style={styles.answerInfo}>
-                    <Text style={styles.answerLabel}>Trả lời:</Text>
+                    <Text style={styles.answerLabel}>
+                      {t("survey.result.answerLabelText")}
+                    </Text>
                     <Text style={styles.answerText}>
                       {record.answerResponse?.answerResponse?.text ||
-                        "Chưa trả lời"}
+                        t("survey.result.unanswered")}
                     </Text>
                     {record.answerResponse?.answerResponse?.score !==
                       undefined && (
                       <Text style={styles.answerScore}>
-                        (Điểm: {record.answerResponse.answerResponse.score})
+                        {t("survey.result.scoreLabel", {
+                          score: record.answerResponse.answerResponse.score,
+                        })}
                       </Text>
                     )}
                   </View>
                   {record.skipped && (
                     <View style={styles.skippedBadge}>
-                      <Text style={styles.skippedText}>Bỏ qua</Text>
+                      <Text style={styles.skippedText}>
+                        {t("survey.result.skippedBadge")}
+                      </Text>
                     </View>
                   )}
                 </View>
@@ -467,12 +539,11 @@ const SurveyResult = ({ route, navigation }) => {
             <View style={styles.noAnswersHeader}>
               <Ionicons name="alert-circle" size={24} color="#F59E0B" />
               <Text style={styles.noAnswersTitle}>
-                Không có dữ liệu câu trả lời
+                {t("survey.result.noAnswersTitle")}
               </Text>
             </View>
             <Text style={styles.noAnswersText}>
-              Khảo sát này đã hoàn thành nhưng không có dữ liệu câu trả lời để
-              hiển thị.
+              {t("survey.result.noAnswersText")}
             </Text>
           </View>
         )}
@@ -486,7 +557,7 @@ const SurveyResult = ({ route, navigation }) => {
                 onPress={() => navigation.navigate("SurveyRecord")}
               >
                 <Text style={styles.backToRecordsButtonText}>
-                  Xem tất cả kết quả
+                  {t("survey.result.viewAllRecords")}
                 </Text>
               </TouchableOpacity>
             )}

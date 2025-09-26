@@ -295,6 +295,14 @@ export const AuthProvider = ({ children }) => {
             navigate(NAVIGATION_PATHS.LOGIN, { replace: true })
           }, 3000) // Wait 3 seconds before redirecting
         }
+        // Show success notification
+        notificationService.error({
+          message: 'Login Failed',
+          description:
+            error.message ||
+            'An unexpected error occurred while processing your login. Please try again.',
+          duration: NOTIFICATION_DURATIONS.ERROR,
+        })
 
         return { success: false, error: error }
       }

@@ -8,6 +8,7 @@ import {
   Descriptions,
   Button,
   Space,
+  Switch,
 } from 'antd'
 import { useTranslation } from 'react-i18next'
 import { categoriesAPI } from '@/services/categoryApi'
@@ -95,6 +96,7 @@ const CaseModal = ({
       createBy: user.id || user.teacherId,
       currentLevelId: formData.levelId || initialLevelId,
       initialLevelId: formData.levelId || initialLevelId,
+      notify: Boolean(formData.notify),
     }
     // console.log(student)
     onSubmit(requestData, setFormData, setShowConfirmModal, form)
@@ -237,6 +239,14 @@ const CaseModal = ({
               ))}
             </Select>
           </Form.Item>
+          <Form.Item
+            name="notify"
+            label={t('caseManagement.form.notifyParents')}
+            initialValue={true}
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
         </Form>
       </Modal>
 
@@ -287,6 +297,9 @@ const CaseModal = ({
                 {getLevelName(formData.levelId)}
               </Descriptions.Item>
             )}
+            <Descriptions.Item label={t('caseManagement.form.notifyParents')}>
+              {formData.notify ? t('common.yes') : t('common.no')}
+            </Descriptions.Item>
             <Descriptions.Item label={t('caseManagement.confirmModal.student')}>
               {student?.fullName || student?.name || 'N/A'}
             </Descriptions.Item>

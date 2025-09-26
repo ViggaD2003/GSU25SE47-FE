@@ -97,9 +97,9 @@ const styles = StyleSheet.create({
   container: {
     minWidth: 100,
     borderRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 12 },
+    // shadowOpacity: 0.15,
     // shadowRadius: 24,
     // elevation: 12,
     borderWidth: 1,
