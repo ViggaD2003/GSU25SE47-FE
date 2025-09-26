@@ -281,7 +281,7 @@ export default function ProgramDetail() {
     return (
       program.status === "ACTIVE" &&
       (!program?.student || program?.student?.surveyRecord?.length === 0) &&
-      // isBeforeStartTime &&
+      isBeforeStartTime &&
       !program.student?.caseId
     );
   }, [program]);

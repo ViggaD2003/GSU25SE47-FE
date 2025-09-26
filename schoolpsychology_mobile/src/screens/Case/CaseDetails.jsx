@@ -1012,7 +1012,7 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   return (
-    <Container edges={["top", "bottom"]}>
+    <Container edges={from !== "tab" ? ["top", "bottom"] : []}>
       <Toast
         visible={toast.visible}
         message={toast.message}

@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <Container edges={["top", "bottom"]}>
+    <Container>
       {/* Header */}
       <HeaderWithTab
         title={t("tabs.profile")}

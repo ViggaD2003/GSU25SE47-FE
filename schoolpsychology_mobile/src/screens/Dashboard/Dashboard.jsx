@@ -181,7 +181,7 @@ const DashboardScreen = () => {
   // Show initialization loading state
   if (!customStartDate || !customEndDate) {
     return (
-      <Container edges={["top", "bottom"]}>
+      <Container>
         <HeaderWithTab
           title={t("tabs.dashboard")}
           subtitle={t("dashboard.mobileSubtitle")}
@@ -198,7 +198,7 @@ const DashboardScreen = () => {
   // Show no child selected state for parents
   if (user.role === "PARENTS" && !selectedChild) {
     return (
-      <Container edges={["top", "bottom"]}>
+      <Container>
         <HeaderWithTab
           title={t("tabs.dashboard")}
           subtitle={t("dashboard.mobileSubtitle")}
@@ -216,7 +216,7 @@ const DashboardScreen = () => {
   }
 
   return (
-    <Container edges={["top", "bottom"]}>
+    <Container>
       {/* Header */}
       <HeaderWithTab
         title={t("tabs.dashboard")}
