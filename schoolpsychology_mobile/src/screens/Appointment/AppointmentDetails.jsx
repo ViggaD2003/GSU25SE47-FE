@@ -745,7 +745,10 @@ const AppointmentDetails = ({ route, navigation }) => {
 
           <View style={styles.hostCard}>
             <LinearGradient
-              colors={[hostConfig.color + "20", hostConfig.color + "10"]}
+              colors={[
+                String(hostConfig.color + 20),
+                String(hostConfig.color + 10),
+              ]}
               style={styles.hostIconContainer}
             >
               <Ionicons
@@ -1322,7 +1325,7 @@ const styles = StyleSheet.create({
   hostIconContainer: {
     width: 70,
     height: 70,
-    borderRadius: "50%",
+    borderRadius: 50,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,

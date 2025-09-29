@@ -454,6 +454,7 @@ const CaseDetails = ({ route, navigation }) => {
 
   const renderEmptyState = (status) => {
     const statusConfig = getStatusConfig(status);
+    // console.log(user.isEnableSurvey);
 
     return (
       <View style={styles.emptyContainer}>
@@ -492,7 +493,7 @@ const CaseDetails = ({ route, navigation }) => {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={["#3B82F6", "#1D4ED8"]}
+                  colors={["#3B82F6", "#3B82F6"]}
                   style={styles.requestButtonGradient}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
@@ -1598,8 +1599,8 @@ const styles = StyleSheet.create({
   },
   requestButtonGradient: {
     borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   requestButtonContent: {
     flexDirection: "row",

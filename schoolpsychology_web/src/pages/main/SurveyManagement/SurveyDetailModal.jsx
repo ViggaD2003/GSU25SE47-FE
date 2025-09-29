@@ -322,6 +322,9 @@ const SurveyDetailModal = ({
   const { isDarkMode } = useTheme()
   const newQuestionsRef = useRef(null)
   const newQuestionRefs = useRef({})
+  const filteredRemovedCases = Array.from(removedCases || []).filter(
+    c => c.student.isEnableSurvey
+  )
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
@@ -832,6 +835,8 @@ const SurveyDetailModal = ({
   useEffect(() => {
     if (!survey) return
     if (cases.length > 0) {
+      console.log('cases', cases)
+
       setAddedCases(cases.filter(c => c.isAddSurvey))
       setRemovedCases(cases.filter(c => !c.isAddSurvey))
       setSelectedAddedCases([])
@@ -2229,7 +2234,9 @@ const SurveyDetailModal = ({
       if (type === 'removed') {
         setSelectedAddedCases(addedCases.map(c => c.id))
       } else {
-        setSelectedRemovedCases(removedCases.map(c => c.id))
+        console.log('filteredRemovedCases', filteredRemovedCases)
+
+        setSelectedRemovedCases(filteredRemovedCases.map(c => c.id))
       }
     } else {
       if (type === 'removed') {
@@ -2391,6 +2398,14 @@ const SurveyDetailModal = ({
                       {item.description}
                     </Typography.Paragraph>
                   )}
+                  {!item.student.isEnableSurvey && (
+                    <Tag
+                      color="red"
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {t('surveyManagement.detail.studentNotEnableSurvey')}
+                    </Tag>
+                  )}
                 </div>
               </div>
             </div>
@@ -2413,14 +2428,14 @@ const SurveyDetailModal = ({
         <Checkbox
           indeterminate={
             selectedRemovedCases.length > 0 &&
-            selectedRemovedCases.length < removedCases.length
+            selectedRemovedCases.length < filteredRemovedCases.length
           }
           checked={
-            removedCases.length > 0 &&
-            selectedRemovedCases.length === removedCases.length
+            filteredRemovedCases.length > 0 &&
+            selectedRemovedCases.length === filteredRemovedCases.length
           }
           onChange={e => handleSelectAll(e.target.checked, 'added')}
-          disabled={removedCases.length === 0}
+          disabled={filteredRemovedCases.length === 0}
         >
           {t('common.selectAll')}
         </Checkbox>
@@ -2455,6 +2470,7 @@ const SurveyDetailModal = ({
                 <Checkbox
                   checked={selectedRemovedCases.includes(item.id)}
                   onChange={() => handleCaseSelection(item.id, 'added')}
+                  disabled={!item?.student?.isEnableSurvey}
                 />
                 <div style={{ flex: 1 }}>
                   <div
@@ -2514,6 +2530,14 @@ const SurveyDetailModal = ({
                     >
                       {item.description}
                     </Typography.Paragraph>
+                  )}
+                  {!item.student.isEnableSurvey && (
+                    <Tag
+                      color="red"
+                      style={{ marginTop: '8px', marginBottom: 0 }}
+                    >
+                      {t('surveyManagement.detail.studentNotEnableSurvey')}
+                    </Tag>
                   )}
                 </div>
               </div>

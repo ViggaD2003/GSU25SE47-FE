@@ -1210,6 +1210,7 @@
       }
     },
     "detail": {
+      "studentNotEnableSurvey": "Student not enable survey",
       "cancelConfirm": "Are you sure you want to cancel your changes?",
       "saveConfirm": "Are you sure you want to save your changes?",
       "title": "Survey Details",
