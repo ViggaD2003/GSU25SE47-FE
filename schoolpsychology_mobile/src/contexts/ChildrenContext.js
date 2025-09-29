@@ -41,6 +41,18 @@ export const ChildrenProvider = ({ children }) => {
     if (user?.student?.length > 0 && user?.role === "PARENTS") {
       const children = Array.isArray(user?.student) ? user?.student : [];
 
+      // children.map((child) => {
+      //   console.log("[ChildrenProvider] child", child);
+      //   console.log("[ChildrenProvider] child case profile", child.caseProfile);
+
+      //   return {
+      //     ...child,
+      //     id: child.id || child.userId || child.studentId,
+      //     fullName: child.fullName || child.name,
+      //     role: child.roleName || "STUDENT",
+      //   };
+      // });
+
       const childrenData = children.map((child) => ({
         ...child,
         id: child.id || child.userId || child.studentId,
@@ -48,11 +60,12 @@ export const ChildrenProvider = ({ children }) => {
         role: child.roleName || "STUDENT",
         ...(child?.caseProfile?.notify
           ? {
-              caseId: child.caseId || child.caseProfile?.id,
+              caseId: child.caseId,
               caseProfile: child.caseProfile,
             }
           : { caseId: null, caseProfile: null }),
       }));
+      console.log("[ChildrenProvider] childrenData", childrenData);
 
       setChildrenList(childrenData);
       if (childrenData.length > 0) {

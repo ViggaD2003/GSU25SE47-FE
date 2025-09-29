@@ -54,7 +54,8 @@ const CaseDetails = ({ route, navigation }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [buttonScale] = useState(new Animated.Value(1));
   const { children, selectedChild } = useChildren();
-  const isNewCase = caseDetails?.caseInfo?.status === "NEW";
+  const isNewCase = caseDetails && caseDetails?.caseInfo?.status === "NEW";
+  // const isNewCase = true;
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -101,20 +102,25 @@ const CaseDetails = ({ route, navigation }) => {
   const fetchCaseDetails = async () => {
     try {
       setLoading(true);
-      console.log("[CaseDetails] caseId", caseId);
+      // console.log("[CaseDetails] caseId", caseId);
 
       const id =
         user?.role === "PARENTS" && selectedChild
           ? selectedChild.caseId
           : user?.caseId;
-      console.log("[CaseDetails] id", id);
+
+      console.log("[CaseDetails] selectedChild case id", selectedChild.caseId);
+
+      // console.log("[CaseDetails] id", id);
+
+      if (!caseId && !id) return setCaseDetails(null);
 
       const data = await getCaseByCaseId(caseId || id);
       console.log("[CaseDetails] data", data);
 
       setCaseDetails(data);
 
-      if (data && !caseId && data.caseInfo.status === "IN_PROGRESS") {
+      if (data && !caseId && data?.caseInfo?.status === "IN_PROGRESS") {
         await fetchRoomChat(id);
       }
 
@@ -407,6 +413,8 @@ const CaseDetails = ({ route, navigation }) => {
     }
   };
 
+  // console.log("[CaseDetails] caseDetails", caseDetails);
+
   const getProgressTrendConfig = (trend) => {
     switch (trend) {
       case "IMPROVED":
@@ -513,21 +521,23 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderCaseInfo = () => {
-    const { caseInfo } = caseDetails;
+    console.log("[CaseDetails] renderCaseInfo", caseDetails);
 
     // Safety check for caseInfo
-    if (!caseInfo) {
+    if (!caseDetails && !caseDetails?.caseInfo) {
       return null;
     }
 
-    const statusConfig = getStatusConfig(caseInfo.status);
-    const priorityConfig = getPriorityConfig(caseInfo.priority);
-    const progressConfig = getProgressTrendConfig(caseInfo.progressTrend);
+    const { caseInfo } = caseDetails;
+
+    const statusConfig = getStatusConfig(caseInfo?.status);
+    const priorityConfig = getPriorityConfig(caseInfo?.priority);
+    const progressConfig = getProgressTrendConfig(caseInfo?.progressTrend);
     const currentLevelConfig = getLevelConfig(
-      caseInfo.currentLevel?.levelType || caseInfo.currentLevel?.code
+      caseInfo?.currentLevel?.levelType || caseInfo?.currentLevel?.code
     );
     const initialLevelConfig = getLevelConfig(
-      caseInfo.initialLevel?.levelType || caseInfo.initialLevel?.code
+      caseInfo?.initialLevel?.levelType || caseInfo?.initialLevel?.code
     );
 
     return (
@@ -547,8 +557,8 @@ const CaseDetails = ({ route, navigation }) => {
               >
                 <View style={styles.caseHeader}>
                   <View style={styles.caseTitleContainer}>
-                    <Text style={styles.caseTitle}>{caseInfo.title}</Text>
-                    <Text style={styles.caseId}>#{caseInfo.id}</Text>
+                    <Text style={styles.caseTitle}>{caseInfo?.title}</Text>
+                    <Text style={styles.caseId}>#{caseInfo?.id}</Text>
                   </View>
                   <View style={styles.statusContainer}>
                     <View style={styles.statusBadge}>
@@ -567,7 +577,9 @@ const CaseDetails = ({ route, navigation }) => {
               <View style={{ padding: 16, width: "100%" }}>
                 {/* Description */}
                 <View style={styles.descriptionContainer}>
-                  <Text style={styles.description}>{caseInfo.description}</Text>
+                  <Text style={styles.description}>
+                    {caseInfo?.description}
+                  </Text>
                 </View>
 
                 {/* Status Indicators */}
@@ -655,7 +667,7 @@ const CaseDetails = ({ route, navigation }) => {
                           color="#FFFFFF"
                         />
                         <Text style={styles.levelText}>
-                          {t(`survey.level.${caseInfo.currentLevel?.code}`)}
+                          {t(`survey.level.${caseInfo?.currentLevel?.code}`)}
                         </Text>
                       </View>
                     </LinearGradient>
@@ -678,7 +690,7 @@ const CaseDetails = ({ route, navigation }) => {
                           color="#FFFFFF"
                         />
                         <Text style={styles.levelText}>
-                          {t(`survey.level.${caseInfo.initialLevel?.code}`)}
+                          {t(`survey.level.${caseInfo?.initialLevel?.code}`)}
                         </Text>
                       </View>
                     </LinearGradient>
@@ -693,12 +705,11 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderStatistics = () => {
-    const { groupedStatic } = caseDetails;
-
     // Safety check for groupedStatic
-    if (!groupedStatic) {
+    if (!caseDetails || !caseDetails?.groupedStatic) {
       return null;
     }
+    const { groupedStatic } = caseDetails;
 
     return (
       <Animated.View style={[styles.statisticsSection, { opacity: fadeAnim }]}>
@@ -713,8 +724,8 @@ const CaseDetails = ({ route, navigation }) => {
             <StatisticsCard
               title={t("case.statistics.surveys")}
               value={
-                (groupedStatic.survey?.activeSurveys || 0) +
-                (groupedStatic.survey?.completedSurveys || 0)
+                (groupedStatic?.survey?.activeSurveys || 0) +
+                (groupedStatic?.survey?.completedSurveys || 0)
               }
               subtitle={`${groupedStatic.survey?.completedSurveys || 0} ${t(
                 "case.statistics.completed"
@@ -763,12 +774,11 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderCharts = () => {
-    const { groupedStatic } = caseDetails;
-
     // Safety check for groupedStatic
-    if (!groupedStatic) {
+    if (!caseDetails || !caseDetails?.groupedStatic) {
       return null;
     }
+    const { groupedStatic } = caseDetails;
 
     // Prepare chart data with proper formatting for 0.0-4.0 scale
     const formatChartData = (dataSet, title) => {
@@ -962,7 +972,7 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderChatButton = () => {
-    if (caseId || caseDetails?.caseInfo.status !== "IN_PROGRESS") {
+    if (caseId || caseDetails?.caseInfo?.status !== "IN_PROGRESS") {
       return null;
     }
 
@@ -1059,7 +1069,7 @@ const CaseDetails = ({ route, navigation }) => {
               renderEmptyState("CLOSED")
             ) : user.role === "STUDENT" && isNewCase ? (
               renderEmptyState("NEW")
-            ) : caseDetails.caseInfo.status === "CONFIRMED" ? (
+            ) : caseDetails?.caseInfo?.status === "CONFIRMED" ? (
               renderEmptyState("CONFIRMED")
             ) : (
               <View style={styles.content}>

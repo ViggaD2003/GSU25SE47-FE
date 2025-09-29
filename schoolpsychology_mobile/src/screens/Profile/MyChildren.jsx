@@ -59,12 +59,13 @@ export default function MyChildren({ route }) {
   };
 
   const handleUpdateIsEnableSurvey = async (childId) => {
-    const child = children.find(
-      (child) => child.id || child.userId === childId
-    );
+    console.log("childId", childId);
+
+    if (!childId) return;
+    const child = children.find((child) => child.id === childId);
     if (!child) return;
     try {
-      await updateIsAbleSurvey(child.id || child.userId, !child.isEnableSurvey);
+      await updateIsAbleSurvey(child.id, !child.isEnableSurvey);
       updateChild(childId, {
         ...child,
         isEnableSurvey: !child.isEnableSurvey,
@@ -89,19 +90,14 @@ export default function MyChildren({ route }) {
       <HeaderWithoutTab
         title={t("myChildren.title")}
         onBackPress={handleBackPress}
-        rightComponent={
-          <TouchableOpacity onPress={() => navigation.navigate("AddChild")}>
-            <Icon name="plus" size={24} color="#10B981" />
-          </TouchableOpacity>
-        }
+        // rightComponent={
+        //   <TouchableOpacity onPress={() => navigation.navigate("AddChild")}>
+        //     <Icon name="plus" size={24} color="#10B981" />
+        //   </TouchableOpacity>
+        // }
       />
 
-      {refreshing ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
-          <Text style={styles.loadingText}>{t("common.loading")}</Text>
-        </View>
-      ) : children.length === 0 ? (
+      {children.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Icon name="account-child-circle" size={80} color="#9CA3AF" />
           <Text style={styles.emptyTitle}>{t("myChildren.emptyTitle")}</Text>
@@ -173,7 +169,9 @@ function ChildCard({
     return null;
   }
 
-  console.log("child", child.classDto);
+  // console.log("child", child);
+
+  console.log("child", child.id);
 
   return (
     <View style={[styles.card, { marginTop: index === 0 ? 0 : 16 }]}>
@@ -250,7 +248,7 @@ function ChildCard({
           ]}
         >
           <TouchableOpacity
-            onPress={() => handleUpdateIsEnableSurvey(child.id || child.userId)}
+            onPress={() => handleUpdateIsEnableSurvey(child.id)}
           >
             <Text
               style={[

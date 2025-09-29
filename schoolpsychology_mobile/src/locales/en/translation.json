@@ -1312,6 +1312,7 @@
     "offline": "Offline"
   },
   "myChildren": {
+    "status": "Survey status",
     "title": "My Children",
     "emptyTitle": "No children yet",
     "emptySubtitle": "Add a child to get started",

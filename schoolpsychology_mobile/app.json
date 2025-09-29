@@ -46,6 +46,7 @@
     "updates": {
       "enabled": false,
       "checkAutomatically": "ON_ERROR_RECOVERY"
-    }
+    },
+    "platforms": ["ios", "android", "web"]
   }
 }
