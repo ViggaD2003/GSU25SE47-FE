@@ -15,6 +15,7 @@ import Toast from "../components/common/Toast"; // ✅ import default Toast
 import { TextEncoder, TextDecoder } from "text-encoding";
 import dayjs from "dayjs";
 import { getChatMessages, getChatRooms } from "@/services/api/chatApi";
+import { useChildren } from "./ChildrenContext";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
@@ -23,6 +24,7 @@ export const useRealTime = () => useContext(WebSocketContext);
 
 const RealTimeProvider = ({ children }) => {
   const { user, isAuthenticated } = useAuth();
+  const { selectedChild } = useChildren();
 
   const token = user?.accessToken || user?.token;
 
@@ -71,11 +73,18 @@ const RealTimeProvider = ({ children }) => {
   // Fetch chat rooms
   const fetchRoomChat = async () => {
     try {
-      if (!user?.caseId || !isConnectionReady()) {
+      if (
+        (user?.role === "STUDENT" && !user?.caseId) ||
+        (user?.role === "PARENTS" && !selectedChild?.caseId)
+      ) {
         console.warn("[CaseDetails_fetchRoomChat] Missing requirements");
         return;
       }
-      const res = await getChatRooms(user?.caseId);
+      const caseId =
+        user?.role === "PARENTS" && selectedChild
+          ? selectedChild?.caseId
+          : user?.caseId;
+      const res = await getChatRooms(caseId);
       console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
 
       if (res) {

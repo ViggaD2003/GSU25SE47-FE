@@ -281,7 +281,10 @@ export default function ProgramDetail() {
     if (!program) {
       return false;
     }
-    const isBeforeStartTime = dayjs().isBefore(dayjs(program.startTime));
+    const start = program?.startTime ? dayjs(program.startTime) : null;
+    const isBeforeStartTime =
+      start && start.isValid() ? dayjs().isBefore(start) : false;
+
     console.log("program", program);
     return (
       program.status === "ACTIVE" &&

@@ -137,11 +137,11 @@ export default function App() {
         <PaperProvider>
           <AuthProvider>
             <PermissionProvider>
-              <RealTimeProvider>
-                <ChildrenProvider>
+              <ChildrenProvider>
+                <RealTimeProvider>
                   <RootNavigation />
-                </ChildrenProvider>
-              </RealTimeProvider>
+                </RealTimeProvider>
+              </ChildrenProvider>
             </PermissionProvider>
           </AuthProvider>
         </PaperProvider>
