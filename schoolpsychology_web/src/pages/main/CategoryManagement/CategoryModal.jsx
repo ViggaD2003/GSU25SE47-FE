@@ -36,14 +36,14 @@ const { Option } = Select
 const LEVEL_TYPE_OPTIONS = [
   { value: 'LOW', label: 'categoryManagement.form.levelTypes.low' },
   { value: 'MODERATE', label: 'categoryManagement.form.levelTypes.medium' },
-  { value: 'SEVERE', label: 'categoryManagement.form.levelTypes.high' },
+  { value: 'HIGH', label: 'categoryManagement.form.levelTypes.high' },
   { value: 'CRITICAL', label: 'categoryManagement.form.levelTypes.critical' },
 ]
 
 const LEVEL_TYPE_CONFIG = {
   LOW: { color: 'green' },
   MODERATE: { color: 'yellow' },
-  SEVERE: { color: 'orange' },
+  HIGH: { color: 'orange' },
   CRITICAL: { color: 'red' },
 }
 
@@ -192,9 +192,9 @@ const LevelModal = React.memo(
         } else {
           levelForm.resetFields()
           levelForm.setFieldsValue({
-            levelType: 'MODERATE',
+            levelType: 'LOW',
             minScore: 0,
-            maxScore: 100,
+            maxScore: 3,
           })
         }
       }
@@ -251,9 +251,9 @@ const LevelModal = React.memo(
           form={levelForm}
           layout="vertical"
           initialValues={{
-            levelType: 'MODERATE',
+            levelType: 'LOW',
             minScore: 0,
-            maxScore: 100,
+            maxScore: 3,
           }}
         >
           <Row gutter={16}>
@@ -556,9 +556,6 @@ const CategoryModal = ({
       })),
     [t]
   )
-
-  // Watch form values for reactive updates - CẢI THIỆN CÁCH WATCH
-  const isLimited = Form.useWatch('isLimited', form)
 
   // Optimized state updates
   const updateState = useCallback(updates => {
@@ -961,7 +958,7 @@ const CategoryModal = ({
       },
       {
         label: t('categoryManagement.form.quickLevels.medium'),
-        code: 'MEDIUM',
+        code: 'MODERATE',
         description: t('categoryManagement.form.quickLevels.mediumDescription'),
         symptomsDescription: t(
           'categoryManagement.form.quickLevels.mediumSymptoms'
@@ -975,7 +972,7 @@ const CategoryModal = ({
       },
       {
         label: t('categoryManagement.form.quickLevels.high'),
-        code: 'SEVERE',
+        code: 'HIGH',
         description: t('categoryManagement.form.quickLevels.highDescription'),
         symptomsDescription: t(
           'categoryManagement.form.quickLevels.highSymptoms'
@@ -985,7 +982,7 @@ const CategoryModal = ({
         ),
         minScore: defaultMinScore + stepSize * 2 + 1,
         maxScore: defaultMinScore + stepSize * 3,
-        levelType: 'SEVERE',
+        levelType: 'HIGH',
       },
       {
         label: t('categoryManagement.form.quickLevels.critical'),
@@ -1312,45 +1309,44 @@ const CategoryModal = ({
                       />
                     </Form.Item>
                   </Col>
-                  {isLimited && (
-                    <Col span={12}>
-                      <Form.Item
-                        label={t('categoryManagement.form.questionCount')}
-                        name="questionLength"
-                        rules={[
-                          {
-                            required: isLimited,
-                            message: t(
-                              'categoryManagement.form.questionCountRequired'
-                            ),
-                          },
-                          {
-                            type: 'number',
-                            min: 0,
-                            message: t(
-                              'categoryManagement.form.questionCountMin'
-                            ),
-                          },
-                          {
-                            type: 'number',
-                            max: 100,
-                            message: t(
-                              'categoryManagement.form.questionCountMax'
-                            ),
-                          },
-                        ]}
-                      >
-                        <InputNumber
-                          min={0}
-                          max={100}
-                          placeholder={t(
-                            'categoryManagement.form.questionCountPlaceholder'
-                          )}
-                          className="w-full"
-                        />
-                      </Form.Item>
-                    </Col>
-                  )}
+
+                  <Col span={12}>
+                    <Form.Item
+                      label={t('categoryManagement.form.questionCount')}
+                      name="questionLength"
+                      rules={[
+                        {
+                          required: true,
+                          message: t(
+                            'categoryManagement.form.questionCountRequired'
+                          ),
+                        },
+                        {
+                          type: 'number',
+                          min: 5,
+                          message: t(
+                            'categoryManagement.form.questionCountMin'
+                          ),
+                        },
+                        {
+                          type: 'number',
+                          max: 50,
+                          message: t(
+                            'categoryManagement.form.questionCountMax'
+                          ),
+                        },
+                      ]}
+                    >
+                      <InputNumber
+                        min={0}
+                        max={100}
+                        placeholder={t(
+                          'categoryManagement.form.questionCountPlaceholder'
+                        )}
+                        className="w-full"
+                      />
+                    </Form.Item>
+                  </Col>
                 </Row>
               </Card>
 

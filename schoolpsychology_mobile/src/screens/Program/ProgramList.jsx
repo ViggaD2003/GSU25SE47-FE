@@ -11,7 +11,10 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { Container } from "../../components";
 import HeaderWithoutTab from "@/components/ui/header/HeaderWithoutTab";
 import ProgramCard from "../../components/common/ProgramCard";
-import { fetchAllRecommendedPrograms } from "../../services/api/ProgramService";
+import {
+  fetchActivePrograms,
+  fetchAllRecommendedPrograms,
+} from "../../services/api/ProgramService";
 import { Loading } from "../../components/common";
 import { useAuth, useChildren } from "@/contexts";
 import { useTranslation } from "react-i18next";
@@ -33,26 +36,8 @@ export default function ProgramList() {
   const fetchPrograms = async () => {
     try {
       setLoading(true);
-      if (user?.role === "PARENTS") {
-        if (selectedChild && !selectedChild?.id) {
-          setPrograms([]);
-          return;
-        }
-      }
-      if (!user?.id) {
-        setPrograms([]);
-        return;
-      }
 
-      const userId =
-        user?.role === "PARENTS"
-          ? selectedChild?.id
-          : user?.id || user?.childId;
-
-      console.log("userId", userId);
-
-      const data = await fetchAllRecommendedPrograms(userId);
-      console.log(data);
+      const data = await fetchActivePrograms();
 
       setPrograms(data);
     } catch (error) {
@@ -96,7 +81,7 @@ export default function ProgramList() {
     return (
       <Container edges={["top", "bottom"]}>
         <HeaderWithoutTab
-          title={t("program.list.title")}
+          title={t("home.supportPrograms.title")}
           onBackPress={handleBackPress}
         />
         <Loading />
@@ -107,7 +92,7 @@ export default function ProgramList() {
   return (
     <Container edges={["top", "bottom"]}>
       <HeaderWithoutTab
-        title={t("program.list.title")}
+        title={t("home.supportPrograms.title")}
         onBackPress={handleBackPress}
       />
 

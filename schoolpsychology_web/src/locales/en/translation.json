@@ -2117,7 +2117,7 @@
         "low": "Low",
         "medium": "Moderate",
         "moderate": "Moderate",
-        "high": "Severe",
+        "high": "High",
         "critical": "Critical"
       },
       "noLevels": "No levels yet",

@@ -166,55 +166,59 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
     [form]
   )
 
-  const handleOk = () => {
-    setCreateLoading(true)
-    form
-      .validateFields()
-      .then(values => {
-        const targetGrade =
-          values.targetScope === TARGET_SCOPE.GRADE
-            ? values.targetGrade
-            : values.targetScope === TARGET_SCOPE.ALL
-              ? Object.values(GRADE_LEVEL).map(grade => grade.toString())
-              : []
-        const requestData = {
-          title: values.title,
-          description: values.description || '',
-          surveyType: values.surveyType,
-          isRequired: values.isRequired || false,
-          isRecurring: values.isRecurring || false,
-          recurringCycle: values.isRecurring
-            ? values.recurringCycle
-            : RECURRING_CYCLE.NONE,
-          startDate: dayjs(values.startDate)
-            .startOf('day')
-            .format('YYYY-MM-DD'),
-          endDate: dayjs(values.endDate).startOf('day').format('YYYY-MM-DD'),
-          categoryId: values.categoryId,
-          targetScope: values.targetScope,
-          targetGrade: targetGrade,
-          questions:
-            values.questions?.map(question => ({
-              text: question.text,
-              description: question.description || '',
-              questionType: question.questionType,
-              isRequired: question.isRequired || false,
-              answers:
-                question.answers?.map(answer => ({
-                  score: answer.score,
-                  text: answer.text,
-                })) || [],
-            })) || [],
-        }
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields()
+      setCreateLoading(true)
 
-        console.log('requestData', requestData)
-        onOk(requestData, form.resetFields, handleCategoryChange)
-      })
-      .catch(info => {
-        console.log('Validate Failed:', info)
-        messageApi.error(info.errorFields[0].errors[0])
-      })
-      .finally(() => setCreateLoading(false))
+      const targetGrade =
+        values.targetScope === TARGET_SCOPE.GRADE
+          ? values.targetGrade
+          : values.targetScope === TARGET_SCOPE.ALL
+            ? Object.values(GRADE_LEVEL).map(grade => grade.toString())
+            : []
+
+      const requestData = {
+        title: values.title,
+        description: values.description || '',
+        surveyType: values.surveyType,
+        isRequired: values.isRequired || false,
+        isRecurring: values.isRecurring || false,
+        recurringCycle: values.isRecurring
+          ? values.recurringCycle
+          : RECURRING_CYCLE.NONE,
+        startDate: dayjs(values.startDate).startOf('day').format('YYYY-MM-DD'),
+        endDate: dayjs(values.endDate).startOf('day').format('YYYY-MM-DD'),
+        categoryId: values.categoryId,
+        targetScope: values.targetScope,
+        targetGrade: targetGrade,
+        questions:
+          values.questions?.map(question => ({
+            text: question.text,
+            description: question.description || '',
+            questionType: question.questionType,
+            isRequired: question.isRequired || false,
+            answers:
+              question.answers?.map(answer => ({
+                score: answer.score,
+                text: answer.text,
+              })) || [],
+          })) || [],
+      }
+
+      // console.log('requestData', requestData)
+      if (onOk) {
+        await onOk(requestData, form.resetFields, handleCategoryChange)
+      }
+    } catch (info) {
+      console.log('Validate Failed:', info)
+      const errMsg = info?.errorFields?.[0]?.errors?.[0]
+      if (errMsg) {
+        messageApi.error(errMsg)
+      }
+    } finally {
+      setCreateLoading(false)
+    }
   }
 
   const handleCancel = async () => {
@@ -239,7 +243,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
         width={1200}
         okText={t('common.create')}
         okButtonProps={{
-          loading: loading || createLoading, // có thể dùng loading nếu cần
+          loading: createLoading,
         }}
         cancelText={t('common.cancel')}
         cancelButtonProps={{
@@ -405,7 +409,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
                           <Select
                             mode="multiple"
                             allowClear
-                            maxTagCount={2}
+                            maxCount={2}
                             placeholder={t(
                               'surveyManagement.form.targetGradePlaceholder'
                             )}

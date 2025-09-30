@@ -9,6 +9,8 @@ import { GlobalStyles } from "../../constants";
 import { Text } from "react-native-paper";
 import { NotificationBadge } from "../../components/common";
 import { useTranslation } from "react-i18next";
+import { useNotifications } from "@/utils";
+import { useFocusEffect } from "@react-navigation/native";
 
 // const isLargeDevice = width >= 414;
 
@@ -18,6 +20,14 @@ export default function HomeScreen({ navigation }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState("success");
+  const { unreadCount, refreshNotifications } = useNotifications();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshNotifications();
+    }, [])
+  );
+
   // console.log("user", user);
 
   // Show loading state while auth is loading
@@ -46,6 +56,7 @@ export default function HomeScreen({ navigation }) {
         {/* Right side - Actions */}
         <View style={styles.actionsSection}>
           <NotificationBadge
+            unreadCount={unreadCount}
             onPress={() => navigation.navigate("Notification")}
             size={24}
             iconColor="#A7A7A7FF"

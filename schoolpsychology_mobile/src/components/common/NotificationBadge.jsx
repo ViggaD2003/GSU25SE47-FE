@@ -11,9 +11,8 @@ const NotificationBadge = ({
   showCount = true,
   style,
   onPress,
+  unreadCount = 0,
 }) => {
-  const { unreadCount } = useNotifications();
-
   // Add logging to track notification count changes
   //   React.useEffect(() => {
   //     console.log("NotificationBadge: Notification count updated:", unreadCount);

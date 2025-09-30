@@ -539,14 +539,14 @@ const QuestionTabs = ({
               color: isDarkMode ? '#a0a0a0' : '#00000073',
             }}
           >
-            {t('questionTabs.form.scoreRangeDesc')}:{' '}
+            {t('questionTabs.form.scoreRangeDesc')}{' '}
             {getCategoryScoringRange().minScore} -{' '}
             {getCategoryScoringRange().maxScore}
             <br />
             {t(
               'questionTabs.form.answersWillBeAutomaticallyGeneratedBasedOnThisRange'
-            )}
-            . {t('questionTabs.form.manuallyEditTheTextAndScoresAsNeeded')}.
+            )}{' '}
+            {t('questionTabs.form.manuallyEditTheTextAndScoresAsNeeded')}
           </Text>
 
           {/* Question Limitations Information */}

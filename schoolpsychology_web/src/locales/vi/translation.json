@@ -1491,7 +1491,7 @@
   },
   "classManagement": {
     "title": "Quản lý lớp học",
-    "description": "Quản lý lớp học và thông tin của chúng",
+    "description": "Quản lý lớp học và thông tin của họ",
     "refresh": "Làm mới",
     "addClass": "Thêm lớp học",
     "createMultipleClasses": "Tạo nhiều lớp học",
@@ -1675,7 +1675,7 @@
     "selectedCase": "Case đã chọn",
     "noCase": "Không có case nào",
     "title": "Quản lý cuộc hẹn",
-    "description": "Quản lý các cuộc hẹn và thông tin của chúng",
+    "description": "Quản lý các cuộc hẹn và thông tin của họ",
     "refresh": "Làm mới",
     "searchStudent": "Tìm kiếm học sinh...",
     "createNew": "Tạo cuộc hẹn mới",

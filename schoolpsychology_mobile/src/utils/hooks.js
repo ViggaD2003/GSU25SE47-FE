@@ -389,8 +389,7 @@ export const useNotifications = () => {
   const markAsRead = useCallback(
     async (notificationId) => {
       try {
-        const res = await NotificationAPI.readNotification(notificationId);
-        console.log(res);
+        await NotificationAPI.readNotification(notificationId);
 
         setNotifications((prev) =>
           prev.map((n) =>
