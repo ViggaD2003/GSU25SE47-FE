@@ -658,13 +658,13 @@ const BookingScreen = ({ navigation }) => {
 
             const response = await createAppointment(bookingData);
 
-            sendMessage({
-              title: "Booking appointment successfully",
-              content: "You have a new appointment from " + user?.email,
-              notificationType: "APPOINTMENT_CREATE",
-              username: bookingState.selectedCounselor?.email,
-              relatedEntityId: response.id,
-            });
+            // sendMessage({
+            //   title: "Booking appointment successfully",
+            //   content: "You have a new appointment from " + user?.email,
+            //   notificationType: "APPOINTMENT_CREATE",
+            //   username: bookingState.selectedCounselor?.email,
+            //   relatedEntityId: response.id,
+            // });
 
             // Handle calendar sync
             if (

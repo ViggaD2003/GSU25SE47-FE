@@ -8,6 +8,7 @@ import { AUTH_ERRORS } from "../constants";
 import { useRealTime } from "../contexts/RealTimeContext";
 import { useAuth } from "../contexts/AuthContext";
 import NotificationAPI from "../services/api/NotificationService";
+import dayjs from "dayjs";
 
 /**
  * Custom hook for handling authentication errors
@@ -367,7 +368,12 @@ export const useNotifications = () => {
       const data = await NotificationAPI.getAllNotifications(user.id);
 
       if (data && Array.isArray(data)) {
-        setNotifications(data);
+        const sortedData = data.sort(
+          (a, b) => dayjs(b.createdAt) - dayjs(a.createdAt)
+        );
+        console.log(sortedData);
+        setNotifications(sortedData);
+
         setTotalCount(data.length);
         setUnreadCount(data.filter((n) => !n.isRead).length);
       }

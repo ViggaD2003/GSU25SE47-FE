@@ -25,10 +25,8 @@ const NotificationScreen = ({ navigation }) => {
     isLoading,
     error,
     markAsRead,
-    markAllAsRead,
     refreshNotifications,
     unreadCount,
-    totalCount,
   } = useNotifications();
 
   // Handle pull to refresh
@@ -72,19 +70,13 @@ const NotificationScreen = ({ navigation }) => {
   // Handle notification tap
   const handleNotificationPress = useCallback(
     async (notification) => {
-      console.log("📱 NotificationScreen: Notification pressed:", {
-        id: notification.id,
-        type: notification.type,
-        title: notification.title,
-      });
+      console.log("📱 NotificationScreen: Notification pressed:", notification);
 
       try {
         // Mark as read if not already read
         if (!notification.isRead) {
           await handleMarkAsRead(notification.id);
         }
-
-        console.log(notification);
 
         let source = notification.notificationType.split("_")[0];
         // // Navigate based on type

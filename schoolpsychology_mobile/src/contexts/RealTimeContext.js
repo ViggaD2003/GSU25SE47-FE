@@ -13,6 +13,7 @@ import Toast from "../components/common/Toast"; // ✅ import default Toast
 
 // Polyfill cho RN
 import { TextEncoder, TextDecoder } from "text-encoding";
+import dayjs from "dayjs";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
@@ -149,7 +150,6 @@ const RealTimeProvider = ({ children }) => {
           }
 
           const content =
-            payload?.title ||
             payload?.message ||
             payload?.body ||
             payload?.content ||
@@ -169,18 +169,23 @@ const RealTimeProvider = ({ children }) => {
             : "info";
 
           if (payload) {
-            setNotifications((prev) => [
-              {
+            setNotifications((prev) => {
+              const newNotification = {
                 id: payload.id || Date.now(),
                 title: payload.title || "Thông báo",
-                body:
-                  payload.body || payload.message || payload.content || content,
+                body: payload.message || payload.content || content,
+                content: payload.content || content,
                 type: mappedType,
-                createdAt: payload.createdAt || new Date().toISOString(),
+                createdAt: payload.createdAt,
                 isRead: false,
-              },
-              ...prev,
-            ]);
+              };
+
+              // Thêm thông báo mới và sắp xếp theo thời gian tạo mới nhất lên đầu
+              const updatedNotifications = [newNotification, ...prev];
+              return updatedNotifications.sort(
+                (a, b) => dayjs(b.createdAt) - dayjs(a.createdAt)
+              );
+            });
           }
           // Hiển thị toast
           setToastMessage(content);

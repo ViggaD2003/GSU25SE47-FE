@@ -106,10 +106,10 @@ const CaseDetails = ({ route, navigation }) => {
 
       const id =
         user?.role === "PARENTS" && selectedChild
-          ? selectedChild.caseId
+          ? selectedChild?.caseId
           : user?.caseId;
 
-      console.log("[CaseDetails] selectedChild case id", selectedChild.caseId);
+      console.log("[CaseDetails] id", id);
 
       // console.log("[CaseDetails] id", id);
 
@@ -1070,7 +1070,7 @@ const CaseDetails = ({ route, navigation }) => {
               renderEmptyState("CLOSED")
             ) : user.role === "STUDENT" && isNewCase ? (
               renderEmptyState("NEW")
-            ) : caseDetails?.caseInfo?.status === "CONFIRMED" ? (
+            ) : user?.caseProfile?.status === "CONFIRMED" ? (
               renderEmptyState("CONFIRMED")
             ) : (
               <View style={styles.content}>
