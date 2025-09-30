@@ -56,7 +56,8 @@ const CaseDetails = ({ route, navigation }) => {
     message: "",
     type: "info",
   });
-  const hasActiveCase = user?.caseId || selectedChild?.caseId;
+  const hasActiveCase =
+    user.role === "PARENTS" ? selectedChild?.caseId : user?.caseId;
 
   // Chat states
   const [isChatVisible, setIsChatVisible] = useState(false);
@@ -74,8 +75,6 @@ const CaseDetails = ({ route, navigation }) => {
         user?.role === "PARENTS" && selectedChild
           ? selectedChild?.caseId
           : user?.caseId;
-
-      console.log("[CaseDetails] id", id);
 
       // console.log("[CaseDetails] id", id);
 
