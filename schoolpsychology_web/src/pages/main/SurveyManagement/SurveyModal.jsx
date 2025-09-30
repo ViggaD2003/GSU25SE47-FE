@@ -636,7 +636,7 @@ const SurveyModal = ({ visible, onCancel, onOk, messageApi, user }) => {
 
                                   switch (recurringCycle) {
                                     case RECURRING_CYCLE.WEEKLY:
-                                      maxDays = 7
+                                      maxDays = 6
                                       errorKey = 'endDateWeekly'
                                       break
                                     case RECURRING_CYCLE.MONTHLY:

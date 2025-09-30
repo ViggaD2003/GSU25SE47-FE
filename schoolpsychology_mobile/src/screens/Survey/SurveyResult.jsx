@@ -81,12 +81,19 @@ const SurveyResult = ({ route, navigation }) => {
           notificationType: "SURVEY_WARNING",
           entityId: result.id,
         };
-        if (["MODERATE", "HIGH"].includes(result.level?.code)) {
+
+        if (["MODERATE", "MEDIUM"].includes(result.level?.code)) {
           body.content =
-            "Your student has a moderate or high risk of mental health issues. Please follow up with the student.";
-        } else if (["SEVERE", "CRITICAL"].includes(result.level?.code)) {
+            "Your student has a moderate or high risk of " +
+            result.survey.category?.name +
+            " issues. Please follow up with the student.";
+        } else if (
+          ["SEVERE", "CRITICAL", "HIGH"].includes(result.level?.code)
+        ) {
           body.content =
-            "Your student has a severe or critical risk of mental health issues. Please follow up with the student.";
+            "Your student has a severe or critical risk of " +
+            result.survey.category?.name +
+            " issues. Please follow up with the student.";
           body.notificationType = "SURVEY_DANGER";
         }
         sendMessage(body);
