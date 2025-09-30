@@ -12,7 +12,8 @@
       "resizeMode": "contain"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mindfulcare.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -22,7 +23,8 @@
       "versionCode": 1,
       "permissions": [
         "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR"
+        "android.permission.WRITE_CALENDAR",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {

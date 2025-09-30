@@ -14,6 +14,7 @@ import Toast from "../components/common/Toast"; // ✅ import default Toast
 // Polyfill cho RN
 import { TextEncoder, TextDecoder } from "text-encoding";
 import dayjs from "dayjs";
+import { getChatMessages, getChatRooms } from "@/services/api/chatApi";
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
@@ -58,6 +59,36 @@ const RealTimeProvider = ({ children }) => {
   useEffect(() => {
     isConnectingRef.current = isConnecting;
   }, [isConnecting]);
+
+  const fetchChatMessages = async (roomId) => {
+    if (roomId) {
+      const data = await getChatMessages(roomId);
+      // console.log("[CaseDetails] Fetch chat messages", data);
+      setChatMessages(data);
+    }
+  };
+
+  // Fetch chat rooms
+  const fetchRoomChat = async () => {
+    try {
+      if (!user?.caseId || !isConnectionReady()) {
+        console.warn("[CaseDetails_fetchRoomChat] Missing requirements");
+        return;
+      }
+      const res = await getChatRooms(user?.caseId);
+      console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
+
+      if (res) {
+        sendMessageToCounselor("ADD_USER");
+
+        setRoomChatId(res.id);
+
+        await fetchChatMessages(res.id);
+      }
+    } catch (err) {
+      console.warn("Error fetching chat rooms:", err);
+    }
+  };
 
   const isConnectionReady = useCallback(() => {
     return stompClientRef?.current && isConnected;
@@ -186,11 +217,37 @@ const RealTimeProvider = ({ children }) => {
                 (a, b) => dayjs(b.createdAt) - dayjs(a.createdAt)
               );
             });
+
+            // Hiển thị thông báo hệ thống (OS notification)
+            (async () => {
+              try {
+                const { ensureAndroidChannelAsync } = await import(
+                  "@/services/pushNotifications"
+                );
+                const Notifications = await import("expo-notifications");
+                // Đảm bảo kênh Android tồn tại
+                await ensureAndroidChannelAsync();
+                // Lên lịch hiển thị local notification ngay lập tức
+                await Notifications.scheduleNotificationAsync({
+                  content: {
+                    title: payload.title || "Thông báo",
+                    body: content,
+                    data: { ...payload },
+                  },
+                  trigger: null,
+                });
+              } catch (e) {
+                console.warn(
+                  "[WebSocket] 🔔 Failed to present system notification",
+                  e
+                );
+              }
+            })();
           }
           // Hiển thị toast
           setToastMessage(content);
           setToastType(mappedType);
-          setToastVisible(true);
+          setToastVisible(false);
         } catch (err) {
           console.warn("[WebSocket] 🔔 Notification parse error", err);
         }
@@ -286,6 +343,34 @@ const RealTimeProvider = ({ children }) => {
           ...prev,
           { ...message, timestamp: new Date() },
         ]);
+        console.log("[WebSocket] 🔔 Chat message", message);
+
+        // Gửi thông báo hệ thống khi có tin nhắn mới (không phải của mình)
+        (async () => {
+          try {
+            const { ensureAndroidChannelAsync } = await import(
+              "@/services/pushNotifications"
+            );
+            const Notifications = await import("expo-notifications");
+            await ensureAndroidChannelAsync();
+            const title = message?.sender || "Tin nhắn mới";
+            const body =
+              message?.message || message?.text || "Bạn có tin nhắn mới";
+            await Notifications.scheduleNotificationAsync({
+              content: {
+                title,
+                body,
+                data: { type: "chat", roomChatId, ...message },
+              },
+              trigger: null,
+            });
+          } catch (e) {
+            console.warn(
+              "[WebSocket] 🔔 Failed to present chat system notification",
+              e
+            );
+          }
+        })();
       }
     );
   }, [stompClientRef.current, user?.email, roomChatId, subscribeToTopic]);
@@ -398,7 +483,7 @@ const RealTimeProvider = ({ children }) => {
   // Send message to counselor
   useEffect(() => {
     if (isConnectionReady()) {
-      sendMessageToCounselor("ADD_USER");
+      fetchRoomChat();
     }
   }, [isConnectionReady, sendMessageToCounselor]);
 

@@ -899,47 +899,64 @@ const BookingScreen = ({ navigation }) => {
           {t("appointment.booking.selectCounselor")}
         </Text>
         <View style={styles.radioGroup}>
-          {hostTypeOptions.map((option) => (
-            <TouchableOpacity
-              key={option.id}
-              style={[
-                styles.radioOption,
-                bookingState.hostType?.id === option.id &&
-                  styles.radioOptionSelected,
-                option.disabled && styles.radioOptionDisabled,
-              ]}
-              onPress={() => !option.disabled && handleHostTypeSelect(option)}
-              disabled={option.disabled}
-            >
-              <View
+          {hostTypeOptions.map((option) => {
+            if (
+              user?.role === "PARENTS" &&
+              !selectedChild?.caseId &&
+              option.id === "counselor"
+            ) {
+              return null;
+            }
+            return (
+              <TouchableOpacity
+                key={option.id}
                 style={[
-                  styles.radioButton,
+                  styles.radioOption,
                   bookingState.hostType?.id === option.id &&
-                    styles.radioButtonSelected,
-                  option.disabled && styles.radioButtonDisabled,
+                    styles.radioOptionSelected,
+                  option.disabled && styles.radioOptionDisabled,
                 ]}
+                onPress={() => !option.disabled && handleHostTypeSelect(option)}
+                disabled={option.disabled}
               >
-                {bookingState.hostType?.id === option.id &&
-                  !option.disabled && <View style={styles.radioButtonInner} />}
-              </View>
-              <Text
-                style={[
-                  styles.radioLabel,
-                  bookingState.hostType?.id === option.id &&
-                    styles.radioLabelSelected,
-                  option.disabled && styles.radioLabelDisabled,
-                ]}
-              >
-                {option.label}
-                {option.disabled &&
-                  ` (${t("appointment.booking.unavailable")})`}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <View
+                  style={[
+                    styles.radioButton,
+                    bookingState.hostType?.id === option.id &&
+                      styles.radioButtonSelected,
+                    option.disabled && styles.radioButtonDisabled,
+                  ]}
+                >
+                  {bookingState.hostType?.id === option.id &&
+                    !option.disabled && (
+                      <View style={styles.radioButtonInner} />
+                    )}
+                </View>
+                <Text
+                  style={[
+                    styles.radioLabel,
+                    bookingState.hostType?.id === option.id &&
+                      styles.radioLabelSelected,
+                    option.disabled && styles.radioLabelDisabled,
+                  ]}
+                >
+                  {option.label}
+                  {option.disabled &&
+                    ` (${t("appointment.booking.unavailable")})`}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     ),
-    [hostTypeOptions, bookingState.hostType, handleHostTypeSelect, t]
+    [
+      hostTypeOptions,
+      bookingState.hostType,
+      handleHostTypeSelect,
+      t,
+      selectedChild?.caseId,
+    ]
   );
 
   const renderCounselorSelection = useCallback(() => {
@@ -1341,6 +1358,7 @@ const BookingScreen = ({ navigation }) => {
         visible={toast.showToast}
         message={toast.toastMessage}
         type={toast.toastType}
+        onHide={toast.hideToast}
         onDismiss={toast.hideToast}
       />
 

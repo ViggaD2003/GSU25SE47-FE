@@ -25,7 +25,7 @@ import {
   joinProgram,
   leaveProgram,
 } from "../../services/api/ProgramService";
-import { Loading } from "../../components/common";
+import { Loading, Toast } from "../../components/common";
 import { useAuth, useChildren, useLanguage } from "@/contexts";
 import dayjs from "dayjs";
 import { surveyRecords } from "@/constants";
@@ -47,6 +47,9 @@ export default function ProgramDetail() {
   const [isJoined, setIsJoined] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [fadeAnim] = useState(new Animated.Value(0));
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState("info");
 
   console.log("user", user);
 
@@ -124,7 +127,10 @@ export default function ProgramDetail() {
       fetchProgramData();
     } catch (error) {
       console.warn("Error joining program:", error);
-      Alert.alert(t("common.errorTitle"), t("program.detail.joinError"));
+
+      setToastVisible(true);
+      setToastMessage(error?.response?.data?.message);
+      setToastType("error");
     } finally {
       setJoining(false);
     }
@@ -160,10 +166,9 @@ export default function ProgramDetail() {
               fetchProgramData();
             } catch (error) {
               console.warn("Error leaving program:", error);
-              Alert.alert(
-                t("common.errorTitle"),
-                t("program.detail.leaveError")
-              );
+              setToastVisible(true);
+              setToastMessage(error?.response?.data?.message);
+              setToastType("error");
             } finally {
               setJoining(false);
             }
@@ -724,6 +729,12 @@ export default function ProgramDetail() {
 
   return (
     <Container edges={["top", "bottom"]}>
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+      />
       <HeaderWithoutTab
         title={t("program.detail.title")}
         onBackPress={handleBackPress}

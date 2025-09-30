@@ -26,12 +26,9 @@ import Loading from "@/components/common/Loading";
 import { useAuth, useChildren, useRealTime } from "@/contexts";
 import { confirmCase, getCaseByCaseId } from "@/services/api/caseApi";
 import { getLevelConfig } from "@/constants/levelConfig";
-import ChildSelector, {
-  ChildSelectorWithTitle,
-} from "@/components/common/ChildSelector";
+import ChildSelector from "@/components/common/ChildSelector";
 import { useFocusEffect } from "@react-navigation/native";
 import { Toast } from "@/components/common";
-import { getChatMessages, getChatRooms } from "@/services/api/chatApi";
 import dayjs from "dayjs";
 
 const CaseDetails = ({ route, navigation }) => {
@@ -40,10 +37,8 @@ const CaseDetails = ({ route, navigation }) => {
   const {
     sendMessage,
     chatMessages,
-    setChatMessages,
     sendMessageToCounselor,
     onlineUsers: activeChat,
-    setRoomChatId,
     roomChatId,
     isConnectionReady,
   } = useRealTime();
@@ -70,35 +65,6 @@ const CaseDetails = ({ route, navigation }) => {
 
   const chatRef = useRef(null);
 
-  const fetchChatMessages = async (roomId) => {
-    if (roomId) {
-      const data = await getChatMessages(roomId);
-      // console.log("[CaseDetails] Fetch chat messages", data);
-      setChatMessages(data);
-    }
-  };
-
-  // Fetch chat rooms
-  const fetchRoomChat = async (id) => {
-    try {
-      if (caseId) {
-        return;
-      }
-      const res = await getChatRooms(id);
-      console.log("[CaseDetails_fetchRoomChat] Fetch chat rooms", res);
-
-      if (res) {
-        sendMessageToCounselor("ADD_USER");
-
-        setRoomChatId(res.id);
-
-        await fetchChatMessages(res.id);
-      }
-    } catch (err) {
-      console.warn("Error fetching chat rooms:", err);
-    }
-  };
-
   const fetchCaseDetails = async () => {
     try {
       setLoading(true);
@@ -120,9 +86,9 @@ const CaseDetails = ({ route, navigation }) => {
 
       setCaseDetails(data);
 
-      if (data && !caseId && data?.caseInfo?.status === "IN_PROGRESS") {
-        await fetchRoomChat(id);
-      }
+      // if (data && !caseId && data?.caseInfo?.status === "IN_PROGRESS") {
+      //   await fetchRoomChat(id);
+      // }
 
       // Animate content appearance
       Animated.timing(fadeAnim, {

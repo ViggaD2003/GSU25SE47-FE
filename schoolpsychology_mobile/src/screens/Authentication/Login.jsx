@@ -76,7 +76,7 @@ const Login = () => {
         <Text style={styles.title}>{t("app.signInToYourAccount")}</Text>
 
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>{t("auth.email")}</Text>
+          <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
             placeholder={t("auth.enterEmail")}
