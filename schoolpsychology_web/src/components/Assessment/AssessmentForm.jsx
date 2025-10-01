@@ -546,7 +546,7 @@ const AssessmentForm = memo(
                     label: renderAssessmentItemHeader(category),
                     children: renderAssessmentItemContent(category),
                     extra: (
-                      <Tooltip title={category.description}>
+                      <Tooltip title={`${category.name} - ${category.code}`}>
                         <InfoCircleOutlined className="text-blue-500" />
                       </Tooltip>
                     ),

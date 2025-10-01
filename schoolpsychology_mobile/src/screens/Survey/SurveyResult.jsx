@@ -82,16 +82,22 @@ const SurveyResult = ({ route, navigation }) => {
           entityId: result.id,
         };
 
+        const lowerCode = result?.level?.code?.toLowerCase();
+
         if (["MODERATE", "MEDIUM"].includes(result.level?.code)) {
           body.content =
-            "Your student has a moderate or high risk of " +
+            "Your student has a" +
+            lowerCode +
+            " risk of " +
             result.survey.category?.name +
             " issues. Please follow up with the student.";
         } else if (
           ["SEVERE", "CRITICAL", "HIGH"].includes(result.level?.code)
         ) {
           body.content =
-            "Your student has a severe or critical risk of " +
+            "Your student has a " +
+            lowerCode +
+            " risk of " +
             result.survey.category?.name +
             " issues. Please follow up with the student.";
           body.notificationType = "SURVEY_DANGER";
@@ -239,14 +245,14 @@ const SurveyResult = ({ route, navigation }) => {
                   <View style={styles.scoreIconContainer}>
                     <Ionicons
                       name={levelConfig?.icon}
-                      size={24}
+                      size={22}
                       color={levelConfig?.color}
                     />
                   </View>
                   <Text
                     style={[styles.scoreLevel, { color: levelConfig?.color }]}
                   >
-                    {t(`survey.level.${level?.code}`)}
+                    {level?.label + " - " + t(`survey.level.${level?.code}`)}
                   </Text>
                 </View>
 

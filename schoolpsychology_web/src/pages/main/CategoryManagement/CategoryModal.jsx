@@ -1110,11 +1110,15 @@ const CategoryModal = ({
                         },
                         {
                           min: 2,
-                          message: t('categoryManagement.form.nameMinLength'),
+                          message: t('categoryManagement.form.nameMinLength', {
+                            min: 2,
+                          }),
                         },
                         {
                           max: 100,
-                          message: t('categoryManagement.form.nameMaxLength'),
+                          message: t('categoryManagement.form.nameMaxLength', {
+                            max: 100,
+                          }),
                         },
                         {
                           whitespace: true,
@@ -1146,11 +1150,15 @@ const CategoryModal = ({
                         },
                         {
                           min: 2,
-                          message: t('categoryManagement.form.codeMinLength'),
+                          message: t('categoryManagement.form.codeMinLength', {
+                            min: 2,
+                          }),
                         },
                         {
                           max: 20,
-                          message: t('categoryManagement.form.codeMaxLength'),
+                          message: t('categoryManagement.form.codeMaxLength', {
+                            max: 20,
+                          }),
                         },
                       ]}
                     >
@@ -1175,7 +1183,10 @@ const CategoryModal = ({
                         {
                           max: 500,
                           message: t(
-                            'categoryManagement.form.descriptionMaxLength'
+                            'categoryManagement.form.descriptionMaxLength',
+                            {
+                              max: 500,
+                            }
                           ),
                         },
                       ]}
@@ -1206,97 +1217,6 @@ const CategoryModal = ({
                 className={`mb-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white'}`}
               >
                 <Row gutter={16}>
-                  {/* <Col span={8}>
-                    <Form.Item
-                      label={t('categoryManagement.form.questionLength')}
-                      name="questionLength"
-                      rules={[
-                        {
-                          required: true,
-                          message: t(
-                            'categoryManagement.form.questionLengthRequired'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          min: 1,
-                          message: t(
-                            'categoryManagement.form.questionLengthMin'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          max: 1000,
-                          message: t(
-                            'categoryManagement.form.questionLengthMax'
-                          ),
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        min={1}
-                        max={1000}
-                        placeholder={t(
-                          'categoryManagement.form.questionLengthPlaceholder'
-                        )}
-                        className="w-full"
-                      />
-                    </Form.Item>
-                  </Col> */}
-                  <Col span={12}>
-                    <Form.Item
-                      label={t('categoryManagement.form.severityWeight')}
-                      name="severityWeight"
-                      rules={[
-                        {
-                          required: true,
-                          message: t(
-                            'categoryManagement.form.severityWeightRequired'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          min: 0.1,
-                          message: t(
-                            'categoryManagement.form.severityWeightMin'
-                          ),
-                        },
-                        {
-                          type: 'number',
-                          max: 10,
-                          message: t(
-                            'categoryManagement.form.severityWeightMax'
-                          ),
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        min={0.1}
-                        max={10}
-                        step={0.1}
-                        placeholder={t(
-                          'categoryManagement.form.severityWeightPlaceholder'
-                        )}
-                        className="w-full"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label={t('categoryManagement.form.isActive')}
-                      name="isActive"
-                      valuePropName="checked"
-                    >
-                      <Switch
-                        checkedChildren={t('categoryManagement.form.active')}
-                        unCheckedChildren={t(
-                          'categoryManagement.form.inactive'
-                        )}
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
                   <Col span={12}>
                     <Form.Item
                       label={t('categoryManagement.form.isLimited')}
@@ -1325,14 +1245,20 @@ const CategoryModal = ({
                           type: 'number',
                           min: 5,
                           message: t(
-                            'categoryManagement.form.questionCountMin'
+                            'categoryManagement.form.questionCountMin',
+                            {
+                              min: 5,
+                            }
                           ),
                         },
                         {
                           type: 'number',
                           max: 50,
                           message: t(
-                            'categoryManagement.form.questionCountMax'
+                            'categoryManagement.form.questionCountMax',
+                            {
+                              max: 50,
+                            }
                           ),
                         },
                       ]}
@@ -1377,7 +1303,9 @@ const CategoryModal = ({
                         {
                           type: 'number',
                           min: 0,
-                          message: t('categoryManagement.form.minScoreMin'),
+                          message: t('categoryManagement.form.minScoreMin', {
+                            min: 0,
+                          }),
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
@@ -1387,7 +1315,12 @@ const CategoryModal = ({
                             }
                             return Promise.reject(
                               new Error(
-                                t('categoryManagement.form.minScoreLessThanMax')
+                                t(
+                                  'categoryManagement.form.minScoreLessThanMax',
+                                  {
+                                    min: 0,
+                                  }
+                                )
                               )
                             )
                           },
@@ -1418,7 +1351,9 @@ const CategoryModal = ({
                         {
                           type: 'number',
                           min: 1,
-                          message: t('categoryManagement.form.maxScoreMin'),
+                          message: t('categoryManagement.form.maxScoreMin', {
+                            min: 1,
+                          }),
                         },
                         ({ getFieldValue }) => ({
                           validator(_, value) {
@@ -1429,7 +1364,10 @@ const CategoryModal = ({
                             return Promise.reject(
                               new Error(
                                 t(
-                                  'categoryManagement.form.maxScoreGreaterThanMin'
+                                  'categoryManagement.form.maxScoreGreaterThanMin',
+                                  {
+                                    min: 1,
+                                  }
                                 )
                               )
                             )
