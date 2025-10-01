@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     textAlign: "center",
+    justifyContent: "center",
   },
   cancelButtonText: {
     color: "#6B7280",
@@ -170,8 +171,10 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 12,
     paddingVertical: 12,
+    paddingHorizontal: 10,
     alignItems: "center",
     textAlign: "center",
+    justifyContent: "center",
   },
   confirmButtonText: {
     color: "#FFFFFF",

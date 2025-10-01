@@ -67,6 +67,7 @@ import {
 } from '../../../constants/enums'
 import { categoriesAPI } from '@/services/categoryApi'
 import { useWebSocket } from '@/contexts/WebSocketContext'
+import { useAuth } from '@/hooks'
 
 const { Title, Text, Paragraph } = Typography
 
@@ -349,6 +350,7 @@ const AppointmentDetails = () => {
   const loading = useSelector(selectAppointmentLoading)
   const error = useSelector(selectAppointmentError)
   const userRole = useSelector(selectUserRole).toUpperCase()
+  const { user } = useAuth()
 
   // Local state
   const [isEditing, setIsEditing] = useState(false)
@@ -504,6 +506,11 @@ const AppointmentDetails = () => {
           return score.categoryId !== null && totalScore > 0
         })
 
+        const notifyTeachers =
+          userRole !== 'TEACHER'
+            ? data.notificationSettings?.notifyTeachers
+            : false
+
         // Enhanced assessment data with improved scoring and notification settings
         const assessmentData = {
           appointmentId: appointment.id,
@@ -514,8 +521,8 @@ const AppointmentDetails = () => {
           sessionFlow: data.sessionFlow || SESSION_FLOW.GOOD,
           studentCoopLevel: data.studentCoopLevel || STUDENT_COOP_LEVEL.HIGH,
           assessmentScores: filteredAssessmentScores || [],
-          notificationSettings: data.notificationSettings || {
-            notifyTeachers: true,
+          notificationSettings: {
+            notifyTeachers: notifyTeachers,
             notifyParents: false,
             // notifyAdministrators: false,
           },
@@ -524,36 +531,30 @@ const AppointmentDetails = () => {
         console.log('assessmentData', assessmentData)
 
         await dispatch(updateAppointmentWithAssessment(assessmentData)).unwrap()
-
-        // Show success message with notification info if enabled
-        let notificationType =
-          data.notificationSettings?.notiType || 'APPOINTMENT_DANGER'
-        const notifyTeachers = data.notificationSettings?.notifyTeachers
-
-        const title =
-          notificationType === 'APPOINTMENT_WARNING'
-            ? 'Lưu ý khẩn: Học sinh cần theo dõi sát'
-            : 'Lưu ý khẩn cấp: Học sinh cần can thiệp ngay lập tức'
-        const content =
-          notificationType === 'APPOINTMENT_WARNING'
-            ? 'Học sinh' +
-              appointment.bookedFor.fullName +
-              'vừa có buổi hẹn tư vấn và thể hiện dấu hiệu chưa ổn định. Thầy/Cô nên theo dõi chặt chẽ trong thời gian tới và báo lại nếu phát hiện bất thường.'
-            : 'Học sinh' +
-              appointment.bookedFor.fullName +
-              'vừa có buổi hẹn tư vấn và thể hiện dấu hiệu nguy hiểm. Thầy/Cô nên theo dõi chặt chẽ trong thời gian tới và báo lại nếu phát hiện bất thường.'
-
-        sendRequestNotification({
-          title: title,
-          content: content,
-          notificationType: notificationType,
-          notifyTeacher: notifyTeachers,
-          notifyParent: false,
-          notifyCounselor: false,
-          relatedEntityId: appointment.id,
-        })
-
         if (notifyTeachers) {
+          // Show success message with notification info if enabled
+          let notificationType =
+            data.notificationSettings?.notiType || 'APPOINTMENT_DANGER'
+
+          const title =
+            notificationType === 'APPOINTMENT_WARNING'
+              ? 'Alert: Student requires close monitoring'
+              : 'Urgent Alert: Student requires immediate intervention'
+
+          const content =
+            notificationType === 'APPOINTMENT_WARNING'
+              ? `Counselor ${user.fullName} reports that student ${appointment.bookedFor.fullName} has just attended a counseling session and showed signs of instability. Please monitor closely in the coming days and report any unusual behaviors.`
+              : `Counselor ${user.fullName} reports that student ${appointment.bookedFor.fullName} has just attended a counseling session and showed potentially dangerous signs. Immediate close monitoring and prompt reporting of any unusual behaviors are strongly advised.`
+
+          sendRequestNotification({
+            title: title,
+            content: content,
+            notificationType: notificationType,
+            notifyTeacher: notifyTeachers,
+            notifyParent: false,
+            notifyCounselor: false,
+            relatedEntityId: appointment.id,
+          })
           messageApi.success(
             t(
               'appointmentRecord.messages.saveSuccessWithNotification',
@@ -1281,6 +1282,7 @@ const AppointmentDetails = () => {
         <AssessmentForm
           userRole={userRole}
           isVisible={showAssessmentForm}
+          // isVisible={true}
           onClose={handleCloseAssessmentForm}
           onSubmit={handleAssessmentSubmit}
           t={t}

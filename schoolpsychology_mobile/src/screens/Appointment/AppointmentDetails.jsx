@@ -1204,7 +1204,7 @@ const AppointmentDetails = ({ route, navigation }) => {
                   multiline
                   numberOfLines={3}
                   returnKeyType="done"
-                  blurOnSubmit={true}
+                  keyboardShouldPersistTaps="handled"
                 />
               </View>
             )}

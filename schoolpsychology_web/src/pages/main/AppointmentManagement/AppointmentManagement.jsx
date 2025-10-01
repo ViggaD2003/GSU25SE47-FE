@@ -217,7 +217,7 @@ const AppointmentManagement = () => {
   // Handle error messages
   useEffect(() => {
     if (error) {
-      messageApi.error(t('appointment.messages.fetchError'))
+      // messageApi.error(t('appointment.messages.fetchError'))
       dispatch(clearError())
     }
   }, [error, t, dispatch, messageApi])

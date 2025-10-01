@@ -176,7 +176,10 @@ const QuestionTabs = ({
 
     add({
       isRequired: true, // Always default to required
-      questionType: QUESTION_TYPE.LINKERT_SCALE,
+      questionType:
+        answers?.length > 2
+          ? QUESTION_TYPE.LINKERT_SCALE
+          : QUESTION_TYPE.SINGLE_CHOICE,
       answers: answers,
     })
   }, [add, getCategoryScoringRange, generateAnswers])
@@ -374,7 +377,7 @@ const QuestionTabs = ({
           </Col>
         </Row>
 
-        {/* <Row gutter={16} className="flex items-end">
+        <Row gutter={16} className="flex items-end">
           <Col span={12}>
             <Form.Item
               {...fieldProps}
@@ -387,7 +390,7 @@ const QuestionTabs = ({
                 },
               ]}
             >
-              <Select placeholder="Select question type">
+              <Select placeholder="Select question type" disabled>
                 {Object.values(QUESTION_TYPE).map(type => (
                   <Option key={type} value={type}>
                     {t(`surveyManagement.enums.questionType.${type}`)}
@@ -396,7 +399,7 @@ const QuestionTabs = ({
               </Select>
             </Form.Item>
           </Col>
-          <Col span={12}>
+          {/* <Col span={12}>
             <Form.Item
               {...fieldProps}
               name={[field.name, 'isRequired']}
@@ -404,8 +407,8 @@ const QuestionTabs = ({
             >
               <Checkbox>Required</Checkbox>
             </Form.Item>
-          </Col>
-        </Row> */}
+          </Col> */}
+        </Row>
 
         {/* Answers Section */}
         <Form.List name={[field.name, 'answers']}>

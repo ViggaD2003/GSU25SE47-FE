@@ -14,6 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
+import { Container } from "@/components";
 
 const { width, height } = Dimensions.get("window");
 
@@ -112,7 +113,7 @@ const StatusScreen = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <Container edges={["top", "bottom"]}>
       {/* Background with gradient effect */}
       <LinearGradient
         colors={["#4CAF50", "#45a049", "#2E7D32"]}
@@ -306,7 +307,7 @@ const StatusScreen = ({ route }) => {
           </View>
         </Animated.View>
       </ScrollView>
-    </View>
+    </Container>
   );
 };
 
