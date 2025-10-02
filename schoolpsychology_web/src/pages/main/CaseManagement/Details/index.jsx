@@ -38,6 +38,8 @@ import {
   RiseOutlined,
   FallOutlined,
   MinusOutlined,
+  NotificationFilled,
+  BellFilled,
 } from '@ant-design/icons'
 
 import { CaseOverview, CaseStatistics, CaseCharts } from './components'
@@ -280,9 +282,11 @@ const CaseDetails = () => {
       const values = form.getFieldsValue()
       const updateData = {
         status: 'CLOSED',
-        priority: values.priority,
-        progressTrend: values.progressTrend,
-        currentLevelId: values.currentLevelId,
+        priority: values.priority || caseData?.caseInfo?.priority,
+        progressTrend:
+          values.progressTrend || caseData?.caseInfo?.progressTrend,
+        currentLevelId:
+          values.currentLevelId || caseData?.caseInfo?.currentLevel?.id,
       }
 
       await caseAPI.updateCase(id, updateData)
@@ -389,6 +393,7 @@ const CaseDetails = () => {
                 <ChatInterface
                   embedded={true}
                   caseId={id}
+                  notifyParents={caseData?.caseInfo?.notify}
                   status={caseData?.caseInfo?.status}
                 />
               </div>
@@ -474,6 +479,17 @@ const CaseDetails = () => {
                       )}
                     </Text>
                   </Space>
+                  <Space>
+                    <BellFilled
+                      style={{ color: caseInfo.notify ? 'green' : 'red' }}
+                    />
+
+                    <Text>
+                      {caseInfo.notify
+                        ? t('caseManagement.table.notifyParentsYes')
+                        : t('caseManagement.table.notifyParentsNo')}
+                    </Text>
+                  </Space>
                 </Space>
               </div>
             </Space>
@@ -484,11 +500,22 @@ const CaseDetails = () => {
                 type="primary"
                 icon={<EditOutlined />}
                 onClick={handleUpdate}
-                size="large"
               >
                 {t('caseManagement.details.updateCase')}
               </Button>
             )}
+            {userRole === 'manager' &&
+              ['NEW', 'CONFIRMED'].includes(caseInfo.status) && (
+                <Popconfirm
+                  title={t('caseManagement.details.closeCaseConfirm')}
+                  onConfirm={handleCloseCase}
+                  disabled={isUpdating}
+                >
+                  <Button style={{ minWidth: 100 }} danger loading={isUpdating}>
+                    {t('caseManagement.details.closeCase')}
+                  </Button>
+                </Popconfirm>
+              )}
           </Col>
         </Row>
       </Card>
@@ -704,7 +731,7 @@ const CaseDetails = () => {
               disabled={isUpdating}
             >
               <Button
-                size="large"
+                // size="large"
                 style={{ minWidth: 100 }}
                 danger
                 loading={isUpdating}
@@ -715,7 +742,7 @@ const CaseDetails = () => {
             <Button
               type="primary"
               htmlType="submit"
-              size="large"
+              // size="large"
               icon={<CheckCircleOutlined />}
               style={{ minWidth: 100 }}
               loading={isUpdating}

@@ -34,6 +34,7 @@ export const createProgram = createAsyncThunk(
       const response = await programAPI.createProgram(programData)
       return response
     } catch (error) {
+      console.log('error', error?.response?.data)
       return rejectWithValue(error.response?.data || error.message)
     }
   }

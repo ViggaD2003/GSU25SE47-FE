@@ -10,6 +10,8 @@ import React, {
 import { useAuth } from './AuthContext'
 import Stomp from 'stompjs'
 import { getToken, isTokenExpired } from '@/utils'
+import { useDispatch } from 'react-redux'
+import { initializeAuthFromStorage } from '@/store/actions'
 
 const WebSocketContext = createContext(null)
 
@@ -31,6 +33,8 @@ export const WebSocketProvider = ({ children }) => {
   const reconnectTimeoutRef = useRef(null)
   const heartbeatIntervalRef = useRef(null)
   const userRef = useRef(user)
+
+  const dispatch = useDispatch()
 
   // Cập nhật userRef khi user thay đổi
   useEffect(() => {
@@ -405,6 +409,10 @@ export const WebSocketProvider = ({ children }) => {
             return
           }
           console.log('📩 Thông báo từ server:', data)
+
+          if (user?.role?.toLowerCase() === 'counselor') {
+            dispatch(initializeAuthFromStorage())
+          }
 
           // Thêm timestamp hiện tại cho notification mới với độ chính xác cao
           const currentTime = new Date()

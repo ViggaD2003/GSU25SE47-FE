@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/contexts/ThemeContext'
 import { Alert, Empty } from 'antd'
 
-const ChatInterface = ({ caseId, status = 'IN_PROGRESS' }) => {
+const ChatInterface = ({ caseId, notifyParents, status = 'IN_PROGRESS' }) => {
   const { subscribeToTopic, sendMessage2, onlineUsers, isConnectionReady } =
     useWebSocket()
   const [messages, setMessages] = useState([])
@@ -42,11 +42,16 @@ const ChatInterface = ({ caseId, status = 'IN_PROGRESS' }) => {
       const res = await api.get(`/api/v1/chat/chat-room?caseId=${caseId}`)
       if (res.data.length > 0) {
         console.log('Fetched chat rooms:', res.data)
+        const filteredRooms = res.data.filter(room => {
+          if (!notifyParents && room.roleRoom === 'PARENTS') {
+            return false
+          }
+          return true
+        })
+        setRoomChatIds(filteredRooms || [])
 
-        setRoomChatIds(res.data || [])
-
-        setSelectedRoom(res.data[0]) // chọn phòng đầu tiên
-        await fetchChatMessages(res.data[0].id)
+        setSelectedRoom(filteredRooms[0]) // chọn phòng đầu tiên
+        await fetchChatMessages(filteredRooms[0].id)
       }
     } catch (err) {
       console.error('Error fetching chat rooms:', err)

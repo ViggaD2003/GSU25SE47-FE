@@ -785,7 +785,11 @@
       "createdAt": "Ngày tạo",
       "noDescription": "Không có mô tả",
       "noHost": "Chưa phân công",
-      "updatedAt": "Cập nhật lần cuối"
+      "updatedAt": "Cập nhật lần cuối",
+      "level": "Mức độ",
+      "notifyStatus": "Trạng thái thông báo",
+      "notifyParentsYes": "Có thông báo cho phụ huynh",
+      "notifyParentsNo": "Không thông báo cho phụ huynh"
     },
     "form": {
       "title": "Tiêu đề",

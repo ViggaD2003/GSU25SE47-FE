@@ -169,6 +169,23 @@ const ProgramTable = ({
                 <Tag color="blue">({record.category.code})</Tag>
               )}
             </div>
+            {user?.role === 'manager' && (
+              <div>
+                <Text
+                  style={{ display: 'block' }}
+                  title={`${record.hostedBy?.fullName} - ${record.hostedBy?.counselorCode}`}
+                >
+                  {record.hostedBy?.fullName} - {record.hostedBy?.counselorCode}
+                </Text>
+                <Text
+                  copyable={{ text: record.hostedBy?.email }}
+                  title={record.hostedBy?.email}
+                  datatype="email"
+                >
+                  {record.hostedBy?.email}
+                </Text>
+              </div>
+            )}
 
             {record.description && (
               <div>

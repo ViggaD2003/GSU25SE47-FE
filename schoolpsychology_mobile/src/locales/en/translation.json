@@ -1137,6 +1137,7 @@
       "continue": "Continue"
     },
     "info": {
+      "loading": "Loading survey information...",
       "retry": "Retry",
       "title": "Survey Information",
       "loadError": "Unable to load survey information",

@@ -71,7 +71,7 @@ const CaseModal = ({
     }
   }, [visible, student, form])
 
-  const surveyRecord = student?.latestSurveyRecord
+  // const surveyRecord = student?.latestSurveyRecord
 
   const handleOk = () => {
     form
@@ -202,7 +202,7 @@ const CaseModal = ({
             initialValue={initCategoryId || categories[0]?.id}
             rules={[
               {
-                required: !surveyRecord,
+                required: true,
                 message: t('caseManagement.form.categoryRequired'),
               },
             ]}
@@ -213,7 +213,7 @@ const CaseModal = ({
             >
               {categories?.map(category => (
                 <Option key={category?.id} value={category?.id}>
-                  {category?.name}
+                  {category?.name} - {category?.code}
                 </Option>
               ))}
             </Select>
@@ -226,7 +226,7 @@ const CaseModal = ({
             initialValue={initialLevelId || levelOptions[0]?.id}
             rules={[
               {
-                required: !surveyRecord,
+                required: true,
                 message: t('caseManagement.form.levelRequired'),
               },
             ]}

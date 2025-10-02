@@ -49,7 +49,7 @@ const LEVEL_TYPE_CONFIG = {
 
 const LevelCard = React.memo(
   ({ level, index, isView, isDarkMode, onEdit, onDelete, t }) => {
-    const { color } = LEVEL_TYPE_CONFIG[level?.levelType] || {}
+    const { color } = LEVEL_TYPE_CONFIG[level?.code] || {}
 
     if (isView) {
       return (
@@ -316,7 +316,6 @@ const LevelModal = React.memo(
                   placeholder={t(
                     'categoryManagement.form.levelCodePlaceholder'
                   )}
-                  style={{ textTransform: 'uppercase' }}
                   onChange={e => {
                     e.target.value = e.target.value.toUpperCase()
                   }}
@@ -1033,9 +1032,11 @@ const CategoryModal = ({
   // Memoized level summary - SỬ DỤNG state.levels thay vì levels từ form
   const levelSummary = useMemo(() => {
     const summary = {}
+    console.log(state.levels)
+
     levelTypeOptions.forEach(option => {
       const count = state.levels?.filter(
-        level => level.levelType === option.value
+        level => level.code === option.value
       ).length
       if (count > 0) {
         summary[option.value] = { count, ...option }
@@ -1052,9 +1053,11 @@ const CategoryModal = ({
         onCancel={handleCancel}
         footer={
           <div className="flex justify-end">
-            <Space>
-              <Button onClick={handleCancel}>{t('common.cancel')}</Button>
-              {!isView && (
+            {!isView && (
+              <Space>
+                <Button danger onClick={handleCancel}>
+                  {t('common.cancel')}
+                </Button>
                 <Button
                   type="primary"
                   onClick={handleOk}
@@ -1062,8 +1065,8 @@ const CategoryModal = ({
                 >
                   {isEdit ? t('common.save') : t('common.create')}
                 </Button>
-              )}
-            </Space>
+              </Space>
+            )}
           </div>
         }
         width={1200}
@@ -1453,6 +1456,7 @@ const CategoryModal = ({
                     <div
                       className={`mb-4 p-3 rounded ${isDarkMode ? 'bg-gray-700' : 'bg-blue-50'}`}
                     >
+                      {console.log('Level Summary:', levelSummary)}
                       <Text strong className="mb-2 block">
                         {t('categoryManagement.form.levelSummary')}:{' '}
                         {state.levels?.length}{' '}

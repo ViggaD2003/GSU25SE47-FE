@@ -790,7 +790,11 @@
       "createdAt": "Created At",
       "noDescription": "No description",
       "noHost": "Not assigned",
-      "updatedAt": "Updated At"
+      "updatedAt": "Updated At",
+      "level": "Level",
+      "notifyStatus": "notifyStatus",
+      "notifyParentsYes": "Notify Parents",
+      "notifyParentsNo": "Do Not Notify"
     },
     "form": {
       "title": "Title",
@@ -1404,6 +1408,7 @@
     }
   },
   "appointment": {
+    "reasonBooking": "Booking reason",
     "selectedCase": "Selected Case",
     "noCase": "No case",
     "title": "Appointment Management",

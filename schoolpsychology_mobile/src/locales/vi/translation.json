@@ -1159,6 +1159,7 @@
       "continue": "Tiếp tục"
     },
     "info": {
+      "loading": "Đang tải thông tin khảo sát...",
       "retry": "Thử lại",
       "title": "Thông tin khảo sát",
       "loadError": "Không thể tải thông tin khảo sát",

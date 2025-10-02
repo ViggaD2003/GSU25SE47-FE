@@ -36,8 +36,18 @@ export const LEVEL_CONFIG = {
     backgroundColor: "#FEE2E2",
     borderColor: "#EF4444",
     gradient: ["#EF4444", "#DC2626"],
-    label: "Nghiêm trọng",
+    label: "Cao",
     description: "Mức độ nghiêm trọng, cần can thiệp ngay",
+  },
+  HIGH: {
+    icon: "alert-circle",
+    color: "#EF4444", // Red
+    textColor: "#FFFFFF",
+    backgroundColor: "#FEE2E2",
+    borderColor: "#EF4444",
+    gradient: ["#EF4444", "#DC2626"],
+    label: "Cao",
+    description: "Mức độ cao, cần can thiệp ngay",
   },
   CRITICAL: {
     icon: "close-circle",

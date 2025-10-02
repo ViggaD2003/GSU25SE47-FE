@@ -208,51 +208,66 @@ const CaseTable = ({
         title: t('caseManagement.table.student'),
         dataIndex: 'student',
         key: 'student',
-        render: student => (
-          <div>
-            <div className="font-medium flex items-center">
-              <UserOutlined className="mr-1" />
-              {student?.fullName}
+        render: (student, record) => {
+          const { notify } = record
+
+          return (
+            <div className="space-y-0.5">
+              <div className="font-medium flex flex-wrap gap-1">
+                <div className="font-medium flex items-center">
+                  <UserOutlined className="mr-1" />
+                  {student?.fullName}
+                </div>
+                <Tag
+                  color={notify ? 'green' : 'red'}
+                  title={t('caseManagement.table.notifyStatus')}
+                >
+                  {notify
+                    ? t('caseManagement.table.notifyParentsYes')
+                    : t('caseManagement.table.notifyParentsNo')}
+                </Tag>
+              </div>
+              <Tooltip title={student?.email}>
+                <Text
+                  type="secondary"
+                  className="text-xs text-gray-500 "
+                  ellipsis
+                >
+                  {student?.email}
+                </Text>
+              </Tooltip>
+              <div className="text-xs text-gray-500">
+                {t('caseManagement.table.studentCode')}: {student?.studentCode}
+              </div>
+              <div className="text-xs text-gray-500">
+                {student?.classDto?.codeClass} -{' '}
+                {student?.classDto?.schoolYear?.name}
+              </div>
             </div>
-            <Tooltip title={student?.email}>
-              <Text
-                type="secondary"
-                className="text-xs text-gray-500 "
-                ellipsis
-              >
-                {student?.email}
-              </Text>
-            </Tooltip>
-            <div className="text-xs text-gray-500">
-              {t('caseManagement.table.studentCode')}: {student?.studentCode}
-            </div>
-            <div className="text-xs text-gray-500">
-              {student?.classDto?.codeClass} -{' '}
-              {student?.classDto?.schoolYear?.name}
-            </div>
-          </div>
-        ),
+          )
+        },
+        width: 250,
         hidden: hideStudent,
       },
-      {
-        title: t('caseManagement.table.title'),
-        dataIndex: 'title',
-        key: 'title',
-        render: (text, record) => (
-          <div>
-            <div className="font-medium">{text}</div>
-            <Tooltip
-              title={
-                record.description || t('caseManagement.table.noDescription')
-              }
-            >
-              <Text className="line-clamp-2">
-                {record.description || t('caseManagement.table.noDescription')}
-              </Text>
-            </Tooltip>
-          </div>
-        ),
-      },
+      // {
+      //   title: t('caseManagement.table.title'),
+      //   dataIndex: 'title',
+      //   key: 'title',
+      //   render: (text, record) => (
+      //     <div>
+      //       <div className="font-medium">{text}</div>
+      //       <Tooltip
+      //         title={
+      //           record.description || t('caseManagement.table.noDescription')
+      //         }
+      //       >
+      //         <Text className="line-clamp-2">
+      //           {record.description || t('caseManagement.table.noDescription')}
+      //         </Text>
+      //       </Tooltip>
+      //     </div>
+      //   ),
+      // },
       {
         title: t('caseManagement.table.category'),
         dataIndex: 'category',
@@ -301,6 +316,41 @@ const CaseTable = ({
         onFilter: (value, record) => record.status === value,
       },
       {
+        title: t('caseManagement.table.level'),
+        key: 'levels',
+        render: (_, record) => {
+          const { currentLevel, initialLevel } = record
+          return (
+            <div className="space-y-2">
+              {/* Current Level */}
+              {currentLevel && (
+                <div>
+                  <div className="font-medium flex items-center text-blue-600">
+                    {t('caseManagement.table.currentLevel')}:{' '}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {currentLevel?.label} - {currentLevel?.code}
+                  </div>
+                </div>
+              )}
+
+              {/* Initial Level */}
+              {initialLevel && (
+                <div>
+                  <div className="font-medium flex items-center text-green-600">
+                    {t('caseManagement.table.initialLevel')}:{' '}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {initialLevel?.label} - {initialLevel?.code}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        },
+        width: 250,
+      },
+      {
         title: t('caseManagement.table.priority'),
         dataIndex: 'priority',
         key: 'priority',
@@ -325,6 +375,7 @@ const CaseTable = ({
         ],
         onFilter: (value, record) => record.priority === value,
       },
+
       {
         title: t('caseManagement.table.progressTrend'),
         dataIndex: 'progressTrend',
@@ -350,40 +401,6 @@ const CaseTable = ({
         editable: record =>
           user?.role === 'manager' && record.status === 'CONFIRMED',
         hidden: user?.role === 'counselor',
-      },
-      {
-        title: t('caseManagement.table.currentLevel'),
-        dataIndex: 'currentLevel',
-        key: 'currentLevel',
-        render: currentLevel => (
-          <div>
-            <div className="font-medium flex items-center">
-              <BookOutlined className="mr-1" />
-              {currentLevel?.label}
-            </div>
-            <div className="text-xs text-gray-500">
-              {currentLevel?.code} ({currentLevel?.minScore}-
-              {currentLevel?.maxScore})
-            </div>
-          </div>
-        ),
-      },
-      {
-        title: t('caseManagement.table.initialLevel'),
-        dataIndex: 'initialLevel',
-        key: 'initialLevel',
-        render: initialLevel => (
-          <div>
-            <div className="font-medium flex items-center">
-              <BookOutlined className="mr-1" />
-              {initialLevel?.label}
-            </div>
-            <div className="text-xs text-gray-500">
-              {initialLevel?.code} ({initialLevel?.minScore}-
-              {initialLevel?.maxScore})
-            </div>
-          </div>
-        ),
       },
       {
         title: t('caseManagement.table.createBy'),

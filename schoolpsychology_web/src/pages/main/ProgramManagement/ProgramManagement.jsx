@@ -343,12 +343,16 @@ const ProgramManagement = () => {
         }
         setIsModalVisible(false)
       } catch (error) {
+        console.log('error', error)
         if (isCreate) {
-          messageApi.error(t('programManagement.messages.createError'))
+          messageApi.error(
+            error.message || t('programManagement.messages.createError')
+          )
         } else {
-          messageApi.error(t('programManagement.messages.updateError'))
+          messageApi.error(
+            error.message || t('programManagement.messages.updateError')
+          )
         }
-        throw error
       }
     },
     [dispatch, t, messageApi]
