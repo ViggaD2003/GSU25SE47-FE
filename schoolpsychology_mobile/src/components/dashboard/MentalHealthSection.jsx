@@ -69,19 +69,19 @@ const MentalHealthSection = ({
   };
 
   const surveyStats = [
-    {
-      key: "active",
-      title: t("dashboard.mentalHealth.survey.active"),
-      value: formatNumber(mentalStatistic.survey?.activeSurveys || 0),
-      subtitle: t("dashboard.mentalHealth.survey.activeSubtitle"),
-      icon: "play-circle-outline",
-      color: "#059669",
-      trend: "up",
-      percentage: getProgressPercentage(
-        mentalStatistic.survey?.activeSurveys || 0,
-        mentalStatistic.survey?.completedSurveys || 0
-      ),
-    },
+    // {
+    //   key: "active",
+    //   title: t("dashboard.mentalHealth.survey.active"),
+    //   value: formatNumber(mentalStatistic.survey?.activeSurveys || 0),
+    //   subtitle: t("dashboard.mentalHealth.survey.activeSubtitle"),
+    //   icon: "play-circle-outline",
+    //   color: "#059669",
+    //   trend: "up",
+    //   percentage: getProgressPercentage(
+    //     mentalStatistic.survey?.activeSurveys || 0,
+    //     mentalStatistic.survey?.completedSurveys || 0
+    //   ),
+    // },
     {
       key: "completed",
       title: t("dashboard.mentalHealth.survey.completed"),
@@ -106,19 +106,19 @@ const MentalHealthSection = ({
   ];
 
   const appointmentStats = [
-    {
-      key: "active",
-      title: t("dashboard.mentalHealth.appointment.active"),
-      value: formatNumber(mentalStatistic.appointment?.activeAppointments || 0),
-      subtitle: t("dashboard.mentalHealth.appointment.activeSubtitle"),
-      icon: "calendar-outline",
-      color: "#3B82F6",
-      trend: "up",
-      percentage: getProgressPercentage(
-        mentalStatistic.appointment?.activeAppointments || 0,
-        mentalStatistic.appointment?.completedAppointments || 0
-      ),
-    },
+    // {
+    //   key: "active",
+    //   title: t("dashboard.mentalHealth.appointment.active"),
+    //   value: formatNumber(mentalStatistic.appointment?.activeAppointments || 0),
+    //   subtitle: t("dashboard.mentalHealth.appointment.activeSubtitle"),
+    //   icon: "calendar-outline",
+    //   color: "#3B82F6",
+    //   trend: "up",
+    //   percentage: getProgressPercentage(
+    //     mentalStatistic.appointment?.activeAppointments || 0,
+    //     mentalStatistic.appointment?.completedAppointments || 0
+    //   ),
+    // },
     {
       key: "completed",
       title: t("dashboard.mentalHealth.appointment.completed"),
@@ -153,19 +153,19 @@ const MentalHealthSection = ({
   ];
 
   const programStats = [
-    {
-      key: "active",
-      title: t("dashboard.mentalHealth.program.active"),
-      value: formatNumber(mentalStatistic.program?.activePrograms || 0),
-      subtitle: t("dashboard.mentalHealth.program.activeSubtitle"),
-      icon: "school-outline",
-      color: "#F59E0B",
-      trend: "up",
-      percentage: getProgressPercentage(
-        mentalStatistic.program?.activePrograms || 0,
-        mentalStatistic.program?.completedPrograms || 0
-      ),
-    },
+    // {
+    //   key: "active",
+    //   title: t("dashboard.mentalHealth.program.active"),
+    //   value: formatNumber(mentalStatistic.program?.activePrograms || 0),
+    //   subtitle: t("dashboard.mentalHealth.program.activeSubtitle"),
+    //   icon: "school-outline",
+    //   color: "#F59E0B",
+    //   trend: "up",
+    //   percentage: getProgressPercentage(
+    //     mentalStatistic.program?.activePrograms || 0,
+    //     mentalStatistic.program?.completedPrograms || 0
+    //   ),
+    // },
     {
       key: "completed",
       title: t("dashboard.mentalHealth.program.completed"),

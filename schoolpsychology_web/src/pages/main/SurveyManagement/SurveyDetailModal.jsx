@@ -325,6 +325,10 @@ const SurveyDetailModal = ({
   const filteredRemovedCases = Array.from(removedCases || []).filter(
     c => c.student.isEnableSurvey
   )
+  const filteredNoDoneSurveyCases = Array.from(addedCases || []).filter(
+    c => !c.alreadyDoneSurvey
+  )
+
   // Fetch survey details when modal opens
   useEffect(() => {
     if (visible && surveyId) {
@@ -2127,7 +2131,7 @@ const SurveyDetailModal = ({
 
                                   switch (recurringCycle) {
                                     case RECURRING_CYCLE.WEEKLY:
-                                      maxDays = 7
+                                      maxDays = 6
                                       errorKey = 'endDateWeekly'
                                       break
                                     case RECURRING_CYCLE.MONTHLY:
@@ -2180,7 +2184,7 @@ const SurveyDetailModal = ({
 
                               switch (recurringCycle) {
                                 case RECURRING_CYCLE.WEEKLY:
-                                  maxDays = 7
+                                  maxDays = 6
                                   break
                                 case RECURRING_CYCLE.MONTHLY:
                                   maxDays = 30
@@ -2232,9 +2236,9 @@ const SurveyDetailModal = ({
   const handleSelectAll = (checked, type) => {
     if (checked) {
       if (type === 'removed') {
-        setSelectedAddedCases(addedCases.map(c => c.id))
+        setSelectedAddedCases(filteredNoDoneSurveyCases.map(c => c.id))
       } else {
-        console.log('filteredRemovedCases', filteredRemovedCases)
+        // console.log('filteredRemovedCases', filteredRemovedCases)
 
         setSelectedRemovedCases(filteredRemovedCases.map(c => c.id))
       }
@@ -2261,6 +2265,14 @@ const SurveyDetailModal = ({
           setSelectedAddedCases([])
         })
       })
+      .catch(error => {
+        // console.log('error', error.response?.data?.message)
+        const errorMessage =
+          error.response?.data?.message ||
+          t('surveyManagement.messages.addCaseError')
+
+        messageApi.error(errorMessage)
+      })
   }
 
   const handleRemoveCase = async () => {
@@ -2277,8 +2289,20 @@ const SurveyDetailModal = ({
             setSelectedRemovedCases([])
           })
         })
-        .catch(() => {
-          messageApi.error(t('surveyManagement.messages.removeCaseError'))
+        .catch(error => {
+          console.log('error', error.response?.data?.message)
+          const errorMessage =
+            error.response?.data?.message ||
+            t('surveyManagement.messages.removeCaseError') ||
+            'Case not found'
+          const caseItem = addedCases.find(c => c.id === parseInt(errorMessage))
+          if (caseItem) {
+            messageApi.error(
+              'Case of ' + caseItem.student.fullName + ' already done survey'
+            )
+          } else {
+            messageApi.error(errorMessage)
+          }
         })
     })
   }
@@ -2296,14 +2320,14 @@ const SurveyDetailModal = ({
         <Checkbox
           indeterminate={
             selectedAddedCases.length > 0 &&
-            selectedAddedCases.length < addedCases.length
+            selectedAddedCases.length < filteredNoDoneSurveyCases.length
           }
           checked={
-            addedCases.length > 0 &&
-            selectedAddedCases.length === addedCases.length
+            filteredNoDoneSurveyCases.length > 0 &&
+            selectedAddedCases.length === filteredNoDoneSurveyCases.length
           }
           onChange={e => handleSelectAll(e.target.checked, 'removed')}
-          disabled={addedCases.length === 0}
+          disabled={filteredNoDoneSurveyCases.length === 0}
         >
           {t('common.selectAll')}
         </Checkbox>
@@ -2338,6 +2362,7 @@ const SurveyDetailModal = ({
                 <Checkbox
                   checked={selectedAddedCases.includes(item.id)}
                   onChange={() => handleCaseSelection(item.id, 'removed')}
+                  disabled={item?.alreadyDoneSurvey}
                 />
                 <div style={{ flex: 1 }}>
                   <div
@@ -2409,6 +2434,11 @@ const SurveyDetailModal = ({
                 </div>
               </div>
             </div>
+            {item?.alreadyDoneSurvey && (
+              <Tag color="green" style={{ marginTop: '8px', marginBottom: 0 }}>
+                {t('surveyManagement.detail.studentAlreadyDoneSurvey')}
+              </Tag>
+            )}
           </List.Item>
         )}
       />

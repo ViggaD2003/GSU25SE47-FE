@@ -488,12 +488,13 @@
       "startTime": "Thời gian bắt đầu",
       "startTimeRequired": "Thời gian bắt đầu là bắt buộc",
       "startTimePlaceholder": "Chọn thời gian bắt đầu",
-      "startTimeAfter17": "Thời gian bắt đầu phải sau 15:00",
+      "startTimeAfter": "Thời gian bắt đầu phải sau {{time}}",
       "startTimeBefore20": "Thời gian bắt đầu phải trước 20:00",
       "endTime": "Thời gian kết thúc",
       "endTimeRequired": "Thời gian kết thúc là bắt buộc",
       "endTimePlaceholder": "Chọn thời gian kết thúc",
       "timeRangeMinHour": "Thời gian phải ít nhất 1 giờ",
+      "timeRangeMaxHour": "Thời gian phải ít hơn {{time}} giờ",
       "endTimeBefore21": "Thời gian kết thúc phải trước 21:00",
       "startTimeFirst": "Vui lòng chọn thời gian bắt đầu trước",
       "location": "Địa điểm",
@@ -1211,6 +1212,7 @@
       }
     },
     "detail": {
+      "studentAlreadyDoneSurvey": "Học sinh đã hoàn thành khảo sát",
       "studentNotEnableSurvey": "Học sinh bị vô hiệu hóa khảo sát",
       "cancelConfirm": "Bạn có chắc chắn muốn hủy bỏ các thay đổi không?",
       "saveConfirm": "Bạn có chắc chắn muốn lưu các thay đổi không?",

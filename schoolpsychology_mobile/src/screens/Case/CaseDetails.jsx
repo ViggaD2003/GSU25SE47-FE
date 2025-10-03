@@ -345,27 +345,27 @@ const CaseDetails = ({ route, navigation }) => {
     switch (priority) {
       case "HIGH":
         return {
-          color: "#EF4444",
+          color: "#DC2626",
           icon: "alert-circle",
           label: t("case.priority.high"),
           backgroundColor: "#FEE2E2",
-          gradient: ["#EF4444", "#DC2626"],
+          gradient: ["#EF4444", "#EF4444"],
         };
       case "MEDIUM":
         return {
-          color: "#F59E0B",
+          color: "#D97706",
           icon: "warning-outline",
           label: t("case.priority.medium"),
           backgroundColor: "#FEF3C7",
-          gradient: ["#F59E0B", "#D97706"],
+          gradient: ["#F59E0B", "#F59E0B"],
         };
       case "LOW":
         return {
-          color: "#10B981",
+          color: "#059669",
           icon: "checkmark",
           label: t("case.priority.low"),
           backgroundColor: "#D1FAE5",
-          gradient: ["#10B981", "#059669"],
+          gradient: ["#10B981", "#10B981"],
         };
       default:
         return {
@@ -373,7 +373,7 @@ const CaseDetails = ({ route, navigation }) => {
           icon: "help-circle",
           label: t("case.priority.unknown"),
           backgroundColor: "#F3F4F6",
-          gradient: ["#6B7280", "#4B5563"],
+          gradient: ["#6B7280", "#6B7280"],
         };
     }
   };
@@ -384,27 +384,27 @@ const CaseDetails = ({ route, navigation }) => {
     switch (trend) {
       case "IMPROVED":
         return {
-          color: "#10B981",
+          color: "#059669",
           icon: "trending-up",
           label: t("case.progressTrend.improved"),
           backgroundColor: "#D1FAE5",
-          gradient: ["#10B981", "#059669"],
+          gradient: ["#10B981", "#10B981"],
         };
       case "STABLE":
         return {
-          color: "#3B82F6",
+          color: "#0D6AFF",
           icon: "remove-outline",
           label: t("case.progressTrend.stable"),
           backgroundColor: "#DBEAFE",
-          gradient: ["#3B82F6", "#1D4ED8"],
+          gradient: ["#3B82F6", "#3B82F6"],
         };
       case "DECLINED":
         return {
-          color: "#EF4444",
+          color: "#DC2626",
           icon: "trending-down",
           label: t("case.progressTrend.declined"),
           backgroundColor: "#FEE2E2",
-          gradient: ["#EF4444", "#DC2626"],
+          gradient: ["#EF4444", "#EF4444"],
         };
       default:
         return {
@@ -487,7 +487,7 @@ const CaseDetails = ({ route, navigation }) => {
   };
 
   const renderCaseInfo = () => {
-    console.log("[CaseDetails] renderCaseInfo", caseDetails);
+    // console.log("[CaseDetails] renderCaseInfo", caseDetails);
 
     // Safety check for caseInfo
     if (!caseDetails && !caseDetails?.caseInfo) {
@@ -525,6 +525,9 @@ const CaseDetails = ({ route, navigation }) => {
                   <View style={styles.caseTitleContainer}>
                     <Text style={styles.caseTitle}>{caseInfo?.title}</Text>
                     <Text style={styles.caseId}>#{caseInfo?.id}</Text>
+                    <Text style={styles.caseCategory}>
+                      {caseInfo?.categoryName} - {caseInfo?.codeCategory}
+                    </Text>
                   </View>
                   <View style={styles.statusContainer}>
                     <View style={styles.statusBadge}>
@@ -607,6 +610,35 @@ const CaseDetails = ({ route, navigation }) => {
                       </Text>
                     </View>
                   </View>
+                  <View style={styles.statusRow}>
+                    <LinearGradient
+                      colors={["#3B82F6", "#3B82F6"]}
+                      style={styles.statusIconContainer}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                    >
+                      <Ionicons
+                        name="notifications-outline"
+                        size={16}
+                        color="#FFFFFF"
+                      />
+                    </LinearGradient>
+                    <Text style={styles.statusLabel}>
+                      {t("case.caseInfo.notifyParent")}:
+                    </Text>
+                    <View style={styles.notifyChip}>
+                      <Text
+                        style={[
+                          styles.notifyText,
+                          { color: caseInfo?.notify ? "#10B981" : "#EF4444" },
+                        ]}
+                      >
+                        {caseInfo?.notify
+                          ? t("case.caseInfo.yes")
+                          : t("case.caseInfo.no")}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Level Information */}
@@ -662,6 +694,28 @@ const CaseDetails = ({ route, navigation }) => {
                     </LinearGradient>
                   </View>
                 </View>
+
+                <View style={styles.levelSection}>
+                  <Text style={styles.sectionTitle}>
+                    {t("case.time.title")}
+                  </Text>
+                  <View style={styles.timeCards}>
+                    <Text style={styles.timeLabel}>
+                      {t("case.time.createdAt")}
+                    </Text>
+                    <Text style={styles.timeValue}>
+                      {dayjs(caseInfo?.createdAt).format("DD/MM/YYYY")}
+                    </Text>
+                  </View>
+                  <View style={styles.timeCards}>
+                    <Text style={styles.timeLabel}>
+                      {t("case.time.updatedAt")}
+                    </Text>
+                    <Text style={styles.timeValue}>
+                      {dayjs(caseInfo?.updatedAt).format("DD/MM/YYYY")}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
           </LinearGradient>
@@ -676,6 +730,7 @@ const CaseDetails = ({ route, navigation }) => {
       return null;
     }
     const { groupedStatic } = caseDetails;
+    console.log("[CaseDetails] groupedStatic", groupedStatic);
 
     return (
       <Animated.View style={[styles.statisticsSection, { opacity: fadeAnim }]}>
@@ -688,31 +743,12 @@ const CaseDetails = ({ route, navigation }) => {
         >
           <View style={{ marginRight: 10 }}>
             <StatisticsCard
-              title={t("case.statistics.surveys")}
-              value={
-                (groupedStatic?.survey?.activeSurveys || 0) +
-                (groupedStatic?.survey?.completedSurveys || 0)
-              }
-              subtitle={`${groupedStatic.survey?.completedSurveys || 0} ${t(
-                "case.statistics.completed"
+              title={t("case.statistics.completedSurveys")}
+              value={groupedStatic?.survey?.completedSurveys || 0}
+              subtitle={`${groupedStatic.survey?.numberOfSkips || 0} ${t(
+                "case.statistics.numberOfSkips"
               )}`}
               icon="document-text"
-              iconColor="#F59E0B"
-              valueColor="#F59E0B"
-              size="small"
-            />
-          </View>
-          <View style={{ marginRight: 10 }}>
-            <StatisticsCard
-              title={t("case.statistics.appointments")}
-              value={
-                (groupedStatic.appointment?.activeAppointments || 0) +
-                (groupedStatic.appointment?.completedAppointments || 0)
-              }
-              subtitle={`${
-                groupedStatic.appointment?.completedAppointments || 0
-              } ${t("case.statistics.completed")}`}
-              icon="calendar"
               iconColor="#10B981"
               valueColor="#10B981"
               size="small"
@@ -720,13 +756,23 @@ const CaseDetails = ({ route, navigation }) => {
           </View>
           <View style={{ marginRight: 10 }}>
             <StatisticsCard
-              title={t("case.statistics.programs")}
-              value={
-                (groupedStatic.program?.activePrograms || 0) +
-                (groupedStatic.program?.completedPrograms || 0)
-              }
-              subtitle={`${groupedStatic.program?.completedPrograms || 0} ${t(
-                "case.statistics.completed"
+              title={t("case.statistics.completedAppointments")}
+              value={groupedStatic.appointment?.completedAppointments || 0}
+              subtitle={`${groupedStatic.appointment?.numOfAbsent || 0} ${t(
+                "case.statistics.numberOfAbsent"
+              )}`}
+              icon="calendar"
+              iconColor="#3B82F6"
+              valueColor="#3B82F6"
+              size="small"
+            />
+          </View>
+          <View style={{ marginRight: 10 }}>
+            <StatisticsCard
+              title={t("case.statistics.completedPrograms")}
+              value={groupedStatic.program?.completedPrograms || 0}
+              subtitle={`${groupedStatic.program?.numOfAbsent || 0} ${t(
+                "case.statistics.numberOfAbsent"
               )}`}
               icon="school"
               iconColor="#F59E0B"
@@ -782,7 +828,7 @@ const CaseDetails = ({ route, navigation }) => {
           <BarChart
             data={surveyData}
             title={t("case.charts.surveys")}
-            barColor="#3B82F6"
+            barColor="#10B981"
             height={180}
             yAxisMax={4.0}
             valueFormatter={(value) =>
@@ -796,7 +842,7 @@ const CaseDetails = ({ route, navigation }) => {
           <BarChart
             data={appointmentData}
             title={t("case.charts.appointments")}
-            barColor="#10B981"
+            barColor="#3B82F6"
             height={180}
             yAxisMax={4.0}
             valueFormatter={(value) =>
@@ -1296,6 +1342,12 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
     fontWeight: "500",
   },
+  caseCategory: {
+    display: "block",
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+    fontWeight: "500",
+  },
   statusContainer: {
     alignItems: "flex-end",
   },
@@ -1360,7 +1412,7 @@ const styles = StyleSheet.create({
   priorityChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#FEF3C7",
+    backgroundColor: "#D3D3D357",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -1373,11 +1425,24 @@ const styles = StyleSheet.create({
   progressChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#DBEAFE",
+    backgroundColor: "#D3D3D357",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     gap: 4,
+  },
+  notifyChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#DEDDDD57",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 4,
+  },
+  notifyText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
   progressText: {
     fontSize: 12,
@@ -1392,6 +1457,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1F2937",
     marginBottom: 16,
+  },
+  timeCards: {
+    flexDirection: "row",
+    gap: 16,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  timeLabel: {
+    // fontSize: 12,
+    fontWeight: "600",
+    color: "#1F2937",
+  },
+  timeValue: {
+    // fontSize: 12,
+    // fontWeight: "600",
+    color: "#1F2937",
   },
   levelCards: {
     flexDirection: "row",

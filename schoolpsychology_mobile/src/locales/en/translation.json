@@ -196,14 +196,26 @@
     },
     "caseInfo": {
       "priority": "Priority",
-      "progressTrend": "Progress Trend"
+      "progressTrend": "Progress Trend",
+      "notifyParent": "Notify Parent",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "time": {
+      "title": "Time",
+      "createdAt": "Created At",
+      "updatedAt": "Updated At"
     },
     "statistics": {
       "title": "Case Statistics",
       "surveys": "Surveys",
       "appointments": "Appointments",
       "programs": "Programs",
-      "completed": "Completed"
+      "completedSurveys": "Completed Surveys",
+      "completedAppointments": "Completed Appointments",
+      "completedPrograms": "Completed Programs",
+      "numberOfSkips": "Number of Skips",
+      "numberOfAbsent": "Number of Absent"
     },
     "charts": {
       "title": "Performance Charts",

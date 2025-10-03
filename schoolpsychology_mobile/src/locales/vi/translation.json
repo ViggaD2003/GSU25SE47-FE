@@ -196,14 +196,26 @@
     },
     "caseInfo": {
       "priority": "Mức độ ưu tiên",
-      "progressTrend": "Xu hướng tiến triển"
+      "progressTrend": "Xu hướng tiến triển",
+      "notifyParent": "Thông báo tới phụ huynh",
+      "yes": "Có",
+      "no": "Không"
+    },
+    "time": {
+      "title": "Thời gian",
+      "createdAt": "Ngày tạo",
+      "updatedAt": "Ngày cập nhật"
     },
     "statistics": {
       "title": "Thống kê trường hợp",
       "surveys": "Khảo sát",
       "appointments": "Lịch hẹn",
       "programs": "Chương trình",
-      "completed": "Hoàn thành"
+      "completedSurveys": "Khảo sát hoàn thành",
+      "completedAppointments": "Lịch hẹn hoàn thành",
+      "completedPrograms": "Chương trình hoàn thành",
+      "numberOfSkips": "Số lần bỏ qua",
+      "numberOfAbsent": "Số lần vắng mặt"
     },
     "charts": {
       "title": "Biểu đồ hiệu suất",

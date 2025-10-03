@@ -27,7 +27,7 @@ const { Text } = Typography
 const { TextArea } = Input
 const { Option } = Select
 
-const MIN_DATE = dayjs().add(1, 'day')
+const MIN_DATE = dayjs().add(2, 'day')
 
 const ProgramModal = ({
   visible,
@@ -313,7 +313,7 @@ const ProgramModal = ({
                 : false,
             recurringCycle: program?.programSurvey?.recurringCycle || 'NONE',
             startDate: startDate,
-            endDate: dayjs(values.date).add(1, 'day').format('YYYY-MM-DD'),
+            endDate: dayjs(values.date).add(2, 'day').format('YYYY-MM-DD'),
             targetScope: program?.programSurvey?.targetScope || 'NONE',
             targetGrade: program?.programSurvey?.targetGrade || [],
             updateQuestions: [],
@@ -331,7 +331,7 @@ const ProgramModal = ({
           isRecurring: false,
           recurringCycle: 'NONE',
           startDate: startDate,
-          endDate: dayjs(values.date).add(1, 'day').format('YYYY-MM-DD'),
+          endDate: dayjs(values.date).add(2, 'day').format('YYYY-MM-DD'),
           categoryId: values.categoryId,
           surveyType: 'PROGRAM',
           targetScope: 'NONE',
@@ -435,6 +435,8 @@ const ProgramModal = ({
       return Promise.reject(new Error(t('programManagement.form.dateRequired')))
     }
 
+    const isSunday = selectedDate.get('d') === 0
+
     // Update the value to use the selected date while keeping the time
     const updatedValue = selectedDate
       .hour(value.hour())
@@ -444,10 +446,16 @@ const ProgramModal = ({
     console.log('updated value', updatedValue.format('DD/MM/YYYY HH:mm'))
 
     // Check if start time is after 15:00 (3 PM)
-    const minStartTime = selectedDate.hour(15).minute(0).second(0)
+    const minStartTime = isSunday
+      ? selectedDate.hour(7).minute(0).second(0)
+      : selectedDate.hour(15).minute(0).second(0)
     if (updatedValue.isBefore(minStartTime, 'minute')) {
       return Promise.reject(
-        new Error(t('programManagement.form.startTimeAfter17'))
+        new Error(
+          t('programManagement.form.startTimeAfter', {
+            time: isSunday ? '7:00' : '15:00',
+          })
+        )
       )
     }
 
@@ -493,9 +501,18 @@ const ProgramModal = ({
 
     // Check if time range is at least 1 hour
     const timeDiff = updatedValue.diff(startTime, 'hour', true)
+    console.log('timeDiff', timeDiff)
     if (timeDiff < 1) {
       return Promise.reject(
         new Error(t('programManagement.form.timeRangeMinHour'))
+      )
+    } else if (timeDiff > 3) {
+      return Promise.reject(
+        new Error(
+          t('programManagement.form.timeRangeMaxHour', {
+            time: '3',
+          })
+        )
       )
     }
 
@@ -515,7 +532,7 @@ const ProgramModal = ({
 
   const disabledDate = current => {
     // For edit mode, allow current date if it's not in the past
-    const minDate = isEdit ? dayjs().startOf('day') : MIN_DATE
+    const minDate = isEdit ? dayjs().startOf('day') : dayjs().add(1, 'day')
     return current && current < minDate
   }
 
@@ -525,14 +542,23 @@ const ProgramModal = ({
 
     let disabledHours = []
 
+    console.log(dayjs(date).get('d'))
+
     // Disable hours before 15:00 (3 PM)
-    disabledHours = disabledHours.concat(
-      Array.from({ length: 15 }, (_, i) => i)
-    )
+    if (dayjs(date).get('d') !== 0) {
+      disabledHours = disabledHours.concat(
+        Array.from({ length: 15 }, (_, i) => i)
+      ) // 15:00 - 17:00
+    } else {
+      disabledHours = disabledHours.concat(
+        Array.from({ length: 7 }, (_, i) => i)
+      ) // 8:00 - 15:00
+    }
+
     // Disable hours after 20:00 (8 PM)
     disabledHours = disabledHours.concat(
       Array.from({ length: 4 }, (_, i) => i + 20)
-    )
+    ) // 20:00 - 23:00
 
     // Remove duplicates and sort
     disabledHours = Array.from(new Set(disabledHours)).sort((a, b) => a - b)

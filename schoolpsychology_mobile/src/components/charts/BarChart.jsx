@@ -29,7 +29,10 @@ const ReusableBarChart = ({
     labels: data.map((item) => item.x || item.label || ""),
     datasets: [
       {
-        data: data.map((item) => item.y || item.value || 0),
+        data: data.map((item) => {
+          const value = item.y || item.value || 0;
+          return Number(value).toFixed(2);
+        }),
         color: (opacity = 1) => `rgba(${hexToRgb(barColor)}, ${opacity})`,
       },
     ],
@@ -77,7 +80,7 @@ const ReusableBarChart = ({
           verticalLabelRotation={0}
           showBarTops={true}
           fromZero={true}
-          segments={4}
+          segments={5}
           showValuesOnTopOfBars={true}
           withInnerLines={showGrid}
           withVerticalLabels={true}
