@@ -40,7 +40,6 @@ const ClassTable = ({
       render: (_, record) => (
         <Space direction="vertical" size={2}>
           <div>
-            <BookOutlined className="text-blue-500" />
             <Text strong>{record.codeClass}</Text>
           </div>
           <Tag color="purple">{record.grade}</Tag>

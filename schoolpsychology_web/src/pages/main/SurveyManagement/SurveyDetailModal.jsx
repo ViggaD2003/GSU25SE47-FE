@@ -487,6 +487,7 @@ const SurveyDetailModal = ({
       questions: survey.questions || [],
       recurringCycle: normalizedCycle,
       isRecurring: survey.isRecurring,
+      isRequired: survey.isRequired,
     }
     setFormValue(initialValues)
     form.setFieldsValue(initialValues)
@@ -580,20 +581,18 @@ const SurveyDetailModal = ({
         }
       }
 
+      console.log('values', values)
+
       // Prepare unified payload structure for all survey statuses
       const payload = {
         title: values.title || survey.title,
         description: values.description || survey.description || '',
         surveyType: survey.surveyType, // Always use existing survey type
-        isRequired:
-          values.isRequired !== undefined
-            ? values.isRequired
-            : survey.isRequired,
-        isRecurring:
-          values.isRecurring !== undefined
-            ? values.isRecurring
-            : values.recurringCycle !== RECURRING_CYCLE.NONE,
-        recurringCycle: values.isRecurring
+        isRequired: values.isRequired,
+        isRecurring: values.recurringCycle
+          ? values.recurringCycle !== RECURRING_CYCLE.NONE
+          : survey.isRecurring,
+        recurringCycle: values.recurringCycle
           ? values.recurringCycle || RECURRING_CYCLE.WEEKLY
           : RECURRING_CYCLE.NONE,
         startDate: values.startDate
@@ -650,7 +649,7 @@ const SurveyDetailModal = ({
       setUpdatedQuestions([])
       onUpdated()
 
-      // // Refresh survey data
+      // Refresh survey data
       fetchSurveyDetails()
     } catch (err) {
       if (err.errorFields) {
@@ -682,7 +681,7 @@ const SurveyDetailModal = ({
     if (editMode) {
       handleEdit()
     }
-  }, [fetchSurveyDetails, editMode, handleEdit])
+  }, [fetchSurveyDetails, handleEdit])
 
   const handleQuestionStatusChange = useCallback((questionId, isActive) => {
     // console.log('Changing question status:', { questionId, isActive }) // Debug log
@@ -1836,7 +1835,7 @@ const SurveyDetailModal = ({
                           <Select
                             mode="multiple"
                             allowClear
-                            maxTagCount={2}
+                            maxCount={2}
                             placeholder={t(
                               'surveyManagement.form.targetGradePlaceholder'
                             )}
@@ -1865,32 +1864,41 @@ const SurveyDetailModal = ({
                   <Form.Item
                     name="isRequired"
                     label={t('surveyManagement.detail.required')}
-                    valuePropName="checked"
                     style={{ marginBottom: 16 }}
                   >
-                    <div
-                      style={{
-                        padding: '8px 12px',
-                        border: '1px solid #d9d9d9',
-                        borderRadius: '6px',
-                        backgroundColor: !isFieldEditable('isRequired')
-                          ? '#f5f5f5'
-                          : 'white',
+                    <Form.Item noStyle shouldUpdate>
+                      {({ getFieldValue, setFieldsValue }) => {
+                        const value = getFieldValue('isRequired')
+                        return (
+                          <div
+                            style={{
+                              padding: '8px 12px',
+                              border: '1px solid #d9d9d9',
+                              borderRadius: '6px',
+                              backgroundColor: !isFieldEditable('isRequired')
+                                ? '#f5f5f5'
+                                : 'white',
+                            }}
+                          >
+                            <Switch
+                              checked={value}
+                              disabled={
+                                !isFieldEditable('isRequired') ||
+                                survey.surveyType === SURVEY_TYPE.PROGRAM
+                              }
+                              checkedChildren={<CheckCircleOutlined />}
+                              unCheckedChildren={<CloseOutlined />}
+                              onChange={checked => {
+                                setFieldsValue({ isRequired: checked })
+                              }}
+                            />
+                            <span style={{ marginLeft: 8 }}>
+                              {t('surveyManagement.detail.requiredSurvey')}
+                            </span>
+                          </div>
+                        )
                       }}
-                    >
-                      <Switch
-                        disabled={
-                          !isFieldEditable('isRequired') ||
-                          survey.surveyType === SURVEY_TYPE.PROGRAM
-                        }
-                        checkedChildren={<CheckCircleOutlined />}
-                        unCheckedChildren={<CloseOutlined />}
-                        defaultChecked={survey.isRequired}
-                      />
-                      <span style={{ marginLeft: 8 }}>
-                        {t('surveyManagement.detail.requiredSurvey')}
-                      </span>
-                    </div>
+                    </Form.Item>
                   </Form.Item>
                 </Col>
                 <Col span={12}>

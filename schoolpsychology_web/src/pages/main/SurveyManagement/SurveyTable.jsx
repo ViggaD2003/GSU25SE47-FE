@@ -56,18 +56,20 @@ const SurveyTable = ({ t, data, loading, pagination, onView, userRole }) => {
       dataIndex: 'targetScope',
       key: 'targetScope',
       render: (scope, record) => (
-        <div>
+        <div className="flex flex-col gap-2">
           <Tag color={getStatusColor(scope)}>
             {t(`surveyManagement.enums.targetScope.${scope}`) || scope}
           </Tag>
-          {scope === TARGET_SCOPE.GRADE &&
-            record.targetGrade.length > 0 &&
-            record.targetGrade.map(grade => (
-              <Tag color={getStatusColor(grade)} key={grade}>
-                {t(`surveyManagement.enums.gradeLevel.${grade}`) ||
-                  formatGradeDisplay(grade)}
-              </Tag>
-            ))}
+          <div className="flex gap-1">
+            {scope === TARGET_SCOPE.GRADE &&
+              record.targetGrade.length > 0 &&
+              record.targetGrade.map(grade => (
+                <Tag color={getStatusColor(grade)} key={grade}>
+                  {t(`surveyManagement.enums.gradeLevel.${grade}`) ||
+                    formatGradeDisplay(grade)}
+                </Tag>
+              ))}
+          </div>
         </div>
       ),
       filters: [

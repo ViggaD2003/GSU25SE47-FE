@@ -13,16 +13,17 @@ const Toast = ({
   visible,
   message,
   type = "info",
-  duration = 3000,
+  // duration = 5000,
   onHide,
 }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   const insets = useSafeAreaInsets(); // 👈 lấy safe area
+  const duration = 5000;
 
   const hideToast = useCallback(() => {
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 300,
+      duration: 500,
       useNativeDriver: true,
     }).start(() => {
       onHide && onHide();
@@ -35,7 +36,7 @@ const Toast = ({
 
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 300,
+        duration: 500,
         useNativeDriver: true,
       }).start();
 
@@ -52,15 +53,35 @@ const Toast = ({
   const getToastStyle = () => {
     switch (type) {
       case "success":
-        return { backgroundColor: "#10B981", icon: "checkmark-circle", borderColor: "#059669" };
+        return {
+          backgroundColor: "#10B981",
+          icon: "checkmark-circle",
+          borderColor: "#059669",
+        };
       case "error":
-        return { backgroundColor: "#EF4444", icon: "close-circle", borderColor: "#DC2626" };
+        return {
+          backgroundColor: "#EF4444",
+          icon: "close-circle",
+          borderColor: "#DC2626",
+        };
       case "warning":
-        return { backgroundColor: "#F59E0B", icon: "warning", borderColor: "#D97706" };
+        return {
+          backgroundColor: "#F59E0B",
+          icon: "warning",
+          borderColor: "#D97706",
+        };
       case "server-error":
-        return { backgroundColor: "#F97316", icon: "server", borderColor: "#EA580C" };
+        return {
+          backgroundColor: "#F97316",
+          icon: "server",
+          borderColor: "#EA580C",
+        };
       default:
-        return { backgroundColor: "#3B82F6", icon: "information-circle", borderColor: "#2563EB" };
+        return {
+          backgroundColor: "#3B82F6",
+          icon: "information-circle",
+          borderColor: "#2563EB",
+        };
     }
   };
 

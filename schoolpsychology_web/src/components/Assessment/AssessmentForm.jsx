@@ -347,7 +347,7 @@ const AssessmentForm = memo(
             <Row gutter={[16, 16]}>
               <Col span={12}>
                 <div className="space-y-2">
-                  <Text strong>{t('appointmentRecord.severity')}</Text>
+                  <Text strong>{t(reportScore.severity.label)}</Text>
                   <Select
                     value={score ? (score.severityScore ?? 0) : 0}
                     onChange={value =>
@@ -358,11 +358,11 @@ const AssessmentForm = memo(
                       )
                     }
                     style={{ width: '100%' }}
-                    placeholder={t('assessmentForm.options.severity.0')}
+                    placeholder={t(reportScore.severity.options[0].text)}
                   >
                     {reportScore.severity.options.map(option => (
                       <Select.Option key={option.score} value={option.score}>
-                        {option.text} ({option.score})
+                        {t(option.text)} ({option.score})
                       </Select.Option>
                     ))}
                   </Select>
@@ -371,7 +371,7 @@ const AssessmentForm = memo(
 
               <Col span={12}>
                 <div className="space-y-2">
-                  <Text strong>{t('appointmentRecord.frequency')}</Text>
+                  <Text strong>{t(reportScore.frequency.label)}</Text>
                   <Select
                     value={score ? (score.frequencyScore ?? 0) : 0}
                     onChange={value =>
@@ -382,11 +382,11 @@ const AssessmentForm = memo(
                       )
                     }
                     style={{ width: '100%' }}
-                    placeholder={t('assessmentForm.options.frequency.0')}
+                    placeholder={t(reportScore.frequency.options[0].text)}
                   >
                     {reportScore.frequency.options.map(option => (
                       <Select.Option key={option.score} value={option.score}>
-                        {option.text} ({option.score})
+                        {t(option.text)} ({option.score})
                       </Select.Option>
                     ))}
                   </Select>
@@ -395,7 +395,7 @@ const AssessmentForm = memo(
 
               <Col span={12}>
                 <div className="space-y-2">
-                  <Text strong>{t('appointmentRecord.impairment')}</Text>
+                  <Text strong>{t(reportScore.impairment.label)}</Text>
                   <Select
                     value={score ? (score.impairmentScore ?? 0) : 0}
                     onChange={value =>
@@ -406,11 +406,11 @@ const AssessmentForm = memo(
                       )
                     }
                     style={{ width: '100%' }}
-                    placeholder={t('assessmentForm.options.impairment.0')}
+                    placeholder={t(reportScore.impairment.options[0].text)}
                   >
                     {reportScore.impairment.options.map(option => (
                       <Select.Option key={option.score} value={option.score}>
-                        {option.text} ({option.score})
+                        {t(option.text)} ({option.score})
                       </Select.Option>
                     ))}
                   </Select>
@@ -419,7 +419,7 @@ const AssessmentForm = memo(
 
               <Col span={12}>
                 <div className="space-y-2">
-                  <Text strong>{t('appointmentRecord.chronicity')}</Text>
+                  <Text strong>{t(reportScore.chronicity.label)}</Text>
                   <Select
                     value={score ? (score.chronicityScore ?? 0) : 0}
                     onChange={value =>
@@ -430,11 +430,11 @@ const AssessmentForm = memo(
                       )
                     }
                     style={{ width: '100%' }}
-                    placeholder={t('assessmentForm.options.chronicity.0')}
+                    placeholder={t(reportScore.chronicity.options[0].text)}
                   >
                     {reportScore.chronicity.options.map(option => (
                       <Select.Option key={option.score} value={option.score}>
-                        {option.text} ({option.score})
+                        {t(option.text)} ({option.score})
                       </Select.Option>
                     ))}
                   </Select>

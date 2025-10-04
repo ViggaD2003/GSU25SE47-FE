@@ -31,13 +31,18 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
   // Calculate engagement metrics
   const engagementMetrics = useMemo(() => {
     if (!statistics) return null
-
+    console.log(statistics)
     // Calculate totals from active + completed
-    const totalSurveys = statistics.activeSurveys + statistics.completedSurveys
+    const totalSurveys = statistics.completedSurveys + statistics.skippedSurveys
     const totalAppointments =
-      statistics.activeAppointments + statistics.completedAppointments
+      statistics.activeAppointments +
+      statistics.completedAppointments +
+      statistics.absentAppointments
+
     const totalPrograms =
-      statistics.activePrograms + statistics.completedPrograms
+      statistics.activePrograms +
+      statistics.completedPrograms +
+      statistics.absentPrograms
 
     const totalAbsent =
       statistics.skippedSurveys +
@@ -107,8 +112,9 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
   }
 
   const getScoreStatus = score => {
-    if (score >= 4) return { color: '#52c41a', icon: <CheckCircleOutlined /> }
-    if (score >= 2.5) return { color: '#faad14', icon: <MinusCircleOutlined /> }
+    if (score < 2.0) return { color: '#52c41a', icon: <CheckCircleOutlined /> }
+    if (score === 2.0)
+      return { color: '#faad14', icon: <MinusCircleOutlined /> }
     return { color: '#ff4d4f', icon: <ExclamationCircleOutlined /> }
   }
 
@@ -117,7 +123,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
   return (
     <div>
       {/* Overall Performance Alert */}
-      {statistics.averageScore < 2.5 && (
+      {statistics.averageScore < 2.0 && (
         <Alert
           message={t('caseManagement.details.statistics.lowPerformanceAlert')}
           description={t(
@@ -154,7 +160,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                 <Statistic
                   title={t('caseManagement.details.statistics.averageScore')}
                   value={statistics.averageScore}
-                  precision={1}
+                  precision={2}
                   prefix={scoreStatus.icon}
                   valueStyle={{ color: scoreStatus.color }}
                 />
@@ -185,7 +191,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
 
         {/* Engagement Breakdown */}
         <Col xs={24} lg={12}>
-          <Card
+          {/* <Card
             title={
               <Space>
                 <TrophyOutlined />
@@ -265,13 +271,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                 />
               </div>
             </Space>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        {/* Detailed Breakdown */}
-        <Col span={24}>
+          </Card> */}
           <Card
             title={
               <Space>
@@ -281,7 +281,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
             }
           >
             <Row gutter={[16, 16]}>
-              <Col xs={24} sm={8}>
+              <Col span={24}>
                 <Card
                   size="small"
                   style={{
@@ -316,7 +316,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                 </Card>
               </Col>
 
-              <Col xs={24} sm={8}>
+              <Col span={24}>
                 <Card
                   size="small"
                   style={{
@@ -351,7 +351,7 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
                 </Card>
               </Col>
 
-              <Col xs={24} sm={8}>
+              <Col span={24}>
                 <Card
                   size="small"
                   style={{
@@ -388,6 +388,11 @@ const CaseStatistics = ({ _caseInfo, statistics }) => {
             </Row>
           </Card>
         </Col>
+      </Row>
+
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        {/* Detailed Breakdown */}
+        <Col span={24}></Col>
       </Row>
     </div>
   )

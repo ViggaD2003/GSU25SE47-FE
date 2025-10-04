@@ -199,7 +199,7 @@ const CaseDetails = () => {
       const absentPrograms = groupedStatic.program?.numOfAbsent || 0
 
       // Calculate totals
-      const totalSurveys = activeSurveys + completedSurveys + skippedSurveys
+      const totalSurveys = completedSurveys + skippedSurveys
       const totalAppointments =
         activeAppointments + completedAppointments + absentAppointments
       const totalPrograms = activePrograms + completedPrograms + absentPrograms
@@ -217,7 +217,7 @@ const CaseDetails = () => {
         completedPrograms,
         absentPrograms,
         totalPrograms,
-        averageScore: Math.round(avgScore * 10) / 10, // Round to 1 decimal place
+        averageScore: avgScore, // Round to 1 decimal place
       }
     } catch (error) {
       console.error('Error calculating statistics:', error)

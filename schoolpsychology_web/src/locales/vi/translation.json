@@ -994,7 +994,8 @@
         "scoreHistory": "Lịch sử điểm",
         "surveys": "Khảo sát",
         "appointments": "Cuộc hẹn",
-        "programs": "Chương trình"
+        "programs": "Chương trình",
+        "upcoming": "Sắp tới"
       },
       "timeline": {
         "title": "Dòng thời gian ca tư vấn",
@@ -2654,6 +2655,52 @@
       "atLeastOneQuestionRequired": "Vui lòng nhập ít nhất 1 câu hỏi",
       "failedToRemoveQuestion": "Lỗi khi xóa câu hỏi. Vui lòng thử lại.",
       "questionTextRequired": "Vui lòng nhập câu hỏi"
+    }
+  },
+  "reportScore": {
+    "severity": {
+      "label": "Mức độ nghiêm trọng của triệu chứng (Severity)",
+      "options": {
+        "0": "Không có triệu chứng",
+        "1": "Rất nhẹ, không ảnh hưởng",
+        "2": "Nhẹ, đôi khi gây khó chịu",
+        "3": "Trung bình, gây khó chịu rõ rệt",
+        "4": "Nặng, ảnh hưởng đáng kể đến sinh hoạt",
+        "5": "Rất nặng, ảnh hưởng nghiêm trọng"
+      }
+    },
+    "frequency": {
+      "label": "Tần suất xuất hiện triệu chứng (Frequency)",
+      "options": {
+        "0": "Không bao giờ hoặc hiếm khi xảy ra",
+        "1": "Thỉnh thoảng (1–2 ngày mỗi tuần)",
+        "2": "Một vài ngày mỗi tuần (2–3 ngày)",
+        "3": "Thường xuyên (4–5 ngày mỗi tuần)",
+        "4": "Gần như mỗi ngày (6–7 ngày mỗi tuần)",
+        "5": "Liên tục suốt ngày, không gián đoạn"
+      }
+    },
+    "impairment": {
+      "label": "Mức độ ảnh hưởng đến chức năng (Impairment)",
+      "options": {
+        "0": "Không ảnh hưởng đến chức năng hay các mối quan hệ",
+        "1": "Ảnh hưởng rất nhẹ, hầu như không nhận thấy",
+        "2": "Ảnh hưởng nhẹ đến học tập hoặc quan hệ xã hội",
+        "3": "Ảnh hưởng rõ rệt đến một số hoạt động hàng ngày",
+        "4": "Ảnh hưởng nghiêm trọng đến hầu hết lĩnh vực",
+        "5": "Gây suy giảm nghiêm trọng hoặc mất chức năng hoàn toàn"
+      }
+    },
+    "chronicity": {
+      "label": "Tính kéo dài của triệu chứng (Chronicity)",
+      "options": {
+        "0": "Triệu chứng không xuất hiện hoặc chỉ mới xuất hiện",
+        "1": "Kéo dài dưới 2 tuần",
+        "2": "Kéo dài 2 tuần đến dưới 2 tháng",
+        "3": "Kéo dài ≥ 2 tháng, có lúc thuyên giảm",
+        "4": "Kéo dài liên tục ≥ 6 tháng, không thuyên giảm",
+        "5": "Kéo dài nhiều năm, ổn định, không cải thiện"
+      }
     }
   }
 }

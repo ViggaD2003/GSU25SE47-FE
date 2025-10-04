@@ -1534,9 +1534,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   chartsSection: {
-    marginBottom: 32,
+    // marginBottom: 32,
   },
-  chartContainer: {},
+  chartContainer: {
+    marginBottom: 16,
+  },
   chartCard: {},
   studentCard: {
     marginBottom: 16,

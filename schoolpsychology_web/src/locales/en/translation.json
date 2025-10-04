@@ -997,7 +997,8 @@
         "scoreHistory": "Score History",
         "surveys": "Surveys",
         "appointments": "Appointments",
-        "programs": "Programs"
+        "programs": "Programs",
+        "upcoming": "Upcoming"
       },
       "timeline": {
         "title": "Case Timeline",
@@ -2615,6 +2616,52 @@
       "atLeastOneQuestionRequired": "At least one question is required",
       "failedToRemoveQuestion": "Failed to remove question. Please try again.",
       "questionTextRequired": "Please enter question text"
+    }
+  },
+  "reportScore": {
+    "severity": {
+      "label": "Severity",
+      "options": {
+        "0": "No symptom",
+        "1": "Very mild, no impact",
+        "2": "Mild, sometimes uncomfortable",
+        "3": "Moderate, noticeable discomfort",
+        "4": "Severe, significant impact on daily activities",
+        "5": "Very severe, serious impact"
+      }
+    },
+    "frequency": {
+      "label": "Frequency",
+      "options": {
+        "0": "Never or rarely",
+        "1": "Occasionally (1–2 days per week)",
+        "2": "A few days per week (2–3 days)",
+        "3": "Frequently (4–5 days per week)",
+        "4": "Almost every day (6–7 days per week)",
+        "5": "Continuous, no interruption"
+      }
+    },
+    "impairment": {
+      "label": "Impairment",
+      "options": {
+        "0": "No impact on function or relationships",
+        "1": "Very mild, hardly noticeable",
+        "2": "Mild impact on learning or social relationships",
+        "3": "Noticeable impact on some daily activities",
+        "4": "Serious impact on most areas",
+        "5": "Severe impact or complete loss of function"
+      }
+    },
+    "chronicity": {
+      "label": "Chronicity",
+      "options": {
+        "0": "No symptom or just started",
+        "1": "Less than 2 weeks",
+        "2": "2 weeks to less than 2 months",
+        "3": "≥ 2 months, sometimes improves",
+        "4": "≥ 6 months, continuous, no improvement",
+        "5": "Long-lasting, stable, no improvement"
+      }
     }
   }
 }

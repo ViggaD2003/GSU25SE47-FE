@@ -49,12 +49,15 @@ const CaseCharts = ({ caseData, statistics }) => {
 
     // Calculate totals from active + completed
     const totalSurveys =
-      (statistics?.activeSurveys || 0) + (statistics?.completedSurveys || 0)
+      (statistics?.completedSurveys || 0) + (statistics?.skippedSurveys || 0)
     const totalAppointments =
       (statistics?.activeAppointments || 0) +
-      (statistics?.completedAppointments || 0)
+      (statistics?.completedAppointments || 0) +
+      (statistics?.absentAppointments || 0)
     const totalPrograms =
-      (statistics?.activePrograms || 0) + (statistics?.completedPrograms || 0)
+      (statistics?.activePrograms || 0) +
+      (statistics?.completedPrograms || 0) +
+      (statistics?.absentPrograms || 0)
 
     // Combine all data points and sort by date
     const allDataPoints = [
@@ -110,39 +113,39 @@ const CaseCharts = ({ caseData, statistics }) => {
     }
 
     // Prepare score comparison by type
-    const avgScoreByType = {
-      labels: [
-        t('caseManagement.details.charts.surveys'),
-        t('caseManagement.details.charts.appointments'),
-        t('caseManagement.details.charts.programs'),
-      ],
-      datasets: [
-        {
-          label: t('caseManagement.details.charts.averageScore'),
-          data: [
-            survey.dataSet.length > 0
-              ? survey.dataSet.reduce((sum, item) => sum + item.score, 0) /
-                survey.dataSet.length
-              : 0,
-            appointment.dataSet.length > 0
-              ? appointment.dataSet.reduce((sum, item) => sum + item.score, 0) /
-                appointment.dataSet.length
-              : 0,
-            program.dataSet.length > 0
-              ? program.dataSet.reduce((sum, item) => sum + item.score, 0) /
-                program.dataSet.length
-              : 0,
-          ],
-          backgroundColor: [
-            'rgba(82, 196, 26, 0.8)',
-            'rgba(24, 144, 255, 0.8)',
-            'rgba(114, 46, 209, 0.8)',
-          ],
-          borderColor: ['#52c41a', '#1890ff', '#722ed1'],
-          borderWidth: 2,
-        },
-      ],
-    }
+    // const avgScoreByType = {
+    //   labels: [
+    //     t('caseManagement.details.charts.surveys'),
+    //     t('caseManagement.details.charts.appointments'),
+    //     t('caseManagement.details.charts.programs'),
+    //   ],
+    //   datasets: [
+    //     {
+    //       label: t('caseManagement.details.charts.averageScore'),
+    //       data: [
+    //         survey.dataSet.length > 0
+    //           ? survey.dataSet.reduce((sum, item) => sum + item.score, 0) /
+    //             survey.dataSet.length
+    //           : 0,
+    //         appointment.dataSet.length > 0
+    //           ? appointment.dataSet.reduce((sum, item) => sum + item.score, 0) /
+    //             appointment.dataSet.length
+    //           : 0,
+    //         program.dataSet.length > 0
+    //           ? program.dataSet.reduce((sum, item) => sum + item.score, 0) /
+    //             program.dataSet.length
+    //           : 0,
+    //       ],
+    //       backgroundColor: [
+    //         'rgba(82, 196, 26, 0.8)',
+    //         'rgba(24, 144, 255, 0.8)',
+    //         'rgba(114, 46, 209, 0.8)',
+    //       ],
+    //       borderColor: ['#52c41a', '#1890ff', '#722ed1'],
+    //       borderWidth: 2,
+    //     },
+    //   ],
+    // }
 
     // Prepare engagement trends
     const engagementData = {
@@ -152,6 +155,17 @@ const CaseCharts = ({ caseData, statistics }) => {
         t('caseManagement.details.charts.programs'),
       ],
       datasets: [
+        {
+          label: t('caseManagement.details.charts.upcoming'),
+          data: [
+            0,
+            statistics?.activeAppointments || 0,
+            statistics?.activePrograms || 0,
+          ],
+          backgroundColor: '#1890ff',
+          borderColor: '#1890ff',
+          borderWidth: 2,
+        },
         {
           label: t('caseManagement.details.charts.completed'),
           data: [
@@ -180,7 +194,7 @@ const CaseCharts = ({ caseData, statistics }) => {
     return {
       scoreTrend: scoreTrendData,
       activityDistribution,
-      scoreComparison: avgScoreByType,
+      // scoreComparison: avgScoreByType,
       engagement: engagementData,
       dataPoints: allDataPoints,
       totalSurveys,
@@ -308,49 +322,7 @@ const CaseCharts = ({ caseData, statistics }) => {
           </Card>
         </Col>
 
-        {/* Score Comparison Bar Chart */}
         <Col xs={24} lg={12}>
-          <Card
-            title={
-              <Space>
-                <BarChartOutlined />
-                {t('caseManagement.details.charts.scoreComparison')}
-              </Space>
-            }
-          >
-            <div style={{ height: 300 }}>
-              <Bar
-                data={chartData.scoreComparison}
-                options={{
-                  ...chartOptions,
-                  plugins: {
-                    ...chartOptions.plugins,
-                    legend: {
-                      display: false,
-                    },
-                  },
-                }}
-              />
-            </div>
-            <div
-              style={{
-                marginTop: 16,
-                padding: '12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: 6,
-              }}
-            >
-              <Text type="secondary">
-                {t('caseManagement.details.charts.scoreComparisonDescription')}
-              </Text>
-            </div>
-          </Card>
-        </Col>
-      </Row>
-
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        {/* Engagement Chart */}
-        <Col span={24}>
           <Card
             title={
               <Space>
@@ -439,6 +411,45 @@ const CaseCharts = ({ caseData, statistics }) => {
             </div> */}
           </Card>
         </Col>
+
+        {/* Score Comparison Bar Chart */}
+        {/* <Col xs={24} lg={12}>
+          <Card
+            title={
+              <Space>
+                <BarChartOutlined />
+                {t('caseManagement.details.charts.scoreComparison')}
+              </Space>
+            }
+          >
+            <div style={{ height: 300 }}>
+              <Bar
+                data={chartData.scoreComparison}
+                options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    legend: {
+                      display: false,
+                    },
+                  },
+                }}
+              />
+            </div>
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px',
+                backgroundColor: '#f0f2f5',
+                borderRadius: 6,
+              }}
+            >
+              <Text type="secondary">
+                {t('caseManagement.details.charts.scoreComparisonDescription')}
+              </Text>
+            </div>
+          </Card>
+        </Col> */}
       </Row>
     </div>
   )

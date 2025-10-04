@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import { GlobalStyles } from "../../constants";
 
@@ -69,15 +69,30 @@ const ReusableBarChart = ({
   };
 
   return (
-    <View style={[styles.container, { height: height + 80 }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          height: chartData.labels.length > 4 ? height + 200 : height + 100,
+        },
+      ]}
+    >
       <Text style={styles.title}>{title}</Text>
-      <View style={styles.chartContainer}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingRight: 10 }}
+      >
         <BarChart
           data={chartData}
-          width={screenWidth - 80}
-          height={height}
+          width={
+            chartData.labels.length > 4
+              ? Math.max(screenWidth, chartData.labels.length * 100)
+              : screenWidth
+          } // auto rộng theo số lượng label
+          height={chartData.labels.length > 4 ? height + 100 : height}
           chartConfig={chartConfig}
-          verticalLabelRotation={0}
+          verticalLabelRotation={chartData.labels.length > 4 ? 40 : 0}
           showBarTops={true}
           fromZero={true}
           segments={5}
@@ -93,7 +108,7 @@ const ReusableBarChart = ({
           yLabelsOffset={10}
           xLabelsOffset={-10}
         />
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -138,6 +153,7 @@ const styles = StyleSheet.create({
   chartContainer: {
     alignItems: "center",
     justifyContent: "center",
+    paddingBottom: 50,
   },
   emptyContainer: {
     flex: 1,
