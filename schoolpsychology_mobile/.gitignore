@@ -36,6 +36,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# expo
+.expo/
+*/.expo/
 
 # ngrok
 ngrok-urls.txt
@@ -44,5 +47,3 @@ expo-ngrok.bat
 expo-ngrok.log
 expo-qr.png
 
-.expo/
-*/.expo/
