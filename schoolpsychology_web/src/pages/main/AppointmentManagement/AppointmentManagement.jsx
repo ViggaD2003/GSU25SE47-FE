@@ -510,10 +510,10 @@ const AppointmentManagement = () => {
         key: 'status',
         render: status => <MemoizedStatusBadge status={status} t={t} />,
         filters: [
-          {
-            text: t('appointment.status.pending'),
-            value: APPOINTMENT_STATUS.PENDING,
-          },
+          // {
+          //   text: t('appointment.status.pending'),
+          //   value: APPOINTMENT_STATUS.,
+          // },
           {
             text: t('appointment.status.confirmed'),
             value: APPOINTMENT_STATUS.CONFIRMED,
@@ -616,7 +616,7 @@ const AppointmentManagement = () => {
         title: t('appointmentRecord.sessionFlowTitle'),
         dataIndex: 'sessionFlow',
         key: 'sessionFlow',
-        render: sessionFlow => {
+        render: (sessionFlow, record) => {
           const config = {
             [SESSION_FLOW.GOOD]: {
               color: 'green',
@@ -626,7 +626,7 @@ const AppointmentManagement = () => {
               color: 'orange',
               text: t('appointmentRecord.sessionFlow.average', 'Average'),
             },
-            [SESSION_FLOW.POOR]: {
+            [SESSION_FLOW.LOW]: {
               color: 'red',
               text: t('appointmentRecord.sessionFlow.poor', 'Poor'),
             },
@@ -636,7 +636,11 @@ const AppointmentManagement = () => {
             },
           }
           const flow = config[sessionFlow] || config[SESSION_FLOW.UNKNOWN]
-          return <Tag color={flow.color}>{flow.text}</Tag>
+          return !['ABSENT', 'CANCELED'].includes(record.status) ? (
+            <Tag color={flow.color}>{flow.text}</Tag>
+          ) : (
+            '-'
+          )
         },
         filters: [
           {
@@ -649,7 +653,7 @@ const AppointmentManagement = () => {
           },
           {
             text: t('appointmentRecord.sessionFlow.poor', 'Poor'),
-            value: SESSION_FLOW.POOR,
+            value: SESSION_FLOW.LOW,
           },
         ],
         onFilter: (value, record) => record.sessionFlow === value,
@@ -658,11 +662,11 @@ const AppointmentManagement = () => {
         title: t('appointmentRecord.cooperationLevelTitle'),
         dataIndex: 'studentCoopLevel',
         key: 'studentCoopLevel',
-        render: level => {
+        render: (level, record) => {
           const config = {
-            [STUDENT_COOP_LEVEL.HIGH]: {
+            [STUDENT_COOP_LEVEL.GOOD]: {
               color: 'green',
-              text: t('appointmentRecord.cooperationLevel.high', 'High'),
+              text: t('appointmentRecord.cooperationLevel.high', 'Good'),
             },
             [STUDENT_COOP_LEVEL.MEDIUM]: {
               color: 'orange',
@@ -678,12 +682,16 @@ const AppointmentManagement = () => {
             },
           }
           const coop = config[level] || config[STUDENT_COOP_LEVEL.UNKNOWN]
-          return <Tag color={coop.color}>{coop.text}</Tag>
+          return !['ABSENT', 'CANCELED'].includes(record.status) ? (
+            <Tag color={coop.color}>{coop.text}</Tag>
+          ) : (
+            '-'
+          )
         },
         filters: [
           {
-            text: t('appointmentRecord.cooperationLevel.high', 'High'),
-            value: STUDENT_COOP_LEVEL.HIGH,
+            text: t('appointmentRecord.cooperationLevel.high', 'Good'),
+            value: STUDENT_COOP_LEVEL.GOOD,
           },
           {
             text: t('appointmentRecord.cooperationLevel.medium', 'Medium'),
@@ -717,7 +725,6 @@ const AppointmentManagement = () => {
         ],
         onFilter: (value, record) => record.status === value,
       },
-
       {
         key: 'actions',
         width: 80,

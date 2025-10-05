@@ -73,6 +73,7 @@ export const SESSION_FLOW = {
   GOOD: 'GOOD',
   AVERAGE: 'AVERAGE',
   LOW: 'LOW',
+  POOR: 'POOR',
   UNKNOWN: 'UNKNOWN',
 }
 
